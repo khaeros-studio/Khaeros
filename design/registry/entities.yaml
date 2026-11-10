@@ -54,7 +54,7 @@
 #   in any other shape is reported as unsupported layout, with its number.
 
 version: 1
-last_updated: ""
+last_updated: "2026-11-09"
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
 # Named game-world objects: enemies, NPCs, characters, factions, bosses.
@@ -123,7 +123,133 @@ items: []
 #   output_range[min, max], added
 # Optional: expression (the actual formula), notes
 
-formulas: []
+formulas:
+  - name: duration_to_steps
+    status: active
+    source: design/gdd/conteudo-orientado-a-dados.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/conteudo-orientado-a-dados.md
+      - design/gdd/movimento-e-esquiva.md   # D, E, R da esquiva (F2–F4)
+      - design/gdd/modificadores-e-atributos.md   # duração de modificador em passos inteiros, R3/R6
+    variables:
+      - t_s
+      - tick_rate
+    output_range: [0, 1000000]
+    expression: "max(1, round(t_s * tick_rate)) se t_s > 0; 0 se t_s = 0 e o campo aceita zero"
+    notes: "F7. Toda duração em segundos vira passos de física por esta fórmula, uma vez, no fim. Empate x,5 arredonda para longe do zero."
+    added: 2026-11-05
+    revised: ""
+  - name: linear_curve
+    status: active
+    source: design/gdd/conteudo-orientado-a-dados.md
+    referenced_by:
+      - design/gdd/conteudo-orientado-a-dados.md
+    variables:
+      - x
+      - x_min
+      - base
+      - slope
+      - y_floor
+      - y_cap
+    output_range: [0, 1000000]
+    expression: "0 se x < x_min; senão clamp(base + slope * x, y_floor, y_cap)"
+    notes: "F8 (LinearCurveDef). Curva padrão de uma variável para os GDDs donos (ex.: chance de elite). Sem teto: campo sem_teto = true."
+    added: 2026-11-05
+    revised: ""
+  - name: mulberry32_step
+    status: active
+    source: design/gdd/rng-com-seed.md
+    referenced_by:
+      - design/gdd/rng-com-seed.md
+    variables:
+      - s
+    output_range: [0, 4294967295]
+    expression: "s' = (s + 0x6D2B79F5) & M; t = imul(s' ^ (s' >> 15), s' | 1); t = t ^ ((t + imul(t ^ (t >> 7), t | 61)) & M); u = (t ^ (t >> 14)) & M"
+    notes: "F1 do RNG. Gerador único do jogo (mulberry32, paridade com o cânone action-core math.ts). Vetores de referência verificados em Python, Godot 4.7.2 e Node."
+    added: 2026-11-05
+    revised: ""
+  - name: stream_state
+    status: active
+    source: design/gdd/rng-com-seed.md
+    referenced_by:
+      - design/gdd/rng-com-seed.md
+    variables:
+      - seed
+      - finalidade
+      - regiao
+      - profundidade
+    output_range: [0, 4294967295]
+    expression: "mix(mix(mix(fmix32((seed + 0x9E3779B9) & M), finalidade), regiao), profundidade); mix(h, x) = fmix32(((h ^ x) + 0x9E3779B9) & M)"
+    notes: "F2 do RNG. Estado inicial de cada fluxo; finalidades 1-8 na tabela R3 do RNG (1-6 e 8 = estrutura). Mudar uma constante muda todas as seeds."
+    added: 2026-11-05
+    revised: ""
+  - name: derived_value
+    status: active
+    source: design/gdd/modificadores-e-atributos.md
+    referenced_by:
+      - design/gdd/modificadores-e-atributos.md
+      - design/gdd/movimento-e-esquiva.md   # valor(velocidade), valor(cargas_esquiva)
+    variables:
+      - base
+      - soma_planos
+      - soma_percentuais
+      - produto_multiplicadores
+      - piso
+      - teto
+    output_range: [0, 1000000]
+    # expressão anterior (2026-11-05) não tinha max(0, ...): dois termos negativos davam positivo
+    expression: "clamp(max(0, base + soma_planos) * max(0, 1 + soma_percentuais) * produto_multiplicadores, piso, teto); atributos inteiros: round no fim"
+    notes: "F1 de Modificadores. Piso aplicado só no fim (independe da ordem). Atributos de dano não passam por aqui (ver hit_damage_multiplier)."
+    added: 2026-11-05
+    revised: 2026-11-06
+  - name: hit_damage_multiplier
+    status: active
+    source: design/gdd/modificadores-e-atributos.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/modificadores-e-atributos.md
+      - design/gdd/movimento-e-esquiva.md   # M do Corte da esquiva, sem condicionais (F6)
+    variables:
+      - p_todo
+      - p_slot
+      - multiplicadores_aplicaveis
+    output_range: [0, 1000000]
+    expression: "max(0, 1 + p_todo + p_slot) * produto(multiplicadores de dano_todo aplicaveis: incondicionais (elite, Abalo) e condicionais verdadeiros (4o acerto, pos-esquiva))"
+    notes: "F2 de Modificadores. Percentuais de dano somam num grupo (paridade com damageMultiplier do cânone); 4º acerto, pós-esquiva e Abalo multiplicam. Sem teto por ora."
+    added: 2026-11-05
+    revised: 2026-11-06
+  - name: damage_taken
+    status: active
+    source: design/gdd/modificadores-e-atributos.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/modificadores-e-atributos.md
+    variables:
+      - bruto
+      - reducao
+      - teto_red
+      - guarda
+    output_range: [1, 1000000]
+    expression: "max(1, round(bruto * (1 - min(teto_red, max(0, reducao))) * guarda))"
+    notes: "F3 de Modificadores. Dano recebido inteiro, antes do escudo. Guarda (x0,5) é regra do Combate."
+    added: 2026-11-05
+    revised: ""
+  - name: dash_cut_damage
+    status: active
+    source: design/gdd/movimento-e-esquiva.md
+    referenced_by:
+      - design/gdd/movimento-e-esquiva.md
+    variables:
+      - total_gatilho
+      - p_todo
+      - p_ataque
+      - multiplicadores_incondicionais
+    output_range: [0, 1000000]
+    expression: "total_gatilho * max(0, 1 + p_todo + p_ataque) * produto(multiplicadores incondicionais do portador)"
+    notes: "F6 de Movimento e esquiva. Corte da esquiva (gatilho corte_da_esquiva): o Movimento calcula pelo portador e o Combate aplica. Sem apos_esquiva nem enesimo_acerto (Modificadores R12). Uma vez por inimigo por esquiva; teto opcional alvos_max_corte (vazio = sem teto, D-W6)."
+    added: 2026-11-08
+    revised: ""
 
 # Example:
 #
@@ -156,7 +282,449 @@ formulas: []
 #
 # Required fields: name, status, source, referenced_by, value, unit, added
 
-constants: []
+  - name: weapon_hit_damage
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    variables:
+      - dano
+      - combo
+      - passo_combo
+      - m_sem
+      - m_com
+      - contador_acertos
+      - a_cada
+    output_range: [0, 1000000]
+    expression: "AttackDef.dano * combo[passo_combo mod n] * (quarto ? M_com : M_sem)"
+    notes: "F1 do Combate. Combo por slot; M avaliado no disparo (M_sem sem enesimo_acerto, M_com com); quarto acerto decidido por alvo no impacto, contador +1 antes do teste."
+    added: 2026-11-09
+    revised: ""
+  - name: attack_recovery
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    variables:
+      - recarga_passos
+      - fator_recuperacao_golpe
+      - recuperacao_max_passos
+    output_range: [0, 30]
+    expression: "forma == avanco ? 0 : min(recuperacao_max_passos, round(recarga_passos * fator_recuperacao_golpe))"
+    notes: "F2 do Combate. Recarga base do AttackDef; o jogador anda lento rec - 1 passos (desconto antes do Movimento)."
+    added: 2026-11-09
+    revised: ""
+  - name: finisher_knockback
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    variables:
+      - combo_mult
+      - limiar_finalizador
+      - empurrao
+      - empurrao_pesado
+      - fator_empurrao
+    output_range: [0, 100000]
+    expression: "(c > limiar ? max(empurrao * c, empurrao_pesado) : empurrao) * fator_empurrao_alvo"
+    notes: "F3 do Combate. Golpe pesado = finalizador, quarto acerto ou empurrão de entrada >= empurrao_pesado (antes do fator do alvo)."
+    added: 2026-11-09
+    revised: ""
+  - name: knockback_travel
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    variables:
+      - v0
+      - queda_empurrao
+      - empurrao_zero
+    output_range: [0, 100000]
+    expression: "n = max(1, floor(ln(z/v0)/ln(q)) + 1); dist = (v0/60) * (1 - q^n) / (1 - q)"
+    notes: "F7 do Combate. Empurrão cumulativo (soma vetorial), anda v/60, depois v *= q, zera abaixo de z. dist < v0 / (60 * (1 - q))."
+    added: 2026-11-09
+    revised: ""
+  - name: wall_slam
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    variables:
+      - v_antes
+      - parede_vel_min
+      - parede_dano
+      - m_parede
+    output_range: [0, 1000000]
+    expression: "corrigida && v_antes >= parede_vel_min ? parede_dano * M_parede : 0"
+    notes: "F8 do Combate. Corrigida = parede ou obstáculo (não a separação entre inimigos). M grupo Ataque, sem apos_esquiva nem quarto acerto; hitstop leve; empurrão zera."
+    added: 2026-11-09
+    revised: ""
+  - name: hitstop_total
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    variables:
+      - pedidos_do_passo
+    output_range: [0, 90]
+    expression: "h = max(pedidos do passo); congelado = soma de h"
+    notes: "F9 do Combate. Vale o maior (cânone; fecha D-N1 do cross-review 06b). Congela a partir do passo seguinte; contador sem time_scale (Cena R7)."
+    added: 2026-11-09
+    revised: ""
+  - name: weapon_dps_ref
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    variables:
+      - dano
+      - combo
+      - recarga_passos
+      - janela_combo
+      - m
+      - hitstops
+    output_range: [0, 100000]
+    expression: "DPS_real = dano * M * soma(combo) * 60 / (n * R + soma(h_i))"
+    notes: "F11 do Combate. Referência de balanceamento: Corte com combo 53,2/s real, Pulso 51,4/s."
+    added: 2026-11-09
+    revised: ""
+
+constants:
+  - name: tick_rate
+    status: active
+    source: design/gdd/conteudo-orientado-a-dados.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/conteudo-orientado-a-dados.md
+      - design/gdd/rng-com-seed.md   # nenhum sorteio por tempo/quadro
+      - design/gdd/movimento-e-esquiva.md   # passos vivos da esquiva e da recarga
+      - design/gdd/input-e-controle.md   # amostragem uma vez por passo (60/s), R2
+      - design/gdd/cena-3-4-e-camera.md   # hitstop como contador de passos a 60/s, R7
+    value: 60
+    unit: passos de física por segundo
+    added: 2026-11-05
+    revised: ""
+  - name: unit_to_px
+    status: active
+    source: design/gdd/conteudo-orientado-a-dados.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/conteudo-orientado-a-dados.md
+      - design/gdd/cena-3-4-e-camera.md   # viewport lógico 1920x1080 (Art Bible 8.6)
+      - design/gdd/input-e-controle.md   # raio da mira automática 900 unidades = 1350 px
+      - design/gdd/movimento-e-esquiva.md   # PLAYER_RADIUS 18 u = 27 px; DASH_SPEED 15 u/tick = 1350 px/s
+    # era 1.0 ("resolução base 1280x720"); mudado por design/gdd/cena-3-4-e-camera.md em 2026-11-05
+    value: 1.5
+    unit: px de mundo por unidade canônica (viewport lógico 1920x1080)
+    added: 2026-11-05
+    revised: 2026-11-05
+  - name: input_buffer_steps
+    status: active
+    source: design/gdd/input-e-controle.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/input-e-controle.md
+      - design/gdd/movimento-e-esquiva.md   # esquiva só no buffer; sem carga, espera o prazo
+    value: 10
+    unit: passos de física (prazo do buffer de comandos; não desconta no hitstop)
+    added: 2026-11-05
+    revised: ""
+  - name: damage_reduction_cap
+    status: active
+    source: design/gdd/modificadores-e-atributos.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/modificadores-e-atributos.md
+    value: 0.6
+    unit: fração máxima de redução de dano (teto do atributo reducao_dano)
+    added: 2026-11-05
+    revised: ""
+  - name: player_min_max_hp
+    status: active
+    source: design/gdd/modificadores-e-atributos.md
+    referenced_by:
+      - design/gdd/modificadores-e-atributos.md
+    value: 20
+    unit: Vida máxima mínima do jogador (inimigos têm piso 1)
+    added: 2026-11-05
+    revised: ""
+  - name: player_radius_px
+    status: active
+    source: design/gdd/movimento-e-esquiva.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/movimento-e-esquiva.md
+      - design/gdd/cena-3-4-e-camera.md   # F1 e AC-07: raio 18 do cânone vira 27 px
+    value: 27
+    unit: px de mundo (raio do círculo do jogador; hurtbox, colisão, alcance do Corte; faixa 10–50 pelo vão de 105 px entre obstáculos)
+    added: 2026-11-08
+    revised: ""
+  - name: dash_invuln_steps
+    status: active
+    source: design/gdd/movimento-e-esquiva.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/movimento-e-esquiva.md
+    value: 12
+    unit: passos de física (9 da esquiva + 3 extras; pedido garantir_invulneravel = max ao Combate)
+    added: 2026-11-08
+    revised: ""
+  - name: fator_empurrao_chefe
+    status: active
+    source: design/gdd/modificadores-e-atributos.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/modificadores-e-atributos.md
+      - design/gdd/conteudo-orientado-a-dados.md   # Edge Cases: cambaleio do chefe, fonte chefe (R10)
+    value: 0.12
+    unit: multiplicador de fator_empurrao da fonte chefe (ModifiersTuning; cânone engine.ts:583)
+    added: 2026-11-08
+    revised: ""
+  - name: hitstop_light_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 3
+    unit: passos (hitstop_leve_s 0,05; golpe leve com alvo, 2º alvo da investida, parede)
+    added: 2026-11-09
+    revised: ""
+  - name: hitstop_heavy_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 6
+    unit: passos (hitstop_pesado_s 0,1; golpe pesado ou Especial com alvo, 1º alvo da investida, abate de elite)
+    added: 2026-11-09
+    revised: ""
+  - name: hitstop_kill_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 4
+    unit: passos (hitstop_abate_s 0,0667; abate de inimigo comum)
+    added: 2026-11-09
+    revised: ""
+  - name: hitstop_hurt_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 6
+    unit: passos (hitstop_atingido_s 0,1; jogador atingido)
+    added: 2026-11-09
+    revised: ""
+  - name: hitstop_death_defiance_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 18
+    unit: passos (hitstop_recusa_s 0,3; recusa de morte; divergência do cânone, que usava 6)
+    added: 2026-11-09
+    revised: ""
+  - name: hitstop_boss_kill_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 36
+    unit: passos (hitstop_abate_chefe_s 0,6; abate de chefe)
+    added: 2026-11-09
+    revised: ""
+  - name: heavy_knockback_pxs
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 900
+    unit: px/s (empurrao_pesado; cânone HEAVY_KNOCKBACK 10 u/passo)
+    added: 2026-11-09
+    revised: ""
+  - name: finisher_threshold
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 1.2
+    unit: multiplicador de combo, comparação > estrita (limiar_finalizador)
+    added: 2026-11-09
+    revised: ""
+  - name: combo_window_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 34
+    unit: passos (janela_combo_s 0,5667; uma janela por slot)
+    added: 2026-11-09
+    revised: ""
+  - name: attack_recovery_max_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 12
+    unit: passos (recuperacao_max_s 0,2)
+    added: 2026-11-09
+    revised: ""
+  - name: knockback_decay_per_step
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 0.78
+    unit: fator por passo vivo (queda_empurrao)
+    added: 2026-11-09
+    revised: ""
+  - name: knockback_zero_pxs
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 4.5
+    unit: px/s (empurrao_zero; abaixo disso o empurrão zera)
+    added: 2026-11-09
+    revised: ""
+  - name: wall_slam_speed_pxs
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 630
+    unit: px/s (parede_vel_min; cânone WALL_SLAM_SPEED 7 u/passo)
+    added: 2026-11-09
+    revised: ""
+  - name: wall_slam_damage
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 8
+    unit: Vida antes de M (parede_dano; grupo Ataque)
+    added: 2026-11-09
+    revised: ""
+  - name: hurt_invuln_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 40
+    unit: passos (invuln_atingido_s 0,6667; invulnerabilidade depois de ser atingido)
+    added: 2026-11-09
+    revised: ""
+  - name: stagger_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 8
+    unit: passos (cambaleio_s 0,1333)
+    added: 2026-11-09
+    revised: ""
+  - name: stagger_move_factor
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 0.4
+    unit: multiplicador da velocidade da IA enquanto cambaleia (fator_cambaleio)
+    added: 2026-11-09
+    revised: ""
+  - name: break_recovery_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 24
+    unit: passos (quebrou_recuperacao_s 0,4; recuperação do inimigo depois do Quebrou!)
+    added: 2026-11-09
+    revised: ""
+  - name: death_sweep_passes
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 4
+    unit: passes por passo vivo (passes_varredura)
+    added: 2026-11-09
+    revised: ""
+  - name: lunge_invuln_extra_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 2
+    unit: passos (invuln_extra_investida_s 0,0333; garantir_invulneravel(N + 2))
+    added: 2026-11-09
+    revised: ""
+  - name: melee_step_px
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 10.5
+    unit: px (passo_apoio_px; deslocar(mira * 10,5) depois do teste de acerto do arco; cânone MELEE_STEP 7 u)
+    added: 2026-11-09
+    revised: ""
+  - name: projectile_spawn_offset_px
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 36
+    unit: px (nascimento_projetil_px; 24 u)
+    added: 2026-11-09
+    revised: ""
+  - name: guard_damage_factor
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/modificadores-e-atributos.md
+    value: 0.5
+    unit: multiplicador do dano recebido com a guarda ativa (fator_guarda; citado pela F3 do Modificadores)
+    added: 2026-11-09
+    revised: ""
+  - name: contact_slack_px
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 6
+    unit: px (folga_encostado_px; anel de encostado do arco = r_inimigo + raio_jogador + 6)
+    added: 2026-11-09
+    revised: ""
+  - name: attack_recovery_factor
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/movimento-e-esquiva.md
+    value: 0.5
+    unit: fração da recarga base que vira recuperação (fator_recuperacao_golpe)
+    added: 2026-11-09
+    revised: ""
+  - name: projectile_fan_step_deg
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 12
+    unit: graus (giro_leque_graus; índice k gira 12 × ceil(k/2))
+    added: 2026-11-09
+    revised: ""
+  - name: projectile_obstacle_radius_factor
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 0.5
+    unit: fator do raio do projétil contra obstáculo (fator_raio_obstaculo_projetil)
+    added: 2026-11-09
+    revised: ""
 
 # Example:
 #

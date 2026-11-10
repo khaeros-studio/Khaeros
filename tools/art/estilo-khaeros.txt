@@ -1,0 +1,7 @@
+STYLE (Khaeros, from the approved Art Bible; keep consistent across every image):
+- Hand-drawn 2D comic illustration with heavy black ink linework and solid black ink masses (inspired by graphic-novel inking), NOT pixel art, NOT 3D render, NOT isometric diorama.
+- Flat cel shading with 2-3 tones per surface and at most one hatching zone on the shadow side. Clean closed silhouette, readable at 90 px tall.
+- Muted, cold palette: ink black #0D0E14, slate #343C4A, mist blue-grey #6F8494, bone #E6DFCF. Saturation and brightness are reserved for danger (flux magenta #E0259C) and for choices/consecration (rite gold #E3B23C). Use them only when the subject calls for it.
+- No text, no letters, no logos, no watermark, no frame, no UI unless explicitly asked.
+- For characters, enemies and props meant to be cut out: a single flat pure green background (#00FF00), no ground shadow, no gradient, the whole subject fully inside the frame with a small margin.
+- Original fantasy setting (the world of Khaeros). Do not imitate any existing game, franchise or character.
