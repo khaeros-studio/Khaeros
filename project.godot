@@ -1,0 +1,14 @@
+; Engine configuration file.
+; Created by /setup-engine on 2026-11-05. run/main_scene is left unset on
+; purpose: /dev-story or the developer sets it once the first scene exists.
+
+config_version=5
+
+[application]
+
+config/name="Khaeros"
+config/features=PackedStringArray("4.7", "Forward Plus")
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
