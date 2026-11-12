@@ -181,3 +181,6 @@ tools/art/.gemini-key
 .env
 .env.local
 tools/art/gemini-key.txt
+
+# === Godot ===
+.godot/
