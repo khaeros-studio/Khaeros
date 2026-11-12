@@ -5,6 +5,10 @@
 > **Last Updated**: 2026-11-05
 > **Last Verified**: 2026-11-05
 > **Implements Pillar**: P3 *Reflexo que se lê* (indireto: bugs e playtests reproduzíveis); P1/P2 (sorteios justos de bênção e porta)
+
+> **Nota (2026-11-12, Run e regiões):** o gatilho "voltar ao Campus" vale também para `nova_run` (Encerrada → Escolha de arma; descarta a seed e os fluxos; a seed nasce ao confirmar a arma): aplicado em States and Transitions. R2 (sorteio ao confirmar a arma) e a linha "Sem run" também aplicados em 2026-11-12; a R7 já diz que o estado inicial inclui a arma.
+
+> **Nota (2026-11-11, Bênçãos):** a Bênçãos usa o F7 por oferta (e por troca) com consumo fixo de 3 reais em `bencaos` e 3 em `raridade`, descartando `3 − min(3, n)` reais; chave (região, índice da câmara).
 > **Creative Director Review (CD-GDD-ALIGN)**: pulada (modo Lean)
 
 ## Summary
@@ -77,7 +81,7 @@ entropia permitido fora dele é a função que cria a run (R2).
 **R2. Seed da run.**
 
 - É um inteiro de 32 bits sem sinal (0 a 4.294.967.295); 0 é válido.
-- Num build normal, ela é sorteada ao criar a run, a partir da entropia do
+- Num build normal, ela é sorteada ao criar a run (ao confirmar a arma na Escolha de arma), a partir da entropia do
   sistema. Esse é o único uso permitido do gerador global.
 - Num build de debug, pode ser informada: argumento `--seed=3F9A07C2` na linha
   de comando ou campo no menu de debug.
@@ -192,9 +196,9 @@ partirem de um valor de u fixo.
 
 | Estado | Significado | Entra quando | Sai para |
 |---|---|---|---|
-| Sem run | Menu/Campus: não há seed; pedir um fluxo é erro | O jogo abre, ou a run termina | Run ativa |
+| Sem run | Menu/Campus ou Escolha de arma: não há seed; pedir um fluxo é erro | O jogo abre, ou a run termina | Run ativa |
 | Run ativa | Seed fixada; fluxos derivados sob demanda | A run é criada (seed sorteada ou informada) | Encerrada |
-| Encerrada | A seed fica legível para a tela final e a telemetria; qualquer pedido de fluxo, novo ou já aberto, é erro | Morte, vitória ou abandono | Sem run (ao voltar ao Campus) |
+| Encerrada | A seed fica legível para a tela final e a telemetria; qualquer pedido de fluxo, novo ou já aberto, é erro | Morte, vitória ou abandono | Sem run (ao voltar ao Campus) ou, por `nova_run`, **Escolha de arma** (sem run nem seed ainda; a seed nasce **ao confirmar a arma**, quando a run é criada, porque o estado inicial inclui a arma; Run R1/R2/R8) |
 
 Em **Sem run**, ler a seed devolve "sem seed".
 
@@ -284,7 +288,7 @@ com `mix(h, x) = fmix32(((h ^ x) + G) & M)` e
 | seed | int | 0–2³²−1 | calculated (R2) | seed da run |
 | finalidade | int | 1–8 | constant (tabela R3) | id da finalidade |
 | região | int | 0–255 | calculated | índice da região na run |
-| profundidade | int | 0–1023 | calculated | número da câmara na run, a partir de 0 |
+| profundidade | int | 0–1023 | calculated | índice da câmara na região, a partir de 0, santuário e chefe incluídos (no MVP, com uma região, igual ao número da câmara na run); o `p` das Câmaras é outra coisa |
 | s0 | int | 0–2³²−1 | calculated | estado inicial do fluxo |
 
 **Output Range:** [0, 2³²−1]; todo valor, inclusive 0, é estado válido. O

@@ -1,11 +1,15 @@
 # Conteúdo orientado a dados
 
-> **Status**: Approved (2026-11-10: o empurrão do projétil da arma passa a ser o do `AttackDef` (Armas R2), com aval do usuário, sem mudar regra; 4ª re-review independente de 2026-11-06, lean: APPROVED; C-B1 e S-B1 do `/review-all-gdds` resolvidos; warnings da 2ª passada do cross-review aplicados em 2026-11-06 — AC-39 por token inteiro, params da `recusa`, retirada do Tuning ao sair de Pronto — com o status mantido por decisão do usuário)
+> **Status**: Approved (2026-11-11: `RewardTable` com os campos de Portas e recompensas (cura do Santuário passa ao `RoomTuning`); `RoomTuning` na R1 e em Interactions, do GDD de Câmaras; `IATuning` e o máximo de elites por onda na R1 e em Interactions, do GDD de IA; `TelegraphTuning` na R1 e em Interactions, do GDD de Telégrafos; 2026-11-10: o empurrão do projétil da arma passa a ser o do `AttackDef` (Armas R2), com aval do usuário, sem mudar regra; 4ª re-review independente de 2026-11-06, lean: APPROVED; C-B1 e S-B1 do `/review-all-gdds` resolvidos; warnings da 2ª passada do cross-review aplicados em 2026-11-06 — AC-39 por token inteiro, params da `recusa`, retirada do Tuning ao sair de Pronto — com o status mantido por decisão do usuário)
 > **Author**: usuário + Claude (design-system)
 > **Last Updated**: 2026-11-06
 > **Last Verified**: 2026-11-06
 > **Implements Pillar**: P1 *Toda bênção é uma filosofia* (indireto: sustenta todos os pilares)
+
 > **Creative Director Review (CD-GDD-ALIGN)**: pulada (modo Lean)
+
+> **Atualização (2026-11-12):** aplicados os tipos `RunTuning`, `BencaosTuning`, `TelaBencaoTuning`, `FeedbackTuning`, `TelemetriaTuning`, `HudTuning`, `VisualTuning` e `ArmasTuning`, o `EconomyRates` reduzido, os campos novos do `BoonDef` e os prefixos de validação (R1, R9, Interactions, Dependencies). As referências de linha das notas antigas foram corrigidas (a `RewardTable` e o `EconomyRates` estão nas linhas 105 e 106 da tabela R1).
+> **Nota (2026-11-11, revisão cruzada), ainda pendente:** "Provação > 0 como erro (Portas)" segue sem regra de validação; a regra é do GDD de Portas.
 
 ## Summary
 
@@ -82,16 +86,31 @@ valores iniciais vêm do cânone e são todos placeholders.
 | `WeaponDef` | arma de Doutrina | id, doutrina, chave de nome, Vida máx., velocidade, `ataque`, `especial` | Armas das Doutrinas | `ARENA_WEAPONS` | `lamina`, `ressonancia` |
 | `AttackDef` (sub-recurso) | Ataque ou Especial | chave de nome, forma (`arco` / `circulo` / `projetil` / `avanco` + parâmetros), dano, recarga, empurrão, status opcional, multiplicadores de combo | Combate núcleo | `ARENA_WEAPONS.*.attack/special` | 4 |
 | `EnemyDef` | inimigo ou chefe | id, chave de nome, comportamento, Vida, velocidade, raio, dano, alcance, preparo, recarga, velocidade do projétil, custo de onda | IA de inimigos e elites (comportamento `chefe`: Chefes, fatia vertical) | `ARENA_ENEMIES` | 3 do Limiar + o chefe `anomalia_maior` (só como dado, com o comportamento `chefe` reservado, R8; ver `RegionDef`) |
-| `EliteRules` (único) | o jogo | multiplicadores de Vida, dano, raio e resistência a empurrão; profundidade mínima; curva de chance | IA de inimigos e elites | `engine.ts` `ELITE_*` | 1 |
-| `BoonDef` | Tradição | id canônico `trad_*`, doutrina, chave de nome, chave de descrição, `efeitos[]` | Bênçãos (Tradições) | `traditions.ts` + `BOON_EFFECTS` | as 18 (escopo fechado no GDD de Bênçãos) |
+| `EliteRules` (único) | o jogo | multiplicadores de Vida, dano, raio e resistência a empurrão; profundidade mínima; máximo de elites por onda; curva de chance | IA de inimigos e elites | `engine.ts` `ELITE_*` | 1 |
+| `BoonDef` | Tradição | id canônico `trad_*`, doutrina, chave de nome, chave de descrição, `efeitos[]`, `glifo`, `icone_ganho`, chave de texto do preço (com `{valor}`; da Tela de bênção) | Bênçãos (Tradições) | `traditions.ts` + `BOON_EFFECTS` | as 18 (escopo fechado no GDD de Bênçãos) |
 | `EffectDef` (sub-recurso) | efeito de bênção ou de melhoria | tipo de efeito registrado, `valor`, `escala_com_raridade`, `params` (constantes nomeadas) | Modificadores e atributos | `BoonEffect` + constantes de `engine.ts` | — |
 | `RarityTable` (único) | o jogo | Comum / Rara / Épica: escala e peso de sorteio | Bênçãos (Tradições) | `RARITY_SCALE` | 1 |
 | `RegionDef` | região | id, chave de nome, sequência de câmaras (tipos de sala, R2/R8), pool de inimigos (onde cada inimigo aparece; o `EnemyDef` não guarda região), chefe (opcional), Fragmentos do chefe | Run e regiões | `ARENA_REGIONS` | `limiar`, com o chefe do cânone no dado; no MVP a Run não leva à câmara do chefe (GDD de Run e regiões) |
 | `WaveRules` (único) | o jogo | parâmetros do orçamento de onda, ondas por profundidade, teto de inimigos, multiplicador da Provação | Câmaras e ondas | `engine.ts` `buildWaves` | 1 |
-| `RewardTable` (único) | o jogo | pesos das portas por tipo de recompensa (R2/R8), profundidade mínima da Provação, cura da porta, cura do Santuário, Fragmentos por porta | Portas e recompensas | `engine.ts` | 1 |
-| `EconomyRates` (único) | o jogo | Fragmentos de vitória e de Provação | Economia de Fragmentos | `victoryFragments`, `TRIAL_FRAGMENTS` | 1 |
+| `RewardTable` (único) | o jogo | pesos das portas por tipo de recompensa (R2/R8), chance de 3 portas, primeira recompensa da run, profundidade mínima da Provação (reservada), cura da porta, Fragmentos por porta (base e passo por profundidade); a cura do Santuário é do `RoomTuning` (Câmaras) | Portas e recompensas | `engine.ts` | 1 |
+| `EconomyRates` (único) | o jogo | só `fragmentos_provacao` (3; faixa 0–10) e `saldo_max` (999 999; faixa 9 999–2 147 483 647). A vitória está no `RunTuning`; `fragmentos_chefe`, na `RegionDef`; os Fragmentos por porta, na `RewardTable` | Economia de Fragmentos | `TRIAL_FRAGMENTS` | 1 |
 | `UpgradeDef` | melhoria da Oficina | id, chave de nome, custos por nível, `efeitos[]` | Oficina de Reforja | `ARENA_UPGRADES` | fatia vertical |
-| `*Tuning` (um por sistema) | sistema | constantes de sensação e regra: esquiva, hitstop (`CombatTuning`), Fluxo, Selo, status, entrada (`InputTuning`: buffer, zonas mortas), câmera (`CameraTuning`), modificadores (`ModifiersTuning`: pisos, tetos, `fator_empurrao_chefe`; GDD de Modificadores) | o sistema que dá nome ao Tuning | `engine.ts` (as ~40 constantes) | um por sistema MVP que tiver constantes |
+| `*Tuning` (um por sistema) | sistema | constantes de sensação e regra: esquiva, hitstop (`CombatTuning`), Fluxo, Selo, status, entrada (`InputTuning`: buffer, zonas mortas), câmera (`CameraTuning`), modificadores (`ModifiersTuning`: pisos, tetos, `fator_empurrao_chefe`; GDD de Modificadores), telégrafos (`TelegraphTuning`: preparo mínimo, teto de telégrafos, reação de referência; GDD de Telégrafos), IA (`IATuning`: surgimento, esperas, distâncias, execução, alvo de dano por câmara; GDD de IA), câmaras (`RoomTuning`: tamanho, entrada, pedras, nascimento, portas, santuário; GDD de Câmaras), e os tipos abaixo | o sistema que dá nome ao Tuning | `engine.ts` (as ~40 constantes) | um por sistema MVP que tiver constantes |
+
+**`*Tuning` acrescentados (2026-11-12).** Cada tipo é um único Resource por jogo; o
+dono declara o significado, os valores e as faixas na seção Tuning Knobs do seu GDD
+(a faixa abaixo é a que o dono declara; este GDD só guarda o formato, R1).
+
+| Tipo | Dono | Campos (faixa que o dono declara) |
+|---|---|---|
+| `HudTuning` | HUD | 14 campos: `vida_por_segmento` (10; 5–20), `segmento_px` (32; 24–40), `barra_max_frac` (0,25; 0,20–0,30), `vida_baixa_pct` (0,25; 0,15–0,35), `vida_baixa_histerese` (0,05; 0,02–0,10), `vinheta_max_borda` (0,08; 0–0,08), `vinheta_opacidade_max` (0,40; 0–0,40), `janela_ganho_s` (1,5; 0,5–3), `fio_visivel_s` (2; 1–4), `largura_fio` (48 px; 32–72), `fio_elite_escala` (1,5; 1–2), `esquiva_tremor_ms` (80; 0–200), `fade_estado_s` (0,25; 0,1–0,3), `margem_segura_px` (48; 32–64) |
+| `TelaBencaoTuning` | Tela de bênção e carta | 10 campos: `trava_confirmar_ms` (500; 500–800), `trava_troca_ms` (300; 200–500), `entrada_s` (0,45; 0,3–0,45), `anim_troca_s` (0,3; 0,15–0,4), `anim_confirmar_s` (0,6; 0,3–0,6), `foco_escala` (1,06; 1,03–1,10), `foco_sobe_px` (12; 6–16), `valor_nao_focada` (0,7; 0,6–0,8), `intervalo_cartas_px` (48; 32–64), `tremor_botao_ms` (80; 0–200) |
+| `FeedbackTuning` | Feedback de combate | 9 campos: `janela_soma_s` (0,3; 0,2–0,5), `teto_numeros` (6; 4–8), `limiar_degradacao` (0,90; 0,80–0,95), `limiar_retorno` (0,75; 0,60–0,85), `limiar_nivel2` (0,95; 0,92–0,99), `retorno_nivel2` (0,85; 0,70–0,90), `vozes_max_gancho` (4; 2–8), `vozes_max_total` (16; 8–32), `assenta_camara_s` (1,0; 0,5–2,0) |
+| `TelemetriaTuning` | Telemetria local | 5 campos: `max_bytes_sessao` (2 097 152; 262 144–16 777 216), `max_sessoes` (20; 5–100), `orcamento_linha_ms` (1,0; 0,2–5,0), `orcamento_passo_ms` (3,0; 1,0–8,0), `casas_decimais_duracao` (2; 1–3) |
+| `RunTuning` | Run e regiões | `camaras_jogaveis` por região (Limiar 6; 1 até o tamanho da região), `fragmentos_vitoria` (15; 0–35), `arma_padrao` (`lamina`; `lamina` ou `ressonancia`) |
+| `BencaosTuning` | Bênçãos (Tradições) | `tamanho_oferta` (3; 1–5), `trocas_iniciais` (0; 0–5), `raridade_bonus` (0; 0–1; reservado para a Provação). A `RarityTable` continua um tipo à parte, também de Bênçãos |
+| `VisualTuning` | Pipeline visual | os campos e as faixas seguras de "Faixas seguras do `VisualTuning`" (R12 do Pipeline): grading, profundidade, veio, telégrafo, tracejado, silhueta, oclusão, wipe, fade, `dt_max_apres`, `teto_drawcalls_passes` |
+| `ArmasTuning` | Armas das Doutrinas | `meta_paridade` (0,15; 0,05–0,30), `margem_fragil` (2; 0–5), `g_max_fragil` (3; 1–6), `periodos_trava` (2; 1–4), `f_esp_min` / `f_esp_max` (0,15 / 0,40; 0–1), `vel_media_min` / `vel_media_max` (360 / 400 px/s; dentro de 342–423) e `p_max` (4; 0–20) **só como alias**: o dono do `p_max` é Câmaras e ondas R3 (WV8 avisa se divergir da `RegionDef`) |
 
 **`EffectDef` por dentro.**
 
@@ -266,6 +285,25 @@ roda como teste automatizado no CI. As checagens são:
 
 Cada erro informa arquivo, campo, regra e valor encontrado.
 
+**Códigos dos sistemas donos (2026-11-12).** Além de V1–V11, entram na validação os
+prefixos abaixo, cada um definido (condição, tipo e texto) no GDD dono; este GDD só os
+hospeda e não inventa códigos novos. Não há HU nem TB: HUD e Tela de bênção não definem
+códigos de validação.
+
+| Prefixo | Dono | Códigos e tipo |
+|---|---|---|
+| RN | Run e regiões | RN1 a RN3 (erros; RN1 = `arma_padrao` inválida) |
+| EC | Economia de Fragmentos | EC1 e EC2 |
+| BN | Bênçãos | BN1 e BN2 (erros) |
+| TL | Telemetria local | TL1 a TL3 (avisos) |
+| FB | Feedback de combate | FB1 a FB3 (erros; FB3 = histerese dos limiares) |
+| PV | Portas e recompensas | PV1 e PV2 (erros); PV3 a PV6 (avisos) |
+| WV | Câmaras e ondas | WV1 a WV4 (erros); WV5 a WV9 (avisos) |
+| VV | Pipeline visual | VV1 a VV17 (erros e avisos, conforme a tabela do Pipeline) |
+
+R9 só conhece erro. Os avisos de PV, WV e VV hoje ficam no registro de validação do
+dono, e a questão de o Conteúdo ter nível aviso está na Open Question 8.
+
 **Quem escreve no registro (V9).** O script de importação acrescenta (tipo, id)
 de todo id que grava, no mesmo commit dos `.tres`. Quem cria conteúdo à mão
 acrescenta a linha no mesmo commit. Ninguém apaga nem edita uma linha: o CI
@@ -373,22 +411,26 @@ Não há transição durante a run: o catálogo nunca muda no meio de uma run.
 | Combate núcleo | `AttackDef`, `CombatTuning` (hitstop, cambaleio, impacto na parede, queda do empurrão) | formas de ataque registradas | Combate |
 | Input e controle | `InputTuning` (buffer, zonas mortas, raio da mira, limiares); regra entre campos `zm + ze < 1` (V2); re-injeção a cada entrada em Pronto; retirada (injeção vazia) ao sair de Pronto, então em Falhou o Input fica só digital | — | Input |
 | Cena 3/4 e câmera | `CameraTuning`, re-injetado a cada entrada em Pronto e retirado ao sair de Pronto; `unit_to_px` (constante deste GDD, aplicada só na importação, F4) | — | Cena 3/4 (`CameraTuning`), este GDD (`unit_to_px`) |
-| Armas das Doutrinas | `WeaponDef` | — | Armas |
+| Armas das Doutrinas | `WeaponDef`, `ArmasTuning` (limites da validação AV*; `p_max` só como alias: o dono do `p_max` é Câmaras e ondas R3) | — | Armas |
 | Selo e Fluxo | `SealTuning` | — | Selo |
 | Efeitos de status | `StatusTuning` (Sangramento, Queimadura, Abalo) | ids de status registrados | Status |
-| IA de inimigos e elites | `EnemyDef`, `EliteRules` | comportamentos registrados (no MVP, `chefe` como reservado, R8) | IA |
+| Telégrafos | `TelegraphTuning`; `preparo_s` no `EnemyDef` (as dimensões são derivadas pelas F2–F4 de Telégrafos) | — | Telégrafos |
+| IA de inimigos e elites | `EnemyDef`, `EliteRules`, `IATuning` | comportamentos registrados (no MVP, `chefe` como reservado, R8) | IA |
 | Chefes (fatia vertical) | `EnemyDef` com comportamento `chefe`, Fragmentos do chefe na `RegionDef` | o código de `chefe`, que deixa de ser reservado | Chefes |
-| Câmaras e ondas | `WaveRules`, pool de inimigos e sequência de câmaras da `RegionDef` | tipos de sala registrados (no MVP, `chefe` como reservado, R8) | Câmaras |
+| Câmaras e ondas | `WaveRules`, `RoomTuning`, pool de inimigos e sequência de câmaras da `RegionDef` | tipos de sala registrados (no MVP, `chefe` como reservado, R8) | Câmaras |
 | Portas e recompensas | `RewardTable` | tipos de recompensa registrados | Portas |
-| Run e regiões | `RegionDef` | — | Run |
-| Bênçãos (Tradições) | `BoonDef`, `RarityTable` | — | Bênçãos |
-| Economia de Fragmentos | `EconomyRates`, Fragmentos do chefe na `RegionDef` | — | Economia |
+| Run e regiões | `RegionDef`, `RunTuning` (`camaras_jogaveis` por região, `fragmentos_vitoria`, `arma_padrao`); erros RN1 a RN3 entram na validação (R9) | — | Run |
+| Bênçãos (Tradições) | `BoonDef`, `RarityTable`, `BencaosTuning` (`tamanho_oferta`, `trocas_iniciais`, `raridade_bonus`); erros BN1 e BN2 (R9) | — | Bênçãos |
+| Economia de Fragmentos | `EconomyRates` (só `fragmentos_provacao` e `saldo_max`), Fragmentos do chefe na `RegionDef`; erros EC1 e EC2 (R9). A vitória está no `RunTuning`; os Fragmentos por porta, na `RewardTable` | — | Economia |
+| Feedback de combate | `FeedbackTuning` (9 campos); erros FB1 a FB3 (R9) | — | Feedback |
+| Pipeline visual | `VisualTuning` (R12 do Pipeline), LUTs e máscaras; regras VV1 a VV17 (R9) | — | Pipeline |
 | Oficina de Reforja (fatia vertical) | `UpgradeDef` | — | Oficina |
 | RNG com seed | listas em ordem estável (R10); impressão do catálogo, curta e completa (R12) | — | este GDD |
 | Save e perfil (fatia vertical) | conjunto de ids válidos, para conferir o save ao carregar | — | Save |
 | Localização (fatia vertical) | lista de chaves usadas (V6) | tabela PT-BR | Localização |
-| Telemetria local | ids estáveis para registrar escolhas e mortes | — | Telemetria |
-| HUD / Tela de bênção | chaves de texto e arte das definições | — | UI |
+| Telemetria local | ids estáveis para registrar escolhas e mortes; `TelemetriaTuning` (5 campos); avisos TL1 a TL3 (R9) | — | Telemetria |
+| HUD | `HudTuning` (14 campos); chaves de texto e arte das definições | — | HUD |
+| Tela de bênção e carta | `TelaBencaoTuning` (10 campos); `BoonDef` com `glifo`, `icone_ganho` e a chave de texto do preço (com `{valor}`); chaves de texto e arte | — | Tela de bênção |
 
 Este GDD é dono do contrato **R1–R12** e das fórmulas de conversão de unidades.
 Cada GDD consumidor é dono do significado e dos valores dos seus campos.
@@ -770,24 +812,27 @@ inicialização; nenhum deles lê o catálogo para isso, então não há ciclo.
 | Modificadores e atributos | Forte | `EffectDef`, `ModifiersTuning` |
 | Movimento e esquiva | Forte | `MovementTuning`, velocidade da arma |
 | Combate núcleo | Forte | `AttackDef`, `CombatTuning` |
-| Armas das Doutrinas | Forte | `WeaponDef` |
+| Armas das Doutrinas | Forte | `WeaponDef`, `ArmasTuning` |
 | Selo e Fluxo | Forte | `SealTuning` |
 | Efeitos de status | Forte | `StatusTuning` |
 | IA de inimigos e elites | Forte | `EnemyDef`, `EliteRules` (com `LinearCurveDef`) |
 | Chefes (fatia vertical) | Forte | `EnemyDef` com comportamento `chefe` |
 | Câmaras e ondas | Forte | `WaveRules`, pool da `RegionDef` |
 | Portas e recompensas | Forte | `RewardTable` |
-| Run e regiões | Forte | `RegionDef` |
-| Bênçãos (Tradições) | Forte | `BoonDef`, `RarityTable` |
-| Economia de Fragmentos | Forte | `EconomyRates` |
+| Run e regiões | Forte | `RegionDef`, `RunTuning` |
+| Bênçãos (Tradições) | Forte | `BoonDef`, `RarityTable`, `BencaosTuning` |
+| Economia de Fragmentos | Forte | `EconomyRates` (só `fragmentos_provacao` e `saldo_max`), Fragmentos do chefe na `RegionDef` |
 | Oficina de Reforja | Forte | `UpgradeDef` |
 | RNG com seed | Suave | Listas em ordem estável (R10) e impressão do catálogo (R12) |
 | Input e controle | Suave | `InputTuning` |
 | Cena 3/4 e câmera | Suave | `CameraTuning`, `unit_to_px` |
 | Save e perfil | Suave | Consulta "existe?" e ids estáveis |
 | Diálogo e lore | Forte | Definições de fala e fragmentos (formato a definir no GDD dele, dentro de R1–R11) |
-| Telemetria local | Suave | Ids estáveis |
-| HUD, Tela de bênção, Feedback de combate (VFX) | Suave | Chaves de texto e arte |
+| Telemetria local | Forte | Ids estáveis e `TelemetriaTuning` |
+| HUD | Forte | `HudTuning`, chaves de texto e arte |
+| Tela de bênção e carta | Forte | `TelaBencaoTuning`; `BoonDef` com `glifo`, `icone_ganho` e a chave de texto do preço; chaves de texto e arte |
+| Feedback de combate | Forte | `FeedbackTuning` |
+| Pipeline visual | Forte | `VisualTuning`, LUTs e máscaras como recursos |
 
 "Forte" = o sistema não funciona sem as definições daqui. "Suave" = usa ids ou
 ordem, mas não depende do conteúdo.
@@ -1101,4 +1146,5 @@ AC-12, AC-39, AC-47 e AC-48. A 2ª passada do cross-review
 | 4 | Pactos: o cânone ainda tem o "Laço dos Pactos". A Besta do Vínculo e a criatura do pacto não têm valores, então nada de Pactos é importado do cânone; os valores nascem no GDD dono. | game-designer | GDDs Armas das Doutrinas / Criatura do pacto (Alpha) |
 | 5 | Formato das definições de fala e de fragmentos de lore | narrative-director | GDD Diálogo e lore (fatia vertical) |
 | 6 | Mecanismo de injeção (Autoload só de leitura, nó raiz ou `RefCounted`) e o relator de erros | technical-director | ADR, via `/architecture-decision`, antes de `/create-architecture` |
+| 8 | R9 só tem erro; Câmaras (WV), Portas (PV) e Pipeline (VV) definem avisos: o Conteúdo passa a ter nível aviso e hospedar o validador? | Conteúdo / Movimento OQ3 | Antes de `/gate-check technical-setup` |
 | 7 | ~~Nada foi verificado localmente: o Godot não está instalado~~ **Resolvida em 2026-11-05:** Godot 4.7.2 instalado, `project.godot` importa sem erro. As perguntas 1 e 2 agora podem ser testadas na engine. | usuário | ✅ |

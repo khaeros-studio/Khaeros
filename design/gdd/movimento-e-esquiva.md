@@ -19,6 +19,8 @@ Combate aplica.
 
 > **Quick reference** — Layer: `Core` · Priority: `MVP` · Key deps: `Input e controle, Cena 3/4 e câmera, Modificadores e atributos, Conteúdo orientado a dados; Combate núcleo (por contrato)`
 
+> **Nota (2026-11-11, revisão cruzada):** pendente: Dependencies listam Efeitos de status e Armas (hoje só na tabela de Interactions); registro `hurt_invuln_steps` sem `referenced_by` Movimento.
+
 ## Overview
 
 **Movimento e esquiva** move o personagem do jogador no plano de jogo, a cada
@@ -186,16 +188,16 @@ do cânone (`engine.ts:806–865`) perde o seu eixo.
     conta fecha, ganha 1 carga.
   - Se ainda estiver abaixo do máximo, a conta recomeça no passo seguinte.
   - A recarga conta durante a esquiva.
-  - Com c = M, o contador é 0: se as cargas chegam ao máximo pela R9 do
+  - Com c = `cargas_max`, o contador é 0: se as cargas chegam ao máximo pela R9 do
     Modificadores, o contador zera (Edge Cases).
 - **O atributo mudou** (Modificadores R9): se sobe, o jogador ganha a diferença
   na hora; se desce, as cargas atuais são cortadas ao novo máximo.
   - **Como o Movimento percebe:** no item 0 da R3, a cada passo vivo, ele
-    compara `valor(cargas_esquiva)` com o M guardado. Se mudou, aplica a
-    diferença ou o corte, zera o contador se c = M e guarda o novo M.
+    compara `valor(cargas_esquiva)` com o `cargas_max` guardado. Se mudou, aplica a
+    diferença ou o corte, zera o contador se c = `cargas_max` e guarda o novo `cargas_max`.
   - Uma mudança feita com o Movimento congelado (a bênção é escolhida na
     Bênção) vale no primeiro passo vivo depois dela.
-  - Se M desce e as cargas continuam abaixo do novo máximo, o contador
+  - Se `cargas_max` desce e as cargas continuam abaixo do novo máximo, o contador
     continua de onde estava.
 - O começo da run abre com as cargas no máximo. A troca de câmara não restaura
   cargas (cânone).
@@ -379,7 +381,7 @@ e obstáculo encurtam (R10).
 
 The dash_recharge formula is defined as:
 
-`T_k = k × R − p` ; `T_cheio = (M − c0) × R − p` (passos vivos) ; taxa
+`T_k = k × R − p` ; `T_cheio = (cargas_max − c0) × R − p` (passos vivos) ; taxa
 sustentada = `TICK_RATE / R` cargas/s
 
 **Variables:**
@@ -387,22 +389,22 @@ sustentada = `TICK_RATE / R` cargas/s
 |---|---|---|---|---|
 | recarga_s | float | 0,1–3,0 | data file | `MovementTuning` |
 | R | int | 6–180 | calculated | passos(`recarga_s`) |
-| M | int | ≥ 1 | calculated | `valor(cargas_esquiva)` |
-| c0 | int | 0 – M | calculated | cargas atuais |
-| p | int | 0 – R−1 (0 se c0 = M) | calculated | progresso do contador em andamento |
-| k | int | 1 – (M − c0) | calculated | cargas a recuperar |
+| cargas_max | int | ≥ 1 | calculated | `valor(cargas_esquiva)` (não confundir com o M, multiplicador de dano do Corte) |
+| c0 | int | 0 – cargas_max | calculated | cargas atuais |
+| p | int | 0 – R−1 (0 se c0 = cargas_max) | calculated | progresso do contador em andamento |
+| k | int | 1 – (cargas_max − c0) | calculated | cargas a recuperar |
 | T_k, T_cheio | int | ≥ 0 | calculated | passos até k cargas / até o cheio |
 
 **Output Range:** inteiros ≥ 0. Regras exatas (cânone `engine.ts:790–794`):
 
-- o contador só corre com c < M, e **gastar uma carga não o zera**;
+- o contador só corre com c < `cargas_max`, e **gastar uma carga não o zera**;
 - a carga volta R passos depois do passo da esquiva, porque a recarga vem antes
   do início no mesmo passo (R3), e já vale no passo em que volta;
 - o contador congela no hitstop: em relógio, a recarga leva R passos mais os
   passos congelados.
 
-**Example:** R = 42. Esquiva no passo 100 → carga de volta no 142. M = 3,
-c0 = 0: T_cheio = 126 passos (2,1 s). M = 3, c0 = 2, p = 10: T_cheio = 32. Taxa
+**Example:** R = 42. Esquiva no passo 100 → carga de volta no 142. `cargas_max` = 3,
+c0 = 0: T_cheio = 126 passos (2,1 s). `cargas_max` = 3, c0 = 2, p = 10: T_cheio = 32. Taxa
 sustentada: 60 / 42 = 1,4286 cargas/s.
 
 ### F4. Invulnerabilidade da esquiva
@@ -565,8 +567,8 @@ Os outros campos de tempo têm mínimo > 0.
   passos vence antes do fim, e a esquiva encadeada não sai.
 - **Se o toque e o hitstop caírem no mesmo passo:** o Movimento não roda no
   hitstop (R2). O toque fica congelado no buffer, com o prazo parado (Input R6),
-  e a esquiva sai no primeiro passo vivo. Hitstops que se somam atrasam essa
-  saída; a regra de empilhamento é do Combate (cross-review 06b, D-N1).
+  e a esquiva sai no primeiro passo vivo. **Hitstops não somam: vale o maior**
+  (Combate R10; D-N1 fechado), então o atraso é o do maior hitstop do passo.
 - **Se `mover` = 0 na hora da esquiva:** a direção é `mirar`, que nunca tem
   comprimento zero (Input R5). Com o mouse, o jogador esquiva em direção ao
   cursor; parado no gamepad sem alvo, a direção é para onde ele olha, e no

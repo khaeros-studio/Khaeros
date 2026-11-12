@@ -1,10 +1,14 @@
 # Armas das Doutrinas
 
-> **Status**: In Review (`/design-review` 2026-11-10, lean, por subagente: NEEDS REVISION — 6 bloqueantes, revisados na mesma data; aguarda re-review)
+> **Status**: Approved (`/design-review` 2026-11-10, lean, por subagente: NEEDS REVISION — 6 bloqueantes, revisados; re-review por script: NEEDS REVISION — 4 nos critérios, revisados; veredito final do revisor APPROVED; aprovado pelo usuário)
 > **Author**: usuário + Claude (design-system, modo Lean)
 > **Last Updated**: 2026-11-10
 > **Last Verified**: 2026-11-10
 > **Implements Pillar**: P1 *Toda bênção é uma filosofia* (a arma é a Doutrina jurada) e P3 *Reflexo que se lê*
+
+> **Nota (2026-11-11, Run e regiões):** `p_max` passa a ser da Run (R9; Limiar 4); `ArmasTuning.p_max` fica como alias até a próxima edição.
+
+> **Nota (2026-11-11, revisão cruzada):** pendente: Dependencies listam IA (F3, AV3/AV4), Câmaras e Run; Modificadores também como downstream; D-W11 (Ressonância à distância) segue aberta; teto de M com `teto_multiplicador_dano` vazio (M ≈ 14,08, DPS ≈ 936).
 
 ## Summary
 
@@ -16,7 +20,7 @@ Juramento (perto, combo que quebra a preparação, Investida) e o Foco Ressonant
 As duas ficam dentro de ±15% no tempo para matar o chefe (hoje 0,7%), e a arma
 não restringe as bênçãos.
 
-> **Quick reference** — Layer: `Feature` · Priority: `MVP` · Key deps: `Combate núcleo, Modificadores e atributos, Conteúdo orientado a dados; Tela de bênção e componente de carta (por contrato)`
+> **Quick reference** — Layer: `Feature` · Priority: `MVP` · Key deps: `Combate núcleo, Modificadores e atributos, Conteúdo orientado a dados; Tela de bênção e componente de carta (por contrato); Input e controle (suave)`
 
 ## Overview
 
@@ -107,16 +111,22 @@ px, o Corte acerta até 142,5 px do centro.
 
 - Antes de cada run, uma **tela de escolha** mostra as duas armas como cartas
   (componente de carta do GDD de Tela de bênção e componente de carta), com nome,
-  Doutrina, Vida, velocidade e os nomes do Ataque e do Especial.
+  Doutrina, Vida, velocidade relativa e os nomes do Ataque e do Especial, cada
+  um com uma linha de descrição.
+- **Descrição de uma linha:** vem da chave derivada `<chave_nome>_DESC` do
+  `AttackDef` (sem campo novo no `WeaponDef` nem no `AttackDef`; R1).
+- **Velocidade relativa:** `velocidade` < `ArmasTuning.vel_media_min` (360) é
+  "lenta"; de 360 a `vel_media_max` (400), inclusive, "média"; acima de 400,
+  "rápida". As duas armas do MVP (387 e 378) são "média".
 - A última arma confirmada vem selecionada; na primeira vez, a Lâmina. A escolha
   é lembrada no arquivo local `user://preferencias.cfg` (`ConfigFile`, seção
   `[armas]`, chave `ultima_arma` = id da arma), sem perfil. O arquivo só é
   gravado ao confirmar. Na fatia vertical, o Save e perfil passa a ser o dono
   dessa informação e lê o arquivo uma vez para migrar.
-- **Builds de playtest** (flag do build): nenhuma arma vem pré-selecionada e o
-  jogador precisa escolher uma carta antes de confirmar, para que a taxa de
-  escolha da R6 meça preferência e não inércia. Fora desses builds, vale a
-  pré-seleção acima.
+- **Builds de playtest** (flag do build): nenhuma arma vem pré-selecionada,
+  confirmar fica bloqueado até o jogador escolher uma carta, e o build **não lê
+  nem grava** o `user://preferencias.cfg`, para que a taxa de escolha da R6 meça
+  preferência e não inércia. Fora desses builds, vale a pré-seleção acima.
 - A arma fica **fixa durante a run**; não há troca no meio.
 - Na fatia vertical, a tela é substituída pela Doutrina jurada no Rito de
   Iniciação e pelo Campus (GDDs desses sistemas).
@@ -163,7 +173,8 @@ px, o Corte acerta até 142,5 px do centro.
   validação nova AV1 (passos(`guarda_s`) < passos(`recarga_s`), aviso; Formulas).
 - **Profundidade:** nas contas deste GDD, p = 0 é a primeira câmara de combate da
   região (como no Pipeline visual R3); o ganho de Vida por profundidade é o do
-  Modificadores R10 (a fórmula é da IA e das Câmaras).
+  Modificadores R10 aplica; a fórmula (`depth_hp_bonus`, 0,05 × p) e as constantes de
+  elite são da **IA de inimigos e elites** (F2).
 
 **R8. Nomes canônicos** (Conteúdo V5). Armas: "Lâmina do Juramento", "Foco
 Ressonante", "Escudo-Bastião", "Adagas do Véu", "Cálice da Transmutação",
@@ -201,6 +212,7 @@ Não há troca de arma durante a run.
 | Conteúdo orientado a dados | os `WeaponDef` e `AttackDef` no catálogo | validação (V1–V11), conversões | Conteúdo (formato), este GDD (valores e faixas) |
 | Bênçãos (Tradições) | `doutrina` da arma | — | Bênçãos |
 | Tela de bênção e componente de carta | os dados da carta de arma | o componente de carta | UI |
+| Input e controle | — | navegação da tela de escolha; Ataque e Especial segurados (via Combate, Input R7) | Input |
 | HUD | nome da arma e do Ataque e do Especial | — | HUD |
 | Telemetria local | arma escolhida em cada run | — | Telemetria |
 | Feedback de combate (VFX) / Pipeline visual | — (o desenho segue a forma do `AttackDef`) | — | VFX |
@@ -314,7 +326,7 @@ as esquivas não entram.
 | Combinado, contínuo | 700 / 66,47 = **10,53 s** | 700 / 66,96 = **10,45 s** | **0,7%** |
 
 Folga de ajuste (só Ataque, Lâmina fixa): a paridade fica ≤ 0,15 com o dano do
-Pulso entre **10,8 e 14,3** (hoje 12). No combinado, entre 9,7 e 14,4.
+Pulso entre **10,80 e 14,27** (hoje 12). No combinado, entre 9,72 e 14,35.
 
 ### F3. Golpes até matar por profundidade
 
@@ -544,13 +556,13 @@ CV10, CV12, CV13, CV15–CV20); este GDD não os repete.
 | Regra | Tipo | Condição | Por quê |
 |---|---|---|---|
 | AV1 | aviso (decisão do usuário, 2026-11-10; o Guardião é da fatia vertical) | `AttackDef` com `guarda_s` e passos(`guarda_s`) / R > 0,5. **Uma** entrada por objeto: com passos(`guarda_s`) ≥ R, a mensagem é "guarda permanente"; senão, "razão > 0,5" | guarda ativa o tempo todo: × 0,5 de dano permanente (Escudo-Bastião hoje: 120 contra 80) |
-| AV2 | aviso | `paridade` (F2) > 0,15 entre duas armas do catálogo com números, no modelo combinado; o modelo "só Ataque" sai como linha informativa | meta da R6 (hoje 0,7% combinado, 3,4% só Ataque) |
+| AV2 | aviso | `paridade` (F2) > `meta_paridade` (0,15) entre duas armas do catálogo com números, no modelo combinado; o modelo "só Ataque" sai como linha informativa | meta da R6 (hoje 0,7% combinado, 3,4% só Ataque) |
 | AV3 | aviso (informativo) | para cada golpe de arma, inimigo do pool da região e profundidade de câmara de combate: margem ou falta (F3) ≤ `margem_fragil` (2) com g ≤ `g_max_fragil` (3) | ponto de corte frágil: um ajuste de ±2 Vida ou ±1 de dano muda o número de golpes (Onda × Eco 30 = 30) |
-| AV4 | aviso, cruzada com IA | inimigo comum com Vida_p > 2 × D do período (sobrevive a ≥ 2 períodos; quem morre no 2º período não é trava) e `(ceil(Q / P) × P − Q) < W`, com `P = R` se o Ataque é pesado em todo acerto (`empurrao` ≥ `empurrao_pesado`) e `P = n × R` se só o finalizador é pesado; Vida_p na **maior** profundidade da região | generaliza o CV18 para n = 1 e para a profundidade: o golpe pesado chega sempre antes do fim do preparo e o inimigo nunca ataca (trava) |
+| AV4 | aviso, cruzada com IA | inimigo comum com Vida_p > `periodos_trava` (2) × D do período (sobrevive a ≥ 2 períodos; quem morre no 2º período não é trava) e `(ceil(Q / P) × P − Q) < W`, com `P = R` se o Ataque é pesado em todo acerto (`empurrao` ≥ `empurrao_pesado`) e `P = n × R` se só o finalizador é pesado; Vida_p na **maior** profundidade da região | generaliza o CV18 para n = 1 e para a profundidade: o golpe pesado chega sempre antes do fim do preparo e o inimigo nunca ataca (trava) |
 | AV5 | aviso | Ataque sem combo, leve, com `empurrao / (1 − q^R)` ≥ `parede_vel_min` | fogo contínuo empurraria o alvo até a parede sem golpe pesado (Pulso: 557,2 contra 630) |
 | AV6 | — | ver acima | — |
 | AV7 | aviso | campo fora da faixa de design (tabelas acima) | o número sai do espaço em que as contas deste GDD valem |
-| AV8 | aviso | `f_esp` (F6) fora de 0,15–0,40 | uma das bênçãos de slot perde ou domina o valor |
+| AV8 | aviso | `f_esp` (F6) fora de `f_esp_min`–`f_esp_max` (0,15–0,40) | uma das bênçãos de slot perde ou domina o valor |
 
 **Esclarecimentos da validação** (2026-11-10, a partir da revisão dos critérios):
 
@@ -596,6 +608,9 @@ Ressonância: o Pulso nunca é pesado; o AV4 não se aplica.
 - **Se o arquivo de preferências não existir ou estiver corrompido:** a tela de
   escolha abre com a Lâmina selecionada e o arquivo é regravado ao confirmar.
   Ausente não avisa (é a primeira vez); corrompido gera 1 aviso de debug.
+- **Em build de playtest** (R4): o arquivo não é lido nem gravado, nenhuma arma
+  vem selecionada e confirmar fica bloqueado até o jogador escolher uma carta;
+  o caso acima e o seguinte não se aplicam.
 - **Se o arquivo lembrar uma arma que não está no catálogo** (removida, ou de uma
   fase futura num build do MVP): vale a Lâmina, e o debug registra o aviso.
 - **Se o catálogo tiver uma arma com `AttackDef` inválido:** é erro do Conteúdo
@@ -625,9 +640,9 @@ Ressonância: o Pulso nunca é pesado; o AV4 não se aplica.
   precisar de 2 golpes a partir da segunda câmara. É esperado e está registrado
   como ponto frágil (F3, AV3); não é defeito.
 - **Se o Pulso acertar um inimigo encostado numa parede:** 540 px/s fica abaixo
-  de `parede_vel_min` (630): não há batida (Combate F8), nem com dois Pulsos
-  seguidos no mesmo alvo antes de o empurrão decair, salvo se a soma passar de
-  630 (Combate R8: o empurrão soma).
+  de `parede_vel_min` (630): não há batida (Combate F8). Isso vale para Pulsos
+  espaçados (o intervalo deixa o empurrão decair); Pulsos em rajada somam o empurrão
+  (Combate R8.6) e podem bater se a soma passar de 630.
 - **Se dois Pulsos atingirem o mesmo inimigo no mesmo passo:** os empurrões
   somam (1080) e podem bater na parede; é consequência da regra do Combate.
 
@@ -638,7 +653,8 @@ Ressonância: o Pulso nunca é pesado; o AV4 não se aplica.
   (`engine.ts:1174`) como campo do `CombatTuning`. Com o aval do usuário
   (2026-11-10), o Conteúdo passa a dizer que o empurrão do projétil é o do
   `AttackDef` (Pulso 540), como manda o Combate R6; não existe campo global de
-  empurrão de projétil. A emenda no Conteúdo é feita pelo coordenador.
+  empurrão de projétil. A emenda no Conteúdo já foi feita (Conteúdo, Status e
+  l. 638–641, 2026-11-10).
 - Os dois problemas do Guardião (fatia vertical) ficam nas Open Questions.
 
 ## Dependencies
@@ -661,6 +677,8 @@ Ressonância: o Pulso nunca é pesado; o AV4 não se aplica.
 | Bênçãos (Tradições) | Suave | `doutrina` da arma; os slots Ataque e Especial |
 | HUD | Suave | nomes da arma, do Ataque e do Especial |
 | Telemetria local | Suave | arma escolhida em cada run (meta de paridade, R6) |
+| Selo e Fluxo | Suave | recargas, DPS e Vida por profundidade (Formulas F3–F5, SV6, SV12 do Selo) |
+| Efeitos de status | Suave | `status` dos `AttackDef` (nenhum nas armas do MVP; DPS de referência para ST5) |
 | Feedback de combate (VFX) / Pipeline visual | Suave | as formas e os params dos `AttackDef` (o desenho do golpe tem o tamanho do teste) |
 | Criatura do pacto (Alpha) | Forte | a Besta do Vínculo e o Chamado do Pacto |
 | Desbloqueio de armas (Alpha) | Forte | a lista de armas e Doutrinas |
@@ -695,6 +713,7 @@ de `*Tuning` do Conteúdo). Nada disso fica literal no GDScript.
 | `p_max` | 4 (Limiar do MVP: 5 câmaras de combate) | 0–20 | gate | AV3, AV4 | provisório: o dono futuro é o GDD de Run e regiões, e o campo migra para a região |
 | `periodos_trava` | 2 | 1–4 | gate de validação | AV4 (o "2 ×") | quem morre dentro do 2º período não chega a ser travado |
 | `f_esp_min` / `f_esp_max` | 0,15 / 0,40 | 0–1, min < max | curva | AV8 (F6) | abaixo, a bênção de Especial não vale nada; acima, o Ataque vira enchimento |
+| `vel_media_min` / `vel_media_max` | 360 / 400 px/s | dentro de 342–423, min < max | apresentação | rótulo de velocidade da carta (R4, UI): < min "lenta", min–max "média", > max "rápida" | as duas do MVP (387, 378) ficam "média": diferença de 2,4% que o jogador não sente; o rótulo só muda com armas futuras fora dessa faixa |
 | Faixas de design | tabelas de Faixas dos campos | — | curva | AV7 | o espaço em que as contas deste GDD valem |
 
 As metas do playtest (escolha de 35–65%, vitória por câmara a ≤ 15 pontos; R6)
@@ -744,9 +763,11 @@ são critérios de playtest, não dado de jogo.
 ## UI Requirements
 
 - **Tela de escolha da arma** (R4): duas cartas com nome, Doutrina, Vida,
-  velocidade (mostrada como relativa: "rápida", "média", não em px/s) e os nomes
-  do Ataque e do Especial com uma linha de descrição. Navegação por teclado,
-  mouse e gamepad (Input). A última arma usada vem selecionada.
+  velocidade (mostrada como relativa: "lenta", "média" ou "rápida", pelos
+  limiares do `ArmasTuning`, R4; não em px/s) e os nomes do Ataque e do Especial
+  com uma linha de descrição (chave `<chave_nome>_DESC`, R4). Navegação por teclado,
+  mouse e gamepad (Input). A última arma confirmada vem selecionada, salvo no
+  build de playtest, em que nada vem selecionado (R4).
 - **HUD:** nenhuma informação nova; os chevrons e a Vida já existem. O nome da
   arma aparece na pausa (GDD de HUD/Menus).
 
@@ -811,7 +832,9 @@ são critérios de playtest, não dado de jogo.
 >   `parede_vel_min` 630, q = 0,78, z = 4,5, `invuln_atingido` 40.
 > - `ArmasTuning` padrão (Tuning Knobs): `meta_paridade` 0,15, `margem_fragil` 2,
 >   `g_max_fragil` 3, `periodos_trava` 2, `f_esp` 0,15–0,40, faixas de design
->   das tabelas; `p_max` = o da região de teste.
+>   das tabelas e `vel_media_min`/`vel_media_max` 360/400. A FA **sobrescreve**
+>   `ArmasTuning.p_max` com o da região de teste (7); o valor de fábrica (4) só
+>   vale onde o critério diz "`ArmasTuning` de fábrica".
 > - **Inimigos do Limiar** (cânone): Eco 30/9/24/W 26; Anomalia 24/8/22,5/36;
 >   Fenda 46/13/30/42; chefe 700/16/63/40. `fator_empurrao`: comum 1, elite 0,4,
 >   chefe 0,12.
@@ -819,7 +842,8 @@ são critérios de playtest, não dado de jogo.
 >   p = 0…`p_max`, elite a partir de p = 3. Padrão `p_max` = 7; o critério diz
 >   quando muda.
 > - **Saco** e **Saco móvel**: os da FP do Combate (raio 24, Vida 1000, comum;
->   `fator_empurrao` 0 e 1). **Câmara:** (0; 0)–(1920; 1080), sem obstáculos.
+>   `fator_empurrao` 0 e 1). **Elite móvel:** a Elite da FP do Combate (raio 28,8,
+>   Vida 1000, `fator_empurrao` 0,4). **Câmara:** (0; 0)–(1920; 1080), sem obstáculos.
 >   **Jogador:** (960; 540), raio 27, mira (1; 0).
 > - **Movimento dublê** (FP do Combate) que **não** executa `deslocar` nem `d`,
 >   salvo quando o critério diz; **Input dublê** da FP do Combate.
@@ -942,12 +966,29 @@ são critérios de playtest, não dado de jogo.
   - FA-T com `ressonancia` de `recarga_s` 0 (erro CV10 do Combate): o carregador
     dá erro, a run não começa e a tela de escolha não é montada (nunca mostra
     arma inválida; Conteúdo R12).
+- **AC-AR-39 [L] R4 — build de playtest.** Catálogo de fábrica, flag de
+  playtest ligada, Preferências dublê com `ultima_arma = "ressonancia"`:
+  - a tela abre sem carta selecionada e o registro do dublê mostra **zero
+    leituras** do `user://preferencias.cfg`;
+  - confirmar sem carta escolhida não faz nada (o estado continua Escolhendo,
+    nenhuma run começa);
+  - o jogador escolhe `lamina` e confirma: entra em Equipada com `lamina` e o
+    dublê mostra **zero gravações**;
+  - depois de `jogador_morreu`, a próxima Escolhendo abre de novo sem carta
+    selecionada;
+  - conjunto exato de avisos de debug: nenhum (o arquivo não é lido, então não
+    há "corrompido" nem "arma desconhecida").
+  - Linha de controle: a mesma fixture com a flag desligada seleciona
+    `ressonancia` (AC-AR-08).
 - **AC-AR-12 [UI] R4 — tela de escolha.** Build com o catálogo de fábrica, 1920
   × 1080. Screenshots retidos: (a) primeira vez, Lâmina selecionada; (b) depois
   de uma run com a Ressonância, Ressonância selecionada; (c) FA-T com uma arma
   só. Cada carta mostra o nome canônico, a Doutrina, Vida (100 / 80), velocidade
   e os nomes do Ataque e do Especial (R8); a seleção é distinguível sem cor
-  (forma ou contorno). Usa o componente de carta do GDD de Tela de bênção —
+  (forma ou contorno). A velocidade aparece como rótulo, "média" nas duas armas
+  (387 e 378 entre 360 e 400, R4), e cada golpe mostra o texto da chave
+  `<chave_nome>_DESC` do `AttackDef` (nenhuma chave sem tradução). Usa o
+  componente de carta do GDD de Tela de bênção —
   **BLOQUEADO até esse GDD**; até lá, vale a lista simples (Dependencies) e o
   screenshot é da lista.
 - **AC-AR-13 [V] R3 — silhueta das armas.** Screenshot retido do Iniciado com
@@ -959,8 +1000,10 @@ são critérios de playtest, não dado de jogo.
 **C. Bênçãos (R5)**
 
 - **AC-AR-14 [I] R5 — bênçãos de slot valem para a arma em uso.** Combate e
-  Modificadores reais; Bênçãos dublê aplica no portador. Alvo Saco; um golpe de
-  cada slot, primeiro golpe do combo:
+  Modificadores reais; Bênçãos dublê aplica no portador. Alvo: Saco em
+  (1040; 540) para a Lâmina (80 px: dentro da Investida parada, 93, e do Corte,
+  166,5) e em (1100; 540) para a Ressonância (dentro do Pulso e da Onda, 219);
+  um golpe de cada slot, primeiro golpe do combo:
 
   | Bênção | Lâmina: Corte / Investida | Ressonância: Pulso / Onda |
   |---|---|---|
@@ -1057,19 +1100,25 @@ são critérios de playtest, não dado de jogo.
 - **AC-AR-21 [I] F5 — fogo contínuo não bate na parede.** Combate real,
   **jogador em (1200; 540)**, mira (1; 0), Saco móvel em (1500; 540) (396 px da
   posição encostada, x = 1920 − 24 = 1896), Ataque da Ressonância segurado nos
-  passos 0–1199, Movimento dublê parado. O Pulso alcança o Saco até x = 1200 +
+  passos 0–599, Movimento dublê parado. O Pulso alcança o Saco até x = 1200 +
   844,5 + (15 + 24) = 2083,5 > 1896, então os acertos continuam até a parede
-  (com o jogador em 960, o limite seria 1843,5 e o Saco pararia em ~1886, sem
-  encostar):
+  (com o jogador em 960, o limite seria 1843,5 e o Saco pararia em 1867,89 px
+  depois de 9 acertos, sem encostar). Os números exatos abaixo vêm do script da
+  re-review (ordem das R1, R3, R7 e R11 do Combate; primeiro disparo no passo
+  0, primeiro acerto no passo 13); o teste os confere contra o oráculo gerado
+  das mesmas regras:
   - nenhum evento `parede` e nenhum dano de parede;
   - a maior velocidade do Saco logo depois de um acerto fica ≤ 557,20 px/s
     (v_sust; ±0,01) e < 630 (o voo cresce com a distância, então o intervalo
     entre acertos é ≥ 14 passos);
-  - o Saco chega encostado (x = 1896) em ~10 acertos (~40,9 px por ciclo em
-    regime) e termina lá, sem `parede`.
+  - o Saco encosta (x = 1896) no passo 166, depois do 10º acerto (40,91 px por
+    ciclo de 14 passos em regime), e termina lá, sem `parede`: 41 acertos na
+    janela, Vida final 508 (o Saco não morre: a janela de 600 passos fica longe
+    dos 84 acertos que o matariam).
   - Linha de controle: o mesmo roteiro com o Pulso de FA-T `empurrao` 650
-    (v_sust 670,7 ≥ 630) gera ≥ 1 `parede` antes do passo 1199; no máximo, o
-    primeiro sai no primeiro acerto com o Saco encostado (650 ≥ 630).
+    (v_sust 670,7 ≥ 630) gera ≥ 1 `parede` antes do passo 599; a primeira sai
+    quando o Saco encosta, no passo 150, depois do 9º acerto (650 ≥ 630). O
+    Saco não morre na janela, mesmo com o dano de parede.
 - **AC-AR-22 [L] F6 — fração do Especial.** `f_esp` Lâmina 0,2510; Ressonância
   0,2800. Efeito de bênção de slot +0,25 no DPS combinado: Especial +6,28% /
   +7,00%; Ataque +18,72% / +18,00% (±0,0001). O teste confere a previsão contra
@@ -1110,7 +1159,7 @@ são critérios de playtest, não dado de jogo.
   1 = 0,1425 e não avisa. Com Lâmina ×1,17: {`lamina`×`lamina_teste` (0,17),
   `ressonancia`×`lamina_teste` (10,4533 / 9,0008 − 1 = 0,1614)}.
 - **AC-AR-25 [L] AV3 — pontos frágeis (informativo), conjunto exato.** Catálogo
-  de fábrica, região de teste com `p_max` 7, elites de p 3. Condição: margem ou
+  de fábrica, região de teste com `p_max` 7 (o `p_max` é lido da **região**, dono: Câmaras; `ArmasTuning.p_max` é só alias), elites de p 3. Condição: margem ou
   falta ≤ 2 **e** g ≤ 3. As linhas informativas são exatamente estas 29
   (inimigo, p, golpe, g):
   - Eco: (0, Corte, 3), (0, Onda, 1), (1, Onda, 2), (3, Pulso, 3), (4, Pulso, 3);
@@ -1124,8 +1173,15 @@ são critérios de playtest, não dado de jogo.
 
   Fora do conjunto, por exemplo: Fenda 4 Corte (falta 1,8, g = 4) e Eco elite 3
   Corte (g = 6), que a tabela da F3 marca com `*` (o `*` vale em qualquer g; o AV3, só com g ≤ 3). Com
-  `margem_fragil` 0 o conjunto fica só com os casos `=` de g ≤ 3.
-- **AC-AR-26 [L] AV4 — trava por golpe pesado.** Catálogo de fábrica (Q = 24;
+  `margem_fragil` 0 o conjunto fica só com os 9 casos `=` de g ≤ 3: Eco (0,
+  Onda, 1), (4, Pulso, 3); Anomalia (0, Pulso, 2), (2, Investida, 1), (3, Corte,
+  2), (5, Onda, 1); Fenda (6, Onda, 2); Eco elite (5, Onda, 3); Anomalia elite
+  (7, Investida, 3).
+  - **`ArmasTuning` de fábrica** (alias `p_max` 4 = o da região de fábrica, sem a sobrescrita da FA): o
+    conjunto exato são as 20 linhas acima com p ≤ 4 (saem as 9 de p 5–7:
+    Anomalia (5, Corte), (5, Onda), (6, Onda), (7, Onda); Fenda (5, Onda), (6,
+    Onda), (7, Onda); Eco elite (5, Onda); Anomalia elite (7, Investida)).
+- **AC-AR-26 [L] AV4 — trava por golpe pesado.** O `p_max` vem da região (Câmaras; `ArmasTuning.p_max` é só alias). Catálogo de fábrica (Q = 24;
   Lâmina P = n × R = 48; ceil(24/48) × 48 − 24 = 24 < W de todas as comuns):
 
   | Região | AV4 |
@@ -1183,6 +1239,8 @@ são critérios de playtest, não dado de jogo.
   | `avanco.duracao_s` | 6 e 18 passos | 5 e 19 |
   | `avanco.raio_px` | 40 e 100 | 39,99 e 100,01 |
   | `projetil.vida_s` (Pulso, s = 16,5; alcance testado 36 + (L − 1) × 16,5) | L = 24 (415,5 px) e 65 (1092 px) | L = 23 (399 px) e 66 (1108,5 px) |
+  | `empurrao` do Ataque (Corte, com combo: sem AV5) | 0 e 899,99 | 900 (o CV8 e o AV4 que o mesmo valor gera ficam fora) |
+  | `multiplicadores_combo` do Corte (`limiar_finalizador` 1,2) | [1; 1,8], [1; 1; 1; 1; 1,8] e [0,5; 1; 2,5] | [1,8] (1 entrada), [1; 1; 1; 1; 1; 1,8] (6), [0,49; 1; 1,8], [1; 1; 2,51] e [1; 1,8; 1,8] (duas acima do limiar; o CV3 que sai junto fica fora) |
 
   `vida_s` = L/60; a borda é em px do alcance testado (Combate F5), calculado
   dos passos. Catálogo de fábrica: nenhum AV7.
@@ -1211,9 +1269,14 @@ são critérios de playtest, não dado de jogo.
   | 51,9 | 0,4008 | 1 aviso |
 
 - **AC-AR-32 [L] catálogo de fábrica — relatório completo, conjunto exato.**
-  Região de teste `p_max` 7: zero erros; avisos = {} (nenhum); informativos = as 29 linhas do AV3 (AC-AR-25), a linha "só
-  Ataque" do AV2 (0,0344), as duas linhas de folga (AC-AR-17) e o alcance do
-  Pulso. Nenhum AV1, AV2, AV4, AV5, AV7 nem AV8.
+  Região de teste `p_max` 7 (sobrescrita da FA): zero erros; avisos AV = {}
+  (nenhum AV1, AV2, AV4, AV5, AV7 nem AV8). O conjunto exato vale para as
+  **linhas informativas com código AV**: as 29 do AV3 (lista da AC-AR-25), a
+  linha "só Ataque" do AV2 (0,0344), as duas linhas de folga do AV2 (AC-AR-17)
+  e a linha de alcance do Pulso do AV7 (`vida_s` L = 50, alcance testado 844,5
+  px). As linhas informativas **sem** código AV (contas da seção D: DPS, TTK,
+  g, F4, F5, f_esp) ficam fora deste conjunto; quem as confere são as AC-AR-16 a
+  22.
 
 **F. Nomes (R8, V5 do Conteúdo)**
 
@@ -1236,24 +1299,23 @@ são critérios de playtest, não dado de jogo.
 - **AC-AR-35 [I] F1 — DPS medido em run, por arma.** Combate e Modificadores
   reais em memória, catálogo de fábrica, sem bênção. Movimento dublê não executa
   `d` nem `deslocar` (o jogador não sai do lugar com a investida). Alvo: **Saco**
-  (`fator_empurrao` 0) em (1040; 540) para a Lâmina (80 px: dentro da Investida
-  parada, 69 + 24 = 93, e do Corte, 166,5) e (1100; 540) para a Ressonância — ver ambiguidade 2 sobre o Saco móvel. Roteiro "jogador perfeito"
-  versionado em `tests/integration/weapons/fixtures/roteiro_dps_{lamina,
+  (`fator_empurrao` 0, parado como supõe o F1) em (1040; 540) para a Lâmina (80
+  px: dentro da Investida parada, 69 + 24 = 93, e do Corte, 166,5) e (1100; 540)
+  para a Ressonância (dentro do Pulso e da Onda, 219). Roteiro "jogador
+  perfeito" versionado em `tests/integration/weapons/fixtures/roteiro_dps_{lamina,
   ressonancia}.json`: Ataque segurado; Especial apertado no primeiro passo vivo
-  em que está pronto **e** o passo anterior teve disparo de Ataque (F1, perda b).
-  Passos 0–599 de cada arma:
+  em que está pronto **e** o **passo vivo anterior** teve disparo de Ataque (F1,
+  perda b; os passos congelados pelo hitstop do Corte não contam como
+  "anterior"). Passos 0–599 de cada arma:
   - DPS real medido = dano somado no Saco × 60 / 600, **igual ao oráculo
     discreto** gerado por script a partir do mesmo roteiro e das regras do
     Combate (±0,5%); o F1 combinado é só referência (±5%: Lâmina 66,47,
     Ressonância 66,96), porque o modelo contínuo não conta a ordem exata do
-    disparo no passo;
-  - número de Especiais disparados = 7 em cada arma (a confirmar com o roteiro
-    gerado);
-  - **A CONFIRMAR antes da implementação** (ambiguidade 3): no modelo
-    simplificado do `qa-lead`, com Ataque e Especial só segurados (Especial
-    guloso), a Lâmina mede −4,4% em 600 passos (63,56) e −4,6% em 6000; a
-    Ressonância +1,3% e −1,4%. O ±2% só vale com o roteiro "perfeito" ou com
-    um oráculo discreto gerado por script.
+    disparo no passo. Referência do script da re-review: Lâmina 662,8 de dano
+    (66,28/s, −0,3% do F1), Ressonância 672 (67,20/s, +0,35%);
+  - número de Especiais disparados = **6 em cada arma** (no script da
+    re-review: Investidas nos passos 4, 111, 215, 322, 429 e 533; Ondas nos
+    passos 1, 105, 209, 313, 417 e 521).
 - **AC-AR-36 [I] R2/R9 — a arma escolhida é a que luta.** Fluxo completo em
   memória: tela de escolha lógica → confirmar `ressonancia` → run com Combate e
   Modificadores reais → o primeiro Ataque cria um projétil de 990 px/s e raio
@@ -1270,20 +1332,24 @@ são critérios de playtest, não dado de jogo.
   por câmara do Limiar (câmaras completadas / câmaras iniciadas) de uma arma
   fica a ≤ 15 pontos percentuais da outra, por câmara e no total. Fora da meta,
   o resultado vai para o `/balance-check` (só números do `AttackDef`). Mesmo
-  bloqueio da AC-AR-37.
+  bloqueio da AC-AR-37. **Amostra:** com ~20 runs por arma, a diferença de 15
+  pontos numa câmara está dentro do ruído (o erro-padrão de uma taxa perto de
+  50% com 20 runs é ~11 pontos por arma). O registro anota o número de runs por
+  arma e por câmara junto de cada taxa, para o `/balance-check` ler a diferença
+  com esse ruído.
 
 **Nota de cobertura**
 
-- Contagem: 29 [L], 5 [I] (AC-AR-06, 14, 21, 35, 36), 1 [UI] (12), 1 [V] (13),
-  2 [M] (37, 38) — 38 critérios; nenhum [P] (o GDD não define orçamento; a
+- Contagem: 30 [L], 5 [I] (AC-AR-06, 14, 21, 35, 36), 1 [UI] (12), 1 [V] (13),
+  2 [M] (37, 38) — 39 critérios (a AC-AR-39 fica no bloco B, junto da R4); nenhum [P] (o GDD não define orçamento; a
   validação do catálogo herda o [P] do Conteúdo, se houver).
-- Cobertura por regra: R1 01, 07; R2 02–04, 36; Combate F2 05; R3 13; R4 08–12;
+- Cobertura por regra: R1 01, 07; R2 02–04, 36; Combate F2 05; R3 13; R4 08–12, 39;
   R5 14, 15; R6 17, 37, 38; R7 (só AV1/AV4 de teste) 23, 26; R8 33, 34; R9 06;
   estados 10; F1 16, 35; F2 17, 24; F3 18, 25; F4 19; F5 20, 21, 27; F6 22, 31;
-  faixas 29, 30; AV1–AV8 23–32; Edge Cases 06, 08–11, 14, 18, 21.
-- Fora da cobertura: "dois Pulsos no mesmo passo somam 1080" (Edge Cases, linha
-  577–578) não é produzível com `leque` [0] e R 14; a soma é do Combate R8 e
-  fica nos ACs dele. Tradição da própria Doutrina (linha 564–565): sem efeito
+  faixas 29, 30; AV1–AV8 23–32; Edge Cases 06, 08–11, 14, 18, 21, 39.
+- Fora da cobertura: "dois Pulsos no mesmo passo somam 1080" (Edge Cases, linhas
+  641–642) não é produzível com `leque` [0] e R 14; a soma é do Combate R8 e
+  fica nos ACs dele. Tradição da própria Doutrina (linhas 628–629): sem efeito
   no MVP, nada a testar aqui.
 - Contas refeitas por script: conversões e passos (R2, F7), `cos_meio`
   0,350044, recuperação 8/0/7/12, F1 (88,79/66,47; 71,43/66,96; por golpe
@@ -1291,29 +1357,16 @@ são critérios de playtest, não dado de jogo.
   passos; folgas 10,80–14,27 e 9,72–14,35), F3 completa (p 0–7 e elites), F4,
   F5 (40,62 px/20; 16,06/16; 4,59/11; v_sust 557,19; teto 610,56), F6 (25,10%,
   28,00%; +6,28/+7,00 e +18,72/+18,00), bordas do AV8 (13,69 e 51,72). Todas
-  conferem com o GDD, salvo a ambiguidade 3. A 1ª revisão independente
-  (2026-11-10) refez as contas e corrigiu a geometria das AC-AR-21 e 35, o
-  conjunto da AC-AR-24 e o AV4 (2 períodos).
-
-**Ambiguidades (linhas do GDD `armas-das-doutrinas.md`)**
-
-As ambiguidades 1 e 4–11 da versão anterior foram resolvidas na 1ª revisão
-independente (2026-11-10): `*` = margem ou falta ≤ 2 em qualquer g, e AV3 com
-g ≤ 3; uma entrada AV1 por objeto; faixas inclusivas; `vida_s` pelo alcance
-testado em px; corrompido avisa; `ArmasTuning.p_max` = 4; recargas em passos;
-não há API de troca; nomes de Pactos aprovados no game-concept. Ficam abertas:
-
-2. **Saco móvel no [I] de DPS** (linhas 238–239: "alvo parado"). Com
-   `fator_empurrao` 1, o Corte empurra 33,8 px e o finalizador 67,9 px por
-   golpe: o Saco sai do alcance de 142,5 px em poucos ciclos e o finalizador
-   (900 ≥ 630) gera `parede` com dano extra 8, que o F1 não conta. A AC-AR-35
-   usa o Saco parado; o Saco móvel ficou na AC-AR-21 (F5). Confirmar.
-3. **Perda da investida no combinado** (linhas 240–243). O F1 supõe a investida
-   logo depois de um Corte; com Especial "a cada recarga" guloso, o bloqueio de
-   N = 10 passos atrasa o Ataque e a Lâmina fica ~4,4% abaixo do F1 (modelo
-   simplificado, suposições de ordem do R1 do Combate a confirmar pelo
-   `gameplay-programmer`). Ou o roteiro é "perfeito" (AC-AR-35), ou o oráculo
-   vira o valor discreto gerado por script, ou a tolerância sobe para ±5%.
+  conferem com o GDD. A 1ª revisão independente (2026-11-10) refez as contas e
+  corrigiu a geometria das AC-AR-21 e 35, o conjunto da AC-AR-24 e o AV4 (2
+  períodos). A re-review (2026-11-10) refez tudo de novo por script, simulou a
+  AC-AR-21 (passo 166, 10º acerto; 41 acertos e Vida 508 em 600 passos) e a
+  AC-AR-35 (6 Especiais por arma com "passo vivo anterior"; o Especial guloso
+  daria 7 e a Lâmina a −4,4%), e listou os 20 AV3 de fábrica (`p_max` 4).
+- **Ambiguidades:** nenhuma aberta. As 1 a 11 da proposta original foram
+  resolvidas na 1ª revisão e na re-review (2026-11-10): o Saco parado do F1 na
+  AC-AR-35 (o Saco móvel fica na AC-AR-21) e o roteiro "perfeito" com "passo
+  vivo anterior" e oráculo discreto.
 
 ## Open Questions
 

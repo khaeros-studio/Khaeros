@@ -19,6 +19,8 @@ registrados aqui e executados pelos sistemas donos.
 
 > **Quick reference** — Layer: `Core` · Priority: `MVP` · Key deps: `Conteúdo orientado a dados`
 
+> **Nota (2026-11-11, revisão cruzada):** pendente: Dependencies listam Status (`abalado()`) e Armas; base de `trocas_oferta` × `trocas_iniciais` da Bênçãos.
+
 ## Overview
 
 **Modificadores e atributos** é o encanamento único por onde bênçãos, melhorias
@@ -104,7 +106,7 @@ grupo do **Ataque** (R12), como no cânone, e o Traço Único também os aumenta
 | `piso_vida_jogador` | 20 | 1 – 100 | piso de `vida_max` do jogador (F1) |
 | `piso_vida_inimigo` | 1 | ≥ 1 | piso de `vida_max` de inimigos (F1) |
 | `teto_reducao_dano` | 0,6 | 0 – 0,9 | teto de `reducao_dano` (F3) |
-| `teto_multiplicador_dano` | vazio (sem teto) | > 1 ou vazio | teto da F2; decide o `/balance-check` |
+| `teto_multiplicador_dano` | 4,0 (provisório) | 2–8 | teto do M efetivo da F2 (`min(M, teto)`); M 14,08 → 4,0; DPS máx. de Armas F1 ≈ 66,47 × 4 = 265,9; `/balance-check` confirma antes da fatia vertical |
 | `fator_empurrao_chefe` | 0,12 | 0 – 1 | multiplicador de `fator_empurrao` da fonte `chefe` (R10) |
 
 **R3. Modificador.** Um modificador tem:
@@ -232,8 +234,9 @@ não pagar Fragmentos **não** são modificadores: são regras de IA e de Combat
 uma fonte `chefe` com `fator_empurrao` × `fator_empurrao_chefe` (0,12, do
 `ModifiersTuning`; cânone, `engine.ts:583`). O ganho de Vida por profundidade
 (cânone: +5% por profundidade) vira modificador percentual de fonte
-`profundidade`, que **não** vale para chefes (cânone). A fórmula é do GDD de IA /
-Câmaras.
+`profundidade`, que **não** vale para chefes (cânone). A fórmula é da **IA de
+inimigos e elites** (F2; dona do `depth_hp_bonus` e das constantes de elite,
+decisão do usuário, 2026-11-12).
 
 **R11. Consulta.** Cada portador oferece:
 
@@ -388,9 +391,12 @@ condição é verdadeira no momento da R12. Para inimigos não há slot: vale s�
 | multiplicadores | float | ≥ 0 | calculated | incondicionais (elite, Abalo) e condicionais verdadeiros (`dano_enesimo_acerto`, `dano_apos_esquiva`) |
 | M | float | ≥ 0 | calculated | fator sobre o dano do golpe |
 
-**Output Range:** ≥ 0, sem teto por ora. O teto fica como knob vazio no
-`ModifiersTuning` e o `/balance-check` decide antes da fatia vertical. O máximo
-teórico hoje é ≈ 14,08: tudo Épico, 4º acerto e pós-esquiva.
+**Output Range:** ≥ 0, com teto `teto_multiplicador_dano` = **4,0** (provisório,
+faixa 2–8; decisão do usuário, 2026-11-12): o M **efetivo** é
+`min(M, teto_multiplicador_dano)`. O máximo teórico sem teto é ≈ 14,08 (tudo
+Épico, 4º acerto e pós-esquiva) e vira **4,0** com o teto. DPS máximo de Armas
+F1 ≈ 66,47 × 4 = **265,9**. Os exemplos abaixo (M 2,00, 3,20) ficam abaixo do
+teto; o de 4,80 vira 4,0.
 **Example:** Ataque com Traço Único +25%, Preço com Nome +20%, Ímpeto nível 3
 +15% e Fundo do Poço +40% (Vida < 50%):
 
@@ -568,7 +574,7 @@ como o GDD de Conteúdo já define. Gravar 1 no lugar de 0,5 dobraria o efeito.
 | Bênçãos (Tradições) | Forte | aplicar/remover fonte; F5 |
 | Oficina de Reforja | Forte | fonte por melhoria, aplicada no começo da run |
 | IA de inimigos e elites | Forte | portadores de inimigo; fontes `elite` e `profundidade` (R10) |
-| Câmaras e ondas | Suave | fonte `profundidade` (R10); a fórmula do ganho é de IA / Câmaras |
+| Câmaras e ondas | Suave | fonte `profundidade` (R10); a fórmula do ganho é da IA |
 | Chefes (fatia vertical) | Suave | fonte `chefe` (R10, `fator_empurrao_chefe`) |
 | Tela de bênção / HUD | Suave | lista de fontes por atributo ("de onde vem") |
 
@@ -628,6 +634,7 @@ escolha na hora.
   Recursos só mudam pela R9.
 - **AC-03 [L]** Oráculos F1: 175; 165; base 25 − 10 → 20; Muro de Pedras Raro
   167,5 → 168; velocidade 12,4; base 10 + 5 plano, +20%, ×1,5 → 27.
+- **AC-04b [L] F2 — teto do M** (`teto_multiplicador_dano` = 4,0). M calculado 14,08 (tudo Épico, 4º acerto, pós-esquiva) → M efetivo 4,0; M 3,20 → 3,20 (abaixo do teto, intacto); M 4,0 exato → 4,0; com o teto em 8, o 14,08 vira 8. O dano da Lâmina combinada no teto = DPS de Armas F1 66,47 × 4 ≈ 265,9. O ST5 e o SV12 usam M = 4.
 - **AC-04 [L]** Pisos e tetos:
   - `reducao_dano` 0,9 → 0,6 e −0,1 → 0;
   - `cargas_esquiva` 1 − 1 → 1;

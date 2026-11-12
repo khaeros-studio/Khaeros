@@ -1,11 +1,15 @@
 # Input e controle
 
-> **Status**: Approved (2026-11-09: R6 diz que o orquestrador lê o hitstop do Combate, alinhado ao Combate núcleo R10 com aval do usuário; 4ª re-review `/design-review` 2026-11-06, sessão independente: APPROVED, 0 bloqueantes, recomendadas no log; anteriores: 3ª re-review NEEDS REVISION e `/review-all-gdds` FAIL, ambos revisados; 2ª passada do cross-review, CONCERNS: retirada do `InputTuning` ao sair de Pronto na R12 e Cross-References, aplicadas em 2026-11-06 com o status mantido por decisão do usuário)
+> **Status**: Approved (2026-11-10: contexto Transição na R10 e na R11, do `/review-all-gdds` 3ª passada (S-B1), mantido Approved por decisão do usuário; 2026-11-09: R6 diz que o orquestrador lê o hitstop do Combate, alinhado ao Combate núcleo R10 com aval do usuário; 4ª re-review `/design-review` 2026-11-06, sessão independente: APPROVED, 0 bloqueantes, recomendadas no log; anteriores: 3ª re-review NEEDS REVISION e `/review-all-gdds` FAIL, ambos revisados; 2ª passada do cross-review, CONCERNS: retirada do `InputTuning` ao sair de Pronto na R12 e Cross-References, aplicadas em 2026-11-06 com o status mantido por decisão do usuário)
 > **Author**: usuário + Claude (design-system)
-> **Last Updated**: 2026-11-06
+> **Last Updated**: 2026-11-10 (contexto Transição: R10, R11, AC-22, AC-23)
 > **Last Verified**: 2026-11-06
 > **Implements Pillar**: P3 *Reflexo que se lê* ("a esquiva sempre responde")
 > **Creative Director Review (CD-GDD-ALIGN)**: pulada (modo Lean)
+
+> **Nota (2026-11-11, Tela de bênção e carta):** pendente: a Tela usa a borda de subida do botão, esvaziar o buffer e `ui_carta_1..3`; não existem teclas 4 e 5.
+
+> **Nota (2026-11-11, revisão cruzada):** pendente: o contexto Transição (R10) entra na tabela de estados e nas Interactions; a morte vira "Menu": dizer se `ui_*` vale durante o passe de morte (Pipeline/Combate, Run OQ 11); Dependencies dizem que GDDs existentes "não existem".
 
 ## Summary
 
@@ -234,6 +238,11 @@ e a recarga permitir. Esta camada só informa.
 - **Bênção** (tela de bênção, dentro da run): `ui_aceitar`, `ui_navegar`, atalhos
   1–3, `ui_trocar_ofertas` e `pausar`. A escolha não tem volta: Esc ou Start
   abrem a Pausa por cima, e fechá-la devolve a mesma oferta. B não faz nada.
+- **Transição** (troca de câmara, durante o wipe; Combate núcleo R1; decisão do
+  usuário, 2026-11-10): **nenhuma ação vale**, nem as de jogo nem `pausar`. O
+  buffer esvazia ao entrar (regra da troca de contexto, abaixo) e nada é
+  guardado durante o wipe. Ao descobrir, o contexto volta a Jogo, e os botões
+  segurados durante a Transição seguem a regra "ignorados até serem soltos".
 - **Menu** (menu principal, submenus, opções, morte, vitória, erros do catálogo,
   debug): `ui_*`. Esc ou B são `ui_voltar` e sobem um nível; numa tela sem nível
   acima, não fazem nada. Start não faz nada.
@@ -263,7 +272,8 @@ e a recarga permitir. Esta camada só informa.
     ignorado.
 
 **R11. Perda de foco da janela.** Se a janela do jogo perde o foco durante o
-Jogo, o jogo **pausa sozinho**, e todos os botões contam como soltos.
+Jogo, o jogo **pausa sozinho**, e todos os botões contam como soltos. Durante a
+Transição, a pausa abre no primeiro passo de Jogo depois do wipe.
 
 **R12. Valores em dados.** Ficam num `InputTuning` (Conteúdo R1):
 
@@ -295,7 +305,8 @@ injetam sequências roteirizadas de amostras, sem dispositivo real.
 | Estado | Significado | Entra quando | Sai para |
 |---|---|---|---|
 | Jogo | Ações de jogo ativas; buffer rodando | Uma câmara começa ou a pausa fecha | Bênção, Menu, Pausa, Sem foco |
-| Bênção | Escolha de bênção (R10); buffer vazio | A tela de bênção abre | Jogo (segurados ignorados até soltar), Pausa |
+| Bênção | Escolha de bênção (R10); buffer vazio | A tela de bênção abre | Jogo, em `tela_fechada` (não em `escolher`; segurados ignorados até soltar), Pausa |
+| Transição | Troca de câmara, durante o wipe (R10); ações de jogo e `pausar` ignoradas; buffer vazio | Pedido de troca de câmara (Combate R1) | Jogo (segurados ignorados até soltar; a Pausa pedida abre no primeiro passo de Jogo) |
 | Menu | `ui_*` (R10); buffer vazio | Menu principal, Campus em menu, morte, vitória, opções | Jogo, Pausa (pelo `ui_voltar` das opções da pausa), Texto |
 | Pausa | Mundo parado; `ui_aceitar`, `ui_navegar`, `pausar` | `pausar` em Jogo ou na Bênção; perda de foco em Jogo (R11); gamepad ativo desconectado em Jogo (Edge Cases) | O estado anterior, por `pausar` (mesma regra de soltar); Menu (opções) |
 | Texto | Campo em edição; o teclado digita; só Enter e Esc físicos (R10) | Bind de teclado de `ui_aceitar` ou clique num campo de texto | Menu (Enter com valor aceito confirma; Esc ou clique fora do campo cancelam). Enter com valor recusado fica em Texto; o hover não tira o foco |
@@ -725,10 +736,16 @@ Requirements). Som de navegação de menu é do GDD de Áudio.
     de bênção zerada no teste, R9).
   - Bênção → Jogo com o botão ainda segurado → ataque falso até soltar.
   - Um toque no mesmo passo da troca → ignorado.
+  - Jogo → Transição com Ataque no buffer → buffer vazio no passo da troca;
+    Ataque, Especial, esquiva e `pausar` tocados durante a Transição → nenhuma
+    ação; Ataque segurado da Transição até depois do wipe → ataque falso até
+    soltar.
 - **AC-23 R11 [I]**
   - Notificação de perda de foco em Jogo → Pausa, segurados falsos, buffer
     vazio.
   - Em Menu ou na Bênção → não pausa.
+  - Na Transição → a Pausa abre no primeiro passo de Jogo depois do wipe, com
+    segurados falsos.
   - **[M]** Alt+Tab real, uma vez por release.
 - **AC-24 [I]** Com monitor de dispositivos injetado:
   - o gamepad ativo desconecta → Pausa + `INPUT_CONTROLE_DESCONECTADO`; ao
@@ -825,6 +842,7 @@ cross-review de 2026-11-06 entrou o AC-38.
 
 | # | Pergunta | Dono | Resolver até |
 |---|---|---|---|
+| 0 | A consulta "ação → glifo ou rótulo do dispositivo ativo" pertence ao Input: ele expõe `rotulo_acao(acao, dispositivo)` (HUD e Tela de bênção a consomem); assinatura e formato do retorno a fechar | game-designer / ux-designer | ADR, antes da primeira story de HUD |
 | 1 | API de remapeamento em tempo de execução e formato do arquivo de binds (não estão na referência local) | godot-specialist | ADR, antes da primeira story |
 | 2 | Confirmar que `grab_focus()` no `mouse_entered` unifica o foco no 4.6+ (foco do mouse separado) antes de escrever o AC-33 | godot-specialist | Antes da story das telas |
 | 3 | Faixa da zona morta ajustável nas opções | accessibility-specialist | GDD de Acessibilidade |

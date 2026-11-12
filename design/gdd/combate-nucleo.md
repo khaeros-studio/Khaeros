@@ -1,10 +1,18 @@
 # Combate núcleo
 
-> **Status**: Approved (2026-11-10: exemplos do Pulso alinhados ao empurrão 540 do GDD de Armas, com aval do usuário, sem mudar regra; `/design-review` 2026-11-09, lean, por subagentes: NEEDS REVISION — 3 bloqueantes nas regras e 8 nos critérios, revisados; re-review 2026-11-09: regras APPROVED, critérios com 2 correções de uma linha aplicadas, e as recomendadas das duas re-reviews aplicadas na mesma data; aprovado pelo usuário)
+> **Status**: Approved (2026-11-11, Efeitos de status: o número de dano de status é o agregado da R8 deles; 2026-11-10, Selo e Fluxo: a Transição também apaga os Selos (R1, item 3); o dano do Selo usa o caminho silencioso da R8 e sai da lista de origens do `acerto` na R17, decisão do usuário; 2026-11-10, correções de contrato do `/review-all-gdds` 3ª passada, mantido Approved por decisão do usuário: C-B2, durações visuais no `CombatTuning` e nos eventos; S-B1, estado Transição no orquestrador; S-B2, câmara limpa só com hitstop 0; S-W5, hitstop parado fora de Jogo. 2026-11-10: exemplos do Pulso alinhados ao empurrão 540 do GDD de Armas, com aval do usuário, sem mudar regra; `/design-review` 2026-11-09, lean, por subagentes: NEEDS REVISION — 3 bloqueantes nas regras e 8 nos critérios, revisados; re-review 2026-11-09: regras APPROVED, critérios com 2 correções de uma linha aplicadas, e as recomendadas das duas re-reviews aplicadas na mesma data; aprovado pelo usuário)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-09
+> **Last Updated**: 2026-11-10 (cross-review: R1, R10, R15, R17, V1, V6, V10–V12, CV22, AC-10, AC-78, AC-95–AC-97, OQ11)
 > **Last Verified**: 2026-11-09
 > **Implements Pillar**: P3 *Reflexo que se lê* (hitstop, buffer, cancelamento; baseline §55)
+
+> **Nota (2026-11-11, HUD):** pendente: o fio de Vida do inimigo e o prompt de interação são do HUD (UI Requirements); o fio lê a queda da Vida do inimigo, não o `acerto`.
+
+> **Nota (2026-11-11, Feedback de combate):** pendente: V7 cita a fonte única da soma de 300 ms e do teto de 6 (Feedback R6/F1/F2) e a exceção do dourado; V14: o Feedback envia um impulso por passo; A1 provisória; o crítico é a flag `enesimo_acerto` (acerto marcado).
+
+> **Nota (2026-11-11, Telemetria local):** pendente: `jogador_atingido` com `atacante_tipo` e `ataque_id` e a causa no `jogador_morreu` (a Telemetria grava `causa: null` sem eles).
+
+> **Nota (2026-11-11, revisão cruzada):** pendente: áudio do acerto marcado soma ao do peso (AC-80b, Feedback R3); duração da inversão no passo da recusa (R17/AC-77/AC-97 × Feedback R12) e relógio de `area` (V1/V3). (Resolvidos em 2026-11-12: V14 remetente único, linhas de `jogador_morreu` e `acerto_de_arma` na R17, Dependencies.)
 
 ## Summary
 
@@ -89,6 +97,38 @@ Sem este sistema, não existe luta: só movimento.
 
 Os itens 3, 5, 7, 8 e 9 são deste GDD. A ordem dos outros é dos donos; este GDD
 só exige que o 3 venha antes do Movimento e o 5 depois dele.
+
+**Estados de jogo do orquestrador** (cross-review 2026-11-10, S-B1 e S-W5). O
+orquestrador só executa a R1 no estado **Jogo**. Fora dele (pausa, Bênção,
+menus, Morte e Transição) a R1 não roda e nenhum contador do Combate desconta,
+**nem o de hitstop**: uma pausa no meio do hitstop o retoma de onde parou. Em
+cada passo de física fora de Jogo, o orquestrador só chama o `passo_congelado()`
+do Movimento (Movimento R2), fora da R1.
+
+**Transição** (troca de câmara; decisão do usuário, 2026-11-10):
+
+- Começa no passo vivo em que as Câmaras pedem a troca (a porta) e dura o wipe
+  do Pipeline visual (R7, `duracao_wipe_s`).
+- A cada passo da Transição, o Movimento recebe `passo_congelado()` e nada mais
+  do mundo roda. O Input fica no contexto Transição (Input R10): nenhuma ação de
+  jogo e o buffer esvazia.
+- No **quadro da metade do wipe** (o primeiro quadro de render com
+  `progresso_wipe` ≥ 0,5, com a tela coberta; o wipe avança por quadro, e os
+  passos de física seguem a 60 Hz), o orquestrador faz, nesta ordem e no mesmo
+  quadro:
+  1. avisa "câmara nova" ao Combate, que zera o hitstop, a investida e a
+     recuperação (R10);
+  2. teleporta o jogador para a entrada da câmara nova (Movimento R1; o
+     teleporte cancela a esquiva);
+  3. as Câmaras montam a câmara nova e o Selo apaga os Selos ativos (Selo e
+     Fluxo R6);
+  4. os VFX dos dois relógios são apagados (V1);
+  5. a câmera corta para o alvo da câmara nova (Cena R10);
+  6. o Pipeline troca a LUT, se a região mudou, e zera os relógios (Pipeline
+     visual R2, R8, F8).
+- Na segunda metade, o mundo segue congelado, já com a câmara nova na tela. Ao
+  descobrir (fim do wipe), o estado volta a Jogo, e o passo seguinte é o
+  primeiro passo vivo da câmara nova.
 
 **R2. Início do passo.** Cada contador do jogador > 0 cai 1, nesta ordem:
 invulnerabilidade, recarga do Ataque, recarga do Especial, guarda, janela
@@ -229,15 +269,15 @@ esquiva, pela parede, pela explosão e pelo reflexo. Entrada: alvo, dano ou
 2. **Golpe de arma** (`de_arma`: arco, círculo, investida, projétil do jogador):
    - o contador de acertos do jogador sobe 1 (Modificadores R4: por alvo);
    - se o portador tem `dano_enesimo_acerto` e o contador é múltiplo de
-     `a_cada`, o dano é `dano_golpe × M_com` e o acerto é **quarto acerto**;
+     `a_cada`, o dano é `dano_golpe × M_com` e o acerto é **marcado** (`enesimo_acerto` verdadeiro; "quarto acerto" no texto deste GDD é o caso `a_cada` = 4);
      senão, `dano_golpe × M_sem`;
    - emite `acerto_de_arma` (o Selo soma Fluxo; o Status aplica `golpe_*`).
 3. Vida −= dano, sem limitar ao que resta. O dano a inimigos é fracionário
    (Modificadores F3).
-4. **Pesado** = `pesado` de entrada (o finalizador, F3), ou quarto acerto, ou
+4. **Pesado** = `pesado` de entrada (o finalizador, F3), ou acerto marcado (`enesimo_acerto`), ou
    empurrão de entrada ≥ `empurrao_pesado` (antes do `fator_empurrao` do alvo).
    O Especial só sobe o hitstop do golpe (R4); no impacto ele segue esta regra.
-5. Evento `acerto` (alvo, posição, direção, dano, pesado, quarto acerto).
+5. Evento `acerto` (alvo, posição, direção, dano, pesado, `enesimo_acerto`).
 6. **Empurrão:** `vel_empurrao += direção × empurrão × valor(fator_empurrao)`
    do alvo (elite × 0,4, chefe × 0,12; Modificadores R10). **Soma** à velocidade
    que ele já tinha.
@@ -250,7 +290,7 @@ esquiva, pela parede, pela explosão e pelo reflexo. Entrada: alvo, dano ou
      execução nunca é cancelado.
 8. Status do `AttackDef` (ou do Corte) vai para o GDD de Efeitos de status.
 
-O dano por passo do Status chama o impacto com `de_status`: só os itens 1 e 3
+O dano por passo do Status e do Selo (Selo e Fluxo R3) chama o impacto com `de_status`: só os itens 1 e 3
 (atingível e Vida), sem evento `acerto`, sem empurrão, sem cambaleio e sem
 hitstop (cânone).
 
@@ -269,9 +309,18 @@ Input usa na mira (consulta de alvos da IA).
 - Enquanto o contador > 0, nada do mundo roda: só o Input (buffer com prazo
   parado) e o `passo_congelado()` do Movimento. Contadores de modificadores,
   status, recargas e invulnerabilidade não descontam.
-- O contador zera ao entrar numa câmara nova. A troca de câmara só acontece
-  em passo vivo (item 10 da R1, ou a porta), e o Combate zera o contador ao
-  receber o aviso de câmara nova.
+- **Câmara nova** (decisão do usuário, 2026-11-10): o aviso chega no quadro da
+  metade do wipe, no estado Transição (R1). O Combate zera o contador de
+  hitstop, a investida e a recuperação (como o `cancelar` da R18). Recargas,
+  combo, janelas, guarda e invulnerabilidade passam para a câmara nova como
+  estão. O pedido de troca só sai de passo vivo (a porta).
+- **Câmara limpa espera o hitstop** (decisão do usuário, 2026-11-10): o
+  orquestrador só chama a avaliação de "câmara limpa" do item 10 da R1 com o
+  contador de hitstop em 0. Se o passo pediu hitstop (o último abate pede ao
+  menos `hitstop_abate_s`), a avaliação fica para o primeiro passo vivo depois
+  do congelamento. Assim a câmara limpa, a porta e a Bênção (Run e regiões)
+  nunca começam com um hitstop pendente. É contrato para Câmaras e ondas e
+  Run e regiões.
 - A consulta "hitstop ativo" é do orquestrador (Movimento R2, Input R6).
 
 | Causa | Hitstop | Cânone |
@@ -392,6 +441,16 @@ Formulas.
 | `fator_guarda` | 0,5 | guarda × 0,5 (Modificadores F3) |
 | `giro_leque_graus` | 12 | `rotate` do leque |
 | `fator_raio_obstaculo_projetil` | 0,5 | `raio × 0,5` contra obstáculo |
+| `flash_acerto_s` | 0,0833 (5 passos vivos) | — (Art Bible §5.5; V6) |
+| `extra_inversao_s` | 0,0667 (4 passos vivos) | — (V10; emenda ao "2 quadros" do §5.5) |
+| `impact_chefe_s` | 0,2 (12 passos de apresentação) | — (Art Bible §2.9; V12) |
+
+**Durações visuais** (cross-review 2026-11-10, C-B2; decisão do usuário: o dono
+é o Combate). Os três últimos campos são do Combate, e o Pipeline visual só os
+implementa (Pipeline R7, R12). A duração do *impact frame* da recusa é
+passos(`hitstop_recusa_s`), sem campo próprio. As do *impact frame* contam em
+**passos de apresentação** (1/60 s de `t_apres`, Pipeline R8); as do flash e da
+inversão, em passos vivos. As durações vão prontas nos eventos (R17).
 
 `fator_recuperacao` (andar a 45% em recuperação) é do `MovementTuning`. O Fluxo
 por acerto é do GDD de Selo e Fluxo. Pisos e tetos de dano são do
@@ -417,7 +476,7 @@ pelo Combate:
 É o que a Visual/Audio V6 e V14 usam, sem refazer a regra. O número dourado do
 quarto acerto sai em todo quarto acerto, qualquer que seja o `peso_visual`
 (decisão do usuário, 2026-11-09). Num `acerto` sem arma, o slot é "nenhum" e a forma é a
-origem (`corte`, `parede`, `reflexo`, `explosao`, `selo`). O `vel_empurrao` do
+origem (`corte`, `parede`, `reflexo`, `explosao`; o Selo não emite `acerto`, Selo e Fluxo R3). O `vel_empurrao` do
 `inimigo_morreu` é a velocidade total do alvo no momento da morte, já com o
 empurrão do golpe que o matou.
 
@@ -431,13 +490,15 @@ testes os montam pela fixture. Campos dos eventos:
 | `area` | centro, `raio_px`, slot, pesado, n.º de alvos |
 | `disparo` | posição, direção, dono (jogador / inimigo) |
 | `investida` | posição, direção, N |
-| `acerto` | alvo, posição, direção, dano, pesado, quarto acerto, de_arma, slot, forma, `peso_visual` (leve / pesado) |
+| `acerto` | alvo, posição, direção, dano, pesado, `enesimo_acerto`, de_arma, slot, forma, `peso_visual` (leve / pesado), `flash_passos` = passos(`flash_acerto_s`) |
 | `parede` | alvo, posição, normal da parede |
 | `quebrou` | alvo, posição |
-| `jogador_atingido` | Vida perdida, direção do atacante ao jogador (projétil: voo) |
-| `recusou_morte` | Vida nova |
-| `inimigo_morreu` | alvo, posição, elite, chefe, `vel_empurrao` do golpe que o matou (para o deslize da V12) |
+| `jogador_atingido` | Vida perdida, direção do atacante ao jogador (projétil: voo), `inversao_passos` = hitstop pedido pelo golpe + passos(`extra_inversao_s`), `invuln_passos` = invulnerabilidade atribuída |
+| `recusou_morte` | Vida nova, `impact_passos` = passos(`hitstop_recusa_s`) (de apresentação), `invuln_passos` = invulnerabilidade atribuída |
+| `inimigo_morreu` | alvo, posição, elite, chefe, `vel_empurrao` do golpe que o matou (para o deslize da V12), `impact_passos` = passos(`impact_chefe_s`) no chefe (de apresentação), 0 nos outros |
 | `explosao` | posição, `raio_px` |
+| `acerto_de_arma` | alvo, slot, `enesimo_acerto`, pesado (o Selo soma Fluxo; o Status aplica `golpe_*`; só golpes de arma) |
+| `jogador_morreu` | `causa` (pedido pela Telemetria: `atacante_tipo` e `ataque_id` do último `jogador_atingido`; `null` se faltarem) |
 
 **R18. Pedidos do Movimento** (contrato da OQ2 do Movimento), síncronos:
 
@@ -478,7 +539,8 @@ testes os montam pela fixture. Campos dos eventos:
 | Morto | Vida ≤ 0 | Removido, na varredura (R14) |
 
 **Mundo:** Vivo ↔ Congelado (hitstop > 0). Todos os contadores acima param em
-Congelado.
+Congelado. Fora do estado de jogo Jogo (pausa, Bênção, menus, Morte, Transição;
+R1) a R1 não roda e nada desconta, nem o hitstop.
 
 ### Interactions with Other Systems
 
@@ -493,10 +555,11 @@ Congelado.
 | Efeitos de status | status do golpe e do Corte; `acerto_de_arma` (`golpe_*`) | dano por passo via `ferir_inimigo` (sem evento `acerto`, cânone) | Status |
 | IA de inimigos e elites | pedido de "Quebrou!" (recuperação), "cambaleando" | estado (surgindo, preparação, execução), elite, chefe, chamadas de `ferir_jogador` e `disparar_projetil` | IA; **provisório** |
 | Telégrafos | — | a forma do golpe inimigo (igual ao telégrafo) | Telégrafos; **provisório** |
-| Câmaras e ondas | abates, `jogador_morreu` | retângulo, obstáculos, troca de câmara (zera o hitstop), consulta "em combate" (R13.1) | Câmaras; **provisório** |
+| Câmaras e ondas | abates, `jogador_morreu`; "câmara limpa" só avaliada com hitstop 0 (R10) | retângulo, obstáculos, pedido de troca de câmara (estado Transição, R1; zera hitstop, investida e recuperação), consulta "em combate" (R13.1) | Câmaras; **provisório** |
 | Run e regiões | `jogador_morreu` | — | Run |
 | Cena 3/4 e câmera | eventos para chute, tremor e zoom | — | Cena (impulsos), este GDD (eventos) |
 | HUD / Feedback de combate (VFX) / Áudio | eventos `golpe`, `area`, `disparo`, `investida`, `acerto`, `parede`, `quebrou`, `jogador_atingido`, `recusou_morte`, `inimigo_morreu`, `explosao` | — | apresentação |
+| Pipeline visual | eventos com as durações visuais (R15, R17); estado de jogo e "câmara nova" no quadro da metade do wipe (R1) | progresso do wipe (`progresso_wipe`, Pipeline R7) | este GDD (durações, ordem), Pipeline (como desenha) |
 
 ## Formulas
 
@@ -858,6 +921,9 @@ porque o hitstop "cobra" ~20% da Lâmina. Chefe (700) sem esquivas: Lâmina
 | `fator_guarda` | 0,5 | 0–1 | 1 anula a guarda; 0 deixa o jogador imune com a guarda |
 | `giro_leque_graus` | 12 | 3–45 | leque muito aberto deixa buracos entre projéteis |
 | `fator_raio_obstaculo_projetil` | 0,5 | 0–1 | 1 faz o projétil sumir antes de encostar visualmente |
+| `flash_acerto_s` | 0,0833 (5) | 0,0167–0,1667 (1–10) | acima de 10, o flash de um Corte encosta no do Corte seguinte (R = 16) e o inimigo parece sempre aceso |
+| `extra_inversao_s` | 0,0667 (4) | 0,0333–0,1667 (2–10) | abaixo de 2, a inversão some com o hitstop (§5.5 pede ≥ 2 quadros); acima de 10, ela cobre a animação Dano |
+| `impact_chefe_s` | 0,2 (12) | 0,0833–0,6 (5–36) | abaixo de 5 não se lê; acima do hitstop do chefe, passa do congelamento (CV22) |
 
 As relações entre campos (pesado ≥ leve, recusa ≥ atingido) são o aviso CV1,
 não erro de faixa. Os campos de hitstop **não aceitam zero** (mínimo 1 passo; F7 do Conteúdo).
@@ -891,6 +957,7 @@ catálogo e a run não começa; os **avisos** ficam no registro de validação.
 | CV19 | aviso | `raio_jogador_px` + `folga_encostado_px` ≥ menor `alcance_px` de arco | o encostado vira o arco inteiro |
 | CV20 | aviso | `nascimento_projetil_px` + s − (`raio_px` + r_min) > `raio_jogador_px` + r_min | zona cega à queima-roupa |
 | CV21 | aviso | passos(`invuln_atingido_s`) ≤ passos(`hitstop_atingido_s`) | congelamento maior que a proteção |
+| CV22 | aviso | passos(`impact_chefe_s`) > passos(`hitstop_abate_chefe_s`), ou passos(`hitstop_atingido_s`) + passos(`extra_inversao_s`) ≥ passos(`invuln_atingido_s`) | o *impact frame* do chefe passa do congelamento, ou a inversão cobre toda a invulnerabilidade |
 
 **Saída do validador:** uma entrada por regra e por objeto; o erro vence o aviso
 da mesma regra; o CV1 é uma entrada só, com todas as causas; o CV3 é avaliado
@@ -1024,10 +1091,10 @@ Movimento (pedidos, `deslocar(v)`, desconto da invulnerabilidade, "em esquiva")
 |---|---|---|---|
 | Movimento e esquiva | Forte, **por contrato** | posição e raio do jogador, "em esquiva" (Movimento R6), execução de `deslocar(v)` e da investida (R9), pedidos `cancelar`, `garantir_invulneravel`, `aplicar_corte`, `esquiva_iniciada` | não há golpe nem esquiva que cancele |
 | Modificadores e atributos | Forte | `valor`, `multiplicador_de_dano` (F2), F3, F4, gatilhos (`refletir_dano`, `recusas_morte`, `explosao_ao_abater`, `cura_ao_abater`, `dano_enesimo_acerto`), `fator_empurrao` | dano sem bênçãos, sem elite, sem Abalo |
-| Conteúdo orientado a dados | Forte | `AttackDef` (formas registradas), `CombatTuning`, conversões F1, F2, F4, F5, F6, F7, tela de erros para CV1–CV21 | números no código, o que a regra do projeto proíbe |
+| Conteúdo orientado a dados | Forte | `AttackDef` (formas registradas), `CombatTuning`, conversões F1, F2, F4, F5, F6, F7, tela de erros para CV1–CV22 | números no código, o que a regra do projeto proíbe |
 | Input e controle | Forte | Ataque e Especial (toque, segurado, buffer), mira unitária (Input R2, R5, R6) | não há comando |
 | IA de inimigos e elites | Forte, **por contrato** | lista de inimigos (posição, raio, ordem estável), estado (surgindo, em preparação, em execução), elite e chefe; executa o pedido de "Quebrou!" e chama `ferir_jogador` e `disparar_projetil` | não há em quem bater |
-| Câmaras e ondas | Suave, **por contrato** | retângulo jogável e obstáculos (parede, projéteis), aviso de troca de câmara (zera o hitstop), consulta "em combate" (R13.1) | câmara padrão de 1920×1080 sem obstáculos (a mesma regra da Cena), sempre "em combate" |
+| Câmaras e ondas | Suave, **por contrato** | retângulo jogável e obstáculos (parede, projéteis), pedido de troca de câmara (Transição, R1), consulta "em combate" (R13.1) | câmara padrão de 1920×1080 sem obstáculos (a mesma regra da Cena), sempre "em combate" |
 
 **Ciclos resolvidos por contrato**
 
@@ -1051,7 +1118,8 @@ Movimento (pedidos, `deslocar(v)`, desconto da invulnerabilidade, "em esquiva")
 | Efeitos de status | Forte | status do golpe e do Corte, `acerto_de_arma` (`golpe_*`), `ferir_inimigo` (dano por passo) |
 | Telégrafos | Forte | `ferir_jogador`; a forma do telégrafo tem de ser a do teste de acerto (R13) |
 | IA de inimigos e elites | Forte | "cambaleando", pedido de "Quebrou!", `ferir_jogador`, `disparar_projetil` |
-| Câmaras e ondas | Suave | abates, `jogador_morreu` (ignorar "câmara limpa" depois dela) |
+| Câmaras e ondas | Suave | abates, `jogador_morreu` (ignorar "câmara limpa" depois dela); "câmara limpa" só com hitstop 0 (R10) |
+| Pipeline visual | Suave | durações visuais nos eventos (R15, R17); estado de jogo e "câmara nova" (R1) |
 | Run e regiões | Suave | `jogador_morreu` |
 | Chefes (fatia vertical) | Forte | armadura, `hitstop_abate_chefe`, morte do chefe zera os outros (R14) |
 | Cena 3/4 e câmera | Suave | eventos para chute, tremor e zoom (Cena F5) |
@@ -1064,9 +1132,10 @@ Movimento (pedidos, `deslocar(v)`, desconto da invulnerabilidade, "em esquiva")
 - Movimento, Modificadores, Conteúdo e Input já listam o Combate (Movimento
   Dependencies; Modificadores l. 562; Conteúdo l. 770; Input, consumidores do
   buffer). O contrato do Movimento (OQ2) foi honrado sem mudança.
-- Selo, Status, Telégrafos, IA, Câmaras, HUD, VFX, Áudio e Chefes ainda não
-  existem. Cada um, ao ser escrito, deve listar "Combate núcleo" em
-  Dependencies e honrar os contratos acima. O índice já tem o Combate no Depends
+- Selo, Status, Telégrafos, IA, Câmaras, HUD, Feedback de combate, Pipeline, Run e
+  Telemetria já existem (2026-11-12); **Chefes continua não existindo** (e o Áudio
+  não tem GDD próprio). Telégrafos, Câmaras, HUD e Feedback devem listar o
+  "Combate núcleo" em Dependencies (a conferir) e honrar os contratos acima. O índice já tem o Combate no Depends
   On de Armas, Selo, Status, Telégrafos, IA, HUD e VFX.
 - **Ajuste no índice:** a linha 8 do Combate lista Movimento, Modificadores,
   Conteúdo e Input; falta "IA de inimigos e elites (por contrato)" e "Câmaras e
@@ -1111,8 +1180,8 @@ acerto: o *smear* do arco vai até `alcance_px` com abertura
   que o passo do golpe o deixou (se sobreviveu a um golpe do item 5, o item 7
   da R1 já aplicou o primeiro deslocamento do empurrão, F7). Sobre a cena
   congelada, a estrela de impacto, o número e a câmera se mexem.
-- **Câmara nova** zera o hitstop (R10) e apaga os VFX do relógio de
-  apresentação.
+- **Câmara nova** (quadro da metade do wipe, R1) zera o hitstop (R10) e apaga
+  os VFX dos dois relógios.
 
 **V2. `golpe` (forma arco)**
 
@@ -1166,8 +1235,8 @@ acerto: o *smear* do arco vai até `alcance_px` com abertura
 
 **V6. `acerto` em inimigo**
 
-- **Flash** (todos): 1 quadro em osso, L* ~80 (§5.5), segurado no hitstop; 5
-  passos vivos.
+- **Flash** (todos): 1 quadro em osso, L* ~80 (§5.5), segurado no hitstop;
+  `flash_acerto_s` (5 passos vivos; `flash_passos` do evento `acerto`, R17).
 - **Tranco de cambaleio** (sem armadura, empurrão > 0): o rig inclina 8–12° para
   longe do golpe e volta em `cambaleio_s` (procedural: os inimigos não têm
   animação de dano; linha nova). **Elite e chefe:** flash e tranco de 3°, sem
@@ -1194,7 +1263,7 @@ acerto: o *smear* do arco vai até `alcance_px` com abertura
   em ≤ 0,6 s, no relógio de apresentação. Golpes no mesmo alvo em 300 ms somam
   num número; até 6 números na tela.
 - O número mostra o valor arredondado; fração < 0,5 não gera número e entra na
-  soma. Dano no jogador nunca gera número. Número de status é do GDD de Status.
+  soma. Dano no jogador nunca gera número. Número de status é do GDD de Efeitos de status (R8: agregado a cada 0,5 s).
 
 **V8. `parede`**
 
@@ -1225,7 +1294,8 @@ acerto: o *smear* do arco vai até `alcance_px` com abertura
 **V10. `jogador_atingido`**
 
 - **Inversão de silhueta** (§5.5, exclusiva deste evento): tinta chapada com
-  contorno em osso, pelos passos de hitstop + 4 passos vivos; depois a animação
+  contorno em osso, pelos passos de hitstop + `extra_inversao_s` (4 passos
+  vivos; `inversao_passos` do evento, R17); depois a animação
   Dano (2–3 quadros), cortável pela esquiva.
 - **Invulnerabilidade pós-dano:** o contorno do Iniciado fica **tracejado em
   osso** pelo tempo exato da invulnerabilidade, sem piscar e sem mudar a
@@ -1239,7 +1309,8 @@ acerto: o *smear* do arco vai até `alcance_px` com abertura
 
 - **Impact frame:** a tela vai a tinta chapada (L* ≤ 10) com o Iniciado em osso
   pleno `#E6DFCF` (L* ≥ 88), segurado pelo hitstop da recusa
-  (`hitstop_recusa_s`, 18 passos), saindo em 1 quadro. Contornos dos telégrafos
+  (passos(`hitstop_recusa_s`) = 18 passos de apresentação; `impact_passos` do
+  evento, R17), saindo em 1 quadro. Contornos dos telégrafos
   ativos e silhuetas dos inimigos continuam desenhados por cima, em osso (P3).
 - Depois: manchas de tinta entram pelas bordas até 12% e recuam em 18 passos,
   **abaixo** de telégrafos e personagens.
@@ -1260,8 +1331,9 @@ acerto: o *smear* do arco vai até `alcance_px` com abertura
 - **Comum:** estrela leve sobre o último quadro.
 - **Elite:** a coroa de espinhos estilhaça em 2 quadros, a aura dourada se apaga
   sem flash, mancha de tinta de 192 px. **Sem** *impact frame*.
-- **Chefe** (§2.9): *impact frame* em osso com manchas de tinta nos primeiros 12
-  quadros de render dos 36 passos congelados; nos outros 24, a cena congelada
+- **Chefe** (§2.9): *impact frame* em osso com manchas de tinta nos primeiros
+  `impact_chefe_s` (12 passos de apresentação; `impact_passos` do evento, R17)
+  dos 36 passos congelados; nos outros 24, a cena congelada
   com o chefe na pose de morte; depois a arena esquenta.
 
 **V13. `explosao`** (bênção `explosao_ao_abater`) — poder do jogador.
@@ -1288,10 +1360,13 @@ acerto: o *smear* do arco vai até `alcance_px` com abertura
 | `inimigo_morreu` comum / elite / chefe | leve 0,6 / pesado / chefe | — | sem direção |
 | `explosao` | leve | 0,5 | sem direção |
 
-- **Um impulso por passo:** o Combate manda o mais forte do passo (chefe >
-  pesado > leve; no mesmo preset, a maior escala), com a direção do evento que
-  venceu, como o hitstop. Empate: vale o evento mais importante na ordem do A1
-  (`recusou_morte` vence `jogador_atingido`). "Sem direção" = vetor nulo (sobram tremor e zoom).
+- **Um impulso por passo, remetente único (Combate → Feedback → destino):** o
+  Combate só **emite os eventos** da tabela acima; o **Feedback é o único
+  remetente** do impulso de câmera à Cena e do pedido de impact frame ao
+  Pipeline. O Feedback escolhe o maior preset do passo (chefe > pesado > leve;
+  no mesmo preset, a maior `escala`), com a direção do evento que venceu, como o
+  hitstop. Empate: `recusou_morte` vence `jogador_atingido`. "Sem direção" =
+  vetor nulo (sobram tremor e zoom).
 - **Tremor de câmera** (0–100%) multiplica chute e tremor; **Redução de
   movimento** desliga o zoom (Cena R8). O hitstop continua com as duas.
 
@@ -1336,7 +1411,10 @@ acerto: o *smear* do arco vai até `alcance_px` com abertura
   "Quebrou!" em osso e tinta. Projétil do jogador nunca magenta. Todo print de
   aprovação passa pelos 3 simuladores e por tons de cinza.
 - **Flashes (§7.7):** limitador global de 3 por segundo; *impact frame* no
-  máximo 1 por segundo (chefe > recusa; o perdedor fica sem *impact frame*). O
+  máximo 1 por segundo; o do chefe tem **preempção** (decisão do usuário,
+  2026-11-10; Pipeline visual R7, F6): se uma recusa ocupou a janela de 1 s, o
+  do chefe a substitui e corta a recusa ainda na tela, e no mesmo passo vence o
+  chefe. O
   flash L* ~80 num sprite de inimigo não conta (abaixo do limiar de área).
 - **Reduzir flashes** (§7.9 nº 4): o *impact frame* vira o hitstop com o mundo
   dessaturado 1 passo na escada; o flash de inimigo cai para L* ~65.
@@ -1676,15 +1754,33 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
     cada passo de 1 a 6; 59 e 39 após 7.
   - (c) Guarda: **Corte-guarda** (AC-21), Saco móvel em (1060; 540), Ataque
     tocado em 0: guarda 6 após 0 e após cada passo de 1 a 3; 5 após 4.
-- **AC-10 [L] R10 — câmara nova zera** (provisório: Câmaras dublê; a troca de
-  câmara só acontece em passo vivo, R10). FP-R, Chefe com Vida 30 em
-  (1100; 540), Especial tocado em 0; a Onda mata o Chefe e a varredura do passo
-  0 pede o hitstop 36:
-  - (a) sem aviso de câmara nova, os passos 1–36 congelam e o 37 é vivo;
-  - (b) o Câmaras dublê avisa "câmara nova" no item 10 do passo 0, depois da
-    varredura: o contador é 0 após 0 e o passo 1 é vivo.
+- **AC-10 [L] R1/R10 — câmara nova zera** (provisório: Câmaras e orquestrador
+  dublês). FP-R, Chefe com Vida 30 em (1100; 540), Especial tocado em 0; a Onda
+  mata o Chefe e a varredura do passo 0 pede o hitstop 36:
+  - (a) sem troca de câmara, os passos 1–36 congelam e o 37 é vivo;
+  - (b) a fixture força hitstop 36, investida com 5 passos, recuperação 8,
+    recarga do Ataque 9 e invulnerabilidade 20, e o orquestrador dublê entra
+    em Transição: até a metade do wipe nenhum desses contadores muda; no quadro
+    da metade, depois do aviso "câmara nova", hitstop, investida e recuperação
+    são 0, e recarga 9 e invulnerabilidade 20 continuam.
 
-  Não há aviso em passo congelado: o item 10 não roda nele (R1).
+  O aviso não chega em passo congelado nem em passo vivo: só no quadro da
+  metade da Transição (R1).
+- **AC-95 [L] R10 — câmara limpa espera o hitstop** (provisório: Câmaras
+  dublê). O mesmo roteiro da AC-10 (a), com o Chefe como único inimigo: o
+  Câmaras dublê não recebe a avaliação de "câmara limpa" no passo 0 (hitstop
+  36 pedido) nem nos passos 1–36, e a recebe no passo 37, com a lista vazia.
+  Com um Eco (abate comum, hitstop 4) no lugar do Chefe, ela chega no passo 5.
+- **AC-96 [L] R1 — ordem da metade do wipe e fora de Jogo** (provisório:
+  orquestrador, Câmaras, Cena e Pipeline dublês). Um espião registra as
+  chamadas do quadro da metade da Transição: "câmara nova" (Combate),
+  teleporte (Movimento), montagem (Câmaras), VFX apagados, corte da câmera
+  (Cena), LUT e relógios (Pipeline), nessa ordem e no mesmo quadro, e nenhuma
+  delas em outro quadro (o quadro da metade é o primeiro com `progresso_wipe`
+  ≥ 0,5). Em cada passo de física da Transição, o Movimento recebe 1
+  `passo_congelado()` e o Combate nenhuma chamada da R1. Com hitstop 20 e a
+  pausa aberta no 5º passo congelado por 100 quadros, o contador é 15 ao abrir
+  e 15 ao fechar.
 - **AC-11 [I] R10 + Input R6 — buffer congelado.** Input real, FP-R, Chefe com
   Vida 30 em (1100; 540):
   - Especial tocado em 0: a Onda mata o Chefe e os passos 1–36 congelam;
@@ -2042,6 +2138,14 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
   - Eco ferido (5): Vida 0; o impacto e a IA dele são pulados (R14); sai na
     varredura do passo 0 com `inimigo_morreu` e hitstop 4; com `cura_ao_abater`
     5 e Vida 90, a Vida vai a 95.
+- **AC-97 [L] R15/R17 — durações visuais nos eventos.** Com o `CombatTuning`
+  de fábrica, o espião confere: `acerto` do 1º Corte da AC-06 com
+  `flash_passos` 5; `jogador_atingido` de um golpe de 9 (hitstop 6) com
+  `inversao_passos` 10 e `invuln_passos` 40; `recusou_morte` com
+  `impact_passos` 18; `inimigo_morreu` do Chefe da AC-10 com `impact_passos`
+  12, e de um Eco com 0. Com `impact_chefe_s` 0,6 (36 passos) e
+  `hitstop_abate_chefe_s` 0,5 (30), ambos dentro das faixas, o validador
+  registra o aviso CV22 e nenhum erro de faixa.
 - **AC-91 [L] R17 — campos dos eventos e `peso_visual`.** O espião confere os
   campos da tabela da R17 nos roteiros indicados:
   - `golpe` (FP, Eco em (1060; 540), Ataque tocado em 0): posição (960; 540),
@@ -2326,7 +2430,7 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
     janela em 0, sem erro, e um Corte no 0 tira 14,0;
   - a janela não desconta em passo congelado: AC-09 (b).
 
-**L. Validação (CV1–CV21)**
+**L. Validação (CV1–CV22)**
 
 > **Fixture de validação (FV):** o `CombatTuning` da FP; o catálogo com os
 > quatro `AttackDef` da Lâmina e da Ressonância e o gatilho `corte_da_esquiva`
@@ -2461,25 +2565,26 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
 
 **N. Contratos com sistemas não escritos**
 
-- **AC-67 [I] IA — BLOQUEADO até o GDD de IA de inimigos e elites.** Com a IA
+- **AC-67 [I] IA — GDD existe; AC a escrever com o dublê atual.** Com a IA
   real:
   - o pedido de "Quebrou!" põe o inimigo em recuperação por 24 passos e
     cancela a preparação;
   - "cambaleando" faz a IA andar a 40%, sem parar o relógio de ataque;
   - a separação entre inimigos nunca gera `parede`;
   - um inimigo morto no item 5 não ataca no item 7.
-- **AC-68 [I] Telégrafos — BLOQUEADO até o GDD de Telégrafos.** Para cada golpe
+- **AC-68 [I] Telégrafos — GDD existe; AC a escrever com o dublê atual.** Para cada golpe
   inimigo do MVP, o conjunto de posições do jogador em que `ferir_jogador` é
   chamado é igual à área desenhada pelo telégrafo (amostragem em grade de 3 px).
-- **AC-69 [I] Câmaras — BLOQUEADO até o GDD de Câmaras e ondas.**
-  - Na troca de câmara com hitstop ativo, o contador zera.
+- **AC-69 [I] Câmaras — GDD existe; AC a escrever com o dublê atual.**
+  - Na troca de câmara real (a porta, só com hitstop 0, R10), a Transição
+    segue a ordem da R1, e o aviso "câmara nova" chega no quadro da metade
+    do wipe (as AC-10 (b) e AC-96 com as Câmaras reais).
   - No roteiro da AC-52, a câmara não conta como limpa depois de
     `jogador_morreu`.
   - O retângulo e os obstáculos reais substituem o dublê da AC-29 e da AC-47.
   - A consulta "em combate" real (porta fechada até câmara limpa, inclusive o
     vão entre ondas) substitui o dublê da AC-87 e da FP.
-- **AC-70 [I] Selo e Status — BLOQUEADO até os GDDs de Selo e Fluxo e de
-  Efeitos de status.**
+- **AC-70 [I] Selo e Status — GDD existe; AC a escrever com o dublê atual (Selo e Fluxo e Efeitos de status).**
   - `acerto_de_arma` soma Fluxo e aplica `golpe_*`.
   - O dano por passo do Status mata e dispara `cura_ao_abater`,
     `explosao_ao_abater` e o hitstop de abate (o dano de status não emite `acerto`, R8).
@@ -2541,8 +2646,10 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
 > build e assinatura do lead. A sensação não é automatizada.
 
 - **AC-72 [L] V14 — um impulso de câmera por passo** (provisório: Cena e
-  câmera reais; OQ5). FP ou FP-R, espião do
-  pedido à Cena. Exatamente 1 pedido por passo, ou nenhum:
+  câmera reais; OQ5). O Combate emite os eventos; o **Feedback é o único
+  remetente** e escolhe um por passo (maior preset; empate: maior `escala`;
+  `recusou_morte` vence `jogador_atingido`). FP ou FP-R, espião do
+  pedido do Feedback à Cena. Exatamente 1 pedido por passo, ou nenhum:
 
   | Passo com | Pedido |
   |---|---|
@@ -2603,6 +2710,11 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
   - Elite: a coroa estilhaça e não há *impact frame*.
   - Chefe (abate no passo 0): *impact frame* nos passos congelados 1–12 dos
     36.
+  - Preempção (Pipeline visual R7, F6): chefe abatido 0,5 s depois de uma
+    recusa (a recusa já saiu da tela, mas ocupa a janela de 1 s) → o *impact
+    frame* do chefe aparece mesmo assim. Recusa e abate de chefe no mesmo
+    passo → só o do chefe. O corte de uma recusa ainda na tela é da
+    AC-PV-63 do Pipeline (relógio roteirizado).
   - Explosão: anel em osso, nunca magenta.
 - **AC-79 [V] AC1 — acessibilidade.**
   - As capturas da AC-73 à AC-78 passam pelos 3 simuladores de daltonismo e
@@ -2664,8 +2776,7 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
     condições) e que não saíram nele.
 
   Registro com testador, build e o log.
-- **AC-83 [M] nenhuma morte sem telégrafo — BLOQUEADO até o GDD de
-  Telégrafos.** Sessão de 30 minutos: em 0 acertos no jogador falta um
+- **AC-83 [M] nenhuma morte sem telégrafo — GDD existe; AC a escrever com o dublê atual.** Sessão de 30 minutos: em 0 acertos no jogador falta um
   telégrafo visível antes, no log.
 
 Cobertura (versão 2): cada regra, fórmula e validação tem ao menos um
@@ -2688,7 +2799,7 @@ Lacunas assumidas:
   flashes/s e orçamento em multidão (V15) ficam para os critérios do GDD de
   Feedback de combate.
 - **Paridade do dano no jogador:** fica fora da AC-71 (inimigos passivos).
-- **Bloqueados:** AC-67, AC-68, AC-69, AC-70, AC-83 e as partes marcadas das
+- **A escrever com o dublê atual (GDDs existem):** AC-67, AC-68, AC-69, AC-70, AC-83. **Bloqueadas:** as partes marcadas das
   AC-74, AC-76, AC-77 e AC-79.
 
 Esclarecimentos decididos em 2026-11-09 (o texto das regras foi alinhado):
@@ -2696,7 +2807,7 @@ Esclarecimentos decididos em 2026-11-09 (o texto das regras foi alinhado):
   da mesma regra; o CV1 é uma entrada só, com todas as causas;
 - o CV3 é avaliado mesmo numa lista de combo inválida (CV4);
 - `acerto` sem arma: slot "nenhum" e forma = origem (`corte`, `parede`,
-  `reflexo`, `explosao`, `selo`) (R17);
+  `reflexo`, `explosao`) (R17; o Selo não emite `acerto`, decisão do usuário, 2026-11-10);
 - `aplicar_corte` com empurrão ≥ `empurrao_pesado` é pesado pela R8.4, mesmo com
   `pesado` falso na entrada (cânone; R18);
 - `vel_empurrao` do `inimigo_morreu` é a velocidade total do alvo no momento da
@@ -2708,7 +2819,7 @@ Esclarecimentos decididos em 2026-11-09 (o texto das regras foi alinhado):
 | # | Pergunta | Dono | Resolver até |
 |---|---|---|---|
 | 1 | Detecção de acertos com círculos e distâncias próprios (cânone) ou com `Area2D`; orquestrador do passo (R1). A referência do motor não cobre a física 2D do 4.7 | technical-director + godot-specialist | ADR, antes de `/create-architecture` |
-| 2 | Contratos provisórios: IA (estado, pedido de "Quebrou!", `ferir_jogador`, `disparar_projetil`, separação entre inimigos), Telégrafos (forma = teste de acerto; telégrafo que se parte, V9), Câmaras (geometria, aviso de câmara nova, consulta "em combate", ignorar "câmara limpa" depois de `jogador_morreu`), Selo (`acerto_de_arma`, `ferir_inimigo`), Status (`ferir_inimigo` com `de_status`) | donos de cada GDD | ao escrever cada um |
+| 2 | Contratos provisórios: IA (estado, pedido de "Quebrou!", `ferir_jogador`, `disparar_projetil`, separação entre inimigos), Telégrafos (forma = teste de acerto; telégrafo que se parte, V9), Câmaras (geometria, pedido de troca e estado Transição, consulta "em combate", "câmara limpa" só com hitstop 0, ignorar "câmara limpa" depois de `jogador_morreu`), Selo (`acerto_de_arma`, `ferir_inimigo`), Status (`ferir_inimigo` com `de_status`) | donos de cada GDD | ao escrever cada um |
 | 3 | Trava do "Quebrou!" (CV18) e cambaleio × recarga (CV17): no Veio, o finalizador da Lâmina quebraria toda preparação do Estilhaço Vivo. Toca a regra do baseline §55 de que o relógio do inimigo não para | game-designer + creative-director, no `/balance-check` | antes do Veio Instável (Alpha) |
 | 4 | Linhas novas no Art Bible (lista na Visual/Audio); viabilidade do contorno tracejado no rig e do `speed_scale` dos emissores no hitstop (NÃO VERIFICADO no 4.7.2) | art-director + technical-artist | antes de produzir os VFX do combate |
 | 5 | Requisitos de áudio provisórios (Visual/Audio A1) | audio-director | GDD de Áudio |
@@ -2716,5 +2827,5 @@ Esclarecimentos decididos em 2026-11-09 (o texto das regras foi alinhado):
 | 7 | O "alcance" informativo do F6 do Conteúdo (825 px no Pulso) não é o alcance testado (844,5 px, F5 deste GDD). Ajustar a linha informativa do Conteúdo? | dono do Conteúdo | próximo `/review-all-gdds` |
 | 8 | A guarda do Guardião (`guarda_s`, × 0,5) é regra deste GDD ou vira modificador temporário (Modificadores OQ4) | game-designer | GDD de Armas, fatia vertical |
 | 9 | Letreiro "Quebrou!": desenhado por idioma ou fonte com estilo de letreiramento | art-director + localization-lead | fatia vertical |
-| 11 | Troca de câmara com investida ativa ou recuperação: os contadores passam para a câmara nova ou zeram? (O teleporte do Movimento cancela a esquiva; o Combate não diz nada) | dono do GDD de Câmaras e ondas | GDD de Câmaras |
+| 11 | ~~Troca de câmara com investida ativa ou recuperação~~ **Resolvida em 2026-11-10** (cross-review, S-B1 e S-W2): investida e recuperação zeram na câmara nova; os outros contadores passam como estão (R10) | — | ✅ |
 | 10 | Números propostos nos critérios: latência da AC-92 e ΔL* ≥ 20 da AC-79; a API de fim de quadro do 4.7 citada na AC-92 não foi conferida | qa-lead + art-director + godot-specialist | antes da story de VFX do combate |

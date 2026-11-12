@@ -1,18 +1,22 @@
 # Cena 3/4 e câmera
 
-> **Status**: Approved (re-review de 2026-11-08: APPROVED, 0 bloqueantes, depois dos warnings do `/review-all-gdds` de 2026-11-06 — C-W6 a C-W9, C-I2, C-I3)
+> **Status**: Approved (2026-11-10: correções de contrato do `/review-all-gdds` 3ª passada — C-B1, camada `contorno de telégrafo` em z 5 e 11 camadas; S-B1, corte da câmera no quadro da metade do wipe, no estado Transição; mantido Approved por decisão do usuário. Antes: re-review de 2026-11-08: APPROVED, 0 bloqueantes, depois dos warnings do `/review-all-gdds` de 2026-11-06 — C-W6 a C-W9, C-I2, C-I3)
 > **Author**: usuário + Claude (design-system)
-> **Last Updated**: 2026-11-08 (re-review: justificativa do hitstop sem `time_scale` corrigida na R7, relógio injetado na R12 e AC-28, caso sem `CameraTuning` em Edge Cases e AC-39). Antes, 2026-11-06: hitstop sem `time_scale`, hitstop como referência ao `CombatTuning`, `unit_to_px` só na importação, OQ8 fechada
+> **Last Updated**: 2026-11-10 (C-B1 e S-B1 do cross-review: R4, R10, AC-09, AC-10, AC-22, OQ1). Antes, 2026-11-08 (re-review: justificativa do hitstop sem `time_scale` corrigida na R7, relógio injetado na R12 e AC-28, caso sem `CameraTuning` em Edge Cases e AC-39). Antes, 2026-11-06: hitstop sem `time_scale`, hitstop como referência ao `CombatTuning`, `unit_to_px` só na importação, OQ8 fechada
 > **Last Verified**: 2026-11-08
 > **Implements Pillar**: P3 *Reflexo que se lê* (arena e telégrafos sempre legíveis)
 > **Creative Director Review (CD-GDD-ALIGN)**: pulada (modo Lean)
+
+> **Nota (2026-11-11, Feedback de combate):** pendente: F5 aceita `escala` como entrada do impulso; a regra de um impulso por passo é do Feedback (a Cena soma o que recebe).
+
+> **Nota (2026-11-11, revisão cruzada):** pendente: Dependencies dizem que GDDs existentes "não existem"; a F3 ainda cita o relógio real (R8/F5 já usam o `t_apres`). (Resolvidos em 2026-11-12: R8 e F5 com `escala`, "zoom principal", `dir` nulo, `t_apres`, remetente único; estados Bênção/Morte/Transição.)
 
 ## Summary
 
 **Cena 3/4 e câmera** define o espaço do jogo: viewport lógico de 1920×1080 com
 `keep_height` (personagem a ~1/12 da altura), 1 unidade do cânone = 1,5 px,
-plano de jogo igual à tela e profundidade por y-sort em 10 camadas de render
-(as 9 do Art Bible). A câmera segue o jogador com limites, olha um pouco para
+plano de jogo igual à tela e profundidade por y-sort em 11 camadas de render
+(as 9 do Art Bible; o telégrafo em duas). A câmera segue o jogador com limites, olha um pouco para
 onde se mira e recebe impulsos
 de impacto (chute, tremor, zoom ≤ 1,15) escalados pela acessibilidade. A mira do
 mouse nunca treme com a tela.
@@ -34,9 +38,10 @@ de mundo, sem compressão vertical, como no cânone. O "3/4" é da arte: chão
 pintado em perspectiva, sprites de frente-3/4 e **profundidade por y-sort** (quem
 está mais abaixo na tela é desenhado na frente).
 
-A cena é desenhada em **10 camadas de render**, que implementam as 9 camadas de
-arte do Art Bible §6.3: objetos e personagens dividem o y-sort, e sombras de
-contato e pós vêm do §8.6. A ordem z e o fator de parallax de cada camada são
+A cena é desenhada em **11 camadas de render**, que implementam as 9 camadas de
+arte do Art Bible §6.3: objetos e personagens dividem o y-sort, o telégrafo se
+divide em preenchimento e contorno (Pipeline visual R5), e sombras de contato e
+pós vêm do §8.6. A ordem z e o fator de parallax de cada camada são
 fixos (R4).
 
 A **câmera segue o jogador com limites**: ela anda suavemente, mas nunca mostra
@@ -94,7 +99,9 @@ jogo multiplica por `unit_to_px` de novo.
 
 **R4. Camadas.** A tabela abaixo é a **lista canônica** de camadas de render.
 Ela implementa as 9 camadas de arte do Art Bible §6.3: objetos (5) e personagens
-(6) dividem a camada de y-sort, e sombras de contato e pós vêm do §8.6. Toda
+(6) dividem a camada de y-sort, o telégrafo (7) é desenhado em duas passadas
+(preenchimento e contorno; Pipeline visual R5), e sombras de contato e pós vêm
+do §8.6. Toda
 coisa visível pertence a **exatamente uma** camada desta tabela. O código de
 jogo escolhe a camada pelo nome e nunca mexe em `z_index` nem no parallax
 diretamente.
@@ -106,8 +113,9 @@ diretamente.
 | parede traseira | 3 | −20 ¹ | 1,0 |
 | chão | 4 | −10 | 1,0 |
 | sombras de contato | — (§8.6) | −6 | 1,0 |
-| telégrafo | 7 | −5 | 1,0 |
+| telégrafo (preenchimento) | 7 | −5 | 1,0 |
 | objetos + personagens (y-sort) | 5 e 6 | 0 | 1,0 |
+| contorno de telégrafo | 7 (duas passadas; Pipeline R5) | 5 | 1,0 |
 | primeiro plano e névoa frontal | 8 | 10 | 1,1–1,2 (§8.6); valor no `CameraTuning` |
 | pós | — (§8.6) | 50 | presa à tela |
 | UI | 9 | 100 | presa à tela |
@@ -131,11 +139,12 @@ diferente de 1, vale a F7.
   câmara, refeito no corte (R10). Isso vale também com a câmera própria da R9.
   Os três membros existem no 4.7.2; o mecanismo é do ADR.
 
-> ⚠️ **Contradição no Art Bible:** a tabela §6.3 põe o telégrafo (camada 7)
-> **acima** dos personagens, com a regra "preenchimento ~50% sobre o corpo,
-> contorno 100%". O §8.6 o põe em z −5, **abaixo** do y-sort. Este GDD segue o
-> §8.6 provisoriamente; a decisão final fica para os GDDs de Pipeline visual e
-> Telégrafos (Open Questions).
+> **Telégrafo em duas passadas** (decisão do usuário, 2026-11-10; Pipeline visual
+> R5): o **preenchimento** fica em z −5, abaixo do y-sort, e o corpo dos
+> personagens o cobre (Art Bible §8.6); o **contorno** fica em z 5, acima do
+> y-sort e abaixo do primeiro plano, a 100%, e nunca some atrás de um corpo
+> (§6.3). Isso resolve a contradição entre o §6.3 e o §8.6 (OQ1 fechada); a
+> emenda do Art Bible fica com o art-director (Pipeline visual OQ4).
 
 **R5. Y-sort.**
 
@@ -196,13 +205,18 @@ diferente de 1, vale a F7.
 
 **R8. Impulsos de câmera** (apresentação, em `src/presentation/`).
 
-- Combate e VFX enviam impulsos com intensidade: **chute** direcional (desloca
+- O **Feedback de combate envia** (remetente único, um impulso por passo:
+  Combate → Feedback → Cena) impulsos com intensidade: **chute** direcional (desloca
   na direção do golpe e decai), **tremor** (oscila e decai) e **zoom** (decai).
+  O impulso aceita `escala` como entrada (F5) e o preset "zoom principal"; `dir`
+  nulo vale (sem direção: sobram tremor e zoom).
   O teto de 1,15 vale para o zoom **total**, impulsos mais intro de chefe (F5).
 - Chute e tremor são multiplicados pela opção **Tremor de câmera** (0–100%).
 - Com **Redução de movimento** ligada, zoom e lookahead ficam desligados.
 - Os impulsos correm em **tempo real**, não congelam no hitstop: o "soco" é
-  visto durante o congelamento.
+  visto durante o congelamento. O relógio é o `t_apres` do Pipeline F8 (com
+  `dt_max_apres`), não `ticks_usec`: fica parado em Pausa e Bênção. Ao entrar em
+  Bênção a câmera zera os impulsos, como na Pausa.
 - O tremor usa o gerador cosmético (permitido pela R1 do RNG).
 
 **R9. Conversão tela → mundo.** É a consulta que o Input usa (R5 do Input). Usa
@@ -225,8 +239,12 @@ jogador + lookahead. Para calcular a direção do lookahead (F2) usa-se
   um passo de movimento (33 px na Investida) e é aceita: ela some no passo
   seguinte e não muda a direção para um cursor a mais de algumas dezenas de px.
 
-**R10. Troca de câmara.** Ao entrar numa câmara nova, a câmera **corta** direto
-para a posição-alvo, sem deslizar. A transição visual (wipe de tinta) é do
+**R10. Troca de câmara.** A troca acontece no estado de jogo **Transição**
+(Combate núcleo R1). A câmera **corta** direto para a posição-alvo da câmara
+nova, sem deslizar, no **quadro da metade do wipe** de tinta (o primeiro com
+`progresso_wipe` ≥ 0,5; Pipeline visual R7, F8): é o mesmo quadro em que o jogador é teleportado e a câmara nova começa
+(estado Corte, que zera os impulsos). Antes desse quadro a câmera mostra a
+câmara velha parada; depois dele, a nova. A transição visual (wipe) é do
 Pipeline visual.
 
 **R11. Dados.** Ficam num `CameraTuning`: suavização, lookahead máximo, raio de
@@ -245,6 +263,9 @@ roteirizados e relógio roteirizado.
 | Seguindo | Persegue o alvo; impulsos ativos | Começo da câmara, fim da pausa | Corte, Pausa, Intro de chefe |
 | Corte | 1 quadro: posiciona direto no alvo e zera os impulsos | Troca de câmara | Seguindo |
 | Pausa | Câmera parada; impulsos zerados | Pausa do jogo | Seguindo |
+| Bênção | Câmera parada; impulsos zerados/parados (`t_apres` parado) | Tela de Bênção abre | Seguindo |
+| Morte | Impulsos zerados/parados | Morte do jogador | (fim da run) |
+| Transição | Impulsos zerados/parados | Transição de câmara | Corte / Seguindo |
 | Intro de chefe (fatia vertical) | Enquadramento e zoom ≤ 1,15 comandados pelo GDD de Chefes; o jogador não controla. Impulsos permitidos; o teto de 1,15 vale para o zoom total (F5); com Redução de movimento, o zoom da intro fica desligado | O chefe entra | Seguindo |
 
 O hitstop **não** é estado da câmera: ela continua seguindo (o jogador está
@@ -259,7 +280,7 @@ parado) e os impulsos correm em tempo real.
 | Movimento e esquiva | plano de jogo em px (R3), limites da câmara | posição do jogador (alvo) | este GDD |
 | Combate núcleo / Feedback de combate (VFX) | requisito: hitstop como contador de passos, sem `Engine.time_scale` (R7) | impulsos de câmera (chute, tremor, zoom); valores de hitstop (`CombatTuning`) | este GDD (formato do impulso), Combate (hitstop) |
 | Câmaras e ondas / Run e regiões | limites de tamanho (R6) | retângulo jogável e sangria de cada câmara; evento de troca | Câmaras |
-| Telégrafos | camada e z (R4, provisório) | — | Pipeline visual / Telégrafos |
+| Telégrafos | camadas e z (R4: preenchimento em z −5, contorno em z 5; Pipeline visual R5) | — | Pipeline visual / Telégrafos |
 | Acessibilidade e opções | — | Tremor de câmera (0–100%), Redução de movimento | Acessibilidade |
 | Conteúdo orientado a dados | — | `CameraTuning` (injetado a cada entrada em Pronto e retirado ao sair dele, Conteúdo Edge Cases › Recarga); valores espaciais já em px (`unit_to_px` = 1,5, aplicado só na importação, Conteúdo F4) | este GDD (`CameraTuning`), Conteúdo (`unit_to_px`) |
 | Chefes (fatia vertical) | estado Intro de chefe | enquadramento da intro | Chefes |
@@ -391,6 +412,8 @@ The camera_impulse formula is defined as:
 `desloc = limita(s_t × Σ_i (dir_i × Ak_i × d_i + ruído_i × As_i × d_i), 40)`
 
 `zoom = min(1,15; 1 + (1 − rm) × Σ_i Z_i × d_i)`
+
+(Entrada do impulso: preset, `escala` e `dir`; a `escala` multiplica Ak, As e Z do preset. `dir` nulo vale: o termo do chute some. Preset "zoom principal" aceito, usado pelo Feedback na `recusou_morte`. O relógio de `t_i` é o `t_apres` do Pipeline F8.)
 
 `zoom_total = min(1,15; zoom_intro × zoom)`
 
@@ -601,7 +624,7 @@ Foundation não passa a depender de sistemas de camadas mais altas.
 | Input e controle | Forte (para a mira do mouse) | Conversão tela → mundo (R9, F6) |
 | Câmaras e ondas | Forte | Limites de tamanho de câmara (R6) e sangria exigida |
 | Feedback de combate (VFX) / Combate núcleo | Suave | Interface de impulsos de câmera (F5); o Combate recebe o requisito do hitstop sem `time_scale` (R7) |
-| Telégrafos | Suave | Camada e z (provisório) |
+| Telégrafos | Suave | Camadas e z do preenchimento e do contorno (R4) |
 | Chefes (fatia vertical) | Suave | Estado Intro de chefe |
 
 **Bidirecionalidade:** Pipeline visual, Movimento e Input já citam a Cena 3/4 no
@@ -717,11 +740,12 @@ puros.
 
 **C. Camadas e y-sort**
 
-- **AC-09 [I] R4** Todo CanvasItem visível está em exatamente uma das 10
+- **AC-09 [I] R4** Todo CanvasItem visível está em exatamente uma das 11
   camadas, com o z e o parallax da tabela. Um grep por atribuição a `z_index` em `src/`, fora do módulo de
   camadas, encontra 0 ocorrências.
-- **AC-10 [UI] R4** Um item por camada mostra a ordem da tabela. O telégrafo
-  abaixo do personagem é provisório (Open Questions).
+- **AC-10 [UI] R4** Um item por camada mostra a ordem da tabela. Um inimigo
+  em pé sobre um telégrafo cobre o preenchimento (z −5) e não cobre o contorno
+  (z 5); o primeiro plano (z 10) cobre os dois.
 - **AC-11 [L] R5**
   - Pé em y 500 contra 520 → o de 520 na frente.
   - Empate em 500 → quem nasceu depois fica na frente, e a ordem fica estável
@@ -772,7 +796,9 @@ puros.
   - duas fatias de 0,05 = uma de 0,10 (1e-6);
   - para Δt de 0,001 a 5, nunca passa de 100.
 - **AC-22 [L] R10** Na troca de câmara: `pos` = alvo preso no mesmo quadro, e
-  nenhum impulso ativo.
+  nenhum impulso ativo. Com um wipe roteirizado de 2·M quadros, `pos` fica na
+  câmara velha até o quadro M − 1 e está no alvo preso da câmara nova no
+  quadro M, o mesmo do teleporte do jogador.
 
 **G. Impulsos**
 
@@ -846,7 +872,7 @@ Cobertura: R1–R12 e F1–F7 têm pelo menos um critério cada.
 
 | # | Pergunta | Dono | Resolver até |
 |---|---|---|---|
-| 1 | O telégrafo fica acima ou abaixo dos personagens? O Art Bible §6.3 diz acima e o §8.6 diz abaixo | technical-artist + art-director | GDD de Pipeline visual / Telégrafos |
+| 1 | ~~O telégrafo fica acima ou abaixo dos personagens?~~ **Resolvida em 2026-11-10:** duas passadas, preenchimento em z −5 e contorno em z 5 (Pipeline visual R5; R4 deste GDD). A emenda do Art Bible §6.3/§8.6 é do art-director (Pipeline OQ4) | — | ✅ |
 | 2 | A oclusão a ~40% vale para personagem coberto por chefe? | art-director | GDD de Pipeline visual |
 | 3 | Estrutura de nós (CanvasLayers, `y_sort_enabled`, câmera própria) e custo de draw call do y-sort (NÃO VERIFICADO no Art Bible §8.6) | technical-director | ADR, antes de `/create-architecture` |
 | 4 | Sensação dos presets de impulso (leve, pesado, chefe) | game-designer | Protótipo de combate |

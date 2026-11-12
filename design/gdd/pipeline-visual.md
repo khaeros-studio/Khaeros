@@ -1,10 +1,18 @@
 # Pipeline visual
 
-> **Status**: Approved (`/design-review` 2026-11-10, lean, por subagentes: NEEDS REVISION — 7 bloqueantes nas regras e 9 nos critérios, revisados; re-review: NEEDS REVISION leve — 3 nas regras e 3 nos critérios, revisados na mesma data; os dois revisores confirmaram a aprovação com as correções; aprovado pelo usuário)
+> **Status**: Approved (2026-11-10, `/review-all-gdds` 3ª passada, mantido Approved por decisão do usuário: S-B1, a troca na metade do wipe segue a ordem do estado Transição do Combate R1; S-B2, a Bênção só abre com o hitstop em 0; C-B2, os campos de duração do `CombatTuning` citados na R7 e na R12) — (`/design-review` 2026-11-10, lean, por subagentes: NEEDS REVISION — 7 bloqueantes nas regras e 9 nos critérios, revisados; re-review: NEEDS REVISION leve — 3 nas regras e 3 nos critérios, revisados na mesma data; os dois revisores confirmaram a aprovação com as correções; aprovado pelo usuário)
 > **Author**: usuário + Claude (design-system, modo Lean)
 > **Last Updated**: 2026-11-10
 > **Last Verified**: 2026-11-10
 > **Implements Pillar**: P3 *Reflexo que se lê* (regra central do Art Bible: "Da sombra, só sai o que fere ou o que se escolhe")
+
+> **Nota (2026-11-11, Run e regiões):** a R3 deixa de dizer que a Run informa p: quem informa p são as Câmaras; a Run só dá `p_max` e a sequência.
+
+> **Nota (2026-11-11, Tela de bênção e carta):** pendente: `modo_bencao` sai em `tela_fechada` (não no `escolher`).
+
+> **Nota (2026-11-11, Feedback de combate):** pendente: com impact frame negado pelo limitador sai só o flash chapado (zoom, manchas, hitstop e número ficam); `uso` de VFX pode vir de uma contagem injetável.
+
+> **Nota (2026-11-11, revisão cruzada):** pendente: o impact frame é P1 no Feedback (R7/R9 já citam o solicitante e a vítima P4–P2, resolvido em 2026-11-12); "3 flashes/s sempre" × passe obrigatório em fade (F6); Dependencies desatualizadas (Combate, Telégrafos, Feedback, Run e Câmaras existem).
 
 ## Summary
 
@@ -127,7 +135,10 @@ famílias. A **família** decide o grading; o **shader** decide o desenho.
   `saturacao_bencao` (20%) e `valor_bencao` (60%) (F5: luma em linear, mistura e valor no sRGB codificado; Art Bible §4.4: 15–25% e
   −40%). `sem_grading` não muda; as cartas são UI. A Bênção só abre com a
   câmara limpa, sem telégrafo vivo, e números e letreiros no mundo somem no
-  quadro em que ela abre (Edge Cases).
+  quadro em que ela abre (Edge Cases). A câmara limpa só é avaliada com o
+  hitstop em 0 (Combate núcleo R10), então a Bênção nunca abre sobre um
+  congelamento pendente; ela também espera o *impact frame* ativo terminar
+  (Estados).
 
 **R3. Escurecimento por profundidade** (decisão do usuário, 2026-11-10). Cada
 câmara mais funda da região escurece chão, paredes, veios, props e sombras de contato: a luminância, em linear, de `amb_graded` é
@@ -274,9 +285,15 @@ tempo e qual ataque usa cada um.
   inimigo tem **margem transparente ≥ `contorno_silhueta_px`** (3 unidades; na
   textura, × a densidade da arte: 6 texels com arte em 2×, acima do padding de
   4 px do §8.6; OQ12). As costuras internas entre peças são aceitas.
-- **Duração:** quem pede e por quanto tempo é o dono do evento (Combate). A
-  duração vem sempre em **passos de apresentação** (1/60 s de `t_apres`). A V12
-  do Combate fala em "12 quadros de render"; o Pipeline fixa passos (OQ9).
+- **Solicitante e dono:** o **solicitante** do impact frame é o **Feedback de
+  combate** (Combate → Feedback → Pipeline; remetente único); o **Combate é o
+  dono do evento** (quando e por quanto tempo). Chefe vence recusa continua
+  valendo (preempção abaixo).
+- **Duração:** quem decide quando e por quanto tempo é o dono do evento (Combate;
+  o Feedback repassa o pedido). A
+  duração vem sempre em **passos de apresentação** (1/60 s de `t_apres`), no
+  campo `impact_passos` do evento: passos(`hitstop_recusa_s`) na recusa e
+  passos(`impact_chefe_s`) no chefe (Combate núcleo R15, R17).
 - **Limite:** no máximo 1 impact frame por segundo. O do chefe tem
   **preempção** (decisão do usuário, 2026-11-10): se uma recusa ocupou a janela
   de 1 s, o do chefe a substitui (se a recusa ainda está na tela, é cortada).
@@ -287,7 +304,11 @@ tempo e qual ataque usa cada um.
   de inimigo não conta (Combate AC1).
 - **Transição de câmara** (Cena R10): passe de tela de tinta que cobre em
   `duracao_wipe_s` / 2, troca a câmara (e a LUT, se a região mudar) e descobre na
-  outra metade (0,4 s no total). O passe tem **progresso próprio**: o uniform
+  outra metade (0,4 s no total). A troca acontece no estado de jogo
+  **Transição** do orquestrador (Combate núcleo R1): no primeiro quadro com
+  `progresso_wipe` ≥ 0,5, na ordem da R1, vêm "câmara nova" (hitstop
+  zerado), o teleporte, a câmara nova, os VFX apagados, o corte da câmera (Cena
+  R10) e, por último, a LUT e o zero dos relógios (F8). O passe tem **progresso próprio**: o uniform
   `progresso_wipe` do material de `pass_wipe` (0 → 1; não é global), avançado pelo orquestrador com o `dt` de
   apresentação (limitado por `dt_max_apres`, F8). Ele não lê `t_apres`, então o
   zero dos relógios no meio da transição não o afeta.
@@ -331,6 +352,11 @@ do usuário, 2026-11-10).
 | **Teto** | **500** |
 
 - Overdraw (área dos quads e malhas, transparente incluído; F10) ≤ 3,5 telas em média e ≤ 5 no pico de chefe. Fatias: VFX ≤ 0,5 tela; sombras e telégrafos ≤ 0,4 na média e ≤ 0,8 no pico (24 telégrafos). A fatia de telégrafos é **contrato do GDD de Telégrafos** (o 0,8 só vale com 24 círculos de r ≈ 120; setores e retângulos grandes estouram). O buffer do CanvasGroup do jogador e os passes `pós` em tela cheia (até +1 tela na transição) ficam **fora da soma da F10**: medir à parte na captura.
+- **O 24 de telégrafos é o orçamento do Pipeline** (24 × 2 passadas = 48 draw
+  calls, `teto_telegrafos`): o Pipeline é o dono; o GDD de Telégrafos só o lê.
+- **Corte no teto de VFX:** antes do "sai o mais antigo do relógio de
+  apresentação", vale a escolha de vítima de **P4 a P2** do Feedback R4 (P0 e P1
+  nunca saem); só então o mais antigo. Flash, telégrafo e inversão nunca saem.
 - Partículas: ≤ 24 emissores; ≤ 1.500 GPU e ≤ 300 CPU; fagulha ≤ 24, ambiente
   ≤ 150, vórtice ≤ 600 por emissor; ≤ 40 flipbooks simultâneos.
 - Luz: no máximo 2 PointLight2D, sem sombras, só em chefes; sem normal maps. A
@@ -389,9 +415,12 @@ referência para as ferramentas de medição.
 
 - **Durações** ficam em segundos (`_s`) e viram passos pela F7 do Conteúdo,
   `passos(t_s) = max(1, round(t_s × 60))`, uma vez, na carga.
-- **Durações dos efeitos que o Combate dispara** (flash de acerto, extra da
-  inversão, invulnerabilidade, impact frame) são do Combate. O Pipeline as
-  recebe no evento e só as implementa (decisão do usuário, 2026-11-10).
+- **Durações dos efeitos que o Combate dispara** são do Combate (decisão do
+  usuário, 2026-11-10), nos campos `flash_acerto_s`, `extra_inversao_s`,
+  `impact_chefe_s`, `hitstop_recusa_s` e `invuln_atingido_s` do `CombatTuning`
+  (Combate núcleo R15). O Pipeline as recebe prontas no evento (`flash_passos`,
+  `inversao_passos`, `invuln_passos`, `impact_passos`; Combate R17) e só as
+  implementa.
 - **O parallax do primeiro plano** é do `CameraTuning` (Cena R11).
 
 **R13. Injeção.** O Pipeline recebe por injeção: o `VisualTuning`, a região atual
@@ -1170,8 +1199,8 @@ campo.
   aviso VV13; o art-director decide se reduz algum grupo.
 - **Art Bible §2.9 e Combate V12** (impact frame do chefe "em osso"; duração em
   "12 quadros de render") × R7: o aspecto segue o §2.9 (`modo_impacto` =
-  `chefe`); a duração vale em passos de apresentação (R7). Emenda pendente no
-  Combate (OQ9).
+  `chefe`); a duração vale em passos de apresentação (R7). Emenda feita no Combate em
+  2026-11-10 (`impact_chefe_s`, R15; OQ9 fechada).
 
 ## Dependencies
 
@@ -2192,7 +2221,8 @@ Ele define como a arte autorada pelo Art Bible é desenhada.
   custo do material único por entidade (AC-PV-74) entra aqui depois do E7.
 - **AC-PV-49 [I] R9/Edge — acima do teto.** Com 30 telégrafos pedidos, todos
   os 30 são desenhados (nenhum cortado) e sai um aviso de debug com o dono
-  (Telégrafos ou IA). Com o orçamento de VFX estourado, sai primeiro o efeito
+  (Telégrafos ou IA). Com o orçamento de VFX estourado, sai primeiro a vítima
+  escolhida pelo Feedback R4 (P4 a P2) e, na falta dela, o efeito
   mais antigo do relógio de apresentação; flash, telégrafo e inversão nunca
   saem.
 - **AC-PV-72 [I] R9 — `light_mask` dos `sem_grading`.** Na cena de captura com
@@ -2349,7 +2379,7 @@ texto atual):
 | 6 | Oclusão de personagem coberto por chefe (Cena OQ2) | dono do GDD de Chefes | fatia vertical |
 | 7 | Índice: linha 6 com Conteúdo (forte) e Combate, Movimento, Run e Câmaras (suaves, por contrato) | usuário / producer | próxima edição do índice |
 | 8 | O limiar de área do flash do telégrafo (11% da tela, critério WCAG) precisa de confirmação de quem cuida da acessibilidade | accessibility-specialist | GDD de Acessibilidade e opções |
-| 9 | Combate: (a) a V12 passar a duração do impact frame do chefe de "12 quadros de render" para passos de apresentação; (b) listar "Pipeline visual" em Dependencies; (c) confirmar que as durações do flash de acerto (V6) e do extra da inversão (V10) são campos dele, que o Pipeline recebe no evento; (d) o AC1 ("chefe > recusa; o perdedor fica sem impact frame") e o AC-79 passam a refletir a preempção do chefe sobre a recusa (R7, F6) | dono do Combate núcleo | próxima edição do Combate |
+| 9 | ~~Combate: (a)–(d)~~ **Resolvida em 2026-11-10** (cross-review, C-B2): V12 em passos de apresentação, campos no `CombatTuning` e nos eventos, preempção do chefe na Acessibilidade e na AC-78; o Pipeline em Dependencies do Combate. Texto original: (a) a V12 passar a duração do impact frame do chefe de "12 quadros de render" para passos de apresentação; (b) listar "Pipeline visual" em Dependencies; (c) confirmar que as durações do flash de acerto (V6) e do extra da inversão (V10) são campos dele, que o Pipeline recebe no evento; (d) o AC1 ("chefe > recusa; o perdedor fica sem impact frame") e o AC-79 passam a refletir a preempção do chefe sobre a recusa (R7, F6) | dono do Combate núcleo | próxima edição do Combate |
 | 10 | Conteúdo: listar o `VisualTuning` na tabela de `*Tuning` da R1, e o Pipeline em Interactions e Dependencies | dono do Conteúdo | próxima edição do Conteúdo |
 | 11 | Relógios na Morte (`t_vivo` parado, `t_apres` correndo) e Bênção só com a câmara limpa | dono da Run e regiões | GDD de Run e regiões |
 | 12 | Margem transparente ≥ `contorno_silhueta_px` nos quadros de inimigo (6 texels com arte em 2×) × padding de 4 px do §8.6; aviso na ferramenta de recorte | art-director + technical-artist | antes de produzir os atlas de inimigo |
