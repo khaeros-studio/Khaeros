@@ -1,0 +1,22 @@
+# Prompt — chr_iniciado_ressonancia_onda_frente34_raw_v03
+
+- **Modelo:** Gemini ("Argon", Criar imagem, 16:9), na conversa `/app/e00c6619626843fa` (primeira imagem = R0 retocada) · **Data:** 2026-11-12 · **Folha:** R2 frente34, 4×2
+- **Por que v03:** na v02 a pose de painel (4) veio com o cajado na horizontal, cortado na borda de cima e encostando na figura de baixo. Esta versão descreve a pose 4 em detalhe, pede figuras menores (no máximo 45% da altura) e proíbe faíscas.
+
+## Prompt (colar inteiro)
+
+Gere uma IMAGEM nova de FOLHA DE ANIMAÇÃO (não é ficha de personagem: sem close de rosto, sem vistas de perfil/costas, sem figuras sobrepostas). Como referência do personagem e da arma, use SOMENTE a PRIMEIRA imagem desta conversa (a ficha com o cajado); IGNORE todas as imagens geradas depois dela. REGRA ABSOLUTA: nenhuma palavra, letra, número ou símbolo escrito; nenhuma onda de energia, anel de impacto, faísca, rachadura, poeira, brilho, aura, fumaça, rastro ou linha de movimento, nem no chão nem no cajado — os anéis do cajado são só a peça física da arma; nenhuma linha divisória, borda ou quadro; fundo verde #00FF00 chapado e contínuo, sem sombra no chão. CÂMERA: TODAS as 8 figuras em vista 3/4 de FRENTE, com o corpo GIRADO uns 45 graus para a DIREITA, vistas um pouco de cima; NENHUMA figura de frente reta, nem a última. LAYOUT: imagem larga 16:9 com EXATAMENTE 8 figuras do MESMO personagem, separadas por bastante verde, sem se tocar, em 2 fileiras de 4, lidas da esquerda para a direita; TODAS de CORPO INTEIRO, nenhuma cortada; TODAS na MESMA escala, MENORES que o normal: cada figura, contando o cajado erguido, ocupa no máximo 45% da altura da imagem; o chão de cada fileira na mesma linha; NADA encosta na borda da imagem nem na figura de cima ou de baixo. ESTILO: igual à primeira imagem — quadrinho de ação adulto em nanquim, contorno externo preto muito grosso e uniforme, face de sombra em PRETO CHAPADO de borda dura, luz em 2 tons por material; sem degradê, sem 3D. PERSONAGEM: exatamente o da primeira imagem (cabelo prateado anguloso, gola alta, mantelete com borda de osso, casaco cinza-azulado com presilhas de osso, a barra dos 4 painéis em arcos redondos com linha dupla de osso, luvas pretas, antebraços enfaixados em osso, cinto com estojo cilíndrico, botas com caneleiras de osso); acentos só em cor de osso. ARMA: o FOCO RESSONANTE da primeira imagem, UM ÚNICO cajado fino, mais alto que o personagem, com o orbe cor de osso dentro de dois anéis no topo; SEMPRE segurado pela mão DIREITA (a esquerda pode ajudar), inteiro e visível em TODAS as 8 figuras. NÃO há espada. SÓ DOIS BRAÇOS. AÇÃO — ONDA, o especial da Ressonância, um golpe do cajado no chão que emana em volta do corpo; poses EXAGERADAS, com linha de ação forte: LINHA DE CIMA: [1] abaixa o cajado e agacha; [2] enrola o corpo, cajado junto ao quadril; [3] começa a subir, as duas mãos levando o cajado para cima na frente do peito; [4] POSE DE PAINEL, a mais importante: o corpo todo esticado numa linha vertical, na ponta dos pés, os DOIS braços esticados para o alto segurando o cajado em PÉ, na VERTICAL, acima da cabeça, com o orbe apontando para o céu; o casaco aberto em sino; o orbe fica dentro da imagem, com margem verde em cima. LINHA DE BAIXO: [5] crava a base do cajado no chão à frente com força, joelhos dobrados; [6] corpo inclinado sobre o cajado cravado, as duas mãos no cajado, braços tensos, cabeça baixa; [7] solta: o corpo relaxa e se ergue, o cajado ainda de pé no chão na mão direita; [8] recuperação: de pé, firme, em 3/4, cajado ao lado do corpo.
+
+## Registro de geração
+
+- 2026-11-12: gerada pelo navegador do app. Original em JPEG 2752×1536.
+- Resultado: **melhor que a v02 na pose de painel, mas ainda sem o cajado vertical.**
+  - A pose 4 agora tem o corpo esticado na vertical, na ponta dos pés, com os **dois braços** para o alto segurando o cajado **na horizontal** acima da cabeça. É simétrica, forte e lê bem como painel.
+  - A pose 4 não encosta mais na borda de cima nem na figura de baixo.
+  - O cajado aparece em todas as 8 figuras, e há mais verde entre elas.
+- **Aprovada pelo usuário em 2026-11-12**, com o cajado na horizontal na pose de painel.
+- Problemas:
+  - **O cajado vertical não veio**, depois de 2 tentativas. O Gemini lê "acima da cabeça" como cajado na horizontal.
+  - A pose 5 ainda tem riscos de faísca na base do cajado, que saem no recorte.
+  - A pose 8 continua de frente.
+  - Na pose 2 ele aparece com os pés fora do chão, como num pulinho.

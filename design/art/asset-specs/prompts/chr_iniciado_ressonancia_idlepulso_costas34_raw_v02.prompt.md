@@ -1,0 +1,24 @@
+# Prompt — chr_iniciado_ressonancia_idlepulso_costas34_raw_v02
+
+- **Modelo:** Gemini ("Argon", Criar imagem, 16:9), na conversa `/app/e00c6619626843fa`, cuja primeira imagem é a R0 retocada · **Data:** 2026-11-12 · **Folha:** R1 costas34, 6×2
+- **Formato:** compacto, como nas folhas de costas da Lâmina: costas lisas (o emblema de anéis é peça do rig) e sem rosto. As poses são as da R1 frente34 v03.
+
+## Prompt (colar inteiro)
+
+Gere uma IMAGEM nova de FOLHA DE ANIMAÇÃO (não é ficha de personagem: sem close de rosto, sem vistas de frente/perfil, sem figuras sobrepostas). Como referência do personagem e da arma, use SOMENTE a PRIMEIRA imagem desta conversa (a ficha com o cajado); IGNORE todas as imagens geradas depois dela. REGRA ABSOLUTA: nenhuma palavra, letra, número, símbolo ou emblema desenhado em lugar nenhum — as COSTAS do casaco e o mantelete são LISOS, só tecido cinza-azulado com a borda cor de osso; nenhum pulso, onda, brilho, aura, faísca, fumaça, rastro ou linha de movimento saindo do orbe ou do corpo — os anéis do cajado são só a peça física da arma; nenhuma linha divisória, borda ou quadro; fundo verde #00FF00 chapado e contínuo, sem sombra no chão. CÂMERA: TODAS as figuras em vista 3/4 de COSTAS, voltadas para a direita e para longe de quem olha, vistas um pouco de cima; vemos o cabelo, a nuca e as costas do casaco; a cabeça fica de costas, sem mostrar o rosto. LAYOUT: imagem larga 16:9 com EXATAMENTE 12 figuras do MESMO personagem, separadas, sem se tocar, em 2 fileiras de 6, lidas da esquerda para a direita; TODAS de CORPO INTEIRO, nenhuma cortada; TODAS na MESMA escala; o chão de cada fileira na mesma linha; cada figura com o cajado ocupa no máximo metade da altura da imagem; o cajado inteiro dentro do espaço da própria figura, com margem verde até a borda da imagem, sem entrar na vizinha. ESTILO: igual à primeira imagem — quadrinho de ação adulto em nanquim, contorno externo preto muito grosso e uniforme, face de sombra em PRETO CHAPADO de borda dura, luz em 2 tons por material; sem degradê, sem 3D. PERSONAGEM: exatamente o da primeira imagem (cabelo prateado anguloso, gola alta, mantelete com borda de osso, casaco cinza-azulado, a barra dos 4 painéis em arcos redondos com linha dupla de osso, luvas pretas, antebraços enfaixados em osso, cinto com estojo cilíndrico atrás, botas com caneleiras de osso); acentos só em cor de osso. ARMA: o FOCO RESSONANTE da primeira imagem, UM ÚNICO cajado fino, mais alto que o personagem, com o orbe cor de osso dentro de dois anéis no topo; o cajado está SEMPRE segurado pela mão DIREITA, inteiro e visível em TODAS as 12 figuras, sem exceção; o orbe passa acima da cabeça nas poses de idle. NÃO há espada. SÓ DOIS BRAÇOS. LINHA DE CIMA — IDLE da Ressonância, um ciclo de respiração com movimento VISÍVEL, joelhos levemente dobrados, peso à frente, o cajado de pé ao lado do corpo, um pouco inclinado para a frente: [1] base; [2] inspira: ombros sobem, cabeça ergue; [3] topo: tronco mais alto e esticado, barra do casaco balança para trás; [4] expira: ombros caem, tronco se curva um pouco à frente; [5] fundo: joelhos mais dobrados, cabeça baixa, barra balança para a frente; [6] volta à base. LINHA DE BAIXO — PULSO, disparo à distância apontando o orbe para a frente, para a direita e para longe de quem olha: [7] recolhe o cajado junto ao peito com as duas mãos, corpo encolhido; [8] gira o tronco para trás, cajado puxado para trás do ombro; [9] passo à frente, empurra o cajado na horizontal; [10] braço direito totalmente estendido, cajado apontado à frente na horizontal com o orbe na ponta, ponto máximo; [11] continuação: corpo ainda inclinado à frente, o cajado AINDA na mão direita, apontado à frente e um pouco para baixo; [12] recuperação: cajado voltando a ficar de pé ao lado do corpo.
+
+## Registro de geração
+
+- 2026-11-12: gerada pelo navegador do app. Original em JPEG 2752×1536.
+  - O Gemini tinha saído da conta, e o usuário fez login de novo.
+  - Na primeira tentativa o Gemini respondeu "Sou apenas um modelo de linguagem", sem imagem. A segunda gerou.
+- Resultado: 12 figuras de costas, com as costas lisas e o rosto quase não aparece. O cajado está em **todas** as 12, na mão direita, e no idle o orbe passa da cabeça. O Pulso lê na ordem: recolhe, puxa por cima do ombro, empurra, estende o braço, continua e se recupera.
+- **Aprovada pelo usuário em 2026-11-12.**
+- Problemas:
+  - **Nas poses do Pulso as figuras se encostam:**
+    - os anéis das poses 7 e 8 quase se tocam;
+    - a ponta da frente do cajado da pose 9 chega na figura 10;
+    - a ponta de trás das poses 9 e 11 chega perto da figura vizinha.
+    O recorte precisa separar à mão; como a arma é uma peça separada do rig, basta recortar o corpo.
+  - O idle varia pouco; só a pose 5 se curva de forma clara.
+  - A barra dos painéis continua em pontas diagonais.
