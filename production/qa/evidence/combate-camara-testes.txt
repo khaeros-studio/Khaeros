@@ -1,0 +1,8 @@
+T1 preparo_total=26 passos; esquiva com 'rem' (passos que faltam para o disparo) = k; (livra/acerta): 0:acerta 1:livra 2:livra 3:livra 4:livra 5:livra 6:livra 7:livra 8:livra 9:livra 10:livra 11:livra 12:livra 13:livra 14:livra 15:livra 16:livra 17:livra 18:livra 19:livra 20:livra 21:livra 22:livra 23:livra 24:livra 25:livra 26:livra 
+T1 janela que livra: rem de 1 a 26 (26 valores) = 0.433 s
+T1b so invulnerabilidade (esquiva presa na parede, continua dentro do setor): 0:acerta 1:livra 2:livra 3:livra 4:livra 5:livra 6:livra 7:livra 8:livra 9:livra 10:livra 11:livra 12:livra 13:acerta 14:acerta 15:acerta 16:acerta 17:acerta 18:acerta 19:acerta 20:acerta 21:acerta 22:acerta 23:acerta 24:acerta 25:acerta 26:acerta 
+T1b janela de invulnerabilidade contra o disparo: rem de 1 a 12 (12 valores) = 0.200 s
+T2 Eco (vida 30) sequencia de dano do Corte: [14.0, 14.0, 25.2]; morto=true no passo 39 (primeiro golpe no passo 1); passos congelados (hitstop, contando o pendente do abate)=12
+T3 Eco ataca jogador parado por 300 passos: disparos nos passos [26, 157, 280], golpes recebidos=1, vida=91 (invuln_atingido=40 passos)
+T5 cargas no inicio=2 (com +1 carga); dois toques de esquiva seguidos: esquivas feitas=2; Corte da esquiva tirou 10.0 de vida do Eco (vida 30 -> 20)
+T4 duracao dash D=9 passos, d_passo=22.5 px, dist_total=202.5 px, inv=12 passos, recarga R=42 passos

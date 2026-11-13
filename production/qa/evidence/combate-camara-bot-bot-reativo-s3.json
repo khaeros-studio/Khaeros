@@ -1,0 +1,234 @@
+{
+  "metricas": {
+    "attacks": 23,
+    "bencao_escolhida": "ataque_mais",
+    "breaks": 1,
+    "clear_step": 1067,
+    "corte_log": [
+      {
+        "alvo": "eco_perdido",
+        "combo": 0,
+        "dano": 14.0,
+        "passo": 120
+      },
+      {
+        "alvo": "anomalia_menor",
+        "combo": 0,
+        "dano": 14.0,
+        "passo": 201
+      },
+      {
+        "alvo": "eco_perdido",
+        "combo": 0,
+        "dano": 14.0,
+        "passo": 282
+      },
+      {
+        "alvo": "eco_perdido",
+        "combo": 0,
+        "dano": 14.0,
+        "passo": 339
+      },
+      {
+        "alvo": "eco_perdido",
+        "combo": 1,
+        "dano": 14.0,
+        "passo": 358
+      },
+      {
+        "alvo": "eco_perdido",
+        "combo": 2,
+        "dano": 25.2,
+        "passo": 377
+      },
+      {
+        "alvo": "eco_perdido",
+        "combo": 0,
+        "dano": 14.0,
+        "passo": 399
+      },
+      {
+        "alvo": "eco_perdido",
+        "combo": 2,
+        "dano": 25.2,
+        "passo": 455
+      },
+      {
+        "alvo": "eco_perdido",
+        "combo": 0,
+        "dano": 14.0,
+        "passo": 477
+      },
+      {
+        "alvo": "eco_perdido",
+        "combo": 1,
+        "dano": 14.0,
+        "passo": 505
+      },
+      {
+        "alvo": "eco_perdido",
+        "combo": 2,
+        "dano": 25.2,
+        "passo": 524
+      },
+      {
+        "alvo": "anomalia_menor",
+        "combo": 0,
+        "dano": 14.0,
+        "passo": 603
+      },
+      {
+        "alvo": "anomalia_menor",
+        "combo": 0,
+        "dano": 14.0,
+        "passo": 796
+      },
+      {
+        "alvo": "eco_perdido",
+        "combo": 0,
+        "dano": 14.0,
+        "passo": 851
+      },
+      {
+        "alvo": "eco_perdido",
+        "combo": 1,
+        "dano": 14.0,
+        "passo": 870
+      },
+      {
+        "alvo": "eco_perdido",
+        "combo": 2,
+        "dano": 25.2,
+        "passo": 889
+      },
+      {
+        "alvo": "eco_perdido",
+        "combo": 0,
+        "dano": 14.0,
+        "passo": 943
+      },
+      {
+        "alvo": "anomalia_menor",
+        "combo": 0,
+        "dano": 14.0,
+        "passo": 943
+      },
+      {
+        "alvo": "eco_perdido",
+        "combo": 1,
+        "dano": 14.0,
+        "passo": 963
+      },
+      {
+        "alvo": "eco_perdido",
+        "combo": 2,
+        "dano": 25.2,
+        "passo": 982
+      },
+      {
+        "alvo": "eco_perdido",
+        "combo": 0,
+        "dano": 14.0,
+        "passo": 1004
+      },
+      {
+        "alvo": "anomalia_menor",
+        "combo": 1,
+        "dano": 14.0,
+        "passo": 1047
+      },
+      {
+        "alvo": "eco_perdido",
+        "combo": 2,
+        "dano": 25.2,
+        "passo": 1067
+      }
+    ],
+    "dashes": 3,
+    "dmg_dealt": 649.2,
+    "dmg_taken": 0.0,
+    "dodged_fires": 0,
+    "fires_melee": 2,
+    "fires_ranged": 7,
+    "hits_taken": 0,
+    "hitstop_total": 141,
+    "kill_log": [
+      {
+        "golpes": 2,
+        "id": "eco_perdido",
+        "passo": 120
+      },
+      {
+        "golpes": 2,
+        "id": "anomalia_menor",
+        "passo": 201
+      },
+      {
+        "golpes": 2,
+        "id": "eco_perdido",
+        "passo": 282
+      },
+      {
+        "golpes": 5,
+        "id": "eco_perdido",
+        "passo": 429
+      },
+      {
+        "golpes": 2,
+        "id": "eco_perdido",
+        "passo": 477
+      },
+      {
+        "golpes": 2,
+        "id": "eco_perdido",
+        "passo": 524
+      },
+      {
+        "golpes": 2,
+        "id": "anomalia_menor",
+        "passo": 603
+      },
+      {
+        "golpes": 2,
+        "id": "anomalia_menor",
+        "passo": 796
+      },
+      {
+        "golpes": 3,
+        "id": "eco_perdido",
+        "passo": 889
+      },
+      {
+        "golpes": 2,
+        "id": "anomalia_menor",
+        "passo": 943
+      },
+      {
+        "golpes": 5,
+        "id": "eco_perdido",
+        "passo": 1004
+      },
+      {
+        "golpes": 2,
+        "id": "anomalia_menor",
+        "passo": 1047
+      },
+      {
+        "golpes": 2,
+        "id": "eco_perdido",
+        "passo": 1067
+      }
+    ],
+    "kills": 13,
+    "melee_hits": 0,
+    "min_tele_age_on_hit": 9999,
+    "ondas": 3,
+    "proj_hits": 0,
+    "result": "bencao_escolhida",
+    "specials": 8
+  },
+  "passos": 1067,
+  "perfil": "reativo",
+  "seed": 3,
+  "vida_final": 100.0
+}
