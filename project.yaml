@@ -25,3 +25,37 @@ framework:
 # here. `/settings --local <key>=<value>` writes there; `/settings <key>=<value>`
 # edits this file. See `.claude/docs/config-resolution.md` for the full
 # precedence order.
+
+engine:
+  name: "Godot"
+  version: "4.7"
+  language: "GDScript"
+  rendering: "Forward+"
+  physics: "Godot Physics 2D"
+
+specialists:
+  code: "godot-gdscript-specialist"
+  shader: "godot-shader-specialist"
+  ui: "godot-specialist"
+  additional: ["godot-gdextension-specialist"]
+
+naming:
+  classes: PascalCase
+  variables: snake_case
+  constants: SCREAMING_SNAKE
+  signals: past_tense
+  files: snake_case
+  scenes: snake_case
+
+commands:
+  # godot = 4.7.2 stable (installed 2026-11-05): C:\Users\lucas\Godot\godot.cmd
+  # (and a `godot` sh shim for Git Bash) on the user PATH, pointing at the
+  # _console.exe. `smoke` and `run` fail until run/main_scene is set.
+  # build: no export preset exists yet — set it once export_presets.cfg has one.
+  build: "[TO BE CONFIGURED]"
+  test: "godot --headless -s -d --remote-debug tcp://127.0.0.1:0 res://addons/gdUnit4/bin/GdUnitCmdTool.gd -a res://tests --ignoreHeadlessMode"
+  run: "godot --path . --windowed --resolution 1280x720"
+  smoke: "godot --headless --quit-after 5"
+
+modes:
+  rigor: standard   # escolhido pelo usuário em 2026-11-05 (conceito Khaeros × Hades II)

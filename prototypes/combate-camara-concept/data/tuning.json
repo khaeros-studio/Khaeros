@@ -1,0 +1,255 @@
+{
+ "arena": {
+  "largura": 1920,
+  "altura": 1080,
+  "margem": 60,
+  "pilares": [
+   {
+    "x": 640,
+    "y": 540,
+    "r": 42
+   },
+   {
+    "x": 1280,
+    "y": 540,
+    "r": 42
+   }
+  ]
+ },
+ "jogador": {
+  "vida_max": 100,
+  "velocidade": 387,
+  "raio": 27,
+  "spawn": [
+   960,
+   900
+  ],
+  "fator_recuperacao": 0.45,
+  "buffer_passos": 10
+ },
+ "esquiva": {
+  "duracao_s": 0.15,
+  "velocidade_pxs": 1350,
+  "invuln_extra_s": 0.05,
+  "recarga_s": 0.7,
+  "cargas_base": 1
+ },
+ "corte": {
+  "dano": 14,
+  "alcance_px": 142.5,
+  "meio_angulo_graus": 69.51,
+  "recarga_s": 0.2667,
+  "empurrao": 450,
+  "combo": [
+   1.0,
+   1.0,
+   1.8
+  ]
+ },
+ "investida": {
+  "dano": 26,
+  "distancia_px": 330,
+  "duracao_s": 0.1667,
+  "raio_px": 69,
+  "recarga_s": 1.1667,
+  "empurrao": 1080,
+  "invuln_extra_s": 0.0333
+ },
+ "combate": {
+  "hitstop_leve_s": 0.05,
+  "hitstop_pesado_s": 0.1,
+  "hitstop_abate_s": 0.0667,
+  "hitstop_atingido_s": 0.1,
+  "janela_combo_s": 0.5667,
+  "recuperacao_max_s": 0.2,
+  "fator_recuperacao_golpe": 0.5,
+  "empurrao_pesado": 900,
+  "limiar_finalizador": 1.2,
+  "queda_empurrao": 0.78,
+  "empurrao_zero": 4.5,
+  "cambaleio_s": 0.1333,
+  "fator_cambaleio": 0.4,
+  "quebrou_recuperacao_s": 0.4,
+  "folga_encostado_px": 6,
+  "nascimento_projetil_px": 36,
+  "flash_acerto_s": 0.0833,
+  "invuln_atingido_s": 0.6667
+ },
+ "ia": {
+  "surgimento_s": 0.8333,
+  "espera_inicial_base": 20,
+  "espera_inicial_extra": 50,
+  "espera_base": 10,
+  "espera_extra": 30,
+  "ranged_perto_px": 345,
+  "ranged_longe_px": 570,
+  "ranged_ataque_px": 975,
+  "fator_contorno": 0.5,
+  "fator_recuperacao_andar": 0.4,
+  "recuperacao_dist_min_px": 90,
+  "telegrafo_flash_passos": 2
+ },
+ "inimigos": {
+  "eco_perdido": {
+   "nome": "Eco Perdido",
+   "comportamento": "melee",
+   "vida": 30,
+   "velocidade": 153,
+   "raio": 24,
+   "dano": 9,
+   "preparo_s": 0.4333,
+   "recarga_s": 0.8333,
+   "execucao_passos": 10,
+   "inicio_preparo_px": 78,
+   "tele_raio_px": 90,
+   "tele_meio_angulo_graus": 78.46
+  },
+  "anomalia_menor": {
+   "nome": "Anomalia Menor",
+   "comportamento": "ranged",
+   "vida": 24,
+   "velocidade": 117,
+   "raio": 22.5,
+   "dano": 8,
+   "preparo_s": 0.6,
+   "recarga_s": 1.5,
+   "execucao_passos": 6,
+   "proj_velocidade_pxs": 414,
+   "proj_raio_px": 13.5,
+   "proj_vida_passos": 240,
+   "tele_largura_px": 81,
+   "tele_comprimento_max_px": 1728
+  }
+ },
+ "ondas": [
+  [
+   {
+    "id": "eco_perdido",
+    "x": 600,
+    "y": 200
+   },
+   {
+    "id": "eco_perdido",
+    "x": 1320,
+    "y": 200
+   },
+   {
+    "id": "anomalia_menor",
+    "x": 300,
+    "y": 300
+   }
+  ],
+  [
+   {
+    "id": "eco_perdido",
+    "x": 500,
+    "y": 180
+   },
+   {
+    "id": "eco_perdido",
+    "x": 960,
+    "y": 160,
+    "elite": true
+   },
+   {
+    "id": "eco_perdido",
+    "x": 1420,
+    "y": 180
+   },
+   {
+    "id": "anomalia_menor",
+    "x": 250,
+    "y": 400
+   },
+   {
+    "id": "anomalia_menor",
+    "x": 1670,
+    "y": 400
+   }
+  ],
+  [
+   {
+    "id": "eco_perdido",
+    "x": 400,
+    "y": 300
+   },
+   {
+    "id": "eco_perdido",
+    "x": 960,
+    "y": 160,
+    "elite": true
+   },
+   {
+    "id": "eco_perdido",
+    "x": 1520,
+    "y": 300
+   },
+   {
+    "id": "anomalia_menor",
+    "x": 700,
+    "y": 160
+   },
+   {
+    "id": "anomalia_menor",
+    "x": 1220,
+    "y": 160
+   }
+  ]
+ ],
+ "bencaos": [
+  {
+   "id": "ataque_mais",
+   "nome": "Ataque +25%",
+   "texto": "Corte e Investida causam 25% mais dano.",
+   "valor": 0.25
+  },
+  {
+   "id": "carga_mais",
+   "nome": "+1 carga de esquiva",
+   "texto": "Duas esquivas seguidas antes de recarregar.",
+   "valor": 1
+  },
+  {
+   "id": "corte_esquiva",
+   "nome": "Corte da esquiva",
+   "texto": "Esquivar atravessando um inimigo causa 10 de dano.",
+   "valor": 10,
+   "alcance_extra_px": 9,
+   "empurrao": 270
+  }
+ ],
+ "bot": {
+  "perfis": {
+   "reativo": {
+    "reacao_passos": 15,
+    "esquiva_antecedencia": 7,
+    "falha": 0.1
+   },
+   "perfeito": {
+    "reacao_passos": 8,
+    "esquiva_antecedencia": 7,
+    "falha": 0.0
+   },
+   "lento": {
+    "reacao_passos": 20,
+    "esquiva_antecedencia": 5,
+    "falha": 0.25
+   },
+   "nunca_esquiva": {
+    "reacao_passos": 15,
+    "esquiva_antecedencia": 7,
+    "falha": 1.0
+   }
+  },
+  "limite_passos": 7200,
+  "espera_bencao_passos": 90
+ },
+ "profundidade": 4,
+ "elite": {
+  "vida_x": 2.4,
+  "dano_x": 1.25,
+  "raio_x": 1.2,
+  "empurrao_x": 0.4,
+  "vida_por_profundidade": 0.05
+ }
+}

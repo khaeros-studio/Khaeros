@@ -54,7 +54,7 @@
 #   in any other shape is reported as unsupported layout, with its number.
 
 version: 1
-last_updated: ""
+last_updated: "2026-11-12"
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
 # Named game-world objects: enemies, NPCs, characters, factions, bosses.
@@ -123,7 +123,133 @@ items: []
 #   output_range[min, max], added
 # Optional: expression (the actual formula), notes
 
-formulas: []
+formulas:
+  - name: duration_to_steps
+    status: active
+    source: design/gdd/conteudo-orientado-a-dados.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/conteudo-orientado-a-dados.md
+      - design/gdd/movimento-e-esquiva.md   # D, E, R da esquiva (F2–F4)
+      - design/gdd/modificadores-e-atributos.md   # duração de modificador em passos inteiros, R3/R6
+    variables:
+      - t_s
+      - tick_rate
+    output_range: [0, 1000000]
+    expression: "max(1, round(t_s * tick_rate)) se t_s > 0; 0 se t_s = 0 e o campo aceita zero"
+    notes: "F7. Toda duração em segundos vira passos de física por esta fórmula, uma vez, no fim. Empate x,5 arredonda para longe do zero."
+    added: 2026-11-05
+    revised: ""
+  - name: linear_curve
+    status: active
+    source: design/gdd/conteudo-orientado-a-dados.md
+    referenced_by:
+      - design/gdd/conteudo-orientado-a-dados.md
+    variables:
+      - x
+      - x_min
+      - base
+      - slope
+      - y_floor
+      - y_cap
+    output_range: [0, 1000000]
+    expression: "0 se x < x_min; senão clamp(base + slope * x, y_floor, y_cap)"
+    notes: "F8 (LinearCurveDef). Curva padrão de uma variável para os GDDs donos (ex.: chance de elite). Sem teto: campo sem_teto = true."
+    added: 2026-11-05
+    revised: ""
+  - name: mulberry32_step
+    status: active
+    source: design/gdd/rng-com-seed.md
+    referenced_by:
+      - design/gdd/rng-com-seed.md
+    variables:
+      - s
+    output_range: [0, 4294967295]
+    expression: "s' = (s + 0x6D2B79F5) & M; t = imul(s' ^ (s' >> 15), s' | 1); t = t ^ ((t + imul(t ^ (t >> 7), t | 61)) & M); u = (t ^ (t >> 14)) & M"
+    notes: "F1 do RNG. Gerador único do jogo (mulberry32, paridade com o cânone action-core math.ts). Vetores de referência verificados em Python, Godot 4.7.2 e Node."
+    added: 2026-11-05
+    revised: ""
+  - name: stream_state
+    status: active
+    source: design/gdd/rng-com-seed.md
+    referenced_by:
+      - design/gdd/rng-com-seed.md
+    variables:
+      - seed
+      - finalidade
+      - regiao
+      - profundidade
+    output_range: [0, 4294967295]
+    expression: "mix(mix(mix(fmix32((seed + 0x9E3779B9) & M), finalidade), regiao), profundidade); mix(h, x) = fmix32(((h ^ x) + 0x9E3779B9) & M)"
+    notes: "F2 do RNG. Estado inicial de cada fluxo; finalidades 1-8 na tabela R3 do RNG (1-6 e 8 = estrutura). Mudar uma constante muda todas as seeds."
+    added: 2026-11-05
+    revised: ""
+  - name: derived_value
+    status: active
+    source: design/gdd/modificadores-e-atributos.md
+    referenced_by:
+      - design/gdd/modificadores-e-atributos.md
+      - design/gdd/movimento-e-esquiva.md   # valor(velocidade), valor(cargas_esquiva)
+    variables:
+      - base
+      - soma_planos
+      - soma_percentuais
+      - produto_multiplicadores
+      - piso
+      - teto
+    output_range: [0, 1000000]
+    # expressão anterior (2026-11-05) não tinha max(0, ...): dois termos negativos davam positivo
+    expression: "clamp(max(0, base + soma_planos) * max(0, 1 + soma_percentuais) * produto_multiplicadores, piso, teto); atributos inteiros: round no fim"
+    notes: "F1 de Modificadores. Piso aplicado só no fim (independe da ordem). Atributos de dano não passam por aqui (ver hit_damage_multiplier)."
+    added: 2026-11-05
+    revised: 2026-11-06
+  - name: hit_damage_multiplier
+    status: active
+    source: design/gdd/modificadores-e-atributos.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/modificadores-e-atributos.md
+      - design/gdd/movimento-e-esquiva.md   # M do Corte da esquiva, sem condicionais (F6)
+    variables:
+      - p_todo
+      - p_slot
+      - multiplicadores_aplicaveis
+    output_range: [0, 1000000]
+    expression: "min(teto_multiplicador_dano, max(0, 1 + p_todo + p_slot) * produto(multiplicadores de dano_todo aplicaveis: incondicionais (elite, Abalo) e condicionais verdadeiros (4o acerto, pos-esquiva)))"
+    notes: "F2 de Modificadores. Percentuais de dano somam num grupo (paridade com damageMultiplier do cânone); 4º acerto, pós-esquiva e Abalo multiplicam. Teto teto_multiplicador_dano = 4,0 provisório (damage_multiplier_cap)."
+    added: 2026-11-05
+    revised: 2026-11-13
+  - name: damage_taken
+    status: active
+    source: design/gdd/modificadores-e-atributos.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/modificadores-e-atributos.md
+    variables:
+      - bruto
+      - reducao
+      - teto_red
+      - guarda
+    output_range: [1, 1000000]
+    expression: "max(1, round(bruto * (1 - min(teto_red, max(0, reducao))) * guarda))"
+    notes: "F3 de Modificadores. Dano recebido inteiro, antes do escudo. Guarda (x0,5) é regra do Combate."
+    added: 2026-11-05
+    revised: ""
+  - name: dash_cut_damage
+    status: active
+    source: design/gdd/movimento-e-esquiva.md
+    referenced_by:
+      - design/gdd/movimento-e-esquiva.md
+    variables:
+      - total_gatilho
+      - p_todo
+      - p_ataque
+      - multiplicadores_incondicionais
+    output_range: [0, 1000000]
+    expression: "total_gatilho * min(teto_multiplicador_dano, max(0, 1 + p_todo + p_ataque) * produto(multiplicadores incondicionais do portador))"
+    notes: "F6 de Movimento e esquiva. Corte da esquiva (gatilho corte_da_esquiva): o Movimento calcula pelo portador e o Combate aplica. Sem apos_esquiva nem enesimo_acerto (Modificadores R12). Uma vez por inimigo por esquiva; teto opcional alvos_max_corte (vazio = sem teto, D-W6). M efetivo limitado a 4,0 (damage_multiplier_cap)."
+    added: 2026-11-08
+    revised: 2026-11-13
 
 # Example:
 #
@@ -156,7 +282,1510 @@ formulas: []
 #
 # Required fields: name, status, source, referenced_by, value, unit, added
 
-constants: []
+  - name: weapon_hit_damage
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    variables:
+      - dano
+      - combo
+      - passo_combo
+      - m_sem
+      - m_com
+      - contador_acertos
+      - a_cada
+    output_range: [0, 1000000]
+    expression: "AttackDef.dano * combo[passo_combo mod n] * (quarto ? M_com : M_sem)"
+    notes: "F1 do Combate. Combo por slot; M avaliado no disparo (M_sem sem enesimo_acerto, M_com com); quarto acerto decidido por alvo no impacto, contador +1 antes do teste."
+    added: 2026-11-09
+    revised: ""
+  - name: attack_recovery
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    variables:
+      - recarga_passos
+      - fator_recuperacao_golpe
+      - recuperacao_max_passos
+    output_range: [0, 30]
+    expression: "forma == avanco ? 0 : min(recuperacao_max_passos, round(recarga_passos * fator_recuperacao_golpe))"
+    notes: "F2 do Combate. Recarga base do AttackDef; o jogador anda lento rec - 1 passos (desconto antes do Movimento)."
+    added: 2026-11-09
+    revised: ""
+  - name: finisher_knockback
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    variables:
+      - combo_mult
+      - limiar_finalizador
+      - empurrao
+      - empurrao_pesado
+      - fator_empurrao
+    output_range: [0, 100000]
+    expression: "(c > limiar ? max(empurrao * c, empurrao_pesado) : empurrao) * fator_empurrao_alvo"
+    notes: "F3 do Combate. Golpe pesado = finalizador, quarto acerto ou empurrão de entrada >= empurrao_pesado (antes do fator do alvo)."
+    added: 2026-11-09
+    revised: ""
+  - name: knockback_travel
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    variables:
+      - v0
+      - queda_empurrao
+      - empurrao_zero
+    output_range: [0, 100000]
+    expression: "n = max(1, floor(ln(z/v0)/ln(q)) + 1); dist = (v0/60) * (1 - q^n) / (1 - q)"
+    notes: "F7 do Combate. Empurrão cumulativo (soma vetorial), anda v/60, depois v *= q, zera abaixo de z. dist < v0 / (60 * (1 - q))."
+    added: 2026-11-09
+    revised: ""
+  - name: wall_slam
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    variables:
+      - v_antes
+      - parede_vel_min
+      - parede_dano
+      - m_parede
+    output_range: [0, 1000000]
+    expression: "corrigida && v_antes >= parede_vel_min ? parede_dano * M_parede : 0"
+    notes: "F8 do Combate. Corrigida = parede ou obstáculo (não a separação entre inimigos). M grupo Ataque, sem apos_esquiva nem quarto acerto; hitstop leve; empurrão zera."
+    added: 2026-11-09
+    revised: ""
+  - name: hitstop_total
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    variables:
+      - pedidos_do_passo
+    output_range: [0, 90]
+    expression: "h = max(pedidos do passo); congelado = soma de h"
+    notes: "F9 do Combate. Vale o maior (cânone; fecha D-N1 do cross-review 06b). Congela a partir do passo seguinte; contador sem time_scale (Cena R7)."
+    added: 2026-11-09
+    revised: ""
+  - name: weapon_dps_ref
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    variables:
+      - dano
+      - combo
+      - recarga_passos
+      - janela_combo
+      - m
+      - hitstops
+    output_range: [0, 100000]
+    expression: "DPS_real = dano * M * soma(combo) * 60 / (n * R + soma(h_i))"
+    notes: "F11 do Combate. Referência de balanceamento: Corte com combo 53,2/s real, Pulso 51,4/s."
+    added: 2026-11-09
+    revised: ""
+  - name: weapon_dps
+    status: active
+    source: design/gdd/armas-das-doutrinas.md
+    referenced_by:
+      - design/gdd/armas-das-doutrinas.md
+      - design/gdd/selo-e-fluxo.md
+      - design/gdd/efeitos-de-status.md
+      - design/gdd/combate-nucleo.md   # F11 (DPS de referência) e roteiro M
+    variables:
+      - dano
+      - R
+      - combo
+      - hitstop
+    output_range: [0, 1000]
+    expression: "ver F1 de Armas: dano × multiplicadores × 60 / (R + hitstop) por golpe, combinado por ciclo do Especial"
+    notes: "F1 de Armas. DPS real: Lâmina 66,47/s e Ressonância 66,96/s (combinado). Base de ST5 e SV12."
+    added: 2026-11-11
+    revised: ""
+  - name: boss_ttk_parity
+    status: active
+    source: design/gdd/armas-das-doutrinas.md
+    referenced_by:
+      - design/gdd/armas-das-doutrinas.md
+    variables:
+      - TTK_lamina
+      - TTK_ressonancia
+    output_range: [0, 1]
+    expression: "|TTK_a - TTK_b| / min(TTK_a, TTK_b) <= meta_paridade"
+    notes: "F2 de Armas. Hoje 0,7% (10,53 s contra 10,45 s); meta 0,15."
+    added: 2026-11-11
+    revised: ""
+  - name: pulse_knockback
+    status: active
+    source: design/gdd/armas-das-doutrinas.md
+    referenced_by:
+      - design/gdd/armas-das-doutrinas.md
+    variables:
+      - empurrao
+      - queda_empurrao
+      - empurrao_zero
+    output_range: [0, 1000000]
+    expression: "ver F5 de Armas: empurrão efetivo do Pulso por alvo (elite x0,4, chefe x0,12) e distância"
+    notes: "F5 de Armas. Pulso de fábrica = 540 px/s."
+    added: 2026-11-11
+    revised: ""
+  - name: depth_darkening
+    status: active
+    source: design/gdd/pipeline-visual.md
+    referenced_by:
+      - design/gdd/pipeline-visual.md
+    variables:
+      - p
+      - passo_profundidade
+    output_range: [0.85, 1]
+    expression: "k = max(0.85, 1 - passo_profundidade * p)"
+    notes: "F2 de Pipeline. Escurecimento em linear por profundidade p (câmara de combate)."
+    added: 2026-11-11
+    revised: ""
+  - name: flash_limiter
+    status: active
+    source: design/gdd/pipeline-visual.md
+    referenced_by:
+      - design/gdd/pipeline-visual.md
+      - design/gdd/combate-nucleo.md
+    variables:
+      - N_flash
+      - janela_1s
+    output_range: [0, 4]
+    expression: "no máximo 3 flashes de tela por janela de 1 s em tempo real monotônico; o passe obrigatório nunca é negado (vira fade) e pode levar N_flash a 4"
+    notes: "F6 de Pipeline. O impact frame do chefe tem preempção sobre o da recusa."
+    added: 2026-11-11
+    revised: 2026-11-13
+  - name: flux_step
+    status: active
+    source: design/gdd/selo-e-fluxo.md
+    referenced_by:
+      - design/gdd/selo-e-fluxo.md
+      - design/gdd/combate-nucleo.md
+    variables:
+      - phi
+      - a
+      - n5
+      - n8
+      - r
+      - C
+    output_range: [0, 100]
+    expression: "phi5 = min(Fmax, phi + a*n5); phi6 = min(Fmax, phi5 + r); phi' = min(Fmax, phi6 - C*s + a*n8)"
+    notes: "F1 de Selo. Fluxo por passo: regeneração, acertos de arma por alvo e custo do Selo."
+    added: 2026-11-11
+    revised: ""
+  - name: seal_damage
+    status: active
+    source: design/gdd/selo-e-fluxo.md
+    referenced_by:
+      - design/gdd/selo-e-fluxo.md
+      - design/gdd/efeitos-de-status.md
+    variables:
+      - dano_selo_s
+      - M
+      - k
+    output_range: [0, 1000000]
+    expression: "delta = dano_selo_s / 60; dano por passo = k * delta * M (k Selos sobre o alvo)"
+    notes: "F2 de Selo. Um Selo fere 24 por alvo em 200 passos (M = 1)."
+    added: 2026-11-11
+    revised: ""
+  - name: seal_center_clamp
+    status: active
+    source: design/gdd/selo-e-fluxo.md
+    referenced_by:
+      - design/gdd/selo-e-fluxo.md
+    variables:
+      - pos_jogador
+      - mira
+      - distancia_px
+      - margem_borda_px
+    output_range: [0, 180]
+    expression: "centro = clamp(pos + mira * distancia_px, x0 + m, x1 - m) por eixo"
+    notes: "F6 de Selo. Clamp por eixo; o Selo nasce centrado no jogador se ele mira a parede colado nela."
+    added: 2026-11-11
+    revised: ""
+  - name: status_stack
+    status: active
+    source: design/gdd/efeitos-de-status.md
+    referenced_by:
+      - design/gdd/efeitos-de-status.md
+      - design/gdd/selo-e-fluxo.md
+    variables:
+      - A
+      - n
+      - C
+      - D
+    output_range: [0, 1000000]
+    expression: "Sangramento: A = min(C_s, A + n); Queimadura: A = min(C_q, A + n); restante = D; Abalo: restante = max(restante, D)"
+    notes: "F1 de Status. Os acúmulos zeram juntos quando restante chega a 0."
+    added: 2026-11-11
+    revised: ""
+  - name: status_damage
+    status: active
+    source: design/gdd/efeitos-de-status.md
+    referenced_by:
+      - design/gdd/efeitos-de-status.md
+      - design/gdd/combate-nucleo.md
+    variables:
+      - r
+      - A
+    output_range: [0, 1000000]
+    expression: "dano por passo = r * A, sem M; r = taxa_s / 60"
+    notes: "F2 de Status. DPS máximo: Sangramento 24/s (teto 10), Queimadura 28,8/s (teto 6)."
+    added: 2026-11-11
+    revised: ""
+  - name: wave_budget
+    status: active
+    source: design/gdd/camaras-e-ondas.md
+    referenced_by:
+      - design/gdd/camaras-e-ondas.md
+      - design/gdd/ia-de-inimigos-e-elites.md   # custo dos inimigos e R12 (ajuste da câmara)
+      - design/gdd/conteudo-orientado-a-dados.md   # WaveRules
+    variables:
+      - p
+      - r
+      - orcamento_base
+      - orcamento_por_prof
+      - orcamento_por_regiao
+    output_range: [3, 8.6]
+    expression: "orçamento(p, r) = 3 + 0,9 × p + 2 × r ; n_ondas(p) = 1 se p < 2, 2 se p < 6, senão 3 ; custo_total = orçamento × n_ondas"
+    notes: "F1 de Câmaras. Limiar (r = 0, p 0–4): 3,0 a 6,6; Veio Instável (r = 1): 5,0 a 8,6."
+    added: 2026-11-11
+    revised: ""
+  - name: elite_chance
+    status: active
+    source: design/gdd/ia-de-inimigos-e-elites.md
+    referenced_by:
+      - design/gdd/ia-de-inimigos-e-elites.md
+      - design/gdd/camaras-e-ondas.md   # chama sortear_elite(p, ja_ha_elite) por inimigo
+      - design/gdd/conteudo-orientado-a-dados.md   # F8, LinearCurveDef (EliteRules)
+    variables:
+      - p
+      - elite_prof_min
+    output_range: [0, 0.25]
+    expression: "chance(p) = 0 se p < elite_prof_min ; senão min(0,25 ; 0,05 + 0,02 × p) ; máx. 1 elite por onda ; 1 real por inimigo, sempre"
+    notes: "F1 de IA. Com p_max 4 do Limiar: p 3 = 11%, p 4 = 13%."
+    added: 2026-11-11
+    revised: ""
+  - name: door_fragments_reward
+    status: active
+    source: design/gdd/portas-e-recompensas.md
+    referenced_by:
+      - design/gdd/portas-e-recompensas.md
+      - design/gdd/economia-de-fragmentos.md   # origem porta: creditar(porta, n)
+    variables:
+      - p
+      - fragmentos_base
+      - fragmentos_passo_prof
+    output_range: [2, 3]
+    expression: "fragmentos(p) = fragmentos_base + floor(p / fragmentos_passo_prof) ; p = profundidade da câmara limpa"
+    notes: "F1 de Portas. A porta paga só depois das câmaras de índice 0, 1 e 3: 2, 2 e 3 (7 no máximo no Limiar). O índice 5 não dá recompensa. Sem teto se p > p_max."
+    added: 2026-11-11
+    revised: ""
+  - name: door_heal_reward
+    status: active
+    source: design/gdd/portas-e-recompensas.md
+    referenced_by:
+      - design/gdd/portas-e-recompensas.md
+      - design/gdd/camaras-e-ondas.md   # PV4: cura da porta deve ser < santuario_cura
+    variables:
+      - Vida_max
+      - cura_pct
+    output_range: [0, 100]
+    expression: "cura = round(Vida_max × cura_pct) ; Vida' = min(Vida_max, Vida + cura)"
+    notes: "Portas R5/F-cura. 30 com a Lâmina (100) e 24 com a Ressonância (80). Santuário cura 40% (Câmaras R12)."
+    added: 2026-11-11
+    revised: ""
+
+constants:
+  - name: tick_rate
+    status: active
+    source: design/gdd/conteudo-orientado-a-dados.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/conteudo-orientado-a-dados.md
+      - design/gdd/rng-com-seed.md   # nenhum sorteio por tempo/quadro
+      - design/gdd/movimento-e-esquiva.md   # passos vivos da esquiva e da recarga
+      - design/gdd/input-e-controle.md   # amostragem uma vez por passo (60/s), R2
+      - design/gdd/cena-3-4-e-camera.md   # hitstop como contador de passos a 60/s, R7
+    value: 60
+    unit: passos de física por segundo
+    added: 2026-11-05
+    revised: ""
+  - name: unit_to_px
+    status: active
+    source: design/gdd/conteudo-orientado-a-dados.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/conteudo-orientado-a-dados.md
+      - design/gdd/cena-3-4-e-camera.md   # viewport lógico 1920x1080 (Art Bible 8.6)
+      - design/gdd/input-e-controle.md   # raio da mira automática 900 unidades = 1350 px
+      - design/gdd/movimento-e-esquiva.md   # PLAYER_RADIUS 18 u = 27 px; DASH_SPEED 15 u/tick = 1350 px/s
+    # era 1.0 ("resolução base 1280x720"); mudado por design/gdd/cena-3-4-e-camera.md em 2026-11-05
+    value: 1.5
+    unit: px de mundo por unidade canônica (viewport lógico 1920x1080)
+    added: 2026-11-05
+    revised: 2026-11-05
+  - name: input_buffer_steps
+    status: active
+    source: design/gdd/input-e-controle.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/input-e-controle.md
+      - design/gdd/movimento-e-esquiva.md   # esquiva só no buffer; sem carga, espera o prazo
+    value: 10
+    unit: passos de física (prazo do buffer de comandos; não desconta no hitstop)
+    added: 2026-11-05
+    revised: ""
+  - name: damage_reduction_cap
+    status: active
+    source: design/gdd/modificadores-e-atributos.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/modificadores-e-atributos.md
+    value: 0.6
+    unit: fração máxima de redução de dano (teto do atributo reducao_dano)
+    added: 2026-11-05
+    revised: ""
+  - name: player_min_max_hp
+    status: active
+    source: design/gdd/modificadores-e-atributos.md
+    referenced_by:
+      - design/gdd/modificadores-e-atributos.md
+    value: 20
+    unit: Vida máxima mínima do jogador (inimigos têm piso 1)
+    added: 2026-11-05
+    revised: ""
+  - name: player_radius_px
+    status: active
+    source: design/gdd/movimento-e-esquiva.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/movimento-e-esquiva.md
+      - design/gdd/cena-3-4-e-camera.md   # F1 e AC-07: raio 18 do cânone vira 27 px
+    value: 27
+    unit: px de mundo (raio do círculo do jogador; hurtbox, colisão, alcance do Corte; faixa 10–50 pelo vão de 105 px entre obstáculos)
+    added: 2026-11-08
+    revised: ""
+  - name: dash_invuln_steps
+    status: active
+    source: design/gdd/movimento-e-esquiva.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/movimento-e-esquiva.md
+    value: 12
+    unit: passos de física (9 da esquiva + 3 extras; pedido garantir_invulneravel = max ao Combate)
+    added: 2026-11-08
+    revised: ""
+  - name: fator_empurrao_chefe
+    status: active
+    source: design/gdd/modificadores-e-atributos.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/modificadores-e-atributos.md
+      - design/gdd/conteudo-orientado-a-dados.md   # Edge Cases: cambaleio do chefe, fonte chefe (R10)
+    value: 0.12
+    unit: multiplicador de fator_empurrao da fonte chefe (ModifiersTuning; cânone engine.ts:583)
+    added: 2026-11-08
+    revised: ""
+  - name: hitstop_light_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/cena-3-4-e-camera.md   # tabela de impulso de câmera (HITSTOP_LIGHT)
+    value: 3
+    unit: passos (hitstop_leve_s 0,05; golpe leve com alvo, 2º alvo da investida, parede)
+    added: 2026-11-09
+    revised: ""
+  - name: hitstop_heavy_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/cena-3-4-e-camera.md   # tabela de impulso de câmera (HITSTOP_HEAVY)
+      - design/gdd/feedback-de-combate.md   # AC-FB-03: relógios em hitstop de 6 passos
+    value: 6
+    unit: passos (hitstop_pesado_s 0,1; golpe pesado ou Especial com alvo, 1º alvo da investida, abate de elite)
+    added: 2026-11-09
+    revised: ""
+  - name: hitstop_kill_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 4
+    unit: passos (hitstop_abate_s 0,0667; abate de inimigo comum)
+    added: 2026-11-09
+    revised: ""
+  - name: hitstop_hurt_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 6
+    unit: passos (hitstop_atingido_s 0,1; jogador atingido)
+    added: 2026-11-09
+    revised: ""
+  - name: hitstop_death_defiance_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/feedback-de-combate.md   # R-recusa: vale o hitstop do golpe (6), não o 18
+    value: 18
+    unit: passos (hitstop_recusa_s 0,3; recusa de morte; divergência do cânone, que usava 6)
+    added: 2026-11-09
+    revised: ""
+  - name: hitstop_boss_kill_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/cena-3-4-e-camera.md   # tabela de impulso de câmera (HITSTOP_BOSS_KILL)
+    value: 36
+    unit: passos (hitstop_abate_chefe_s 0,6; abate de chefe)
+    added: 2026-11-09
+    revised: ""
+  - name: heavy_knockback_pxs
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 900
+    unit: px/s (empurrao_pesado; cânone HEAVY_KNOCKBACK 10 u/passo)
+    added: 2026-11-09
+    revised: ""
+  - name: finisher_threshold
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 1.2
+    unit: multiplicador de combo, comparação > estrita (limiar_finalizador)
+    added: 2026-11-09
+    revised: ""
+  - name: combo_window_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 34
+    unit: passos (janela_combo_s 0,5667; uma janela por slot)
+    added: 2026-11-09
+    revised: ""
+  - name: attack_recovery_max_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 12
+    unit: passos (recuperacao_max_s 0,2)
+    added: 2026-11-09
+    revised: ""
+  - name: knockback_decay_per_step
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 0.78
+    unit: fator por passo vivo (queda_empurrao)
+    added: 2026-11-09
+    revised: ""
+  - name: knockback_zero_pxs
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 4.5
+    unit: px/s (empurrao_zero; abaixo disso o empurrão zera)
+    added: 2026-11-09
+    revised: ""
+  - name: wall_slam_speed_pxs
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 630
+    unit: px/s (parede_vel_min; cânone WALL_SLAM_SPEED 7 u/passo)
+    added: 2026-11-09
+    revised: ""
+  - name: wall_slam_damage
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 8
+    unit: Vida antes de M (parede_dano; grupo Ataque)
+    added: 2026-11-09
+    revised: ""
+  - name: hurt_invuln_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/movimento-e-esquiva.md   # nota de revisão cruzada 2026-11-11 (não relido no corpo)
+      - design/gdd/ia-de-inimigos-e-elites.md   # F5: teto de 1,5 golpes/s e t_min_morrer
+      - design/gdd/armas-das-doutrinas.md   # F5/IV7: tempo mínimo até morrer (4 × 40 e 6 × 40 passos)
+    value: 40
+    unit: passos (invuln_atingido_s 0,6667; invulnerabilidade depois de ser atingido)
+    added: 2026-11-09
+    revised: ""
+  - name: stagger_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 8
+    unit: passos (cambaleio_s 0,1333)
+    added: 2026-11-09
+    revised: ""
+  - name: stagger_move_factor
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 0.4
+    unit: multiplicador da velocidade da IA enquanto cambaleia (fator_cambaleio)
+    added: 2026-11-09
+    revised: ""
+  - name: break_recovery_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 24
+    unit: passos (quebrou_recuperacao_s 0,4; recuperação do inimigo depois do Quebrou!)
+    added: 2026-11-09
+    revised: ""
+  - name: death_sweep_passes
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 4
+    unit: passes por passo vivo (passes_varredura)
+    added: 2026-11-09
+    revised: ""
+  - name: lunge_invuln_extra_steps
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 2
+    unit: passos (invuln_extra_investida_s 0,0333; garantir_invulneravel(N + 2))
+    added: 2026-11-09
+    revised: ""
+  - name: melee_step_px
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 10.5
+    unit: px (passo_apoio_px; deslocar(mira * 10,5) depois do teste de acerto do arco; cânone MELEE_STEP 7 u)
+    added: 2026-11-09
+    revised: ""
+  - name: projectile_spawn_offset_px
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 36
+    unit: px (nascimento_projetil_px; 24 u)
+    added: 2026-11-09
+    revised: ""
+  - name: guard_damage_factor
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/modificadores-e-atributos.md
+    value: 0.5
+    unit: multiplicador do dano recebido com a guarda ativa (fator_guarda; citado pela F3 do Modificadores)
+    added: 2026-11-09
+    revised: ""
+  - name: contact_slack_px
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 6
+    unit: px (folga_encostado_px; anel de encostado do arco = r_inimigo + raio_jogador + 6)
+    added: 2026-11-09
+    revised: ""
+  - name: attack_recovery_factor
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+      - design/gdd/movimento-e-esquiva.md
+    value: 0.5
+    unit: fração da recarga base que vira recuperação (fator_recuperacao_golpe)
+    added: 2026-11-09
+    revised: ""
+  - name: projectile_fan_step_deg
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 12
+    unit: graus (giro_leque_graus; índice k gira 12 × ceil(k/2))
+    added: 2026-11-09
+    revised: ""
+  - name: projectile_obstacle_radius_factor
+    status: active
+    source: design/gdd/combate-nucleo.md
+    referenced_by:
+      - design/gdd/combate-nucleo.md
+    value: 0.5
+    unit: fator do raio do projétil contra obstáculo (fator_raio_obstaculo_projetil)
+    added: 2026-11-09
+    revised: ""
+  - name: flux_max
+    status: active
+    source: design/gdd/selo-e-fluxo.md
+    referenced_by:
+      - design/gdd/selo-e-fluxo.md
+    value: 100
+    unit: Fluxo (fluxo_max)
+    added: 2026-11-11
+    revised: ""
+  - name: flux_regen_per_s
+    status: active
+    source: design/gdd/selo-e-fluxo.md
+    referenced_by:
+      - design/gdd/selo-e-fluxo.md
+    value: 3.6
+    unit: Fluxo/s (regen_fluxo_s; 0,06 por passo)
+    added: 2026-11-11
+    revised: ""
+  - name: flux_per_weapon_hit
+    status: active
+    source: design/gdd/selo-e-fluxo.md
+    referenced_by:
+      - design/gdd/selo-e-fluxo.md
+    value: 3
+    unit: Fluxo por alvo atingido por golpe de arma (fluxo_por_acerto)
+    added: 2026-11-11
+    revised: ""
+  - name: seal_flux_cost
+    status: active
+    source: design/gdd/selo-e-fluxo.md
+    referenced_by:
+      - design/gdd/selo-e-fluxo.md
+    value: 40
+    unit: Fluxo (custo_fluxo)
+    added: 2026-11-11
+    revised: ""
+  - name: seal_cooldown_s
+    status: active
+    source: design/gdd/selo-e-fluxo.md
+    referenced_by:
+      - design/gdd/selo-e-fluxo.md
+    value: 0.5
+    unit: s (recarga_s; 30 passos)
+    added: 2026-11-11
+    revised: ""
+  - name: seal_radius_px
+    status: active
+    source: design/gdd/selo-e-fluxo.md
+    referenced_by:
+      - design/gdd/selo-e-fluxo.md
+    value: 142.5
+    unit: px (raio_px)
+    added: 2026-11-11
+    revised: ""
+  - name: seal_duration_s
+    status: active
+    source: design/gdd/selo-e-fluxo.md
+    referenced_by:
+      - design/gdd/selo-e-fluxo.md
+      - design/gdd/efeitos-de-status.md
+    value: 3.3333
+    unit: s (duracao_s; 200 passos)
+    added: 2026-11-11
+    revised: ""
+  - name: seal_damage_per_s
+    status: active
+    source: design/gdd/selo-e-fluxo.md
+    referenced_by:
+      - design/gdd/selo-e-fluxo.md
+    value: 7.2
+    unit: Vida/s por inimigo dentro (dano_selo_s; 0,12 por passo)
+    added: 2026-11-11
+    revised: ""
+  - name: seal_slow_factor
+    status: active
+    source: design/gdd/selo-e-fluxo.md
+    referenced_by:
+      - design/gdd/selo-e-fluxo.md
+    value: 0.5
+    unit: fator da velocidade de andar (fator_lentidao)
+    added: 2026-11-11
+    revised: ""
+  - name: seal_distance_px
+    status: active
+    source: design/gdd/selo-e-fluxo.md
+    referenced_by:
+      - design/gdd/selo-e-fluxo.md
+    value: 180
+    unit: px à frente da mira (distancia_px)
+    added: 2026-11-11
+    revised: ""
+  - name: seal_border_margin_px
+    status: active
+    source: design/gdd/selo-e-fluxo.md
+    referenced_by:
+      - design/gdd/selo-e-fluxo.md
+    value: 30
+    unit: px (margem_borda_px)
+    added: 2026-11-11
+    revised: ""
+  - name: bleed_duration_s
+    status: active
+    source: design/gdd/efeitos-de-status.md
+    referenced_by:
+      - design/gdd/efeitos-de-status.md
+    value: 4
+    unit: s (duracao_sangramento_s; 240 passos)
+    added: 2026-11-11
+    revised: ""
+  - name: bleed_damage_per_s
+    status: active
+    source: design/gdd/efeitos-de-status.md
+    referenced_by:
+      - design/gdd/efeitos-de-status.md
+    value: 2.4
+    unit: Vida/s por acúmulo (dano_sangramento_s; 0,04 por passo)
+    added: 2026-11-11
+    revised: ""
+  - name: bleed_max_stacks
+    status: active
+    source: design/gdd/efeitos-de-status.md
+    referenced_by:
+      - design/gdd/efeitos-de-status.md
+    value: 10
+    unit: acúmulos (max_acumulos_sangramento; 0 = sem teto; cânone sem teto)
+    added: 2026-11-11
+    revised: ""
+  - name: burn_duration_s
+    status: active
+    source: design/gdd/efeitos-de-status.md
+    referenced_by:
+      - design/gdd/efeitos-de-status.md
+    value: 3
+    unit: s (duracao_queimadura_s; 180 passos)
+    added: 2026-11-11
+    revised: ""
+  - name: burn_damage_per_s
+    status: active
+    source: design/gdd/efeitos-de-status.md
+    referenced_by:
+      - design/gdd/efeitos-de-status.md
+    value: 4.8
+    unit: Vida/s por acúmulo (dano_queimadura_s; 0,08 por passo)
+    added: 2026-11-11
+    revised: ""
+  - name: burn_max_stacks
+    status: active
+    source: design/gdd/efeitos-de-status.md
+    referenced_by:
+      - design/gdd/efeitos-de-status.md
+    value: 6
+    unit: acúmulos (max_acumulos_queimadura)
+    added: 2026-11-11
+    revised: ""
+  - name: weaken_duration_s
+    status: active
+    source: design/gdd/efeitos-de-status.md
+    referenced_by:
+      - design/gdd/efeitos-de-status.md
+    value: 4
+    unit: s (duracao_abalo_s; 240 passos)
+    added: 2026-11-11
+    revised: ""
+  - name: weaken_damage_reduction
+    status: active
+    source: design/gdd/efeitos-de-status.md
+    referenced_by:
+      - design/gdd/efeitos-de-status.md
+      - design/gdd/modificadores-e-atributos.md
+    value: 0.3
+    unit: fração do dano causado (reducao_dano_causado; multiplicador 0,7)
+    added: 2026-11-11
+    revised: ""
+  - name: status_number_interval_s
+    status: active
+    source: design/gdd/efeitos-de-status.md
+    referenced_by:
+      - design/gdd/efeitos-de-status.md
+    value: 0.5
+    unit: s (intervalo_numero_s; número de dano de status agregado)
+    added: 2026-11-11
+    revised: ""
+  - name: blade_max_hp
+    status: active
+    source: design/gdd/armas-das-doutrinas.md
+    referenced_by:
+      - design/gdd/armas-das-doutrinas.md
+    value: 100
+    unit: Vida (vida_max da Lâmina)
+    added: 2026-11-11
+    revised: ""
+  - name: blade_walk_speed
+    status: active
+    source: design/gdd/armas-das-doutrinas.md
+    referenced_by:
+      - design/gdd/armas-das-doutrinas.md
+    value: 387
+    unit: px/s (velocidade da Lâmina)
+    added: 2026-11-11
+    revised: ""
+  - name: resonance_max_hp
+    status: active
+    source: design/gdd/armas-das-doutrinas.md
+    referenced_by:
+      - design/gdd/armas-das-doutrinas.md
+    value: 80
+    unit: Vida (vida_max da Ressonância)
+    added: 2026-11-11
+    revised: ""
+  - name: resonance_walk_speed
+    status: active
+    source: design/gdd/armas-das-doutrinas.md
+    referenced_by:
+      - design/gdd/armas-das-doutrinas.md
+    value: 378
+    unit: px/s (velocidade da Ressonância)
+    added: 2026-11-11
+    revised: ""
+  - name: blade_cut_damage
+    status: active
+    source: design/gdd/armas-das-doutrinas.md
+    referenced_by:
+      - design/gdd/armas-das-doutrinas.md
+    value: 14
+    unit: dano do Corte da Lâmina (arco 142,5 px, 69,51°, R 16, empurrão 450, combo [1; 1; 1,8])
+    added: 2026-11-11
+    revised: ""
+  - name: blade_lunge_damage
+    status: active
+    source: design/gdd/armas-das-doutrinas.md
+    referenced_by:
+      - design/gdd/armas-das-doutrinas.md
+    value: 26
+    unit: dano da Investida (330 px em 10 passos, raio 69, R 70, empurrão 1080)
+    added: 2026-11-11
+    revised: ""
+  - name: pulse_damage
+    status: active
+    source: design/gdd/armas-das-doutrinas.md
+    referenced_by:
+      - design/gdd/armas-das-doutrinas.md
+    value: 12
+    unit: dano do Pulso (990 px/s, raio 15, vida 50 passos, R 14)
+    added: 2026-11-11
+    revised: ""
+  - name: pulse_knockback_px_s
+    status: active
+    source: design/gdd/armas-das-doutrinas.md
+    referenced_by:
+      - design/gdd/armas-das-doutrinas.md
+    value: 540
+    unit: px/s (empurrão do Pulso; cânone usava 6 u fixo)
+    added: 2026-11-11
+    revised: ""
+  - name: wave_damage
+    status: active
+    source: design/gdd/armas-das-doutrinas.md
+    referenced_by:
+      - design/gdd/armas-das-doutrinas.md
+    value: 30
+    unit: dano da Onda (círculo 195 px, R 90, empurrão 1260)
+    added: 2026-11-11
+    revised: ""
+  - name: weapon_parity_target
+    status: active
+    source: design/gdd/armas-das-doutrinas.md
+    referenced_by:
+      - design/gdd/armas-das-doutrinas.md
+    value: 0.15
+    unit: fração máxima de diferença no tempo para matar o chefe (meta_paridade)
+    added: 2026-11-11
+    revised: ""
+  - name: depth_darkening_step
+    status: active
+    source: design/gdd/pipeline-visual.md
+    referenced_by:
+      - design/gdd/pipeline-visual.md
+    value: 0.03
+    unit: por profundidade (passo_profundidade; piso k = 0,85)
+    added: 2026-11-11
+    revised: ""
+  - name: blessing_saturation
+    status: active
+    source: design/gdd/pipeline-visual.md
+    referenced_by:
+      - design/gdd/pipeline-visual.md
+    value: 0.2
+    unit: saturação do mundo na Bênção (saturacao_bencao)
+    added: 2026-11-11
+    revised: ""
+  - name: blessing_value
+    status: active
+    source: design/gdd/pipeline-visual.md
+    referenced_by:
+      - design/gdd/pipeline-visual.md
+    value: 0.6
+    unit: valor do mundo na Bênção (valor_bencao)
+    added: 2026-11-11
+    revised: ""
+  - name: telegraph_outline_px
+    status: active
+    source: design/gdd/pipeline-visual.md
+    referenced_by:
+      - design/gdd/pipeline-visual.md
+    value: 4
+    unit: px a 1080p (contorno_telegrafo_px)
+    added: 2026-11-11
+    revised: ""
+  - name: player_dash_stroke_px
+    status: active
+    source: design/gdd/pipeline-visual.md
+    referenced_by:
+      - design/gdd/pipeline-visual.md
+    value: 1.75
+    unit: px a 1080p (largura_tracejado_px; traço 8, intervalo 6)
+    added: 2026-11-11
+    revised: ""
+  - name: silhouette_outline_px
+    status: active
+    source: design/gdd/pipeline-visual.md
+    referenced_by:
+      - design/gdd/pipeline-visual.md
+    value: 3
+    unit: px (contorno_silhueta_px)
+    added: 2026-11-11
+    revised: ""
+  - name: screen_wipe_duration_s
+    status: active
+    source: design/gdd/pipeline-visual.md
+    referenced_by:
+      - design/gdd/pipeline-visual.md
+    value: 0.4
+    unit: s (duracao_wipe_s)
+    added: 2026-11-11
+    revised: ""
+  - name: presentation_dt_max_s
+    status: active
+    source: design/gdd/pipeline-visual.md
+    referenced_by:
+      - design/gdd/pipeline-visual.md
+    value: 0.1
+    unit: s (dt_max_apres)
+    added: 2026-11-11
+    revised: ""
+  - name: flash_limit_per_s
+    status: active
+    source: design/gdd/pipeline-visual.md
+    referenced_by:
+      - design/gdd/pipeline-visual.md
+    value: 3
+    unit: flashes de tela por segundo (Art Bible §7.7)
+    added: 2026-11-11
+    revised: ""
+  # ── Telégrafos, IA, Câmaras (lote de 2026-11-11) ──
+  - name: telegraph_cap
+    status: active
+    source: design/gdd/pipeline-visual.md
+    referenced_by:
+      - design/gdd/pipeline-visual.md
+      - design/gdd/telegrafos.md   # teto_telegrafos, faixa 12–24, TV5
+      - design/gdd/ia-de-inimigos-e-elites.md   # R5: acima do teto a IA fica em aproximação
+    value: 24
+    unit: telégrafos ativos simultâneos (teto_telegrafos; orçamento de draw calls do Pipeline R9)
+    added: 2026-11-11
+    revised: ""
+  - name: telegraph_min_prep_s
+    status: active
+    source: design/gdd/telegrafos.md
+    referenced_by:
+      - design/gdd/telegrafos.md
+      - design/gdd/ia-de-inimigos-e-elites.md   # preparo dos inimigos vem do EnemyDef (Eco 26, Eco do Veio 24, Anomalia 36, Fenda 42 passos)
+    value: 0.4
+    unit: s (preparo_min_s, 24 passos; faixa 0,3–0,43; proposta; aviso TV3 se algum comum ficar abaixo)
+    added: 2026-11-11
+    revised: ""
+  - name: max_enemies_per_wave
+    status: active
+    source: design/gdd/camaras-e-ondas.md
+    referenced_by:
+      - design/gdd/camaras-e-ondas.md
+      - design/gdd/ia-de-inimigos-e-elites.md   # n = 1–9 na F1 de elite
+      - design/gdd/telegrafos.md   # TV5: teto_telegrafos >= inimigos máximos da onda
+    value: 9
+    unit: inimigos por onda (max_inimigos_onda; cânone MAX_ENEMIES; faixa 6–12)
+    added: 2026-11-11
+    revised: ""
+  - name: elite_min_depth
+    status: active
+    source: design/gdd/ia-de-inimigos-e-elites.md
+    referenced_by:
+      - design/gdd/ia-de-inimigos-e-elites.md
+      - design/gdd/camaras-e-ondas.md   # sortear_elite(p, ja_ha_elite)
+    value: 3
+    unit: profundidade mínima para haver elite (elite_prof_min, EliteRules; faixa 1–6; > p_max 4 = nenhum elite)
+    added: 2026-11-11
+    revised: ""
+  - name: elite_max_per_wave
+    status: active
+    source: design/gdd/ia-de-inimigos-e-elites.md
+    referenced_by:
+      - design/gdd/ia-de-inimigos-e-elites.md
+      - design/gdd/camaras-e-ondas.md   # guarda o booleano ja_ha_elite
+    value: 1
+    unit: elites por onda (max_elites_onda, EliteRules; faixa 1–3)
+    added: 2026-11-11
+    revised: ""
+  - name: elite_hp_mult
+    status: active
+    source: design/gdd/ia-de-inimigos-e-elites.md
+    referenced_by:
+      - design/gdd/ia-de-inimigos-e-elites.md
+      - design/gdd/modificadores-e-atributos.md   # Vida = base × (1 + 0,05 × p) combinada com elite
+    value: 2.4
+    unit: multiplicador de Vida do elite, arredondado (EliteRules)
+    added: 2026-11-11
+    revised: ""
+  - name: elite_damage_mult
+    status: active
+    source: design/gdd/ia-de-inimigos-e-elites.md
+    referenced_by:
+      - design/gdd/ia-de-inimigos-e-elites.md
+    value: 1.25
+    unit: multiplicador de dano do elite (EliteRules)
+    added: 2026-11-11
+    revised: ""
+  - name: elite_radius_mult
+    status: active
+    source: design/gdd/ia-de-inimigos-e-elites.md
+    referenced_by:
+      - design/gdd/ia-de-inimigos-e-elites.md
+    value: 1.2
+    unit: multiplicador de raio do elite (EliteRules)
+    added: 2026-11-11
+    revised: ""
+  - name: elite_knockback_mult
+    status: active
+    source: design/gdd/ia-de-inimigos-e-elites.md
+    referenced_by:
+      - design/gdd/ia-de-inimigos-e-elites.md
+      - design/gdd/modificadores-e-atributos.md   # aplicado via Modificadores R10
+    value: 0.4
+    unit: multiplicador do empurrão sofrido pelo elite (EliteRules)
+    added: 2026-11-11
+    revised: ""
+  - name: depth_hp_bonus
+    status: active
+    source: design/gdd/ia-de-inimigos-e-elites.md   # antes: design/gdd/modificadores-e-atributos.md (decisão do usuário 2026-11-12)
+    referenced_by:
+      - design/gdd/ia-de-inimigos-e-elites.md   # R12: Vida sobe 5% por sala nos comuns
+      - design/gdd/modificadores-e-atributos.md
+      - design/gdd/camaras-e-ondas.md   # informa p à IA e aos Modificadores
+    value: 0.05
+    unit: fração de Vida por profundidade em inimigos comuns e elites, só o chefe fica fora (Vida = base × (1 + 0,05 × p)); dano não escala (cânone)
+    added: 2026-11-11
+    revised: 2026-11-12
+  - name: damage_target_per_chamber
+    status: active
+    source: design/gdd/ia-de-inimigos-e-elites.md
+    referenced_by:
+      - design/gdd/ia-de-inimigos-e-elites.md
+      - design/gdd/camaras-e-ondas.md   # ajusta nº de inimigos/orçamento fora de 0,10–0,50
+      - design/gdd/telemetria-local.md   # grava o dano recebido por câmara para o /balance-check
+    value: 0.25
+    unit: fração da Vida máxima perdida por câmara de combate (alvo_dano_camera; proposta D-W14; faixa 0,10–0,50)
+    added: 2026-11-11
+    revised: ""
+  - name: chamber_width_px
+    status: active
+    source: design/gdd/camaras-e-ondas.md
+    referenced_by:
+      - design/gdd/camaras-e-ondas.md
+      - design/gdd/cena-3-4-e-camera.md   # limites do CameraTuning (1920–2880)
+    value: 1920
+    unit: px (camara_largura_px; arena = viewport lógico; cânone 1280 u)
+    added: 2026-11-11
+    revised: ""
+  - name: chamber_height_px
+    status: active
+    source: design/gdd/camaras-e-ondas.md
+    referenced_by:
+      - design/gdd/camaras-e-ondas.md
+      - design/gdd/cena-3-4-e-camera.md   # limites do CameraTuning (1080–1620)
+    value: 1080
+    unit: px (camara_altura_px; cânone 720 u)
+    added: 2026-11-11
+    revised: ""
+  - name: wave_budget_base
+    status: active
+    source: design/gdd/camaras-e-ondas.md
+    referenced_by:
+      - design/gdd/camaras-e-ondas.md
+    value: 3
+    unit: orçamento de onda base (orcamento_base; faixa 2–5); soma 0,9 × p e 2 × região (ver fórmula wave_budget)
+    added: 2026-11-11
+    revised: ""
+  - name: sanctuary_heal
+    status: active
+    source: design/gdd/camaras-e-ondas.md
+    referenced_by:
+      - design/gdd/camaras-e-ondas.md
+      - design/gdd/portas-e-recompensas.md   # PV4: cura_pct deve ficar abaixo
+    value: 0.4
+    unit: fração da Vida máxima curada no santuário (santuario_cura; cânone SANCTUARY_HEAL; faixa 0,2–0,6)
+    added: 2026-11-11
+    revised: ""
+  - name: door_spacing_px
+    status: active
+    source: design/gdd/camaras-e-ondas.md
+    referenced_by:
+      - design/gdd/camaras-e-ondas.md
+      - design/gdd/portas-e-recompensas.md   # posição das 2 ou 3 portas
+    value: 450
+    unit: px entre portas (portas_espaco_px; cânone 300 u; faixa 300–600)
+    added: 2026-11-11
+    revised: ""
+  - name: door_radius_px
+    status: active
+    source: design/gdd/camaras-e-ondas.md
+    referenced_by:
+      - design/gdd/camaras-e-ondas.md
+      - design/gdd/portas-e-recompensas.md
+    value: 69
+    unit: px (porta_raio_px; cânone 46 u; faixa 50–90; interagir_folga_px 15)
+    added: 2026-11-11
+    revised: ""
+  - name: spawn_min_player_dist_px
+    status: active
+    source: design/gdd/camaras-e-ondas.md
+    referenced_by:
+      - design/gdd/camaras-e-ondas.md
+      - design/gdd/ia-de-inimigos-e-elites.md   # posição de nascimento vem das Câmaras
+    value: 390
+    unit: px mínimos do jogador ao nascer (spawn_dist_jogador_px; cânone 260 u; faixa 300–600)
+    added: 2026-11-11
+    revised: ""
+  - name: spawn_margin_px
+    status: active
+    source: design/gdd/camaras-e-ondas.md
+    referenced_by:
+      - design/gdd/camaras-e-ondas.md
+      - design/gdd/ia-de-inimigos-e-elites.md
+    value: 111
+    unit: px de margem da parede para o nascimento (spawn_margem_px; faixa 60–160)
+    added: 2026-11-11
+    revised: ""
+  - name: p_max
+    status: active
+    source: design/gdd/camaras-e-ondas.md   # antes: design/gdd/run-e-regioes.md (decisão do usuário 2026-11-12: dono é Câmaras R3)
+    referenced_by:
+      - design/gdd/camaras-e-ondas.md
+      - design/gdd/run-e-regioes.md
+      - design/gdd/armas-das-doutrinas.md   # ArmasTuning.p_max é só alias (aviso WV8 se divergir)
+      - design/gdd/portas-e-recompensas.md
+      - design/gdd/ia-de-inimigos-e-elites.md
+    value: 4
+    unit: profundidade máxima de combate no Limiar (câmaras de combate jogáveis − 1; 0–4)
+    added: 2026-11-11
+    revised: 2026-11-12
+  # ── Portas e Run ──
+  - name: door_type_weights
+    status: active
+    source: design/gdd/portas-e-recompensas.md
+    referenced_by:
+      - design/gdd/portas-e-recompensas.md
+      - design/gdd/conteudo-orientado-a-dados.md   # RewardTable
+    value: "[3, 2, 1]"
+    unit: pesos de sorteio da porta (bênção, Fragmentos, cura; Provação 0 reservada; cada peso 1–6)
+    added: 2026-11-11
+    revised: ""
+  - name: door_three_chance
+    status: active
+    source: design/gdd/portas-e-recompensas.md
+    referenced_by:
+      - design/gdd/portas-e-recompensas.md
+      - design/gdd/camaras-e-ondas.md   # quantas portas (2 com 70%, 3 com 30%)
+    value: 0.3
+    unit: probabilidade de 3 portas quando a próxima câmara é de combate (chance_3_portas; faixa 0–0,6)
+    added: 2026-11-11
+    revised: ""
+  - name: door_fragments_base
+    status: active
+    source: design/gdd/portas-e-recompensas.md
+    referenced_by:
+      - design/gdd/portas-e-recompensas.md
+      - design/gdd/economia-de-fragmentos.md   # a conta não guarda taxas de porta (AC-EF-30)
+    value: 2
+    unit: Fragmentos base da porta (fragmentos_base; faixa 1–4)
+    added: 2026-11-11
+    revised: ""
+  - name: door_fragments_depth_step
+    status: active
+    source: design/gdd/portas-e-recompensas.md
+    referenced_by:
+      - design/gdd/portas-e-recompensas.md
+      - design/gdd/economia-de-fragmentos.md
+    value: 3
+    unit: profundidades por +1 Fragmento (fragmentos_passo_prof; faixa 2–5)
+    added: 2026-11-11
+    revised: ""
+  - name: door_heal_pct
+    status: active
+    source: design/gdd/portas-e-recompensas.md
+    referenced_by:
+      - design/gdd/portas-e-recompensas.md
+      - design/gdd/camaras-e-ondas.md   # PV4 compara com santuario_cura
+    value: 0.3
+    unit: fração da Vida máxima curada pela porta (cura_pct; cânone HEAL_REWARD; faixa 0,15–0,39)
+    added: 2026-11-11
+    revised: ""
+  - name: playable_chambers
+    status: active
+    source: design/gdd/run-e-regioes.md
+    referenced_by:
+      - design/gdd/run-e-regioes.md
+      - design/gdd/conteudo-orientado-a-dados.md   # RunTuning.camaras_jogaveis por região
+    value: 6
+    unit: câmaras jogáveis no Limiar (camaras_jogaveis; o chefe, índice 6, fica de fora)
+    added: 2026-11-11
+    revised: ""
+  - name: victory_fragments
+    status: active
+    source: design/gdd/run-e-regioes.md
+    referenced_by:
+      - design/gdd/run-e-regioes.md
+      - design/gdd/economia-de-fragmentos.md   # origem vitoria
+      - design/gdd/conteudo-orientado-a-dados.md   # RunTuning (sai da EconomyRates)
+    value: 15
+    unit: Fragmentos de bônus de vitória (fragmentos_vitoria; cânone victoryFragments; faixa 0–35)
+    added: 2026-11-11
+    revised: ""
+  - name: default_weapon
+    status: active
+    source: design/gdd/run-e-regioes.md
+    referenced_by:
+      - design/gdd/run-e-regioes.md
+      - design/gdd/conteudo-orientado-a-dados.md   # RunTuning.arma_padrao
+    value: lamina
+    unit: token da arma sugerida na primeira run (arma_padrao; lamina ou ressonancia; inválido = erro RN1)
+    added: 2026-11-11
+    revised: ""
+  # ── Bênçãos e Economia ──
+  - name: blessing_offer_size
+    status: active
+    source: design/gdd/bencaos-tradicoes.md
+    referenced_by:
+      - design/gdd/bencaos-tradicoes.md
+      - design/gdd/tela-de-bencao-e-carta.md   # 3 cartas na tela
+      - design/gdd/conteudo-orientado-a-dados.md   # BencaosTuning
+    value: 3
+    unit: cartas por oferta (tamanho_oferta; bênçãos distintas; faixa 1–5)
+    added: 2026-11-11
+    revised: ""
+  - name: blessing_pool_size
+    status: active
+    source: design/gdd/bencaos-tradicoes.md
+    referenced_by:
+      - design/gdd/bencaos-tradicoes.md
+      - design/gdd/conteudo-orientado-a-dados.md
+    value: 18
+    unit: bênçãos no pool do MVP (decisão do usuário 2026-11-11); pool zerado muda as probabilidades das Portas
+    added: 2026-11-11
+    revised: ""
+  - name: blessing_initial_swaps
+    status: active
+    source: design/gdd/bencaos-tradicoes.md
+    referenced_by:
+      - design/gdd/bencaos-tradicoes.md
+      - design/gdd/modificadores-e-atributos.md   # trocas_oferta
+    # DIVERGÊNCIA: a base de trocas tem dois donos, trocas_oferta (modificadores) e trocas_iniciais (bencaos-tradicoes); pendente (revisão cruzada).
+    value: 0
+    unit: trocas de oferta no início da run (trocas_iniciais; faixa 0–5; a Oficina soma)
+    added: 2026-11-11
+    revised: ""
+  - name: blessing_rarity_weights
+    status: active
+    source: design/gdd/bencaos-tradicoes.md
+    referenced_by:
+      - design/gdd/bencaos-tradicoes.md
+      - design/gdd/modificadores-e-atributos.md   # F5 RARITY_SCALE
+    value: "[60, 30, 10]"
+    unit: percentual de Comum, Rara, Épica (RarityTable; sorteio puro, sem garantia)
+    added: 2026-11-11
+    revised: ""
+  - name: blessing_rarity_scales
+    status: active
+    source: design/gdd/bencaos-tradicoes.md
+    referenced_by:
+      - design/gdd/bencaos-tradicoes.md
+      - design/gdd/modificadores-e-atributos.md   # F5
+    value: "[1, 1.5, 2]"
+    unit: multiplicador de Comum, Rara, Épica (RarityTable; cânone RARITY_SCALE; crescentes e >= 1)
+    added: 2026-11-11
+    revised: ""
+  - name: blessing_offer_rng_reals
+    status: active
+    source: design/gdd/bencaos-tradicoes.md
+    referenced_by:
+      - design/gdd/bencaos-tradicoes.md
+      - design/gdd/rng-com-seed.md   # consumo fixo (RNG R4b), fluxos bencaos e raridade
+    value: 6
+    unit: reais consumidos por oferta e por troca (3 do fluxo bencaos + 3 do fluxo raridade), inclusive com pool de 1, 2 ou 0
+    added: 2026-11-11
+    revised: ""
+  - name: fragment_balance_max
+    status: active
+    source: design/gdd/economia-de-fragmentos.md
+    referenced_by:
+      - design/gdd/economia-de-fragmentos.md
+      - design/gdd/conteudo-orientado-a-dados.md   # EconomyRates
+    value: 999999
+    unit: Fragmentos (saldo_max; só evita estouro de inteiro; faixa 9 999–2 147 483 647)
+    added: 2026-11-11
+    revised: ""
+  - name: trial_fragments
+    status: active
+    source: design/gdd/economia-de-fragmentos.md
+    referenced_by:
+      - design/gdd/economia-de-fragmentos.md
+      - design/gdd/conteudo-orientado-a-dados.md   # EconomyRates
+    value: 3
+    unit: Fragmentos por Provação (fragmentos_provacao; cânone TRIAL_FRAGMENTS; reservada, Provação fora do MVP)
+    added: 2026-11-11
+    revised: ""
+  - name: boss_fragments
+    status: active
+    source: design/gdd/economia-de-fragmentos.md
+    referenced_by:
+      - design/gdd/economia-de-fragmentos.md
+      - design/gdd/conteudo-orientado-a-dados.md   # RegionDef.fragmentos_chefe
+    value: 6
+    unit: Fragmentos por chefe (RegionDef.fragmentos_chefe; reservada)
+    added: 2026-11-11
+    revised: ""
+  - name: damage_multiplier_cap
+    status: active   # provisório
+    source: design/gdd/modificadores-e-atributos.md
+    referenced_by:
+      - design/gdd/modificadores-e-atributos.md
+      - design/gdd/movimento-e-esquiva.md
+      - design/gdd/selo-e-fluxo.md
+      - design/gdd/armas-das-doutrinas.md
+    value: 4.0
+    unit: teto do multiplicador de dano (provisório, decisão do usuário 2026-11-12)
+    added: 2026-11-12
+    revised: ""
+  - name: door_free_choices_limiar
+    status: active
+    source: design/gdd/portas-e-recompensas.md
+    referenced_by:
+      - design/gdd/portas-e-recompensas.md
+    value: 3
+    unit: limiar de escolhas livres de porta, contado depois dos índices 0, 1 e 3 (decisão do usuário 2026-11-12)
+    added: 2026-11-12
+    revised: ""
+  - name: final_chamber_reward
+    status: active
+    source: design/gdd/portas-e-recompensas.md
+    referenced_by:
+      - design/gdd/portas-e-recompensas.md
+      - design/gdd/run-e-regioes.md
+    value: "nenhuma"
+    unit: recompensa da câmara final (texto; decisão do usuário 2026-11-12)
+    added: 2026-11-12
+    revised: ""
+  - name: blessing_max_taken_limiar
+    status: active
+    source: design/gdd/bencaos-tradicoes.md
+    referenced_by:
+      - design/gdd/bencaos-tradicoes.md
+    value: 4
+    unit: limiar de bênçãos tomadas por run (derivado, não é botão; 1 + door_free_choices_limiar, Portas F3; decisão do usuário 2026-11-12)
+    added: 2026-11-12
+    revised: 2026-11-13
+  - name: run_fragments_max_limiar
+    status: active
+    source: design/gdd/economia-de-fragmentos.md
+    referenced_by:
+      - design/gdd/economia-de-fragmentos.md
+      - design/gdd/run-e-regioes.md
+    value: 22
+    unit: máximo de Fragmentos por run no Limiar (derivado; 7 de portas + 15 de vitória, Economia F3)
+    added: 2026-11-13
+    revised: ""
+  # ── Apresentação (valores também fixados pela Art Bible) ──
+  - name: hud_safe_margin_px
+    status: active
+    source: design/gdd/hud.md
+    referenced_by:
+      - design/gdd/hud.md
+      - design/gdd/tela-de-bencao-e-carta.md   # margem de 48 px
+    value: 48
+    unit: px (margem_segura_px; Art Bible §7.8; faixa 32–64; mexer exige emenda da Art Bible)
+    added: 2026-11-11
+    revised: ""
+  - name: hud_bar_max_frac
+    status: active
+    source: design/gdd/hud.md
+    referenced_by:
+      - design/gdd/hud.md
+    value: 0.25
+    unit: fração da largura da tela (barra_max_frac; teto da barra de Vida; Art Bible §7.8; faixa 0,20–0,30)
+    added: 2026-11-11
+    revised: ""
+  - name: blessing_card_size_px
+    status: active
+    source: design/gdd/tela-de-bencao-e-carta.md
+    referenced_by:
+      - design/gdd/tela-de-bencao-e-carta.md
+      - design/gdd/bencaos-tradicoes.md   # CartaView
+    value: "320x500"
+    unit: px a 100% de escala (Art Bible §7.5; intervalo_cartas_px 48; mudar exige emenda da Art Bible)
+    added: 2026-11-11
+    revised: ""
+  - name: blessing_confirm_lock_ms
+    status: active
+    source: design/gdd/tela-de-bencao-e-carta.md
+    referenced_by:
+      - design/gdd/tela-de-bencao-e-carta.md
+      - design/gdd/bencaos-tradicoes.md   # segura bencao_escolhida até tela_fechada
+    value: 500
+    unit: ms (trava_confirmar_ms; depois da última carta assentar; abaixo de 500 exige emenda da Art Bible; faixa 500–800)
+    added: 2026-11-11
+    revised: ""
+  - name: combat_number_sum_window_s
+    status: active
+    source: design/gdd/feedback-de-combate.md
+    referenced_by:
+      - design/gdd/feedback-de-combate.md
+    value: 0.3
+    unit: s (janela_soma_s; repete Art Bible §7.7, fonte única no Feedback; faixa 0,2–0,5)
+    added: 2026-11-11
+    revised: ""
+  - name: combat_number_cap
+    status: active
+    source: design/gdd/feedback-de-combate.md
+    referenced_by:
+      - design/gdd/feedback-de-combate.md
+    value: 6
+    unit: números de dano simultâneos na tela (teto_numeros; repete Art Bible §7.7; faixa 4–8)
+    added: 2026-11-11
+    revised: ""
 
 # Example:
 #
