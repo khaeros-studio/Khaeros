@@ -28,6 +28,29 @@ Referência de jogabilidade: **Hades II** (estrutura, câmera, combate, interfac
 Nada de Hades é copiado — nem arte, nem personagens, nem nomes, nem textos.
 Tudo o que aparece na tela é de Khaeros.
 
+**Referência secundária: Mark of the Deep** (Mad Mimic, 2025; aventura de
+exploração com combate de ritmo "soulslike"; pesquisa rápida em resenhas, 2026-11-13).
+É referência de *sensação de combate e ritmo*, não de estrutura: o jogo é
+metroidvania, e Khaeros segue sala a sala. Nada dele é copiado (arte, nomes,
+mundo, textos, sistemas). O que ele empresta, sem mudar os pilares P1 a P5 nem o
+escopo do MVP:
+
+| Empréstimo | Onde já vive em Khaeros |
+|---|---|
+| Golpe com compromisso e leitura de janela: o jogador paga por errar o tempo, em vez de apertar botão sem custo | P3 (todo ataque é telegrafado; a esquiva sempre responde) e Combate núcleo (combo da Lâmina, o terceiro golpe pesado) |
+| Peso do impacto: hitstop e resposta no corpo que acerta e no que é atingido | Combate núcleo (hitstop de 3 e 6 passos) e Feedback de combate |
+| Armas novas que mudam o ritmo, não só os números | Armas das Doutrinas (uma por Doutrina) |
+
+**O que evitar** (críticas recorrentes às resenhas do jogo): combate lento por
+inimigo básico exigir golpes demais, e prioridade de animação alta demais, que
+faz o jogador levar golpe no meio de uma ação já iniciada. Khaeros mantém o
+ritmo de Hades II, com resposta rápida ao comando do jogador. O protótipo do combate
+(`prototypes/combate-camara-concept/`) é onde se confere isso, jogando.
+
+Fontes: resenhas e páginas de imprensa do jogo; não houve acesso à
+documentação oficial de combate, então o resumo acima descreve a recepção
+crítica e não o sistema interno.
+
 ## 2. Fantasia do jogador
 
 Ser um aprendiz que **escolheu uma filosofia** (Doutrina) e a prova no lugar mais
