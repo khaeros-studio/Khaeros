@@ -1671,7 +1671,8 @@ fundos.
 
 *Aprovada pelo CD em 2026-11-05. Referências do CD: Hades II, Jujutsu Kaisen,
 Hollow Knight, Valheim. Gustave Doré incluído por proposta do art-director,
-aprovado pelo CD.*
+aprovado pelo CD. Mark of the Deep incluído a pedido do usuário em 2026-11-13
+(9.5b).*
 
 **Princípio: cada referência entra por uma porta só.** Cada obra empresta uma
 técnica ou regra específica, já escrita numa seção deste documento — nenhuma
@@ -1824,6 +1825,49 @@ domínio público.
 **Teste anti-cópia:** se aparece hachura no miolo do chão de combate ou no corpo
 inteiro de um personagem, é Doré demais. Recuar para a 5.1.
 
+### 9.5b Mark of the Deep: o lugar que gera o inimigo
+
+*Incluído a pedido do usuário em 2026-11-13. A leitura vem de reviews (pesquisa
+rápida), não de prancha: antes de usar, montar a prancha em
+`assets/art/source/reference/` (9.7 item 1) e confirmar cada item contra
+screenshots.*
+
+O jogo é de um estúdio de São Paulo: ação e aventura isométrica numa ilha
+amaldiçoada e abandonada. As reviews descrevem personagens 3D sobre cenários 2D
+pintados, áreas muito distintas entre si, luz sombria e inimigos que "pertencem"
+ao ambiente.
+
+**Pegar:**
+- **O inimigo feito do material do lugar:** a criatura carrega a matéria da área
+  onde nasce. No Khaeros isso reforça a 3.2: o Eco do Limiar é névoa e tinta, a
+  Anomalia do Veio é mais cristal, e o Estilhaço Vivo é mineral. A pergunta de
+  design passa a ser "do que este lugar é feito, e o que nasceria disso?" (3.2,
+  6.5).
+- **A área reconhecível pela forma do cenário:** cada região tem um conjunto
+  próprio de silhuetas de ruína e de objeto, que se lê antes da cor (3.4, 6.1).
+  A cor e a temperatura continuam sendo do Valheim (9.4); daqui vem só o
+  vocabulário de *forma* por região.
+- **A distância de câmera 3/4 com personagem pequeno numa arena desenhada,**
+  como prova de que o formato funciona num estúdio brasileiro de porte indie.
+  Isso é referência de viabilidade, não de imagem.
+
+**Divergir:**
+- **Personagem 3D sobre fundo 2D:** fora. Tudo no Khaeros é 2D pintado com traço
+  de tinta (6.2, 8.3), e o sprite não ganha volume renderizado nem shader de
+  cel 3D.
+- **Saturação e brilho no ambiente:** fora. Se a região ficar "colorida e
+  brilhante", quebra a regra central (Seção 1). O que não fere nem se escolhe
+  recua.
+- **Iconografia pirata e caribenha** (navio, âncora, caveira com ossos, tricórnio,
+  mar tropical): fora. A Beira não tem cultura datável (6.1, 6.5).
+- **Mais uma camada "parecida com Hades":** a própria crítica nota que o visual
+  desse gênero começa a parecer repetido. O palco 3/4 continua sendo do Hades II
+  (9.1), e Mark of the Deep não acrescenta nada a ele.
+
+**Teste anti-cópia:** um inimigo do Khaeros posto numa área de Mark of the Deep
+deveria parecer fora do lugar, porque é feito da matéria da Beira. Se ele parece
+"de lá", refazer.
+
 ### 9.6 Matriz de posse
 
 | Elemento | Dono único | Onde está |
@@ -1841,6 +1885,7 @@ inteiro de um personagem, é Doré demais. Recuar para a 5.1.
 | Primeiro plano que emoldura | Hollow Knight | 3.4, 6.3 |
 | *Temperatura* por região, céu como voz, profundidade que escurece | Valheim | 4.4, 2.10 |
 | Hachura como valor e distância; gravura como estado | Doré | 3.3, 6.2, 2.6, 2.8 |
+| Inimigo feito do material do lugar; vocabulário de *forma* do cenário por região | Mark of the Deep | 3.2, 3.4, 6.1, 6.5 |
 | Telégrafo, escada de valor, semântica do magenta e do dourado, molduras chanfradas, tipografia | **nenhuma referência**: próprios de Khaeros | 4.2, 4.5, 3.6, 7.2 |
 
 A última linha importa: o que define a identidade e a leitura de combate não vem
@@ -1874,7 +1919,7 @@ de nenhuma obra. É o que nunca deve ser "corrigido" olhando uma referência.
    só confere se o elemento listado foi pego e se a divergência foi respeitada.
    "Ficou mais parecido com Hades" nunca é motivo para aprovar.
 5. **Teste de origem nos assets-chave** (retratos dos Mestres, Iniciado, chefes,
-   key art): mostre o asset sem contexto a alguém que conhece as cinco
+   key art): mostre o asset sem contexto a alguém que conhece as seis
    referências. Se a pessoa disser de qual obra ele veio, volta para iteração,
    mesmo que passe no checklist da 8.7.
 6. **Comparar o jogo em público** ("inspirado em...") é decisão do producer e do

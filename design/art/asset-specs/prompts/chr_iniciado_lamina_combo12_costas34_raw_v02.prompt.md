@@ -1,0 +1,17 @@
+# Prompt — chr_iniciado_lamina_combo12_costas34_raw_v02
+
+- **Modelo:** Gemini ("Argon", Criar imagem, 16:9), na conversa da ficha v03 · **Data:** 2026-11-11 · **Folha:** L3 costas34, 5×2
+- **Formato:** compacto, como nas folhas de costas anteriores: costas lisas e sem rosto. As poses são as da L3 frente34.
+
+## Prompt (colar inteiro)
+
+Gere uma IMAGEM nova de FOLHA DE ANIMAÇÃO (não é ficha de personagem: sem close de rosto, sem vistas de frente/perfil, sem figuras sobrepostas). Como referência do personagem, use SOMENTE a PRIMEIRA imagem desta conversa; IGNORE todas as imagens geradas depois dela. REGRA ABSOLUTA: nenhuma palavra, letra, número, símbolo ou emblema desenhado em lugar nenhum — as COSTAS do casaco e o mantelete são LISOS, só tecido cinza-azulado com a borda cor de osso; nenhum arco de corte, rastro da lâmina, brilho, fumaça, poeira ou linha de movimento; nenhuma linha divisória, borda ou quadro; fundo verde #00FF00 chapado e contínuo, sem sombra no chão. CÂMERA: TODAS as figuras em vista 3/4 de COSTAS, atacando para a direita e para longe de quem olha, vistas um pouco de cima; vemos o cabelo, a nuca e as costas do casaco; o rosto NÃO aparece em nenhuma figura, nem de perfil. LAYOUT: imagem larga 16:9 com EXATAMENTE 10 figuras do MESMO personagem, separadas, sem se tocar, em 2 fileiras de 5 (CINCO em cima e CINCO embaixo), lidas da esquerda para a direita; TODAS de CORPO INTEIRO, nenhuma cortada; TODAS na MESMA escala; o chão de cada fileira na mesma linha; cada figura ocupa no máximo metade da altura da imagem; a espada inteira dentro do espaço da própria figura, sem entrar na vizinha nem encostar na borda. ESTILO: igual à primeira imagem — quadrinho de ação adulto em nanquim, contorno externo preto muito grosso e uniforme, face de sombra em PRETO CHAPADO de borda dura, luz em 2 tons por material; sem degradê, sem 3D. PERSONAGEM: exatamente o da primeira imagem (cabelo prateado anguloso, gola alta, mantelete com borda de osso, casaco cinza-azulado em 4 painéis com pontas em diagonal, luvas pretas, antebraços enfaixados em osso, cinto com estojo cilíndrico atrás, botas com caneleiras de osso); acentos só em cor de osso. ESPADA: UMA ÚNICA espada longa reta, INTEIRA e visível em TODAS as 10 figuras, SEMPRE segura na mão DIREITA (nunca no cinto); SÓ DOIS BRAÇOS. LINHA DE CIMA — GOLPE 1, corte diagonal de cima para baixo: [1] preparo curto, braço da espada recuado e alto, corpo enrolado; [2] início do corte; [3] CORTE no ponto máximo, braço esticado, lâmina descendo na diagonal; [4] continuação, lâmina embaixo; [5] recuperação em guarda. LINHA DE BAIXO — GOLPE 2, corte de retorno de baixo para cima na diagonal oposta: [6] preparo, os pés trocam o peso, lâmina baixa; [7] início da subida; [8] CORTE no ponto máximo, corpo esticado, lâmina alta; [9] continuação; [10] recuperação em guarda.
+
+## Registro de geração
+
+- 2026-11-11: gerada pelo navegador do app. Original em JPEG 2752×1536.
+- Resultado: 10 figuras, sem emblema, sem arco nem rastro, com uma espada só e sempre na mão direita. O golpe 1 (de cima para baixo) e o golpe 2 (de baixo para cima) leem na ordem.
+- **Aprovada pelo usuário em 2026-11-11.**
+- Problemas:
+  - **5 das 10 poses viram a cabeça e mostram o perfil do rosto** (cima 2 e 3, baixo 1, 2 e 3). É o padrão do Gemini em 3/4 de costas, quando a cabeça acompanha o golpe. No sprite de ~90 px isso vira uma fatia de bochecha.
+  - A ponta da espada da pose 5 encosta na borda direita.

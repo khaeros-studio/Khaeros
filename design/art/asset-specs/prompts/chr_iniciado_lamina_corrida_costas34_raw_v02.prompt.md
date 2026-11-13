@@ -1,0 +1,17 @@
+# Prompt — chr_iniciado_lamina_corrida_costas34_raw_v02
+
+- **Modelo:** Gemini ("Argon", Criar imagem, 16:9), na conversa da ficha v03 · **Data:** 2026-11-11 · **Folha:** L2 costas34, 4×2
+- **Formato:** compacto, igual ao da L1 de costas v03: costas lisas (o emblema é peça do rig) e o rosto nunca aparece. As poses da corrida são as mesmas da L2 frente34 v03.
+
+## Prompt (colar inteiro)
+
+Gere uma IMAGEM nova de FOLHA DE ANIMAÇÃO (não é ficha de personagem: sem close de rosto, sem vistas de frente/perfil, sem figuras sobrepostas). Como referência do personagem, use SOMENTE a PRIMEIRA imagem desta conversa; IGNORE todas as imagens geradas depois dela. REGRA ABSOLUTA: nenhuma palavra, letra, número, símbolo ou emblema desenhado em lugar nenhum — as COSTAS do casaco e o mantelete são LISOS, só tecido cinza-azulado com a borda cor de osso; nenhum brilho, fumaça, poeira, rastro ou linha de movimento; nenhuma linha divisória, borda ou quadro; fundo verde #00FF00 chapado e contínuo, sem sombra no chão. CÂMERA: TODAS as figuras em vista 3/4 de COSTAS, correndo para a direita e para longe de quem olha, vistas um pouco de cima; vemos o cabelo, a nuca e as costas do casaco; o rosto NÃO aparece em nenhuma figura, nem de perfil. LAYOUT: imagem larga 16:9 com EXATAMENTE 8 figuras do MESMO personagem, separadas, sem se tocar, em 2 fileiras de 4, lidas da esquerda para a direita; TODAS de CORPO INTEIRO, nenhuma cortada; TODAS na MESMA escala; o chão de cada fileira na mesma linha; cada figura ocupa no máximo metade da altura da imagem; nada encosta na borda. ESTILO: igual à primeira imagem — quadrinho de ação adulto em nanquim, contorno externo preto muito grosso e uniforme, face de sombra em PRETO CHAPADO de borda dura, luz em 2 tons por material; sem degradê, sem 3D. PERSONAGEM: exatamente o da primeira imagem (cabelo prateado anguloso, gola alta, mantelete com borda de osso, casaco cinza-azulado em 4 painéis com pontas em diagonal, luvas pretas, antebraços enfaixados em osso, cinto com estojo cilíndrico atrás, botas com caneleiras de osso); acentos só em cor de osso. ESPADA: UMA ÚNICA espada longa reta, INTEIRA e visível em TODAS as 8 figuras, na mão DIREITA, carregada baixa e para trás em diagonal durante a corrida; SÓ DOIS BRAÇOS. AÇÃO — CORRIDA, ciclo de 8 passos, tronco inclinado à frente, braço esquerdo balançando, barra do casaco esvoaçando para trás: [1] contato: perna esquerda esticada à frente, calcanhar no chão, perna direita atrás; [2] descida: pé esquerdo plantado sob o corpo, joelho dobrado, corpo no ponto mais baixo; [3] passagem: sobre a perna esquerda, joelho direito passando à frente; [4] impulso: perna esquerda empurra atrás, joelho direito alto, os dois pés no ar; [5] a [8]: as mesmas quatro poses com as pernas trocadas.
+
+## Registro de geração
+
+- 2026-11-11: gerada pelo navegador do app. Original em JPEG 2752×1536, baixado depois de recarregar a página (o download tinha travado).
+- Resultado: 8 figuras de corrida, de costas e sem emblema, na mesma escala e com o ciclo de pernas legível. O casaco esvoaça bem e o rosto não aparece.
+- **Aprovada pelo usuário em 2026-11-11.**
+- Problemas:
+  - **A espada é inconsistente.** Some na pose 3, fica pendurada no cinto nas poses 1 e 5, e nas poses 7 e 8 parecem ser duas (cabo na mão e lâmina no cinto). Como a arma é peça separada do rig (§5.8), o recorte apaga a espada desenhada e o rig usa a peça própria.
+  - A vista está mais para perfil de costas que para 3/4.
