@@ -220,7 +220,7 @@ fio a 30%.
 
 ## Tuning Knobs
 
-`HudTuning` (tipo novo no Conteúdo, dono: HUD; nota de edição pendente). `margem_segura_px` (48) e `barra_max_frac` (0,25) seguem a Art Bible §7.8: mexer neles exige emenda dela. Constantes fixas (não são knobs): 0,25 s de racha e cura, 60% da pausa, 3 pontos de recusa, 99 999 do "+N".
+`HudTuning` (tipo no Conteúdo desde a R1 de lá, dono: HUD; edição aplicada). `margem_segura_px` (48) e `barra_max_frac` (0,25) seguem a Art Bible §7.8: mexer neles exige emenda dela. Constantes fixas (não são knobs): 0,25 s de racha e cura, 60% da pausa, 3 pontos de recusa, 99 999 do "+N".
 
 | Knob | Padrão | Faixa | Categoria | Efeito |
 |---|---|---|---|---|
@@ -238,6 +238,8 @@ fio a 30%.
 | `esquiva_tremor_ms` | 80 | 0–200 | feel | tremor em `esquiva_sem_carga` |
 | `fade_estado_s` | 0,25 | 0,1–0,3 | feel | fade do HUD em Transição |
 | `margem_segura_px` | 48 | 32–64 | gate | margem segura |
+
+**Códigos de validação (decisão 2026-11-13; prefixo HU, hospedado na R9 do Conteúdo).** Um erro por campo de `HudTuning` fora da faixa da tabela acima, na ordem da tabela: HU1 `vida_por_segmento`, HU2 `segmento_px`, HU3 `barra_max_frac`, HU4 `vida_baixa_pct`, HU5 `vida_baixa_histerese`, HU6 `vinheta_max_borda`, HU7 `vinheta_opacidade_max`, HU8 `janela_ganho_s`, HU9 `fio_visivel_s`, HU10 `largura_fio`, HU11 `fio_elite_escala`, HU12 `esquiva_tremor_ms`, HU13 `fade_estado_s`, HU14 `margem_segura_px`. Texto: `HudTuning: <campo> <valor> fora da faixa <min>–<max>`.
 
 ## Edge Cases
 
@@ -380,6 +382,7 @@ Tipos: [L] lógica (unitário, fontes falsas), [I] integração, [V] visual (scr
 - **AC-HD-34 [V] R2 — ancoragem em ultrawide (provisório).** Screenshot a 2560 × 1080 a 100%: Vida, Fluxo, Esquiva e Fragmentos ancorados nas bordas do viewport (margem de 48 px), e nenhum elemento de tela dentro do retângulo central de 60% × 70% do quadro de 1920 × 1080 centralizado.
 - **AC-HD-35 [L] R3 — `preco_revelado`.** Bênção com preço em Vida: o número e o preenchimento da Vida mudam no quadro de `escolher`; nenhum segmento racha antes de `preco_revelado`; ao receber `preco_revelado` a animação de rachar começa (0,25 s); o traço dourado da confirmação voa para o grupo inferior (Vida).
 - **AC-HD-36 [L] R12 — `tela_fechada`.** Com a Bênção aberta, fios e prompt ficam ocultos; em `tela_fechada` fios (com a janela de `fio_visivel_s` ainda válida) e o prompt (se a porta continua interagível) voltam a aparecer no mesmo passo; sem `tela_fechada`, não voltam.
+- **AC-HD-37 [L] Validação — faixa do `HudTuning`.** Um `HudTuning` com `margem_segura_px` 70 gera o erro HU14; com `vinheta_opacidade_max` 0,50, HU7; com `vida_por_segmento` 4, HU1; o dado de fábrica não gera nenhum HU; cada um dos 14 campos fora da faixa gera só o código do seu campo (HU1 a HU14).
 
 ## Open Questions
 
@@ -389,7 +392,7 @@ Tipos: [L] lógica (unitário, fontes falsas), [I] integração, [V] visual (scr
 | 2 | Visual do escudo e das recusas de morte (propostos aqui) | art-director | `/ux-design` do HUD |
 | 3 | Grupo inferior de ~420 px × barra de até 480 px: placa que cresce e quebra em duas linhas a 150% / Vigor alto | art-director + UX | `/ux-design` do HUD |
 | 4 | Deixa sonora da Vida baixa e som do ganho de Fragmentos | audio-director | Áudio |
-| 5 | Conteúdo: `HudTuning` (14 campos) e validação | Conteúdo | próxima edição |
+| 5 | ~~Conteúdo: `HudTuning` (14 campos) e validação~~ **Resolvida:** `HudTuning` já está no Conteúdo (R1) | Conteúdo | — |
 | 6 | Fio de Vida do inimigo e prompt: ficam no HUD ou no Feedback de combate? (propostos aqui) | Feedback de combate | GDD de Feedback |
 | 7 | Tela final e tela de início (resumo da Run) | UX / Run OQ 4 | `/ux-design` |
 | 9 | A vinheta de Vida baixa fica na camada de pós da Cena (z 50); o plano de contingência "abaixo de telégrafos e personagens" é possível sem criar 12ª camada? | Cena 3/4 | `/review-all-gdds` |

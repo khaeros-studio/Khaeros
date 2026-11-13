@@ -24,7 +24,7 @@ A Telemetria local **só escuta**: não influencia o jogo, não calcula nada de 
 emitem.
 
 - **O que grava (MVP):** início de run (seed, versão, impressão do catálogo, arma, estado
-  inicial: RNG/Run); uma linha por câmara (duração, dano recebido, abates: Câmaras, IA OQ 10);
+  inicial: RNG/Run); uma linha por câmara (duração, dano recebido, abates: Câmaras AC-CO-27 e OQ 10, IA OQ 10);
   uma por oferta de bênção e uma por escolha, com raridade e trocas (Bênçãos); a causa da morte
   (Combate); fim de run com o resumo (Run R7) e o caminho (RNG). **Sem granularidade por
   golpe ou esquiva** (decisão do usuário).
@@ -41,7 +41,7 @@ cobrou. O jogador só deve sentir que **ela não existe**: nenhum travamento, ne
 nenhuma dependência.
 
 As regras seguem o contrato dos GDDs vizinhos (RNG Interactions, Run R7/OQ 7, Bênçãos eventos,
-Câmaras e IA OQ 10), com as decisões do usuário de 2026-11-11: arquivo `.jsonl` por sessão, ligada
+Câmaras AC-CO-27 e OQ 10, IA OQ 10), com as decisões do usuário de 2026-11-11: arquivo `.jsonl` por sessão, ligada
 por padrão e só local com opção de desligar, eventos sem granularidade por golpe.
 
 > **→ vira ADR:** não. A Telemetria é um ouvinte de eventos que escreve num arquivo; sem estado
@@ -195,7 +195,7 @@ apaga 1; 12 existentes → apaga 0.
 
 ## Tuning Knobs
 
-`TelemetriaTuning` (tipo novo no Conteúdo, dono: Telemetria local; nota de edição pendente):
+`TelemetriaTuning` (tipo no Conteúdo, dono: Telemetria local):
 
 | Knob | Padrão | Faixa | Categoria | Efeito |
 |---|---|---|---|---|
@@ -253,7 +253,7 @@ apaga 1; 12 existentes → apaga 0.
 | Combate núcleo | entra | leitura | `jogador_atingido`, `inimigo_morreu`, `jogador_morreu` (causa) |
 | Portas e recompensas | entra | leitura | porta escolhida e opções |
 | Economia de Fragmentos | entra | leitura | `saldo_mudou(saldo, delta, origem)` |
-| Conteúdo orientado a dados | entra | rígida | `TelemetriaTuning`, impressão do catálogo (nota de edição pendente) |
+| Conteúdo orientado a dados | entra | rígida | `TelemetriaTuning`, impressão do catálogo |
 | Opções / menus (reservado) | entra e sai | por contrato | `telemetria_ligada`, "Abrir pasta", "Apagar dados" |
 | `/balance-check`, playtest, `tools/` | sai | leitura do arquivo | `.jsonl`, `schema` versionado |
 

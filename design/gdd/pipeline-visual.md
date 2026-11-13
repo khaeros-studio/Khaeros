@@ -143,8 +143,7 @@ famílias. A **família** decide o grading; o **shader** decide o desenho.
 **R3. Escurecimento por profundidade** (decisão do usuário, 2026-11-10). Cada
 câmara mais funda da região escurece chão, paredes, veios, props e sombras de contato: a luminância, em linear, de `amb_graded` é
 multiplicado por `max(piso_profundidade, 1 − passo_profundidade × p)` (F2), com
-p = profundidade da câmara na região (0 na primeira), informada pela Run e
-regiões; a CPU calcula o multiplicador e o envia no global `fator_profundidade`. Fundo, névoa, feixes e primeiro plano não escurecem (`recebe_profundidade` falso; decisão do usuário, 2026-11-10). Não muda o matiz, nem `char_tint`, nem
+p = o `p` das Câmaras (só câmaras de combate, 0–4 no Limiar; o santuário usa o `p` da última câmara de combate), informado pelas Câmaras; a CPU calcula o multiplicador e o envia no global `fator_profundidade`. Fundo, névoa, feixes e primeiro plano não escurecem (`recebe_profundidade` falso; decisão do usuário, 2026-11-10). Não muda o matiz, nem `char_tint`, nem
 `sem_grading`. O tom mais escuro do chão, depois da LUT, continua dentro da faixa L* 22–38 em toda profundidade
 (F2, VV3, AC). Escurecer em linear é decisão do usuário (2026-11-10): no sRGB codificado o chão cairia a L* 21,1.
 
@@ -369,9 +368,10 @@ do usuário, 2026-11-10).
 - **Fonte de verdade da contagem:** captura no PIX (D3D12) ou no RenderDoc
   (Vulkan, `--rendering-driver vulkan`), até o E1 mostrar que o monitor de draw
   calls conta o 2D.
-- **Acima do teto:** vale a política da V15 do Combate (sai primeiro o mais
-  antigo do relógio de apresentação; nunca se corta flash, telégrafo ou
-  inversão).
+- **Acima do teto:** vale o "Corte no teto de VFX" acima (vítima de P4 a P2
+  do Feedback R4; P0 e P1 nunca saem; só então o mais antigo do relógio de
+  apresentação, política da V15 do Combate). Nunca se corta flash, telégrafo
+  ou inversão.
 
 **R10. Configuração de projeto e importação.** O `project.godot` tem de
 declarar (hoje não declara):
@@ -438,7 +438,7 @@ Bênção > Impacto > Normal; um pedido de impacto durante a Bênção é descar
 | Modo | Entra quando | Sai para |
 |---|---|---|
 | Normal | começo da câmara; fim de qualquer outro | Impacto, Bênção, Transição, Morte |
-| Impacto | o Combate pede (abate de chefe, recusa) e o limitador deixa | o anterior, ao fim da duração pedida |
+| Impacto | o Feedback pede, por evento do Combate (abate de chefe, recusa), e o limitador deixa | o anterior, ao fim da duração pedida |
 | Bênção | a tela de bênção abre | Normal, ao fechar |
 | Transição | troca de câmara | Normal, ao descobrir |
 | Morte | `jogador_morreu` | fim da run (Run e regiões) |
@@ -563,7 +563,7 @@ Piso mínimo para o chão: `k_min = ((22 + 16) / (L*_chao_min + 16))³`
 **Variables:**
 | Variable | Type | Range | Source | Description |
 |---|---|---|---|---|
-| p | int | ≥ 0 | injected | profundidade da câmara na região (Run e regiões), 0 na primeira |
+| p | int | ≥ 0 | injected | o `p` das Câmaras (só câmaras de combate; o santuário usa o `p` da última câmara de combate), 0 na primeira |
 | passo_profundidade | float | 0–0,05 | data file | `VisualTuning` (0,03) |
 | piso_profundidade | float | k_min–1 | data file | `VisualTuning` (0,85) |
 | k | float | piso–1 | calculated | multiplicador de luminância em linear; com 0,03/0,85 chega ao piso em p = 5 |
@@ -1133,9 +1133,11 @@ campo.
 - **Se o jogador for atingido durante a invulnerabilidade da esquiva:** não há
   dano, então não há inversão nem contorno pós-dano; continuam as imagens
   residuais (Movimento V3).
-- **Se a recusa de morte acontecer:** a inversão do golpe recebido, o impact
-  frame da recusa (Combate V11) e depois o contorno tracejado pelo tempo da
-  invulnerabilidade da recusa, nessa ordem.
+- **Se a recusa de morte acontecer:** no sprite do jogador o impact frame da
+  recusa (Combate V11, 18 passos de apresentação) vence a inversão do golpe
+  recebido enquanto durar o `modo_impacto`; depois voltam os 4 passos vivos que restam da
+  inversão (Combate V10, Feedback R12) e, no passo seguinte ao fim dela, o
+  contorno tracejado pelo tempo da invulnerabilidade da recusa, nessa ordem.
 - **Se o jogador estiver coberto por dois oclusores:** os dois ficam a 40%.
 - **Se o jogador passar rápido por um oclusor** (esquiva): a transição de 6
   passos de apresentação pode não completar; ela volta do valor em que estava,
@@ -1993,7 +1995,7 @@ Ele define como a arte autorada pelo Art Bible é desenhada.
   Transição ou pela Morte e a Bênção que espera estão na AC-PV-81.
 - **AC-PV-81 [L] Estados — impacto ativo cortado; a Bênção espera.** Com o
   orquestrador dublê, `dt_real` 1/60 e um impact frame `recusa` de 12 passos
-  de apresentação aceito no quadro 0, cada item em separado:
+  de apresentação (dublê; o valor de fábrica da recusa é 18) aceito no quadro 0, cada item em separado:
   - Transição no quadro 5: no mesmo quadro, `modo_impacto` vai a `0` e o modo
     de tela a Transição; o impacto não volta depois que a Transição descobre;
   - `jogador_morreu` no quadro 5: o mesmo, com o modo Morte;
@@ -2220,11 +2222,11 @@ Ele define como a arte autorada pelo Art Bible é desenhada.
   substitui a captura depois do E1 (**BLOQUEADO até o E1** para essa troca). O
   custo do material único por entidade (AC-PV-74) entra aqui depois do E7.
 - **AC-PV-49 [I] R9/Edge — acima do teto.** Com 30 telégrafos pedidos, todos
-  os 30 são desenhados (nenhum cortado) e sai um aviso de debug com o dono
+  os 30 são desenhados (nenhum cortado; consomem a reserva do orçamento: 54 + 12 = 66, com reserva ≥ 56) e sai um aviso de debug com o dono
   (Telégrafos ou IA). Com o orçamento de VFX estourado, sai primeiro a vítima
   escolhida pelo Feedback R4 (P4 a P2) e, na falta dela, o efeito
-  mais antigo do relógio de apresentação; flash, telégrafo e inversão nunca
-  saem.
+  mais antigo do relógio de apresentação (corte P4→P2 confirmado, Feedback R4); flash, telégrafo, telégrafo partido, inversão, passes obrigatórios e os P1
+  (recusa e chefe) nunca saem.
 - **AC-PV-72 [I] R9 — `light_mask` dos `sem_grading`.** Na cena de captura com
   2 PointLight2D de chefe, um script percorre a árvore: todo CanvasItem com
   shader de `sem_grading` (`tel_sdf`, `traco_sdf`, `vfx_sprite`, `ui`) tem um

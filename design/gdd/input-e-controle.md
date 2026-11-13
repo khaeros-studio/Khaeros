@@ -9,7 +9,7 @@
 
 > **Nota (2026-11-11, Tela de bênção e carta):** pendente: a Tela usa a borda de subida do botão, esvaziar o buffer e `ui_carta_1..3`; não existem teclas 4 e 5.
 
-> **Nota (2026-11-11, revisão cruzada):** pendente: o contexto Transição (R10) entra na tabela de estados e nas Interactions; a morte vira "Menu": dizer se `ui_*` vale durante o passe de morte (Pipeline/Combate, Run OQ 11); Dependencies dizem que GDDs existentes "não existem".
+> **Nota (2026-11-11, revisão cruzada):** pendente: o contexto Transição (R10) entra nas Interactions (a tabela de estados já o tem); a morte vira "Menu" (o Menu só abre na tela final; ver Edge Cases, decidido em 2026-11-13). A frase de Dependencies sobre GDDs existentes foi atualizada.
 
 ## Summary
 
@@ -304,10 +304,11 @@ injetam sequências roteirizadas de amostras, sem dispositivo real.
 
 | Estado | Significado | Entra quando | Sai para |
 |---|---|---|---|
-| Jogo | Ações de jogo ativas; buffer rodando | Uma câmara começa ou a pausa fecha | Bênção, Menu, Pausa, Sem foco |
+| Jogo | Ações de jogo ativas; buffer rodando | Uma câmara começa ou a pausa fecha | Bênção, Transição, Passe de morte, Menu, Pausa, Sem foco |
 | Bênção | Escolha de bênção (R10); buffer vazio | A tela de bênção abre | Jogo, em `tela_fechada` (não em `escolher`; segurados ignorados até soltar), Pausa |
 | Transição | Troca de câmara, durante o wipe (R10); ações de jogo e `pausar` ignoradas; buffer vazio | Pedido de troca de câmara (Combate R1) | Jogo (segurados ignorados até soltar; a Pausa pedida abre no primeiro passo de Jogo) |
-| Menu | `ui_*` (R10); buffer vazio | Menu principal, Campus em menu, morte, vitória, opções | Jogo, Pausa (pelo `ui_voltar` das opções da pausa), Texto |
+| Passe de morte | Estado de apresentação (Run R5, Pipeline): toda entrada é ignorada, inclusive `ui_*`, `ui_aceitar`, Esc e `pausar` (sem pular e sem abrir pausa); buffer vazio | `jogador_morreu` (Combate R13) | Menu, quando a tela final de morte abre |
+| Menu | `ui_*` (R10); buffer vazio | Menu principal, Campus em menu, tela final (morte ou vitória), opções | Jogo, Pausa (pelo `ui_voltar` das opções da pausa), Texto |
 | Pausa | Mundo parado; `ui_aceitar`, `ui_navegar`, `pausar` | `pausar` em Jogo ou na Bênção; perda de foco em Jogo (R11); gamepad ativo desconectado em Jogo (Edge Cases) | O estado anterior, por `pausar` (mesma regra de soltar); Menu (opções) |
 | Texto | Campo em edição; o teclado digita; só Enter e Esc físicos (R10) | Bind de teclado de `ui_aceitar` ou clique num campo de texto | Menu (Enter com valor aceito confirma; Esc ou clique fora do campo cancelam). Enter com valor recusado fica em Texto; o hover não tira o foco |
 | Remapeando | Captura a próxima entrada do dispositivo escolhido. Qualquer toque curto é atribuído (sujeito às recusas). Cancela: segurar Esc ou Start por 1 s, botão "Cancelar" na tela, ou 5 s sem entrada | "Remapear" numa ação | Menu (bind salvo ou cancelado) |
@@ -323,12 +324,14 @@ injetam sequências roteirizadas de amostras, sem dispositivo real.
 | Cena 3/4 e câmera | `fonte_mira`, `intensidade_mira` (amostra) e consulta de cursor (render), para o lookahead (Cena F2) | conversão tela → mundo do cursor | Cena 3/4 (conversão), este GDD (amostra e consulta) |
 | IA / Câmaras e ondas | — | consulta de alvos (inimigo mais próximo, ≤ raio, fora do spawn) | este GDD (pergunta), IA (resposta) |
 | Tela de bênção / Menus | `ui_*`, atalhos 1–3, troca de ofertas, contexto Texto | troca de contexto (Jogo, Bênção, Menu, Texto) | este GDD |
-| HUD / UI | dispositivo ativo (ícones de comando) | — | UI |
+| HUD / UI | dispositivo ativo (ícones de comando); consulta `rotulo_acao(acao, dispositivo)` | — | UI |
 | Acessibilidade e opções | tela de remapeamento usa a R8; tamanho da mira (Art Bible §7.9 #11) é dela | — | Acessibilidade |
 | Save e perfil | binds do usuário (arquivo próprio) | — | este GDD (formato), Save (onde) |
 | Conteúdo orientado a dados | — | `InputTuning` | Conteúdo |
 
-**Provisório:** Movimento, Combate, IA e Acessibilidade ainda não têm GDD. A
+**`rotulo_acao(acao, dispositivo)` (assinatura, decidido 2026-11-13).** Entrada: `acao` = id de ação do Input (ex.: `selo`, `interagir`, `ataque`) e `dispositivo` = o dispositivo ativo, `teclado` ou `gamepad`. Saída: o rótulo textual do bind **remapeado do usuário** para essa ação nesse dispositivo, mais o id do glifo (no gamepad, o glifo do botão; no teclado, o rótulo da tecla lógica do layout ativo). `acao` ou `dispositivo` inválido: rótulo vazio e um aviso registrado, sem falha. HUD (R6, R10) e Tela de bênção só consomem; a consulta é a mesma para o glifo do Selo.
+
+**Provisório:** só Acessibilidade e Menus ainda não têm GDD. A
 consulta de alvos é um pedido que o GDD de IA vai precisar honrar. A conversão
 tela → mundo já está definida na R9/F6 do GDD de Cena 3/4 e câmera.
 
@@ -498,7 +501,15 @@ contínuos.
   uma troca de contexto. O buffer esvazia e os segurados são ignorados até serem
   soltos (R10).
 - **Se a janela perder o foco na Bênção ou num Menu:** nada pausa, porque a tela já está
-  parada. Os botões contam como soltos.
+  parada. Os botões contam como soltos. **Decisão explícita:** perder o foco na
+  Bênção não pausa, mas `pausar` (Esc) na Bênção pausa (tabela de estados:
+  Pausa entra por `pausar` em Jogo ou na Bênção).
+- **Morte e Vitória (decidido 2026-11-13):** os `ui_*` **não valem durante o passe
+  de morte**: o contexto Menu só abre na tela final (de morte ou de vitória). Durante
+  o passe a entrada é ignorada: `ui_aceitar` não pula o passe e Esc/`pausar` não abre
+  a pausa (coerente com Run R5/R6, que recusam a pausa em Morte). Na tela final o
+  Menu vale (`ui_*` ativo, buffer vazio). Botões segurados durante o passe contam como
+  soltos ao abrir o Menu, sem acionar nada.
 - **Se o alvo da mira automática morrer:** a amostra do passo seguinte escolhe
   de novo (F4). A mira não fica presa a um alvo.
 - **Se todos os inimigos estiverem surgindo:** a mira automática passa ao
@@ -552,17 +563,19 @@ diretamente.
 | Combate núcleo | Forte | `ataque`, `especial`, `mirar`, segurados, buffer |
 | Armas das Doutrinas | Forte (via Combate) | Ataque e Especial segurados (R7) |
 | Selo e Fluxo | Forte | `selo`, `mirar`, buffer |
-| Tela de bênção e componente de carta | Forte | `ui_*`, atalhos 1–3, troca de ofertas, contexto Bênção |
+| Tela de bênção e componente de carta | Forte | `ui_*`, atalhos 1–3, troca de ofertas, contexto Bênção; consulta `rotulo_acao(acao, dispositivo)` |
 | Menus | Forte | `ui_*`, `pausar`, estado Remapeando |
-| HUD | Suave | Dispositivo ativo (ícones de comando) |
+| HUD | Suave | Dispositivo ativo (ícones de comando); consulta `rotulo_acao(acao, dispositivo)` |
 | Cena 3/4 e câmera | Suave | `fonte_mira`, `intensidade_mira` e consulta de cursor, para o lookahead (Cena F2). Sem eles, não há lookahead |
 | Acessibilidade e opções | Forte | Remapeamento (R8), zona morta ajustável, tamanho da mira |
 
 **Bidirecionalidade:** Movimento, Tela de bênção e Acessibilidade já citam
 "Input e controle" no índice. Combate núcleo, Selo e Fluxo e Menus passam a
 citá-lo, e o ciclo com a IA entra em "Circular Dependencies" (decisão do
-usuário, 2026-11-05). Nenhum desses GDDs existe; cada um, ao ser escrito, deve
-listar "Input e controle" em Dependencies.
+usuário, 2026-11-05). Já existem os GDDs de Movimento, Combate núcleo, Selo e
+Fluxo, Armas, IA, Tela de bênção, HUD e Cena 3/4; a conferência de que cada um
+lista "Input e controle" em Dependencies é do `/review-all-gdds`. Ainda não
+existem Menus e Acessibilidade e opções: ao serem escritos, devem listá-lo.
 
 **Cena 3/4 nos dois sentidos:** o Input usa a conversão tela → mundo da Cena, e a
 Cena usa a fonte da mira e a consulta de cursor do Input. O ciclo se resolve por
@@ -699,14 +712,16 @@ Requirements). Som de navegação de menu é do GDD de Áudio.
 
 **Buffer (F3, R6, R7)**
 
-- **AC-15 F3 [L]** Toque no passo 0, sem hitstop → `quer(ataque)` verdadeiro
-  nos passos 0–9 e falso no 10.
+- **AC-15 F3 [L]** Toque no passo 0, **sem outro toque depois**, sem hitstop → `quer(ataque)` verdadeiro
+  nos passos 0–9 e falso no 10 (o prazo é o do **último toque**, contador único: F3).
 - **AC-16 F3 [L]** Hitstop nos passos 0–35, injetado pela consulta de hitstop:
   - toque no passo 0 → T = 10 no passo 35, disponível de 36 a 44, vazio no 45;
   - toque no passo 20 → mesmo resultado.
-- **AC-17 [L]** Ataque no passo 0 e Especial no passo 8 → os dois valem até o
-  passo 17 e somem no 18.
-- **AC-18 R6 [L]** Buffer = {selo, ataque, especial, esquiva}, consumidores na
+- **AC-17 [L]** Ataque no passo 0 e Especial no passo 8 → o toque mais recente renova
+  o prazo de **todos** os botões no buffer (contador único, F3): os dois valem até o
+  passo 17 e somem no 18 (decisão do usuário, 2026-11-12: prazo compartilhado, como no cânone).
+- **AC-18 R6 [L]** Buffer = {selo, ataque, especial, esquiva} (prazo compartilhado:
+  consumir um botão não remove os outros nem muda o prazo), consumidores na
   ordem Movimento → Combate → Selo:
   - o Movimento consome a esquiva;
   - o Combate consome o especial e deixa o ataque para o passo seguinte;
@@ -831,6 +846,31 @@ Requirements). Som de navegação de menu é do GDD de Áudio.
   - em edição com "A1", clique no botão vizinho → sai da edição, o valor
     anterior fica, e o botão não é acionado.
 
+**Rótulo de ação por dispositivo (OQ 0)**
+
+- **AC-39 [L]** `rotulo_acao(acao, dispositivo)`:
+  - com os binds padrão, `ataque` em teclado/mouse devolve o rótulo da tecla ou
+    botão do mouse atribuído, e no gamepad o glifo/rótulo do botão atribuído;
+  - remapear `ataque` (ex.: de uma tecla para outra) → a consulta seguinte
+    devolve o novo bind; o antigo não aparece;
+  - teclado AZERTY (tecla lógica Z na posição física de W): o rótulo de `mover`
+    para cima mostra a tecla lógica do layout ativo, em coerência com o AC-28;
+  - troca de dispositivo ativo (teclado → gamepad) no passo N → a consulta no
+    passo N+1 (quadro seguinte) já devolve o rótulo do novo dispositivo;
+  - ação inexistente ou dispositivo desconhecido → rótulo vazio e um aviso
+    registrado, sem falha nem interrupção da execução;
+  - valores (2026-11-13): ação `selo`, dispositivo `teclado`, bind remapeado para
+    outra tecla → devolve o rótulo dessa tecla e o id do glifo dela (o rótulo do bind
+    padrão não aparece); ação `selo`, dispositivo `gamepad` → devolve o glifo do botão
+    atribuído; AZERTY: `mover` para cima devolve a tecla lógica do layout ativo
+    (Z, não W); `rotulo_acao("inexistente", teclado)` e `rotulo_acao(selo, "joystick")`
+    → rótulo vazio e um aviso, sem falha.
+- **AC-40 [L]** Passe de morte (decidido 2026-11-13): **GIVEN** `jogador_morreu` e o
+  passe de morte em andamento **WHEN** Esc (`pausar`) e `ui_aceitar` são apertados
+  **THEN** nada acontece: o passe não pula, a pausa não abre e nenhum `ui_*` é
+  entregue **AND** quando a tela final abre, o contexto Menu vale: `ui_aceitar`
+  aciona o botão em foco e Esc/`ui_voltar` seguem as regras do Menu.
+
 Fora do escopo: "a Esquiva sempre responde" (P3) é critério do GDD de
 Movimento. Aqui só se garantem o AC-16 e o AC-18. Cobertura: R1–R13 e F1–F5 têm
 pelo menos um critério cada. AC-35 e AC-36 entraram na revisão de 2026-11-06.
@@ -842,7 +882,7 @@ cross-review de 2026-11-06 entrou o AC-38.
 
 | # | Pergunta | Dono | Resolver até |
 |---|---|---|---|
-| 0 | A consulta "ação → glifo ou rótulo do dispositivo ativo" pertence ao Input: ele expõe `rotulo_acao(acao, dispositivo)` (HUD e Tela de bênção a consomem); assinatura e formato do retorno a fechar | game-designer / ux-designer | ADR, antes da primeira story de HUD |
+| 0 | ~~Assinatura de `rotulo_acao(acao, dispositivo)`~~ **Resolvida (2026-11-13):** assinatura na tabela de Interactions e AC-39 | — | — |
 | 1 | API de remapeamento em tempo de execução e formato do arquivo de binds (não estão na referência local) | godot-specialist | ADR, antes da primeira story |
 | 2 | Confirmar que `grab_focus()` no `mouse_entered` unifica o foco no 4.6+ (foco do mouse separado) antes de escrever o AC-33 | godot-specialist | Antes da story das telas |
 | 3 | Faixa da zona morta ajustável nas opções | accessibility-specialist | GDD de Acessibilidade |
@@ -851,4 +891,5 @@ cross-review de 2026-11-06 entrou o AC-38.
 | 6 | ~~Conversão tela → mundo sob a câmera 3/4~~ **Resolvida:** Cena 3/4 R9 e F6 | technical-artist | — |
 | 7 | Consulta "hitstop ativo" | game-designer | GDD de Combate núcleo |
 | 8 | O RNG (UI Requirements, campo de seed) diz que o campo é "usável por teclado e gamepad"; aqui o gamepad só navega até ele e não digita (R10 Texto). Alinhar o texto do RNG | game-designer | Próxima revisão do GDD de RNG |
-| 9 | Trava de 500 ms / 300 ms contra escolha acidental (Art Bible §7.6) | ux-designer | GDD da Tela de bênção |
+| 9 | ~~`ui_*` durante o passe de morte~~ **Resolvida (2026-11-13):** não valem; o Menu só abre na tela final (Edge Cases, States, AC-40) | — | — |
+| 10 | Trava de 500 ms / 300 ms contra escolha acidental (Art Bible §7.6) | ux-designer | GDD da Tela de bênção |

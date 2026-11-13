@@ -19,7 +19,7 @@ Combate aplica.
 
 > **Quick reference** — Layer: `Core` · Priority: `MVP` · Key deps: `Input e controle, Cena 3/4 e câmera, Modificadores e atributos, Conteúdo orientado a dados; Combate núcleo (por contrato)`
 
-> **Nota (2026-11-11, revisão cruzada):** pendente: Dependencies listam Efeitos de status e Armas (hoje só na tabela de Interactions); registro `hurt_invuln_steps` sem `referenced_by` Movimento.
+> **Nota (2026-11-11, revisão cruzada):** pendente: registro `hurt_invuln_steps` sem `referenced_by` Movimento.
 
 ## Overview
 
@@ -317,11 +317,11 @@ Congelado.
 | IA de inimigos e elites | posição do jogador (alvo) | lista de inimigos atingíveis (posição, raio, ordem estável) | IA; **provisório** |
 | Efeitos de status | — (o Combate repassa o Sangramento do Corte) | — | Status |
 | Conteúdo orientado a dados | — | `MovementTuning`, `WeaponDef.velocidade` (px/s) | Conteúdo |
-| HUD | cargas atuais e máximo, progresso da recarga (fração 0–1 do contador; 0 com c = M), eventos `esquiva` e `esquiva_sem_carga` | — | HUD |
+| HUD | cargas atuais e máximo, progresso da recarga (fração 0–1 do contador; 0 com c = `cargas_max`), eventos `esquiva` e `esquiva_sem_carga` | — | HUD |
 | Pipeline visual / áudio | eventos `esquiva` (com a posição de início e a direção da esquiva) e `esquiva_sem_carga`, posição, "em esquiva" (Visual/Audio V2, V3) | — | Pipeline |
 
-Os contratos com Combate, Câmaras e IA são **provisórios**, porque esses GDDs
-ainda não existem. Cada um, ao ser escrito, deve honrá-los.
+Os GDDs de Combate, Câmaras e IA já existem. Cada um deve honrar estes
+contratos.
 
 ## Formulas
 
@@ -469,7 +469,9 @@ uma vez por esquiva. O teste só olha a posição no fim de cada passo (aviso MV
 The dash_cut_damage formula is defined as:
 
 `dano_corte = total_gatilho × M_ataque` ; `M_ataque = max(0, 1 + P_todo +
-P_ataque) × Π_incond`
+P_ataque) × Π_incond`; **M efetivo = min(M, 4,0)** (Modificadores F2: o
+`multiplicador_de_dano` do Modificadores já aplica o teto
+`teto_multiplicador_dano` = 4,0, provisório)
 
 **Variables:**
 | Variable | Type | Range | Source | Description |
@@ -480,7 +482,7 @@ P_ataque) × Π_incond`
 | Π_incond | float | ≥ 0 | calculated | multiplicadores incondicionais do portador; hoje 1 |
 | M_ataque | float | ≥ 0 | calculated | F2 do Modificadores **sem** `apos_esquiva` nem `enesimo_acerto` |
 
-**Output Range:** ≥ 0, sem teto (F2 do Modificadores).
+**Output Range:** ≥ 0, até total × 4,0 (teto do M, F2 do Modificadores).
 
 - Com M = 0, o dano é 0, mas empurrão e Sangramento seguem (cânone:
   `damageEnemy` aplica os dois com dano 0). O Combate confirma.
@@ -530,7 +532,7 @@ a run começa.
 
 | Regra | Tipo | Condição | Por quê |
 |---|---|---|---|
-| MV1 | erro, cruzada com Câmaras | `velocidade_esquiva_pxs / 60 ≥ r_obs_min + raio_jogador_px` (F7); **aviso** com margem < 2 | a esquiva atravessaria obstáculos. Fica com Câmaras até existir a classe de câmara (Cena OQ9) |
+| MV1 | erro, cruzada com Câmaras | `velocidade_esquiva_pxs / 60 ≥ r_obs_min + raio_jogador_px` (F7); **aviso** com margem < 2 | a esquiva atravessaria obstáculos. Roda no validador do Conteúdo, na 2ª passada, depois de todos os catálogos carregados (decidido 2026-11-13) |
 | MV2 | erro | `R ≤ D + E` | invulnerabilidade perpétua esquivando sem parar; **aviso** se `(D + E) / R > 0,5` (cânone 0,286) |
 | MV3 | regra | `inv_esquiva = passos(duracao) + passos(extra)`, soma de inteiros | pode dar 1 passo a menos que passos(soma); a soma de inteiros é a canônica |
 | MV4 | faixa | `raio_jogador_px` de 10 a **50** | diâmetro < vão mínimo de 105 px entre obstáculos do cânone (70 u, `engine.ts:286`); a checagem contra o vão real é do GDD de Câmaras |
@@ -557,7 +559,7 @@ Os outros campos de tempo têm mínimo > 0.
   seguinte ao fim, se ainda houver prazo e carga (R5). Duas esquivas seguidas
   ficam separadas por exatamente D passos.
 - **Se chegar um toque durante uma esquiva e com 0 cargas:** `esquiva_sem_carga`
-  sai no passo do toque, uma vez, e o toque fica no buffer (R5). Com M = 1, ele
+  sai no passo do toque, uma vez, e o toque fica no buffer (R5). Com `cargas_max` = 1, ele
   quase sempre vence antes de a carga voltar (R = 42 contra 10 de prazo).
 - **Se outros botões forem tocados com a esquiva no buffer:** o buffer tem um
   contador único (Input F3), então um Ataque tocado renova o prazo do toque de
@@ -604,7 +606,7 @@ Os outros campos de tempo têm mínimo > 0.
 - **Se as cargas chegarem ao máximo pela R9 do Modificadores** (o atributo sobe
   ou desce): o
   contador de recarga **zera** (decisão do usuário, 2026-11-08; divergência
-  deliberada do cânone, que guardava o progresso). Com c = M, o contador é
+  deliberada do cânone, que guardava o progresso). Com c = `cargas_max`, o contador é
   sempre 0, como o F3 diz.
 - **Se `cargas_esquiva` descer no meio da esquiva:** a esquiva continua. Só as
   cargas restantes são cortadas.
@@ -687,6 +689,8 @@ hitstop, invulnerabilidade). Os dois lados se ligam como Input ↔ IA:
 | Selo e Fluxo | Suave | "em esquiva": o Selo não sai durante a esquiva (cânone) |
 | IA de inimigos e elites | Suave | Posição do jogador (alvo) |
 | Pipeline visual / Feedback de combate (VFX) / Áudio | Suave | Evento `esquiva`, posição |
+| Efeitos de status | Suave | o Corte da esquiva aplica 1 Sangramento (pedido do Movimento via Combate) |
+| Armas das Doutrinas | Suave | `velocidade` base da arma (via Modificadores) |
 | Bênçãos | Indireta (via Modificadores) | Corte Fantasma, Penumbra e bênçãos de carga extra chegam como modificadores e gatilhos |
 
 **Bidirecionalidade:**
@@ -695,9 +699,11 @@ hitstop, invulnerabilidade). Os dois lados se ligam como Input ↔ IA:
   que entrega como "plano de jogo em px (R3), limites da câmara". O retângulo da
   câmara vem do GDD de Câmaras, e a Cena só tem os limites de tamanho. Não há
   contradição.
-- Combate, HUD, Selo, IA e Câmaras ainda não existem. Cada um, ao ser escrito,
-  deve listar "Movimento e esquiva" em Dependencies e honrar o contrato acima. O
-  índice já tem o Movimento no Depends On do Combate e do HUD.
+- Combate núcleo, HUD, Selo e Fluxo, IA de inimigos e elites, Câmaras e ondas,
+  Efeitos de status e Armas das Doutrinas já existem (design/gdd/): cada um deve
+  listar "Movimento e esquiva" em Dependencies e honrar o contrato acima
+  (conferir um por um na próxima revisão cruzada). O índice já tem o Movimento no
+  Depends On do Combate e do HUD.
 - O ciclo Movimento ↔ Combate ainda não está em "Circular Dependencies" do
   índice (Open Questions).
 
@@ -894,16 +900,16 @@ mesmas imagens residuais, sem variante visual.
 > remeter a outro critério.
 >
 > Nada de seed nem de tempo real: tudo roda por passos e com dublês injetados
-> (R12). Os contratos com Combate, Selo, Câmaras e IA são **provisórios**. Os
+> (R12). Os GDDs de Combate, Selo, Câmaras e IA já existem. Os
 > critérios que dependem deles usam dublês que honram o contrato deste GDD, e
-> devem ser rodados de novo com os sistemas reais quando os GDDs deles existirem.
+> devem ser rodados de novo com os sistemas reais.
 >
 > **Fixture padrão (FP):**
 >
 > - `MovementTuning` padrão (R11), que dá D = 9, E = 3, R = 42;
 > - retângulo jogável (0, 0)–(1920, 1080), sem obstáculos; o centro do jogador
 >   fica preso em [27, 1893] × [27, 1053];
-> - jogador em (960, 540); `valor(velocidade)` = 387; M = c = 1; sem gatilho
+> - jogador em (960, 540); `valor(velocidade)` = 387; `cargas_max` = c = 1; sem gatilho
 >   `corte_da_esquiva`;
 > - Combate dublê sem recuperação, sem investida e sem hitstop. Ele registra os
 >   pedidos, honra `cancelar` no mesmo passo, faz `garantir_invulneravel` como
@@ -980,8 +986,8 @@ mesmas imagens residuais, sem variante visual.
   | (−1; 0) | (1; 0) | (−22,5; 0): `mover` vence a mira |
   | (0,6; 0,8) | (1; 0) | (13,5; 18); total após 8: (121,5; 162) |
 
-  Se `mover` passa a (0, 1) no passo 4, os passos 4–8 continuam em (22,5; 0): a
-  direção fica fixada no início.
+  Na linha 2 da tabela, se `mover` passa a (0, 1) no passo 4, os passos 4–8
+  continuam em (22,5; 0): a direção fica fixada no início.
 - **AC-09 [L] R5.** Esquiva **segurada** nos passos 0–30, sem nunca aparecer em
   `apertados_neste_passo`: nenhuma esquiva e nenhum evento.
 - **AC-10 [L] R6.** Com `valor(velocidade)` = 580,5 (+50%) e com 0, a esquiva é
@@ -997,19 +1003,19 @@ mesmas imagens residuais, sem variante visual.
     vez no passo 135 e nenhuma vez nos passos 136–137;
   - toque novo em 138: segundo evento no passo 138, e só ele;
   - a carga volta no passo 142, e a esquiva sai **nesse mesmo passo** (a
-    recarga vem antes do início). O toque de 138 ainda está no buffer em 142,
-    porque o toque novo renova o prazo (Input F3: contador único);
+    recarga vem antes do início). O toque de 138 ainda está no buffer em 142
+    (4 passos, dentro do prazo de 10; Input F3: contador único);
   - depois disso, nenhum `esquiva_sem_carga`.
 
   Variante: FP com toque em 0 e outro em 10 (c = 0). O do passo 10 emite 1
   evento; o buffer vence antes do passo 42, e nenhuma esquiva sai no 42.
-- **AC-13 [L] R5 — esquiva encadeada.** FP com M = c = 2, `mover` (1, 0) nos
+- **AC-13 [L] R5 — esquiva encadeada.** FP com `cargas_max` = c = 2, `mover` (1, 0) nos
   passos 0–18, toques em 0 e em 4:
   - `esquiva_iniciada` sai nos passos 0 e 9: separação de exatamente D = 9;
   - nenhum início nos passos 1–8;
   - após 8, x = 1162,5; após 17, x = 1365; após 18, x = 1371,45, já andando;
   - c = 0 após 9.
-- **AC-49 [L] R5 — toque durante a esquiva, sem carga.** FP (M = 1), `mover`
+- **AC-49 [L] R5 — toque durante a esquiva, sem carga.** FP (`cargas_max` = 1), `mover`
   (0, 0), toques em 0 e em 4:
   - a esquiva sai no 0 (c = 0);
   - `esquiva_sem_carga` é emitido 1 vez, no passo 4, e nenhuma vez nos passos
@@ -1019,9 +1025,9 @@ mesmas imagens residuais, sem variante visual.
 
 **D. Cargas e recarga**
 
-- **AC-14 [L] R7/F3.** M = 1, toque em 100: c = 0 nos passos 100–141, e c = 1 a
+- **AC-14 [L] R7/F3.** `cargas_max` = 1, toque em 100: c = 0 nos passos 100–141, e c = 1 a
   partir do 142 (R passos depois). O contador fica em 0 a partir do 142.
-- **AC-15 [L] F3 — gastar não zera o contador.** M = c = 3, toques em 0, 9 e 18
+- **AC-15 [L] F3 — gastar não zera o contador.** `cargas_max` = c = 3, toques em 0, 9 e 18
   com `mover` (0, 0):
   - c = 0 após 18;
   - c = 1 no passo 42, 2 no 84 e 3 no 126 (T_cheio = 3 × 42 − 18 = 108 a partir
@@ -1029,23 +1035,24 @@ mesmas imagens residuais, sem variante visual.
   - a recarga conta durante as esquivas;
   - o contador fica em 0 a partir do 126.
 - **AC-16 [L] R7 — o atributo muda.**
-  - (a) M = c = 1, M sobe para 2: c = 2 na hora, contador 0.
-  - (b) M = c = 2, toque em 0 (c = 1), M sobe para 3 antes do passo 21: c = 2 na
+  - (a) `cargas_max` = c = 1, `cargas_max` sobe para 2: c = 2 na hora, contador 0.
+  - (b) `cargas_max` = c = 2, toque em 0 (c = 1), `cargas_max` sobe para 3 antes do passo 21: c = 2 na
     hora, o contador mantém p = 20, e c = 3 no passo 42.
-  - (c) **Divergência do cânone.** M = c = 2, toque em 0 (c = 1), M desce para 1
-    antes do passo 21: c = 1 = M e o contador **zera**. Depois, toque em 30
-    (c = 0): a carga volta no passo **72**. O cânone a devolveria no 52.
-  - (d) M = c = 3, toque em 0 com `mover` (1, 0) só no passo 0, M desce para 1
+  - (c) **Divergência do cânone.** `cargas_max` = c = 2, toque em 0 (c = 1), `cargas_max` desce para 1
+    antes do passo 21: c = 1 = `cargas_max` e o contador **zera**. Depois, toque em 30
+    (c = 0): a carga volta no passo **72**. O cânone a devolveria no 52
+    (derivação a conferir no cânone, `engine.ts`).
+  - (d) `cargas_max` = c = 3, toque em 0 com `mover` (1, 0) só no passo 0, `cargas_max` desce para 1
     antes do passo 3: c = 1 e a esquiva continua até o 8 (x = 1162,5).
-- **AC-17 [L] R7.** No começo da run, c = M (com M = 2, c = 2). FP (M = 1),
+- **AC-17 [L] R7.** No começo da run, c = `cargas_max` (com `cargas_max` = 2, c = 2). FP (`cargas_max` = 1),
   toque em 0: após o passo 15, c = 0 e p = 15. `teleportar((400; 300))` entre
   os passos 15 e 16 deixa c = 0 e p = 15, e a carga volta no passo 42.
-- **AC-50 [L] R3/R7 — o máximo muda na Bênção.** FP (M = c = 1), toque em 0
+- **AC-50 [L] R3/R7 — o máximo muda na Bênção.** FP (`cargas_max` = c = 1), toque em 0
   (c = 0); Input em Bênção nos passos 10–20, e durante ela `cargas_esquiva`
   sobe para 2:
   - nos passos 10–20 o Movimento não roda: c = 0 e p = 9;
-  - no passo 21, item 0 da R3: M = 2 e c = 1 (ganha a diferença); o contador
-    segue, porque c < M;
+  - no passo 21, item 0 da R3: `cargas_max` = 2 e c = 1 (ganha a diferença); o contador
+    segue, porque c < `cargas_max`;
   - a próxima carga volta no passo 53 (42 + 11 passos congelados), e então
     c = 2 e o contador zera.
 
@@ -1077,7 +1084,7 @@ mesmas imagens residuais, sem variante visual.
   - sem teto: 3 pedidos no passo 0, na ordem B, A, C;
   - com `alvos_max_corte` = 2: pedidos para B e A no passo 0, e C não é cortado
     nesta esquiva.
-- **AC-23 [L] R8 — esquivas seguidas.** M = c = 2, Eco em (1042,5; 540), toque em
+- **AC-23 [L] R8 — esquivas seguidas.** `cargas_max` = c = 2, Eco em (1042,5; 540), toque em
   0 com `mover` (1, 0), toque em 4 e `mover` (−1, 0) no passo 9:
   - pedidos para o Eco no passo 0 e no passo 11 (x = 1095, distância 52,5);
   - a lista está vazia no início da segunda esquiva.
@@ -1091,6 +1098,7 @@ mesmas imagens residuais, sem variante visual.
   | os mesmos | 60/100 | 14,5 |
   | nenhum | — | 10 |
   | Ataque −100% (M = 0) | — | 0, e o pedido **ainda leva** empurrão 360 e Sangramento 1 |
+  | M calculado 5,0 (M efetivo = min(5,0; 4,0) = 4,0, Modificadores F2) | — | 40 (base 10 × 4,0), não 50 |
 - **AC-25 [L] R8 — inimigo surgindo.** A lista injetada já vem filtrada pela IA.
   - Eco em (1042,5; 540) ausente da lista nos passos 0–1 (surgindo) e presente a
     partir do 2: cortado no passo 2.
@@ -1099,7 +1107,9 @@ mesmas imagens residuais, sem variante visual.
   esquiva para +x: nos passos 0–8 o Movimento só envia `aplicar_corte` ao
   Combate dublê (fora `cancelar`, `garantir_invulneravel` e
   `esquiva_iniciada` no passo 0): nenhum pedido de hitstop, acerto, Fluxo ou
-  `golpe_*`. Provisório: confirmar com o Combate real que o Corte não conta
+  `golpe_*`. Vale para o Corte de fábrica (empurrão 360). Com empurrão ≥
+  `empurrao_pesado` (900), o Combate R8.4 marca golpe pesado e o pedido de
+  hitstop existe. Provisório: confirmar com o Combate real que o Corte não conta
   acerto.
 - **AC-51 [L] R8 — contexto do dano.** FP-Corte com `dano_apos_esquiva` +50%
   ativo no portador. O Combate dublê abre a janela `apos_esquiva` no
@@ -1249,11 +1259,12 @@ mesmas imagens residuais, sem variante visual.
   - Um catálogo só com avisos (MV6, MV7, MV8 e a margem do MV2) carrega e
     deixa a run começar. Os avisos ficam no registro de validação, e a lista de
     erros fica vazia.
-  - **Adiado:** o MV1 entra neste critério quando o GDD de Câmaras e ondas
-    decidir onde a regra roda (OQ3).
+  - O MV1 roda na 2ª passada do validador do Conteúdo (decidido 2026-11-13):
+    com o `r_obs_min` das Câmaras carregado, o caso da AC-54 (22,5 ≥ 22,5)
+    aparece na lista de erros e a run não começa.
 
-**I. Integração entre sistemas** (provisório: dublês de Combate, Selo, Câmaras e
-IA)
+**I. Integração entre sistemas** (dublês de Combate, Selo, Câmaras e IA; os
+GDDs deles já existem)
 
 - **AC-40 [I] ordem e bloqueio.** Orquestrador de passo real, Input real, e
   dublês de Combate e Selo que registram a ordem das chamadas e consultam "em
@@ -1269,16 +1280,16 @@ IA)
   Modificadores, e um Combate dublê que abre a janela no `esquiva_iniciada`
   (Modificadores R4):
   - no passo 0, `apos_esquiva` já é verdadeira no portador;
-  - mesmo assim, o Corte desse passo, com `dano_apos_esquiva` ativo, dá dano 10
-    (F6);
-  - há 1 `esquiva_iniciada` por esquiva: com M = c = 2, `mover` (1, 0) nos
+  - mesmo assim, o Corte desse passo, com `dano_apos_esquiva` ativo e a
+    FP-Corte (um Eco dentro do alcance do Corte), dá dano 10 (F6);
+  - há 1 `esquiva_iniciada` por esquiva: com `cargas_max` = c = 2, `mover` (1, 0) nos
     passos 0–18 e toques em 0 e em 4, são 2, nos passos 0 e 9.
 - **AC-42 [L] F4 — o Movimento não guarda invulnerabilidade.** FP com o Combate
   dublê informando um contador de invulnerabilidade de 25: o pedido do passo 0
   continua `garantir_invulneravel(12)`. O Movimento não tem contador próprio de
   invulnerabilidade, e nenhuma consulta dele devolve um. (O "max" é critério
   do GDD de Combate.)
-- **AC-43 [I] R2 — estados do Input.** Input real, M = c = 2, `mover` (1, 0) só
+- **AC-43 [I] R2 — estados do Input.** Input real, `cargas_max` = c = 2, `mover` (1, 0) só
   no passo 0, esquiva no passo 0 e toque no 2:
   - Pausa nos passos 3 a 40, inclusive, e volta a Jogo no 41: nos passos
     pausados o Movimento não roda (x = 1027,5, restante 6, p = 2). A esquiva
@@ -1362,7 +1373,7 @@ IA)
 - **AC-47 [M] R5.** O testador faz 20 esquivas e ouve o áudio provisório nas 20.
   Um toque com 0 cargas não produz esquiva, nem VFX, nem áudio de esquiva. O
   registro em `production/qa/evidence/` traz testador, build e o resultado
-  (20/20). O pisca do HUD fica para quando o GDD do HUD existir. A sensação
+  (20/20). O pisca do HUD fica para os critérios do HUD. A sensação
   fica para Game Feel.
 - **AC-48 [P] desempenho** (em `tests/performance/movement/`, desvio explícito
   das duas pastas do formato; decisão do usuário, 2026-11-08).
@@ -1379,14 +1390,13 @@ IA)
   - o evento `esquiva` do passo 100 leva direção (1, 0) e posição de início
     (960; 540);
   - após 121, a fração de recarga é 21/42 = 0,5 ±0,001;
-  - com c = M (após 142), a fração é 0;
+  - com c = `cargas_max` (após 142), a fração é 0;
   - **variante**, no mesmo roteiro mais hitstop nos passos 125–129: a fração
     fica igual (24/42) do fim do 124 ao fim do 129, e a carga volta no 147.
 
 **L. A promessa do P3** (depende do Combate real)
 
-- **AC-56 [I] invulnerabilidade de fato — BLOQUEADO até o GDD de Combate
-  núcleo.** Combate real, esquiva tocada no passo s com a FP:
+- **AC-56 [I] invulnerabilidade de fato.** Combate real, esquiva tocada no passo s com a FP:
   - um golpe inimigo aplicado ao jogador em qualquer passo de s a s+11
     (inclusive o próprio s) causa dano 0;
   - o mesmo golpe no passo s+12 causa o dano cheio.
@@ -1401,7 +1411,7 @@ maior risco estão nos blocos C, D, E, F e G. Lacunas assumidas:
 
 - **Visual/Audio:** só o que a AC-46 e a AC-47 cobrem. Chevrons, tremor do HUD
   e direção do sprite entram nos critérios do HUD e do Pipeline.
-- **Promessa do P3 com o Combate real:** AC-56, bloqueada até o GDD de Combate.
+- **Promessa do P3 com o Combate real:** AC-56, que roda com o Combate real.
 - **Comportamento nos extremos do MV4** (vão mínimo entre obstáculos): é do GDD
   de Câmaras.
 
@@ -1411,7 +1421,7 @@ maior risco estão nos blocos C, D, E, F e G. Lacunas assumidas:
 |---|---|---|---|
 | 1 | Corpo do jogador: `CharacterBody2D` ou cinemática própria de círculos (cânone)? Posição em float32 ou float64 (as tolerâncias dos ACs dependem disso)? A referência do motor não cobre o 2D | technical-director + godot-specialist | ADR, antes de `/create-architecture` |
 | 2 | Contratos provisórios com o Combate, a honrar: consultas (recuperação, investida e `d` vetor, `contexto_de_dano` só com a Vida atual e a máxima; o hitstop é lido pelo orquestrador), pedidos (`cancelar`, `garantir_invulneravel`, `aplicar_corte`, `esquiva_iniciada` e, do Combate para cá, `deslocar(v)` para o passo de apoio, R9), desconto da invulnerabilidade no início de cada passo vivo seguinte (F4), golpe e Selo pela consulta "em esquiva" (R6), chamada `passo_congelado()` pelo orquestrador (R2) | dono do GDD de Combate núcleo | ao escrever o Combate |
-| 3 | Onde roda o MV1 (cruzada com Câmaras) e a garantia do vão mínimo do MV4 | dono do GDD de Câmaras e ondas + Conteúdo | GDD de Câmaras (liga à OQ9 da Cena) |
+| 3 | **Decidido (2026-11-13):** o MV1 e as demais regras cruzadas rodam na 2ª passada do validador do Conteúdo. Resta a garantia do vão mínimo do MV4 | dono do GDD de Câmaras e ondas + Conteúdo | GDD de Câmaras (liga à OQ9 da Cena) |
 | 4 | A consulta de alvos do Input não traz o raio; o Corte precisa dele | dono do GDD de IA | GDD de IA |
 | 5 | Valor do `alvos_max_corte` (D-W6) | `/balance-check` com o dono de Bênçãos | antes da fatia vertical |
 | 6 | Linha nova no Art Bible §5.8 (esquiva com 2 quadros mais saída cortável) e reação do HUD a `esquiva_sem_carga` no §7.7, com o aval do `ux-designer` | art-director + ux-designer | antes de produzir os assets da esquiva |

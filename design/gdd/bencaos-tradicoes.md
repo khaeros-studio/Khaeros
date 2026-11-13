@@ -6,7 +6,7 @@
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P1 *Toda bênção é uma filosofia*; P4
 
-> **Nota (2026-11-11, Tela de bênção e carta):** pendente: a Bênçãos monta `CartaView` (id, nome, doutrina, raridade, glifo, ícone, texto, `preco_texto`); `oferta_trocada(cartas, trocas)` com o mesmo payload; segura `bencao_escolhida` até `tela_fechada`; R11/Edge Cases: a pausa **abre** em Bênção (Input é a fonte); `tamanho_oferta` 4–5 reservado (R3/R4 fixam 3).
+> **Nota (2026-11-11, Tela de bênção e carta):** pendente: a Bênçãos monta `CartaView` (id, nome, doutrina, raridade, glifo, ícone, texto, `preco_texto`); `oferta_trocada(cartas, trocas)` com o mesmo payload; segura `bencao_escolhida` até `tela_fechada`; R11/Edge Cases: a pausa **abre** em Bênção (Input é a fonte; **aplicada**: o Input já tem Pausa entrando por `pausar` na Bênção); `tamanho_oferta` 4–5 reservado (R3/R4 fixam 3).
 
 ## Summary
 
@@ -219,7 +219,7 @@ ou escalas não crescentes.
 |---|---|---|---|
 | Modificadores e atributos | Forte | aplica o efeito; `trocas_oferta` | sem efeito |
 | RNG com seed | Forte | fluxos `bencaos` e `raridade` | sem sorteio |
-| Conteúdo orientado a dados | Forte | `BoonDef`, `RarityTable`, `BencaosTuning` (**edição pendente**: tipo novo e BN1, BN2) | sem pool |
+| Conteúdo orientado a dados | Forte | `BoonDef`, `RarityTable`, `BencaosTuning`; BN1 e BN2 (Conteúdo R1 e R9) | sem pool |
 | Portas e recompensas | Forte | pedido de oferta; `pedir_oferta(região, índice_câmara)` e `restantes()` para tirar o peso da porta de bênção quando o pool esgota (**edição pendente** em Portas R3) | sem recompensa de bênção |
 | Armas das Doutrinas | Suave | bênçãos que escalam os golpes | — |
 | Run e regiões | Suave | `tomadas()` no resumo, reset | resumo sem bênçãos |
@@ -293,3 +293,4 @@ quando o GDD for aprovado.
 | 8 | Sinergia garantida com a Doutrina da arma e pool filtrado por arma: revisitar depois do playtest | game-designer | primeiro playtest |
 | 9 | Eventos novos: `bencao_tomada`, `oferta_aberta`, `oferta_trocada`, `oferta_ja_aberta` ainda não existem em Run, Portas, HUD e Telemetria | donos de cada GDD | próxima edição de cada um |
 | 10 | O RNG chama a profundidade de "número da câmara na run" e Portas R7 de "índice na região": iguais no MVP (uma região); alinhar quando houver mais de uma | RNG / Portas | Alpha (Veio Instável) |
+| 11 | `trocas_oferta` (atributo do Modificadores) × `trocas_iniciais` (`BencaosTuning`): o dono único da base de trocas é `trocas_iniciais`; o Modificadores só soma. Ajustar o texto do Modificadores e conferir que a R6 lê o total sem contar a base duas vezes | Bênçãos / Modificadores | próxima edição do Modificadores |

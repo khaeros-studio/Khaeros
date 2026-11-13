@@ -19,7 +19,7 @@ registrados aqui e executados pelos sistemas donos.
 
 > **Quick reference** — Layer: `Core` · Priority: `MVP` · Key deps: `Conteúdo orientado a dados`
 
-> **Nota (2026-11-11, revisão cruzada):** pendente: Dependencies listam Status (`abalado()`) e Armas; base de `trocas_oferta` × `trocas_iniciais` da Bênçãos.
+> **Nota (2026-11-11, revisão cruzada):** pendente: Dependencies listam Status (`abalado()`) e Armas; a base de `trocas_oferta` tem dono único `trocas_iniciais` (Bênçãos OQ 11), o atributo só soma. Resolvidos em 2026-11-12: teto do M (4,0, F2/AC-04b) e dono da Vida por profundidade (IA F2).
 
 ## Overview
 

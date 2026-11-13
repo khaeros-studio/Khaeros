@@ -220,8 +220,8 @@ para exibir.
 |---|---|---|---|
 | Câmaras e ondas | Forte | sequência e `p_max` daqui; `camara_limpa` de lá | sem câmaras |
 | Portas e recompensas | Forte | caso `fim_da_run` em Portas R2/R6 (**edição pendente**) | sem recompensa nem portas |
-| Conteúdo orientado a dados | Forte | `RegionDef`; `RunTuning` e RN1–RN3 (**edição pendente**: tipo novo e códigos V*) | sem região |
-| RNG com seed | Forte | criação e fim da seed; fluxos; `nova_run` descarta (**edição pendente**: o gatilho "voltar ao Campus" vale também para Nova run) | sem aleatoriedade |
+| Conteúdo orientado a dados | Forte | `RegionDef`; `RunTuning` e RN1–RN3 (Conteúdo R1 e R9) | sem região |
+| RNG com seed | Forte | criação e fim da seed; fluxos; `nova_run` descarta (o gatilho "voltar ao Campus" vale também para Nova run; aplicado no RNG, States and Transitions) | sem aleatoriedade |
 | Combate núcleo | Suave | `jogador_morreu` | a run só acaba por vitória ou abandono |
 | Armas das Doutrinas | Suave | `p_max` passa a vir da Run (**edição pendente**) | `p_max` do Armas |
 | Pipeline visual | Suave | R3 deixa de dizer que a Run informa p (**edição pendente**) | — |

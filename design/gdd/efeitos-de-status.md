@@ -17,8 +17,6 @@ teto de Sangramento como decisão deste GDD.
 
 > **Quick reference** — Layer: `Feature` · Priority: `MVP` · Key deps: `Combate núcleo, Modificadores e atributos, Conteúdo orientado a dados`
 
-> **Nota (2026-11-11, revisão cruzada):** pendente: ST5 testa cada status sozinho; Sangramento e Queimadura juntos somam ~79% do DPS da arma; a linha 453 diz que o Armas não cita os status, mas a lista como downstream; Movimento ↔ Status (Corte da esquiva) fora das Dependencies.
-
 ## Overview
 
 > `game-designer` e `systems-designer` não consultados nesta seção: modo Lean.
@@ -452,9 +450,8 @@ roda o MV1 do Movimento (Movimento OQ3).
 
 - Combate (R8, V6/V7, Interactions, Dependencies), Modificadores (R5, R12, R13)
   e Conteúdo (R1, `StatusTuning`) já citam Efeitos de status.
-- Selo e Fluxo cita o Abalo; este GDD o lista. O Armas não cita os status.
-- IA, Câmaras, Bênçãos, HUD, VFX e Telemetria ainda não existem. Cada um, ao ser
-  escrito, deve listar "Efeitos de status" em Dependencies.
+- Selo e Fluxo cita o Abalo; este GDD o lista. O Armas lista Efeitos de status como downstream. Movimento ↔ Status: o Corte da esquiva aplica 1 Sangramento (Movimento R3); o Movimento lista Efeitos de status.
+- IA, Câmaras, Bênçãos, HUD, Feedback (VFX) e Telemetria já existem; cada um deve listar "Efeitos de status" em Dependencies (conferência pendente). Chefes e Áudio ainda não existem.
 - **Índice:** a linha 11 lista Combate, Modificadores e Conteúdo; acrescentar
   Selo e Fluxo, Armas (suaves) e IA e Câmaras (por contrato).
 
@@ -564,7 +561,7 @@ quando o critério diz.
 **Dados e validação**
 
 - **AC-ST-21 [I] R9/Formulas — erros.** `StatusTuning` com duração < 1 passo, taxa < 0, `max_acumulos_queimadura` < 1 ou `reducao_dano_causado` fora de [0, 1): erro ST1–ST4 e a run não começa.
-- **AC-ST-22 [I] R9/Formulas — avisos de fábrica.** O catálogo de fábrica produz o ST9 informativo (Eco 75, Anomalia 60 e Fenda 115 passos com o Sangramento no teto; Anomalia 50 com a Queimadura no teto) e nenhum outro aviso; com `max_acumulos_sangramento` 0, o ST5 dispara. As regras ST5 e ST7–ST9 rodam no host do MV1 (Movimento OQ3).
+- **AC-ST-22 [I] R9/Formulas — avisos de fábrica.** O catálogo de fábrica produz o ST9 informativo (Eco 75, Anomalia 60 e Fenda 115 passos com o Sangramento no teto; Anomalia 50 com a Queimadura no teto) e nenhum outro aviso; com `max_acumulos_sangramento` 0, o ST5 dispara; com Sangramento + Queimadura somados e M = 4 (24 + 28,8 = 52,8/s contra 66,47 × 4 = 265,9/s, ≈ 20%) o ST5 somado não dispara. As regras ST5 e ST7–ST9 rodam no host do MV1 (Movimento OQ3).
 - **AC-ST-23 [L] R4/R6 — consulta.** Com o AC-ST-02, `estado(inimigo)` devolve: passo 99: A_s 1, `restante` 141; passo 100 (depois da 2ª aplicação e do item 7): A_s 2, `restante` 239; passo 340: A_s 0, `restante` 0. Com o AC-ST-10, `restante` do Abalo: 29 no passo 9 e 0 no passo 38.
 - **AC-ST-24 [L] F3 — matar só por status.** Eco (Vida 30) com A_s = 4 constante: morre no 188º passo; com A_s = 3: não morre em 240 passos (Vida 5 restante, ± 1e-6). Com o Sangramento no teto (A = 10): 75 passos.
 - **AC-ST-25 [L] F2 — teto e DPS máximo.** Corte da esquiva e `golpe_sangramento` 1 a cada 16 passos (g = 3,75): A = min(10, 1 + n) cresce até 10 no 10º passo de aplicação; o DPS por passo nunca passa de 0,4 (24/s).

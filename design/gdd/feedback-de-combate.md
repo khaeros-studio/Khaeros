@@ -78,7 +78,7 @@ separadas.
 | Evento | Resposta (resumo) | Relógio | Dono | Câm. | → P | ♪ |
 |---|---|---|---|---|---|---|
 | `golpe` (arco) | smear de meia-lua; sem alvo: sem hitstop, câmera nem fagulha | vivo | Combate V2 | — | 3 | `sfx_golpe_arco` |
-| `area` (círculo) | anel tracejado (z −5); sem alvo: sem hitstop, câmera nem fagulha | apres. (o Combate V1/V3 não declara; a confirmar, OQ 8) | Combate V3 | — | 3 | `sfx_golpe_area` |
+| `area` (círculo) | anel tracejado (z −5); sem alvo: sem hitstop, câmera nem fagulha | vivo (anel e manchas congelam no hitstop; Combate V1/V3, decidido 2026-11-13) | Combate V3 | — | 3 | `sfx_golpe_area` |
 | `disparo` (do jogador) | recuo, respingo, projétil em osso, rastro | vivo | Combate V4 | — | 3 | `sfx_disparo` |
 | fim do projétil do jogador | 2 quadros ou respingo de 24 px | apres. | Combate V4 | — | 4 | `sfx_projetil_fim` |
 | `investida` | poses, rastro de pincelada; 1º alvo pesado, os seguintes leves | vivo | Combate V5, R10 | pesado, depois leve | 3 | `sfx_investida` |
@@ -107,14 +107,14 @@ separadas.
 
 **R4. Prioridade e corte.** **P0** — o **orçamento nunca corta** (Combate V15; Pipeline R9):
 o flash de acerto, o telégrafo e o telégrafo partido, a inversão do jogador e os passes
-obrigatórios (transição, morte); o impact frame é **P1** (recusa e chefe) e só o limitador F6 e a preempção R7 do Pipeline o negam. **P1**: recusa de morte e
+obrigatórios (transição, morte); o impact frame é **P1** (recusa e chefe) e só o limitador F6, a preempção R7, o corte na Transição e na Morte e a espera da Bênção (Pipeline AC-PV-81) o negam. **P1**: recusa de morte e
 chefe. **P2**: resto do acerto pesado, acerto marcado, marca e letreiro do `quebrou`, morte
 de elite. **P3**: golpe, disparo, resto do acerto leve, status, explosão, selo, esquiva. **P4**:
 poeira, manchas, rachaduras, rastros, fim de projétil, respostas mínimas das lacunas. Quando o
 **orçamento passa do teto** (uso ≥ 1,0, F3), o Feedback escolhe a vítima **de P4 para P2**, o
 mais antigo primeiro, **antes** da regra do Pipeline R9 e do Combate V15 ("sai o mais antigo do
-relógio de apresentação"), que só vale quando não sobra nada de P4 a P2 (proposta da revisão
-cruzada de 2026-11-11, a confirmar com o Pipeline); **P0 e P1 nunca saem por orçamento**. O
+relógio de apresentação"), que só vale quando não sobra nada de P4 a P2 (corte de vítima
+P4 → P2 **confirmado**, decisão do usuário, 2026-11-12); **P0 e P1 nunca saem por orçamento**. O
 **limitador F6** e a **preempção R7** do Pipeline continuam valendo por cima: um flash de
 telégrafo negado fica sem o osso (mas o telégrafo existe), e um impact frame negado ou
 preemptado não é "cortado" por este GDD.
@@ -202,7 +202,7 @@ estrelas podem passar sobre a área de um telégrafo, mas **nunca ocultam o seu 
 **R12. Preempção no mesmo passo.** Ordem do limitador F6: **chefe > recusa > passes >
 telégrafos** (Pipeline). Impact frame: chefe vence recusa (Pipeline R7); **no sprite do
 jogador, o impact frame vence a inversão do `jogador_atingido` enquanto durar o `modo_impacto`**,
-e a inversão (hitstop do golpe + 4 passos vivos, Combate R17: 10 no caso comum) é do relógio vivo e, no passo da recusa, vale o hitstop **pedido pelo golpe** (6, não o 18 da recusa); o que ainda restar volta depois do `modo_impacto` (a confirmar com o Combate, OQ 8). **Impulso de câmera:**
+e a inversão (hitstop do golpe + 4 passos vivos, Combate R17: 10 no caso comum) é do relógio vivo e, no passo da recusa, vale o hitstop **pedido pelo golpe** (6, não o 18 da recusa); os 6 de hitstop se consomem dentro do congelamento de 18, e depois do `modo_impacto` voltam os **4 passos vivos** restantes da inversão (decidido 2026-11-13, Combate V10). **Impulso de câmera:**
 o Feedback envia **um por passo**: vale o maior preset (**chefe > pesado > leve**; empate: a maior
 `escala`; `recusou_morte` vence `jogador_atingido`); a Cena soma o que recebe (Cena F5) e a
 `escala` é entrada do contrato da Cena (nota de edição pendente). Letreiros "Quebrou!": **no
@@ -303,7 +303,7 @@ emissores) **não** são knobs daqui: são do Combate, da Cena e do Pipeline (R1
 - **Vários eventos no mesmo passo:** a R12 resolve (um impulso de câmera, um impact frame, 1
   letreiro por passo); as demais respostas coexistem, cortadas só pela R4/R8.
 - **Alvo morre com número aberto:** o número termina sua vida normal (não some com o alvo).
-- **Dano 0 (escudo ou armadura absorveu tudo):** **não** gera número; o acerto mantém o resto da
+- **Dano 0 (M = 0):** **não** gera número; o acerto mantém o resto da
   resposta (flash, estrela) pelo seu peso.
 - **Número de alvo que morre no mesmo passo:** aparece (o golpe que matou conta); o fio e o sinal
   de status do alvo somem na morte (HUD, Status).
@@ -317,7 +317,7 @@ emissores) **não** são knobs daqui: são do Combate, da Cena e do Pipeline (R1
 - **Degradação no meio de um impact frame, telégrafo, flash de acerto ou inversão:** nunca corta P0 nem P1 (R4/R8); só P4 → P2.
 - **Uso oscilando perto de 0,90 ou 0,95:** a histerese 0,90/0,75 e 0,95/0,85 evita o liga-desliga (F3).
 - **Muitos inimigos com status (> 9):** 1 sinal por inimigo (Status) e os números agregados de status competem pelo teto de 6 (saem primeiro, F2); o status novo com 6 vivos de golpe/dourado não nasce.
-- **Pausa:** os dois relógios congelam (Pipeline F5/F8); as respostas em curso retomam de onde pararam. **Bênção:** os relógios congelam, mas **números e letreiros somem** no quadro em que ela abre e **não voltam** ao fechar (Pipeline R2 e AC-PV-71, decisão da revisão cruzada de 2026-11-11); as demais respostas retomam de onde pararam.
+- **Pausa:** os dois relógios congelam (Pipeline R8/F8); as respostas em curso retomam de onde pararam. **Bênção:** os relógios congelam, mas **números e letreiros somem** no quadro em que ela abre e **não voltam** ao fechar (Pipeline R2 e AC-PV-71, decisão da revisão cruzada de 2026-11-11); as demais respostas retomam de onde pararam.
 - **Transição de câmara:** fila, números e respostas vivas descartados (R13); os ganchos de áudio
   já emitidos tocam, o VFX não.
 - **`camara_limpa` com a Transição logo depois:** o VFX P4 pode ser descartado; o gancho toca.
@@ -345,7 +345,7 @@ emissores) **não** são knobs daqui: são do Combate, da Cena e do Pipeline (R1
 | Selo e Fluxo, Efeitos de status, Movimento e esquiva | entra | leitura | `selo`, `selo_fim`, status e dano agregado, `esquiva` |
 | IA de inimigos e elites | entra | leitura | `surgindo`, elite, fase |
 | Câmaras e ondas, Portas e recompensas | entra | leitura | `camara_limpa`, onda nova, portas abertas, `recompensa` |
-| Conteúdo orientado a dados | entra | rígida | `FeedbackTuning` (nota de edição pendente) |
+| Conteúdo orientado a dados | entra | rígida | `FeedbackTuning` |
 | HUD | paralelo | independente | o HUD fica com fio, prompt e números de Vida/Fluxo; o Feedback não os desenha |
 | Áudio (audio-director, sem GDD no MVP) | sai | por contrato | nomes de gancho e prioridade |
 | Acessibilidade e opções (reservado) | entra | por contrato | opções 3, 4, 5, 7 e encurtar o hitstop |
@@ -435,5 +435,5 @@ vídeo curto em `production/qa/evidence/`).
 | 4 | Áudio: lista de sons, mixagem e vozes (ganchos da R3/R10 e `vozes_max_*`) | audio-director | Áudio |
 | 5 | Conteúdo: `FeedbackTuning` (9 campos) e erros `FB1`–`FB3` como códigos V* | Conteúdo | próxima edição |
 | 6 | Chefes (fatia vertical): intro, transição de fase e zoom de intro do chefe; barra de chefe | Chefes | fatia vertical |
-| 8 | Relógio de `area` e do contorno de invulnerabilidade e duração da inversão no passo da recusa: o Combate V1/V10/R17 é a fonte | Combate | `/review-all-gdds` |
+| 8 | **Decidido (2026-11-13):** `area` e contorno de invulnerabilidade no relógio vivo; no passo da recusa a inversão vale o hitstop do golpe (Combate V1/V10) | Combate | — |
 | 7 | **Edições pendentes:** Combate (V7 cita a fonte única e a exceção do dourado; V14 diz que o Feedback envia o impulso; A1 provisória; crítico = flag `enesimo_acerto`), HUD (OQ 6 encerrada: fio e prompt ficam no HUD), Cena (F5 aceita `escala` como entrada; um impulso por passo é do Feedback), Pipeline (`modo_impacto` negado: só o flash sai), Conteúdo (`FeedbackTuning`, 9 campos) | Combate, HUD, Cena, Pipeline, Conteúdo | `/review-all-gdds` |

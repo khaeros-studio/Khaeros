@@ -423,13 +423,16 @@ grupo, ninguém morre).
 
 **Leitura:** o Selo é fraco como dano em alvo único e forte em grupo, como diz
 o Overview ("prende a multidão"); no chefe é quase só lentidão (108 → 54 px/s).
-**Meta** (decisão do usuário, 2026-11-10, aviso SV12; passa a valer com **M = 4**,
-o `teto_multiplicador_dano` provisório do Modificadores F2, decisão de 2026-11-12):
+**Meta** (decisão do usuário, 2026-11-10, aviso SV12; só se avalia com o **mesmo M para
+o Selo e para a arma**, onde o fator se cancela, p. ex. M = 4, o
+`teto_multiplicador_dano` provisório do Modificadores F2; decisão de 2026-11-13: o Selo
+não tem teto próprio de M):
 f_selo entre 0,05 e 0,20 em 1 alvo e ≤ 0,45 em grupo de 5 (proposta, não cânone).
 **Conta com M = 4:** com `M_selo` e `M` no mesmo valor (os dois no teto de 4), o fator
 se cancela na razão `f_selo`; os números da tabela acima não mudam (Lâmina 10,5% e
-31,8%; Ressonância 13,4% e 34,4%), dentro da meta. Cenário misto (M do Selo no teto e
-M da arma menor) não foi calculado aqui.
+31,8%; Ressonância 13,4% e 34,4%), dentro da meta. **Cenário misto** (M do Selo = 4 e
+M da arma menor; p. ex. Lâmina com 1 alvo ≈ 31,9%) fica **fora da meta e do SV12**: é só
+um aviso informativo para o `/balance-check`, não um erro nem um SV12.
 
 ### F6. Centro do Selo preso ao retângulo jogável
 
@@ -513,7 +516,7 @@ catálogo e a run não começa; **avisos** ficam no registro de validação.
 | SV9 | aviso, cruzada com Inimigos | `margem_borda_px` > `raio_px` + 2 × r_min | inimigo na parede fora de todo Selo |
 | SV10 | aviso, informativo, cruzada com Inimigos | para cada comum do pool e p de 0 a `p_max`: Vida_p ≤ δ × D, ou Vida_p = k × δ × D para k de 1 a 3 (tolerância 1e-6) | o Selo vira o golpe que mata, ou a morte no último passo depende do double. **Dispara no catálogo de fábrica:** Anomalia p 0 e Fenda p 1 (aceito, decisão do usuário) |
 | SV11 | aviso | campo fora da faixa de design | as contas deste GDD deixam de valer |
-| SV12 | aviso, cruzada com Armas | f_selo (F5, M = 4, o teto do Modificadores F2) fora de 0,05–0,20 em 1 alvo, ou > 0,45 em grupo de 5, em alguma arma | o Selo vira enfeite ou o dano principal |
+| SV12 | aviso, cruzada com Armas | f_selo (F5, avaliado só com o mesmo M para Selo e arma, p. ex. M = 4, o teto do Modificadores F2; o cenário misto não entra, é aviso informativo do `/balance-check`) fora de 0,05–0,20 em 1 alvo, ou > 0,45 em grupo de 5, em alguma arma | o Selo vira enfeite ou o dano principal |
 
 **Saída do validador:** uma entrada por regra e por objeto; o erro suspende o
 aviso da mesma regra. **Constantes do validador** (proposta): `alvos_ref` 3,
@@ -727,7 +730,7 @@ quando o critério diz.
 **Troca de câmara e dados**
 
 - **AC-SF-23 [L] R6 — apagar.** Dois Selos ativos e a Transição: os dois somem no quadro da metade do wipe, sem `selo_fim`, e nenhum fere no passo seguinte da câmara nova.
-- **AC-SF-24 [I] R7/Formulas — dado e validação.** Campo do `SealTuning` fora de SV1–SV3 → erro e a run não começa; fora da faixa → SV11. O catálogo de fábrica produz o SV10 de Anomalia p 0 e Fenda p 1 e nenhum outro aviso (roda no host do MV1, Movimento OQ3); o SV12 não dispara com as Armas de fábrica (Lâmina 10,5% e 31,8%; Ressonância 13,4% e 34,4%).
+- **AC-SF-24 [I] R7/Formulas — dado e validação.** Campo do `SealTuning` fora de SV1–SV3 → erro e a run não começa; fora da faixa → SV11. O catálogo de fábrica produz o SV10 de Anomalia p 0 e Fenda p 1 e nenhum outro aviso (roda no host do MV1, Movimento OQ3); o SV12 não dispara com as Armas de fábrica, com o mesmo M para Selo e arma (Lâmina 10,5% e 31,8%; Ressonância 13,4% e 34,4%); o cenário misto não dispara o SV12.
 - **AC-SF-25 [L] R1/R2 — hitstop.** Selo ativo, recarga 20 e Fluxo 50; hitstop de 6 passos: Selo (restante), recarga e Fluxo não mudam durante os 6; no 7º passo voltam a andar.
 - **AC-SF-26 [L] F1 — item 8.** Fluxo 38,9; o Pulso acerta no item 8 do passo 0: o Fluxo sai do passo com 41,96 e o Selo só pode sair no passo 1.
 - **AC-SF-27 [L] R2 — buffer.** `selo` tocado no passo 0 com Fluxo 39,00 (sem acertos): o Fluxo só chega a 40 no 17º passo; com o prazo de 10 passos do buffer vencido antes disso, o Selo não sai. Com Fluxo 39,70 (chega a 40 no 5º passo), sai no 5º.
@@ -741,7 +744,8 @@ quando o critério diz.
 | 2 | Câmara limpa enche o Fluxo esperando (22–28 s): parar a regeneração com a câmara limpa, ou aceitar? | Câmaras e ondas / Run | GDDs de Câmaras e Run |
 | 3 | Cor da barra e do Selo: o Art Bible reserva magenta para perigo e custo, e o game-concept chama o Fluxo de "magenta de Fluxo". A barra é magenta? | art-director | Art Bible / `/asset-spec` |
 | 4 | **Decidido (2026-11-12):** o Selo permanente é aceito. Pergunta aberta para o playtest: "Fluxo enche esperando" (Fluxo cheio parado, sem gastar), medida pela Telemetria; sem mudança de número | game-designer | primeiro playtest |
-| 5 | **Decidido (2026-11-12):** teto `teto_multiplicador_dano` = 4,0 provisório (Modificadores F2); SV12 e a meta `f_selo` valem com M = 4 | Modificadores | `/balance-check` |
+| 5 | **Decidido (2026-11-12):** teto `teto_multiplicador_dano` = 4,0 provisório (Modificadores F2); SV12 e a meta `f_selo` valem com M = 4 (com o mesmo M para Selo e arma; o cenário misto é aviso informativo, OQ 6) | Modificadores | `/balance-check` |
+| 6 | **Decidido 2026-11-13:** o Selo não tem teto próprio de M; a meta de `f_selo` e o SV12 só se avaliam com o mesmo M para Selo e arma. O cenário misto (M do Selo = 4, M da arma menor: Lâmina com 1 alvo ≈ 31,9%) é aviso informativo para o `/balance-check` | Selo / Modificadores | `/balance-check` |
 | 6 | Assimetria de Fluxo em grupo (Lâmina até 2× a Ressonância) | `/balance-check` | depois do primeiro playtest |
 | 7 | Índice: linha 10 com Movimento, IA, Câmaras e Run em Depends On | usuário / producer | próxima edição do índice |
 | 8 | Selo no mesmo passo do disparo da investida (cânone aceito aqui): conferir com Combate e IA | game-designer | `/design-review` |

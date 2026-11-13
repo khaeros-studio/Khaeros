@@ -453,6 +453,7 @@ Somam-se às faixas do V2 do Conteúdo. **Erros** vão para a tela de erros do c
 | Câmaras e ondas | Forte | `sortear_elite`, regras de elite, alvo de dano por câmara (R12) |
 | Combate núcleo | Forte | lista de inimigos, estado, `ferir_jogador`, `disparar_projetil` |
 | Telégrafos | Forte | o início da preparação e o passo do disparo |
+| Input e controle | Suave, **por contrato** | a **consulta de alvos** definida no Input: inimigos fora do spawn, em ordem estável (mira do gamepad) |
 | Chefes (Vertical Slice) | Forte | a máquina de estados e os contratos |
 | Criatura do pacto (Alpha) | Suave | alvos e a lista de inimigos |
 | Feedback de combate (VFX) / Áudio / HUD | Suave | fase de cada inimigo, elite |
@@ -462,7 +463,7 @@ Somam-se às faixas do V2 do Conteúdo. **Erros** vão para a tela de erros do c
 
 - Combate, Telégrafos, Selo e Fluxo, Efeitos de status, RNG, Modificadores e
   Conteúdo já citam a IA.
-- Câmaras, Chefes, Criatura, VFX, Áudio, HUD e Telemetria ainda não existem.
+- Chefes, Criatura e Áudio ainda não existem; Câmaras, Feedback (VFX), HUD e Telemetria já existem e devem listar a IA em Dependencies (conferência pendente). **Armas das Doutrinas** (Forte): a F5 usa a `vida_max` das armas e o IV7 é cruzado com Armas (AV3/AV4).
   Cada um, ao ser escrito, deve listar "IA de inimigos e elites" em Dependencies.
 - **Índice:** a linha 14 lista Combate, Telégrafos, RNG, Conteúdo e Modificadores;
   acrescentar Selo e Fluxo e Efeitos de status (suaves), Câmaras (por contrato) e

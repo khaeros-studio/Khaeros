@@ -9,7 +9,7 @@
 
 > **Nota (2026-11-11, Feedback de combate):** pendente: F5 aceita `escala` como entrada do impulso; a regra de um impulso por passo é do Feedback (a Cena soma o que recebe).
 
-> **Nota (2026-11-11, revisão cruzada):** pendente: Dependencies dizem que GDDs existentes "não existem"; a F3 ainda cita o relógio real (R8/F5 já usam o `t_apres`). (Resolvidos em 2026-11-12: R8 e F5 com `escala`, "zoom principal", `dir` nulo, `t_apres`, remetente único; estados Bênção/Morte/Transição.)
+> **Nota (2026-11-11, revisão cruzada):** (Resolvidos em 2026-11-12: Dependencies atualizadas para os GDDs existentes; R7, F3, R12 e Edge Cases no `t_apres`; ACs 26–30 e novo AC-30b; AC-19 e AC-37 corrigidos; R8 e F5 com `escala`, "zoom principal", `dir` nulo, `t_apres`, remetente único; estados Bênção/Morte/Transição.)
 
 ## Summary
 
@@ -185,9 +185,10 @@ diferente de 1, vale a F7.
   padrão `INHERIT`, então, com a interpolação do projeto ligada, o motor o
   interpolaria de novo entre passos e os degraus voltariam. (O `Parallax2D` já
   vem com `OFF`.)
-- O **tempo real** da câmera (Δt da F3 e idade dos impulsos da F5) vem da
-  diferença de `Time.get_ticks_usec()` entre quadros, que não é escalada por
-  `Engine.time_scale`. Assim a câmera não depende de como o hitstop é feito.
+- O **relógio da câmera** (Δt da F3 e idade dos impulsos da F5) é o `t_apres`
+  do Pipeline F8 (com `dt_max_apres`), não `Time.get_ticks_usec()`: não é
+  escalado por `Engine.time_scale` e fica parado em Pausa e Bênção. Assim a
+  câmera não depende de como o hitstop é feito.
 - **O hitstop não usa `Engine.time_scale`.** Ele é um contador de passos do
   Combate núcleo: a física continua rodando a 60 passos/s e os sistemas vivos
   pulam o passo enquanto o contador não zera. O Input amostra e guarda o buffer
@@ -213,7 +214,7 @@ diferente de 1, vale a F7.
   O teto de 1,15 vale para o zoom **total**, impulsos mais intro de chefe (F5).
 - Chute e tremor são multiplicados pela opção **Tremor de câmera** (0–100%).
 - Com **Redução de movimento** ligada, zoom e lookahead ficam desligados.
-- Os impulsos correm em **tempo real**, não congelam no hitstop: o "soco" é
+- Os impulsos correm em **tempo de apresentação** (`t_apres`), não congelam no hitstop: o "soco" é
   visto durante o congelamento. O relógio é o `t_apres` do Pipeline F8 (com
   `dt_max_apres`), não `ticks_usec`: fica parado em Pausa e Bênção. Ao entrar em
   Bênção a câmera zera os impulsos, como na Pausa.
@@ -252,7 +253,7 @@ lookahead do mouse (`R_mouse`), limites de tamanho de câmara, parâmetros de
 chute, tremor e zoom, teto do zoom (1,15) e parallax por camada.
 
 **R12. Injeção.** A câmera expõe "tela → mundo" e recebe impulsos por interface.
-O relógio real da R7 também é injetado (padrão: `Time.get_ticks_usec()`), assim
+O relógio de apresentação da R7 (`t_apres`, Pipeline F8) também é injetado, assim
 como o `CameraTuning` (Conteúdo). Os testes injetam câmera falsa, impulsos
 roteirizados e relógio roteirizado.
 
@@ -260,16 +261,17 @@ roteirizados e relógio roteirizado.
 
 | Estado | Significado | Entra quando | Sai para |
 |---|---|---|---|
-| Seguindo | Persegue o alvo; impulsos ativos | Começo da câmara, fim da pausa | Corte, Pausa, Intro de chefe |
+| Seguindo | Persegue o alvo; impulsos ativos | Começo da câmara, fim da pausa | Corte, Pausa, Bênção, Morte, Transição, Intro de chefe |
 | Corte | 1 quadro: posiciona direto no alvo e zera os impulsos | Troca de câmara | Seguindo |
-| Pausa | Câmera parada; impulsos zerados | Pausa do jogo | Seguindo |
-| Bênção | Câmera parada; impulsos zerados/parados (`t_apres` parado) | Tela de Bênção abre | Seguindo |
-| Morte | Impulsos zerados/parados | Morte do jogador | (fim da run) |
-| Transição | Impulsos zerados/parados | Transição de câmara | Corte / Seguindo |
+| Pausa | Câmera parada; impulsos zerados | Pausa do jogo | Seguindo (ou Bênção, se a Pausa abriu por cima da Bênção: a câmera fica parada) |
+| Bênção | Câmera parada; impulsos zerados (`t_apres` parado) | Tela de Bênção abre | Seguindo |
+| Morte | Impulsos zerados | Morte do jogador | (fim da run) |
+| Transição | Impulsos zerados | Transição de câmara | Corte / Seguindo |
 | Intro de chefe (fatia vertical) | Enquadramento e zoom ≤ 1,15 comandados pelo GDD de Chefes; o jogador não controla. Impulsos permitidos; o teto de 1,15 vale para o zoom total (F5); com Redução de movimento, o zoom da intro fica desligado | O chefe entra | Seguindo |
 
 O hitstop **não** é estado da câmera: ela continua seguindo (o jogador está
-parado) e os impulsos correm em tempo real.
+parado) e os impulsos correm no tempo de apresentação (`t_apres`, que corre no
+hitstop e para em Pausa e Bênção).
 
 ### Interactions with Other Systems
 
@@ -278,7 +280,8 @@ parado) e os impulsos correm em tempo real.
 | Input e controle | conversão tela → mundo (R9) | `fonte_mira` e `intensidade_mira` (amostra, Input R2) e consulta de cursor no quadro de render (Input R5), para o lookahead (F2) | este GDD (conversão), Input (amostra e consulta) |
 | Pipeline visual | camadas e ordem z (R4); viewport e stretch | shaders por camada, transição entre câmaras | este GDD (camadas), Pipeline (como desenha) |
 | Movimento e esquiva | plano de jogo em px (R3), limites da câmara | posição do jogador (alvo) | este GDD |
-| Combate núcleo / Feedback de combate (VFX) | requisito: hitstop como contador de passos, sem `Engine.time_scale` (R7) | impulsos de câmera (chute, tremor, zoom); valores de hitstop (`CombatTuning`) | este GDD (formato do impulso), Combate (hitstop) |
+| Combate núcleo | requisito: hitstop como contador de passos, sem `Engine.time_scale` (R7) | valores de hitstop (`CombatTuning`); não envia impulsos | Combate (hitstop) |
+| Feedback de combate (VFX) | formato do impulso (R8) | impulsos de câmera (chute, tremor, zoom); é o remetente único | este GDD (formato do impulso) |
 | Câmaras e ondas / Run e regiões | limites de tamanho (R6) | retângulo jogável e sangria de cada câmara; evento de troca | Câmaras |
 | Telégrafos | camadas e z (R4: preenchimento em z −5, contorno em z 5; Pipeline visual R5) | — | Pipeline visual / Telégrafos |
 | Acessibilidade e opções | — | Tremor de câmera (0–100%), Redução de movimento | Acessibilidade |
@@ -295,7 +298,7 @@ parado) e os impulsos correm em tempo real.
 > conferidas no Godot 4.7.2 instalado (`scale_mode` aceita
 > `fractional`/`integer`; `aspect` aceita `keep_height`). Revisão de
 > 2026-11-05 (usuário, após `/design-review`): lookahead escalado pela distância
-> do cursor (F2), `P` interpolado e relógio real (R7), teto conjunto do zoom (F5)
+> do cursor (F2), `P` interpolado e relógio de apresentação (`t_apres`, R7), teto conjunto do zoom (F5)
 > e deriva do parallax (F7, nova). Re-review de 2026-11-05 (APPROVED; aplicado
 > a pedido do usuário): interpolação OFF no nó da câmera (R7), âncora do
 > parallax (R4), validação cruzada do tamanho de câmara (Edge Cases, OQ 9) e
@@ -364,7 +367,7 @@ The camera_smoothing formula is defined as:
 |---|---|---|---|---|
 | h | float | 0,08 – 0,25 s | data file | meia-vida, 0,12 s |
 | k | float | ≈ 2,8 – 8,7 s⁻¹ | calculated | taxa; h = 0,12 → k ≈ 5,78 |
-| Δt | float | > 0 s | calculated | tempo real do quadro de render, de `Time.get_ticks_usec()` (R7) |
+| Δt | float | > 0 s | calculated | tempo de apresentação do quadro de render: diferença de `t_apres` (Pipeline F8, limitada por `dt_max_apres`; parado em Pausa e Bênção; R7). No quadro em que o Pipeline zera o `t_apres` (metade do wipe) a diferença não é usada. |
 | alvo_preso | vec2 | dentro do F4 | calculated | alvo já preso aos limites |
 | pos | vec2 | dentro do F4 | calculated | centro da câmera base |
 
@@ -422,7 +425,7 @@ The camera_impulse formula is defined as:
 **Variables:**
 | Variable | Type | Range | Source | Description |
 |---|---|---|---|---|
-| t_i | float | ≥ 0 s | calculated | idade real do impulso (corre no hitstop) |
+| t_i | float | ≥ 0 s | calculated | idade do impulso em tempo de apresentação (`t_apres`: corre no hitstop, para em Pausa e Bênção) |
 | h_i | float | 0,05 – 0,30 s | data file | meia-vida do preset |
 | Ak_i / As_i | float | 0 – 32 / 0 – 14 px | data file | amplitude do chute / do tremor |
 | Z_i | float | 0 – 0,10 | data file | zoom extra |
@@ -454,7 +457,7 @@ preset de câmera próprio. Se o Combate mudar um valor, esta tabela segue o
 
 - Pesado em t = 0,1 s, dir (1, 0), s_t = 0,5, ruído (0,5; −1) → d = 0,5 →
   (10 + 2, −4) × 0,5 = (6, −2), com módulo ≈ 6,32 px.
-- Dois impulsos de chefe em t = 0 → 64 px, limitado a 40.
+- Dois impulsos de chefe em t = 0 → 64 px, limitado a 40 (só teste do teto: em jogo o Feedback manda um impulso por passo).
 - Chefe em t = 0,6 s → zoom 1,025. Com rm = 1 → zoom 1.
 - Intro de chefe com zoom_intro 1,10 e um pesado em t = 0 (zoom 1,04) →
   zoom_total 1,144. Com zoom_intro 1,15 → 1,196, limitado a 1,15.
@@ -574,9 +577,9 @@ jogável + sangria + deriva.
   interpolada do jogador (R7) e anda a cada quadro de render, sem degraus de
   60 Hz.
 - **Durante o hitstop** (contador de passos do Combate; `Engine.time_scale`
-  fica fora, R7): a câmera e os impulsos usam o relógio real (R7), então não
-  congelam. Se alguém escalar `time_scale` (debug, câmera lenta), a câmera
-  continua em tempo real pelo mesmo motivo.
+  fica fora, R7): a câmera e os impulsos usam o `t_apres` (R7; Pipeline F8), então
+  não congelam. Se alguém escalar `time_scale` (debug, câmera lenta), a câmera
+  continua no relógio de apresentação pelo mesmo motivo.
 - **Se muitos impulsos chegarem juntos** (vários abates): o deslocamento soma até
   no máximo 40 px e o zoom até 1,15. No máximo **16 impulsos ativos**; o mais
   velho sai primeiro.
@@ -607,6 +610,7 @@ jogável + sangria + deriva.
 | Câmaras e ondas (via dado) | Suave, por contrato | Retângulo jogável e sangria de cada câmara; evento de troca | Usa uma câmara padrão de 1920×1080 |
 | Acessibilidade e opções (via configurações) | Suave, por contrato | Tremor de câmera (0–100%), Redução de movimento | Padrões: tremor 100%, Redução desligada (Art Bible §7.9) |
 | Input e controle (via contrato) | Suave, por contrato | `fonte_mira`, `intensidade_mira` e consulta de cursor (Input R2, R5), para o lookahead (F2) | Sem lookahead (`a` = 0) |
+| Pipeline visual (via contrato) | Forte, por contrato | `t_apres`, `dt_max_apres` e `progresso_wipe` (Pipeline F8, R7) | Sem relógio de apresentação para a suavização e os impulsos, e sem o quadro do corte (R10) |
 
 As opções e o retângulo das câmaras chegam como **valores injetados**
 (configurações e dado da câmara). Com o Input, a dependência vai nos dois
@@ -629,8 +633,10 @@ Foundation não passa a depender de sistemas de camadas mais altas.
 
 **Bidirecionalidade:** Pipeline visual, Movimento e Input já citam a Cena 3/4 no
 índice. Câmaras e ondas e Feedback de combate (VFX) passam a citá-la (decisão do
-usuário, 2026-11-05). Nenhum desses GDDs existe, exceto o de Input; cada um, ao
-ser escrito, deve listar "Cena 3/4 e câmera" em Dependencies. O GDD de Conteúdo
+usuário, 2026-11-05). Já existem os GDDs de Input, Movimento, Pipeline visual,
+Câmaras e ondas, Feedback de combate, Combate núcleo, Telégrafos e Conteúdo (cada
+um deve listar "Cena 3/4 e câmera" em Dependencies: conferir na revisão); só o de
+Chefes ainda não existe e, ao ser escrito, deve listá-la. O GDD de Conteúdo
 já lista o `CameraTuning` na tabela de `*Tuning` por sistema (R1) e na linha da
 Cena em Interactions (Open Question 8, fechada em 2026-11-06).
 
@@ -785,7 +791,9 @@ puros.
   - Em 360 direções e distâncias do cursor de 0 a 2000 px, |alvo − P| ≤ 120, e
     |alvo − P| nunca diminui quando a distância aumenta na mesma direção.
   - Redução de movimento → P; mira automática → P.
-  - Analógico direito com módulo 0,5 depois da zona morta → lookahead de 60 px.
+  - Analógico direito: o lookahead depende de `intensidade_mira`. Com s bruto 0,5
+    depois da zona morta, o Input F2 dá `intensidade_mira` 0,4 e o lookahead é
+    48 px (120 × 0,4). Com `intensidade_mira` 0,5 direto, 60 px.
 - **AC-20 [L] R9** Duas câmeras com a mesma `pos_seguir` e lookahead diferente →
   direção da mira idêntica.
 
@@ -808,18 +816,18 @@ puros.
   zoom 1,15.
 - **AC-25 [L]** Chefe em t 0,6 → zoom 1,025. rm = 1 → zoom 1. s_t = 0 → desloc 0
   e zoom 1,025.
-- **AC-26 [L]** Leve ativo em t 0,21 (d = 0,054) e descartado em t 0,22
+- **AC-26 [L]** (relógio de apresentação roteirizado, `t_apres`) Leve ativo em t 0,21 (d = 0,054) e descartado em t 0,22
   (d = 0,047). 17 impulsos enviados → 16 ativos, e o primeiro saiu.
-- **AC-27 [L]** s_t 0,25 → exatamente 1/4 do deslocamento de s_t 1, abaixo do
+- **AC-27 [L]** (relógio de apresentação roteirizado, `t_apres`) s_t 0,25 → exatamente 1/4 do deslocamento de s_t 1, abaixo do
   teto.
 - **AC-28 [I] hitstop** Pesado durante um hitstop roteirizado como contador de
   passos (física rodando, sistemas vivos parados, `Engine.time_scale` = 1) e
-  relógio real roteirizado (R12) avançando 0,1 s → d = 0,5, com o jogo parado.
-- **AC-29 [I] pausa**
+  relógio de apresentação roteirizado (`t_apres`, R12) avançando 0,1 s → d = 0,5, com o jogo parado.
+- **AC-29 [I] pausa** (relógio de apresentação roteirizado, `t_apres`)
   - Impulso ativo → pausa → desloc 0, zoom 1 e `pos` constante.
   - Ao despausar, o impulso não volta.
   - Impulso enviado durante a pausa → descartado.
-- **AC-30 [L] estados**, com relógio e eventos roteirizados:
+- **AC-30 [L] estados**, com relógio de apresentação roteirizado (`t_apres`) e eventos roteirizados:
   - Seguindo + troca de câmara → Corte: no mesmo quadro, `pos` = alvo preso e 0
     impulsos ativos; no quadro seguinte, o estado é Seguindo.
   - Seguindo + pausa → Pausa: `pos` constante por 60 quadros, desloc 0, zoom 1;
@@ -829,6 +837,19 @@ puros.
   - Intro com zoom_intro 1,3 → zoom_total 1,15. zoom_intro 1,10 + pesado em
     t = 0 → 1,144. zoom_intro 1,15 + pesado → 1,15. Com Redução de movimento →
     zoom_total 1.
+- **AC-30b [L] Bênção, Morte e Transição** (relógio de apresentação roteirizado,
+  `t_apres`; R8, States):
+  - Impulso ativo + Tela de Bênção abre → Bênção: desloc 0, zoom 1, 0 impulsos
+    ativos; `pos` constante por 60 quadros com `t_apres` parado.
+  - Impulso enviado durante a Bênção → descartado (como na Pausa, AC-29); ao fechar
+    a Bênção, nenhum impulso anterior volta.
+  - Seguindo + Morte do jogador → Morte, e Seguindo + Transição → Transição: nos
+    dois, impulsos zerados e câmera parada; impulso que chega é descartado.
+  - Pausa aberta por cima da Bênção → fechar a Pausa → volta a **Bênção**, não a
+    Seguindo: `pos` constante e 0 impulsos no quadro do retorno; só ao fechar a
+    Bênção → Seguindo.
+  - A coluna "Sai para" de Seguindo lista Corte, Pausa, Bênção, Morte, Transição
+    e Intro de chefe (conferência da tabela de estados).
 - **AC-31 [M] Visual/Feel** O lead assina os presets leve, pesado e chefe
   (placeholders), com screenshot do quadro de pico.
 
@@ -853,7 +874,8 @@ puros.
   2580×1080; de volta a 2560×1080, volta a `keep_height` com 1920×1080.
 - **AC-37 [L] R9** Câmera falsa com `pos` do último render = (960, 540),
   P_anterior (0, 0), P_atual (33, 0), f_i 0,5 (P = (16,5; 0)), janela
-  1920×1080 e cursor em (960, 540) → o Input recebe a mira (927, 540), medida a
+  1920×1080 e cursor em (960, 540) → o Input recebe a mira (927, 540) como **vetor bruto antes
+  de normalizar** (|mirar| = 1 após a normalização, Input AC-02), medida a
   partir de `P_atual`, e não (943,5; 540).
 - **AC-38 [I]+[M] R7** **[I]** Com `physics/common/physics_interpolation`
   ligado, o nó da câmera tem `physics_interpolation_mode` = `OFF`. **[M]** Num

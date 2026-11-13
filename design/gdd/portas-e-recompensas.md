@@ -12,7 +12,7 @@
 
 > **Nota (2026-11-11, Telemetria local):** pendente: evento de porta escolhida com `tipo` e `opcoes` (tipos oferecidos).
 
-> **Nota (2026-11-11, revisão cruzada):** pendente: PV com Provação > 0 como erro sem regra de validação.
+> **Nota (2026-11-13):** Provação > 0 como erro agora é a regra PV7 (validação da `RewardTable`).
 
 > **Decisões do usuário (2026-11-12) aplicadas:** a câmara de índice 5 do Limiar não dá recompensa (só a vitória, Run R4); a porta depois do índice 4 é forçada `ultima`; 3 escolhas livres (depois dos índices 0, 1 e 3); recompensas concedidas nos índices 1, 2 e 4; o `p_max` é das Câmaras (R3).
 
@@ -282,12 +282,13 @@ Somam-se às faixas do V2 e do V8 do Conteúdo (pesos ≥ 0, soma > 0). **Erros*
 |---|---|---|---|
 | PV1 | erro | `chance_3_portas` ∉ [0, 1], `cura_pct` ∉ [0, 1], `fragmentos_base` < 0 ou `fragmentos_passo_prof` < 1 | sorteio ou quantidade sem sentido |
 | PV2 | erro | `primeira_recompensa` fora de {`bencao`, `fragmentos`, `cura`} (`provacao` é reservado) | 1ª câmara sem recompensa |
+| PV7 | erro | `pesos` com `provacao` > 0 (a Provação é reservada, Alpha) | a Provação não existe no MVP; o peso não pode sair no sorteio |
 | PV3 | aviso | menos de 3 tipos com peso > 0 e `chance_3_portas` > 0 | três portas distintas são impossíveis |
 | PV4 | aviso | `cura_pct` ≥ `santuario_cura` (0,4, Câmaras) | a porta cura mais que o santuário |
 | PV5 | aviso, cruzada com Bênçãos | F2: P(bênção na escolha) < 0,8 | pouca Tradição por run (hoje 0,895) |
 | PV6 | aviso | campo fora da faixa de design | as contas deste GDD deixam de valer |
 
-**Saída do validador:** uma entrada por regra e por objeto; o erro suspende o aviso da mesma regra. PV5 depende de dados de outros sistemas e roda onde roda o MV1 do Movimento (Movimento OQ3).
+**Saída do validador:** uma entrada por regra e por objeto; o erro suspende o aviso da mesma regra. PV5 depende de dados de outros sistemas e roda na 2ª passada do validador do Conteúdo, como o MV1 do Movimento (decidido 2026-11-13).
 
 ## Edge Cases
 
@@ -309,7 +310,7 @@ Somam-se às faixas do V2 e do V8 do Conteúdo (pesos ≥ 0, soma > 0). **Erros*
 - **Se a próxima câmara é o santuário ou o chefe:** 1 porta forçada, sem sorteio e sem consumir o fluxo (R6).
 - **Se menos de 3 tipos têm peso > 0:** `n` fica limitado ao número de tipos disponíveis (R7) e o PV3 avisa.
 - **Se o `pesos` zerar um tipo (cura 0):** ele não aparece; com 2 tipos, as 2 portas são esses dois.
-- **Se a Provação (reservada) tiver peso > 0 no dado:** é erro até o Alpha define-la; não sai no MVP.
+- **Se a Provação (reservada) tiver peso > 0 no dado:** erro PV7 (a run não começa) até o Alpha defini-la; não sai no MVP.
 - **Se o jogador sair da região com a porta escolhida e a região acabar:** a Run decide o que vem depois (vitória ou próxima região).
 - **Se duas escolhas seguidas oferecerem o mesmo tipo:** vale; a regra de tipos distintos é por escolha, não entre escolhas.
 
@@ -449,7 +450,7 @@ Somam-se às faixas do V2 e do V8 do Conteúdo (pesos ≥ 0, soma > 0). **Erros*
 
 - **AC-PR-16 [L] R9 — escolha.** `porta_escolhida(i)` guarda o tipo como recompensa da próxima câmara; as portas `santuario`, `chefe` e `ultima` não carregam recompensa.
 - **AC-PR-17 [L] F3 — bênçãos por run.** No Limiar (3 escolhas livres), escolhendo sempre bênção quando há, a média em 100 000 runs é 3,69 (± 0,05); nunca escolhendo, 1. Versão determinística: com `u0` ≥ 0,3 e `u1` < 0,5 nas 3 escolhas, são 4 bênçãos; com `u1` ≥ 0,5 e `u2` ≥ 0,75, nenhuma bênção nas portas e 1 no total.
-- **AC-PR-18 [I] R10 — erros.** `chance_3_portas` fora de [0, 1], `cura_pct` fora de [0, 1], `fragmentos_passo_prof` 0 ou `primeira_recompensa` = `provacao`: erros PV1 e PV2; a run não começa.
+- **AC-PR-18 [I] R10 — erros.** `chance_3_portas` fora de [0, 1], `cura_pct` fora de [0, 1], `fragmentos_passo_prof` 0 ou `primeira_recompensa` = `provacao`: erros PV1 e PV2; `pesos` com `provacao` = 1: erro PV7; a run não começa.
 - **AC-PR-19 [I] R10 — avisos.** O catálogo de fábrica não gera nenhum aviso PV3 a PV6; cura 0 com `chance_3_portas` 0,3: PV3 (e PV6, peso fora da faixa); `cura_pct` 0,45: PV4; pesos 1 / 1 / 4 (bênção 1/6; P(bênção no par) = 1 − 0,4667 = 0,5333, P(bênção na escolha) = 0,3 + 0,7 × 0,5333 = 0,673): PV5; campo fora da faixa: PV6.
 - **AC-PR-20 [I] R11 — injeção.** O sistema roda com `RewardTable`, Câmaras, Run, Bênçãos e Economia dublês, sem SceneTree.
 

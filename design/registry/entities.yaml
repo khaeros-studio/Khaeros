@@ -215,10 +215,10 @@ formulas:
       - p_slot
       - multiplicadores_aplicaveis
     output_range: [0, 1000000]
-    expression: "max(0, 1 + p_todo + p_slot) * produto(multiplicadores de dano_todo aplicaveis: incondicionais (elite, Abalo) e condicionais verdadeiros (4o acerto, pos-esquiva))"
-    notes: "F2 de Modificadores. Percentuais de dano somam num grupo (paridade com damageMultiplier do cânone); 4º acerto, pós-esquiva e Abalo multiplicam. Sem teto por ora."
+    expression: "min(teto_multiplicador_dano, max(0, 1 + p_todo + p_slot) * produto(multiplicadores de dano_todo aplicaveis: incondicionais (elite, Abalo) e condicionais verdadeiros (4o acerto, pos-esquiva)))"
+    notes: "F2 de Modificadores. Percentuais de dano somam num grupo (paridade com damageMultiplier do cânone); 4º acerto, pós-esquiva e Abalo multiplicam. Teto teto_multiplicador_dano = 4,0 provisório (damage_multiplier_cap)."
     added: 2026-11-05
-    revised: 2026-11-06
+    revised: 2026-11-13
   - name: damage_taken
     status: active
     source: design/gdd/modificadores-e-atributos.md
@@ -246,10 +246,10 @@ formulas:
       - p_ataque
       - multiplicadores_incondicionais
     output_range: [0, 1000000]
-    expression: "total_gatilho * max(0, 1 + p_todo + p_ataque) * produto(multiplicadores incondicionais do portador)"
-    notes: "F6 de Movimento e esquiva. Corte da esquiva (gatilho corte_da_esquiva): o Movimento calcula pelo portador e o Combate aplica. Sem apos_esquiva nem enesimo_acerto (Modificadores R12). Uma vez por inimigo por esquiva; teto opcional alvos_max_corte (vazio = sem teto, D-W6)."
+    expression: "total_gatilho * min(teto_multiplicador_dano, max(0, 1 + p_todo + p_ataque) * produto(multiplicadores incondicionais do portador))"
+    notes: "F6 de Movimento e esquiva. Corte da esquiva (gatilho corte_da_esquiva): o Movimento calcula pelo portador e o Combate aplica. Sem apos_esquiva nem enesimo_acerto (Modificadores R12). Uma vez por inimigo por esquiva; teto opcional alvos_max_corte (vazio = sem teto, D-W6). M efetivo limitado a 4,0 (damage_multiplier_cap)."
     added: 2026-11-08
-    revised: ""
+    revised: 2026-11-13
 
 # Example:
 #
@@ -455,11 +455,11 @@ formulas:
     variables:
       - N_flash
       - janela_1s
-    output_range: [0, 3]
-    expression: "no máximo 3 flashes de tela por janela de 1 s em tempo real monotônico; o passe obrigatório nunca é negado (vira fade)"
+    output_range: [0, 4]
+    expression: "no máximo 3 flashes de tela por janela de 1 s em tempo real monotônico; o passe obrigatório nunca é negado (vira fade) e pode levar N_flash a 4"
     notes: "F6 de Pipeline. O impact frame do chefe tem preempção sobre o da recusa."
     added: 2026-11-11
-    revised: ""
+    revised: 2026-11-13
   - name: flux_step
     status: active
     source: design/gdd/selo-e-fluxo.md
@@ -583,7 +583,7 @@ formulas:
       - fragmentos_passo_prof
     output_range: [2, 3]
     expression: "fragmentos(p) = fragmentos_base + floor(p / fragmentos_passo_prof) ; p = profundidade da câmara limpa"
-    notes: "F1 de Portas. 2, 2, 2, 3, 3 nas câmaras p 0–4; sem teto se p > p_max."
+    notes: "F1 de Portas. A porta paga só depois das câmaras de índice 0, 1 e 3: 2, 2 e 3 (7 no máximo no Limiar). O índice 5 não dá recompensa. Sem teto se p > p_max."
     added: 2026-11-11
     revised: ""
   - name: door_heal_reward
@@ -1306,7 +1306,6 @@ constants:
       - design/gdd/pipeline-visual.md
       - design/gdd/telegrafos.md   # teto_telegrafos, faixa 12–24, TV5
       - design/gdd/ia-de-inimigos-e-elites.md   # R5: acima do teto a IA fica em aproximação
-    # DIVERGÊNCIA: telegrafos.md (nota 2026-11-11) pede justificar a faixa 12–24 e o TV5, pois 9 inimigos nunca atingem 24; o dono do 24 é o Pipeline R9 (24 × 2 passadas).
     value: 24
     unit: telégrafos ativos simultâneos (teto_telegrafos; orçamento de draw calls do Pipeline R9)
     added: 2026-11-11
@@ -1398,7 +1397,7 @@ constants:
       - design/gdd/modificadores-e-atributos.md
       - design/gdd/camaras-e-ondas.md   # informa p à IA e aos Modificadores
     value: 0.05
-    unit: fração de Vida por profundidade em inimigos comuns (Vida = base × (1 + 0,05 × p)); dano não escala (cânone)
+    unit: fração de Vida por profundidade em inimigos comuns e elites, só o chefe fica fora (Vida = base × (1 + 0,05 × p)); dano não escala (cânone)
     added: 2026-11-11
     revised: 2026-11-12
   - name: damage_target_per_chamber
@@ -1594,7 +1593,6 @@ constants:
       - design/gdd/bencaos-tradicoes.md
       - design/gdd/tela-de-bencao-e-carta.md   # 3 cartas na tela
       - design/gdd/conteudo-orientado-a-dados.md   # BencaosTuning
-    # DIVERGÊNCIA: BN1 aceita tamanho_oferta 1–5, mas R3/R4 de bencaos-tradicoes fixam 3 reais por sorteio; no MVP o valor é 3 (nota de revisão cruzada).
     value: 3
     unit: cartas por oferta (tamanho_oferta; bênçãos distintas; faixa 1–5)
     added: 2026-11-11
@@ -1685,6 +1683,9 @@ constants:
     source: design/gdd/modificadores-e-atributos.md
     referenced_by:
       - design/gdd/modificadores-e-atributos.md
+      - design/gdd/movimento-e-esquiva.md
+      - design/gdd/selo-e-fluxo.md
+      - design/gdd/armas-das-doutrinas.md
     value: 4.0
     unit: teto do multiplicador de dano (provisório, decisão do usuário 2026-11-12)
     added: 2026-11-12
@@ -1714,8 +1715,18 @@ constants:
     referenced_by:
       - design/gdd/bencaos-tradicoes.md
     value: 4
-    unit: limiar de bênçãos tomadas por run (decisão do usuário 2026-11-12)
+    unit: limiar de bênçãos tomadas por run (derivado, não é botão; 1 + door_free_choices_limiar, Portas F3; decisão do usuário 2026-11-12)
     added: 2026-11-12
+    revised: 2026-11-13
+  - name: run_fragments_max_limiar
+    status: active
+    source: design/gdd/economia-de-fragmentos.md
+    referenced_by:
+      - design/gdd/economia-de-fragmentos.md
+      - design/gdd/run-e-regioes.md
+    value: 22
+    unit: máximo de Fragmentos por run no Limiar (derivado; 7 de portas + 15 de vitória, Economia F3)
+    added: 2026-11-13
     revised: ""
   # ── Apresentação (valores também fixados pela Art Bible) ──
   - name: hud_safe_margin_px

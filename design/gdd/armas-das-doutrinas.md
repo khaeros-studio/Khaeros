@@ -6,9 +6,9 @@
 > **Last Verified**: 2026-11-10
 > **Implements Pillar**: P1 *Toda bênção é uma filosofia* (a arma é a Doutrina jurada) e P3 *Reflexo que se lê*
 
-> **Nota (2026-11-11, Run e regiões):** `p_max` passa a ser da Run (R9; Limiar 4); `ArmasTuning.p_max` fica como alias até a próxima edição.
+> **Nota (2026-11-11, Run e regiões):** o `p_max` é lido da **região** (dono: Câmaras R3; Limiar 4); `ArmasTuning.p_max` é só alias, lido apenas pelo aviso WV8 das Câmaras.
 
-> **Nota (2026-11-11, revisão cruzada):** pendente: Dependencies listam IA (F3, AV3/AV4), Câmaras e Run; Modificadores também como downstream; D-W11 (Ressonância à distância) segue aberta; teto de M com `teto_multiplicador_dano` vazio (M ≈ 14,08, DPS ≈ 936).
+> **Nota (2026-11-11, revisão cruzada):** pendente: D-W11 (Ressonância à distância) segue aberta. Resolvido: Dependencies listam IA, Câmaras, Run e Modificadores como downstream; teto de M = `teto_multiplicador_dano` 4,0 (provisório; Modificadores F2/AC-04b), DPS máx. ≈ 265,9 (66,471 × 4), com o AC-AR-40.
 
 ## Summary
 
@@ -575,8 +575,9 @@ CV10, CV12, CV13, CV15–CV20); este GDD não os repete.
   F6 do Conteúdo (825).
 - **Profundidade máxima do Limiar no MVP:** as câmaras de combate têm p de 0 a 4
   (cinco câmaras de combate antes do chefe; no MVP a run não chega ao chefe). O
-  AV3 e o AV4 usam `ArmasTuning.p_max` = 4 até o GDD de Run e regiões fixar o
-  número (Tuning Knobs).
+  AV3 e o AV4 leem o `p_max` da **região** (dono: Câmaras R3; fábrica = 4);
+  `ArmasTuning.p_max` é só alias, lido apenas pelo aviso WV8 das Câmaras
+  (Tuning Knobs).
 - **AV3 e a tabela da F3:** o `*` da tabela marca margem **ou** falta ≤ 2 de
   Vida, em qualquer g; o AV3 só avisa quando, além disso, g ≤ 3.
 - **Conjunto exato por código:** cada critério confere só os avisos do código
@@ -673,6 +674,10 @@ Ressonância: o Pulso nunca é pesado; o AV4 não se aplica.
 
 | Sistema | Tipo | O que recebe |
 |---|---|---|
+| Modificadores e atributos | Forte | a base de `vida_max` e `velocidade` (R9 injeta a base da arma no atributo) |
+| IA de inimigos e elites | Suave | Vida por profundidade e dano dos golpes (F3; avisos AV3 e AV4; F5 e IV7 da IA citam as armas) |
+| Câmaras e ondas | Suave | `ArmasTuning.p_max` como alias, lido apenas pelo WV8 (o `p_max` é da região, R3) |
+| Run e regiões | Suave | a arma da run e a profundidade `p` (R9) |
 | Movimento e esquiva | Suave | `velocidade` base (via Modificadores) |
 | Bênçãos (Tradições) | Suave | `doutrina` da arma; os slots Ataque e Especial |
 | HUD | Suave | nomes da arma, do Ataque e do Especial |
@@ -688,9 +693,10 @@ Ressonância: o Pulso nunca é pesado; o AV4 não se aplica.
 
 - O Combate (Overview, Interactions, Dependencies), o Modificadores (R2), o
   Movimento (R4, R11) e o Conteúdo (R1) já citam as armas e o `WeaponDef`.
-- Bênçãos, HUD, Telemetria, Criatura do pacto, Desbloqueio, Rito, Campus e Tela
-  de bênção ainda não existem; cada um, ao ser escrito, deve listar "Armas das
-  Doutrinas" em Dependencies.
+- Bênçãos, HUD, Telemetria, Tela de bênção, IA, Câmaras, Run, Selo e Efeitos de
+  status já existem: conferir que cada um lista "Armas das Doutrinas" em
+  Dependencies. Criatura do pacto, Desbloqueio, Rito e Campus ainda não existem;
+  cada um, ao ser escrito, deve listar "Armas das Doutrinas".
 - O Input e controle já lista Armas (`input-e-controle.md:542`). O Movimento cita
   o `WeaponDef` pelo Conteúdo, sem nomear Armas: na próxima edição dele,
   acrescentar "Armas das Doutrinas (suave, via Modificadores)".
@@ -710,7 +716,7 @@ de `*Tuning` do Conteúdo). Nada disso fica literal no GDScript.
 | `meta_paridade` | 0,15 | 0,05–0,30 | curva | AV2 (R6, F2) | decisão do usuário; < 0,05 avisa por ruído do modelo contínuo, > 0,30 deixa uma arma dominar |
 | `margem_fragil` | 2 (Vida) | 0–5 | gate de validação | AV3 (F3) | ±2 de Vida é o que um ajuste pequeno de dado move; 0 deixa só os casos `=` |
 | `g_max_fragil` | 3 | 1–6 | gate de validação | AV3 | acima de 3 golpes, um a mais ou a menos não muda a leitura da câmara |
-| `p_max` | 4 (Limiar do MVP: 5 câmaras de combate) | 0–20 | gate | AV3, AV4 | provisório: o dono futuro é o GDD de Run e regiões, e o campo migra para a região |
+| `p_max` | 4 (Limiar do MVP: 5 câmaras de combate) | 0–20 | gate | AV3, AV4 | o dono é Câmaras (R3): o valor é lido da região, e `ArmasTuning.p_max` é só alias |
 | `periodos_trava` | 2 | 1–4 | gate de validação | AV4 (o "2 ×") | quem morre dentro do 2º período não chega a ser travado |
 | `f_esp_min` / `f_esp_max` | 0,15 / 0,40 | 0–1, min < max | curva | AV8 (F6) | abaixo, a bênção de Especial não vale nada; acima, o Ataque vira enchimento |
 | `vel_media_min` / `vel_media_max` | 360 / 400 px/s | dentro de 342–423, min < max | apresentação | rótulo de velocidade da carta (R4, UI): < min "lenta", min–max "média", > max "rápida" | as duas do MVP (387, 378) ficam "média": diferença de 2,4% que o jogador não sente; o rótulo só muda com armas futuras fora dessa faixa |
@@ -832,9 +838,12 @@ são critérios de playtest, não dado de jogo.
 >   `parede_vel_min` 630, q = 0,78, z = 4,5, `invuln_atingido` 40.
 > - `ArmasTuning` padrão (Tuning Knobs): `meta_paridade` 0,15, `margem_fragil` 2,
 >   `g_max_fragil` 3, `periodos_trava` 2, `f_esp` 0,15–0,40, faixas de design
->   das tabelas e `vel_media_min`/`vel_media_max` 360/400. A FA **sobrescreve**
->   `ArmasTuning.p_max` com o da região de teste (7); o valor de fábrica (4) só
->   vale onde o critério diz "`ArmasTuning` de fábrica".
+>   das tabelas e `vel_media_min`/`vel_media_max` 360/400. A FA usa a
+>   **região de teste** com `p_max` 7 (o `p_max` é lido da região, dono: Câmaras
+>   R3); `ArmasTuning.p_max` é só alias, lido apenas pelo WV8 das Câmaras. Com
+>   a região de teste em 7 e o alias em 4, o WV8 **é gerado** como aviso
+>   (consistente com Câmaras AC-CO-24); o valor de fábrica (4) só vale onde o
+>   critério diz "`ArmasTuning` de fábrica".
 > - **Inimigos do Limiar** (cânone): Eco 30/9/24/W 26; Anomalia 24/8/22,5/36;
 >   Fenda 46/13/30/42; chefe 700/16/63/40. `fator_empurrao`: comum 1, elite 0,4,
 >   chefe 0,12.
@@ -952,7 +961,8 @@ são critérios de playtest, não dado de jogo.
   - Arquivo com `lamina`, o jogador move a seleção para `ressonancia` e aperta
     Esc: nenhuma gravação, nenhuma run começa (o estado volta ao menu anterior,
     não entra em Equipada); reabrir seleciona `lamina`.
-- **AC-AR-10 [L] estados e arma fixa.** Escolhendo → (confirmar) Equipada →
+- **AC-AR-10 [L] estados e arma fixa.** Com a flag de playtest desligada:
+  Escolhendo → (confirmar) Equipada →
   (`jogador_morreu` ou vitória) Encerrada → (nova run) Escolhendo. Durante
   Equipada:
   - não existe API de troca (Esclarecimentos): a inspeção do contrato público do
@@ -988,9 +998,7 @@ são critérios de playtest, não dado de jogo.
   (forma ou contorno). A velocidade aparece como rótulo, "média" nas duas armas
   (387 e 378 entre 360 e 400, R4), e cada golpe mostra o texto da chave
   `<chave_nome>_DESC` do `AttackDef` (nenhuma chave sem tradução). Usa o
-  componente de carta do GDD de Tela de bênção —
-  **BLOQUEADO até esse GDD**; até lá, vale a lista simples (Dependencies) e o
-  screenshot é da lista.
+  componente de carta do GDD de Tela de bênção.
 - **AC-AR-13 [V] R3 — silhueta das armas.** Screenshot retido do Iniciado com
   cada arma, parado e atacando, no fundo da câmara do Limiar: Lâmina lê
   diagonal (espada reta longa, corpo inclinado), Ressonância lê círculos
@@ -1085,7 +1093,7 @@ são critérios de playtest, não dado de jogo.
   | Chefe | 16 | 7 | 5 | 160 |
 
   Lâmina × chefe: 240 passos. Com `vida_max` 81 (bênção +1), a Ressonância
-  aguenta 6 acertos do chefe (o "+1 compra um acerto").
+  sobrevive a 5 acertos do chefe e morre no 6º (81/16 = 5,06; o "+1 compra um acerto").
 - **AC-AR-20 [L] F5 — empurrão do Pulso, Combate real.** Pulso de fábrica (540),
   um acerto, alvo longe das paredes; o alvo anda a partir do passo seguinte ao
   acerto (o projétil é o item 8 da R1 do Combate; F7 do Combate):
@@ -1105,7 +1113,14 @@ são critérios de playtest, não dado de jogo.
   (com o jogador em 960, o limite seria 1843,5 e o Saco pararia em 1867,89 px
   depois de 9 acertos, sem encostar). Os números exatos abaixo vêm do script da
   re-review (ordem das R1, R3, R7 e R11 do Combate; primeiro disparo no passo
-  0, primeiro acerto no passo 13); o teste os confere contra o oráculo gerado
+  0, primeiro acerto no passo 13). **Derivação do passo 13** (conferida contra
+  a R1 e a R7 do Combate): o projétil nasce a `nascimento_projetil_px` = 36 px
+  do jogador (x = 1236) e anda 990/60 = 16,5 px já no passo em que nasce (item 5
+  dispara, item 8 anda, mesmo passo). O contato é a 39 px do centro do Saco
+  (raio_px 15 + r 24), ou seja, a x = 1461: faltam 1461 − 1236 = 225 px, e
+  225/16,5 = 13,64 passos, então são 14 deslocamentos (passos 0 a 13) e o
+  primeiro acerto é no passo 13 (x = 1467). Sem o offset de 36 px a conta seria
+  261/16,5 = 15,8 (passo 15), que não é a regra do Combate. O teste os confere contra o oráculo gerado
   das mesmas regras:
   - nenhum evento `parede` e nenhum dano de parede;
   - a maior velocidade do Saco logo depois de um acerto fica ≤ 557,20 px/s
@@ -1123,6 +1138,12 @@ são critérios de playtest, não dado de jogo.
   0,2800. Efeito de bênção de slot +0,25 no DPS combinado: Especial +6,28% /
   +7,00%; Ataque +18,72% / +18,00% (±0,0001). O teste confere a previsão contra
   o DPS combinado da F1 recalculado com o `dano` bentado (mesma fração).
+- **AC-AR-40 [L] F1 — teto de M = 4,0 (provisório).** Modificadores real com
+  `teto_multiplicador_dano` 4,0 (M efetivo = min(M, 4,0); Modificadores F2/AC-04b),
+  Lâmina combinada de fábrica: DPS máximo = 66,471 × 4 = 265,884 (±0,01). TTK do
+  chefe (Vida 700) com o DPS máximo: 700/265,88 ≈ 2,63 s. **Provisório:** o
+  valor 4,0 do teto é provisório; se o teto mudar, o critério é recalculado
+  (DPS máx. = 66,471 × teto).
 
 **E. Validação (AV1–AV8)**
 
@@ -1159,7 +1180,7 @@ são critérios de playtest, não dado de jogo.
   1 = 0,1425 e não avisa. Com Lâmina ×1,17: {`lamina`×`lamina_teste` (0,17),
   `ressonancia`×`lamina_teste` (10,4533 / 9,0008 − 1 = 0,1614)}.
 - **AC-AR-25 [L] AV3 — pontos frágeis (informativo), conjunto exato.** Catálogo
-  de fábrica, região de teste com `p_max` 7 (o `p_max` é lido da **região**, dono: Câmaras; `ArmasTuning.p_max` é só alias), elites de p 3. Condição: margem ou
+  de fábrica, região de teste com `p_max` 7 (o `p_max` é lido da **região**, dono: Câmaras R3; `ArmasTuning.p_max` é só alias, lido apenas pelo WV8; esta região de teste com `p_max` 7 e alias 4 **gera** o WV8 como aviso, consistente com Câmaras AC-CO-24), elites de p 3. Condição: margem ou
   falta ≤ 2 **e** g ≤ 3. As linhas informativas são exatamente estas 29
   (inimigo, p, golpe, g):
   - Eco: (0, Corte, 3), (0, Onda, 1), (1, Onda, 2), (3, Pulso, 3), (4, Pulso, 3);
@@ -1181,7 +1202,7 @@ são critérios de playtest, não dado de jogo.
     conjunto exato são as 20 linhas acima com p ≤ 4 (saem as 9 de p 5–7:
     Anomalia (5, Corte), (5, Onda), (6, Onda), (7, Onda); Fenda (5, Onda), (6,
     Onda), (7, Onda); Eco elite (5, Onda); Anomalia elite (7, Investida)).
-- **AC-AR-26 [L] AV4 — trava por golpe pesado.** O `p_max` vem da região (Câmaras; `ArmasTuning.p_max` é só alias). Catálogo de fábrica (Q = 24;
+- **AC-AR-26 [L] AV4 — trava por golpe pesado.** O `p_max` vem da região (Câmaras R3; `ArmasTuning.p_max` é só alias, lido apenas pelo WV8; região de teste com `p_max` 7 e alias 4 gera o WV8 como aviso, consistente com Câmaras AC-CO-24). Catálogo de fábrica (Q = 24;
   Lâmina P = n × R = 48; ceil(24/48) × 48 − 24 = 24 < W de todas as comuns):
 
   | Região | AV4 |
@@ -1206,7 +1227,7 @@ são critérios de playtest, não dado de jogo.
 
   | `empurrao` | AV5 |
   |---|---|
-  | 540 (fábrica; 557,19 contínuo) | nenhum |
+  | 540 (fábrica; 557,20 contínuo: 540/(1 − 0,78¹⁴) = 557,196) | nenhum |
   | 610 | nenhum |
   | 611 | 1 aviso |
   | 899 | 1 aviso |
@@ -1269,7 +1290,10 @@ são critérios de playtest, não dado de jogo.
   | 51,9 | 0,4008 | 1 aviso |
 
 - **AC-AR-32 [L] catálogo de fábrica — relatório completo, conjunto exato.**
-  Região de teste `p_max` 7 (sobrescrita da FA): zero erros; avisos AV = {}
+  Região de teste `p_max` 7 (o `p_max` é lido da região, dono: Câmaras R3; o
+  alias `ArmasTuning.p_max` só é lido pelo WV8, e com alias 4 e região 7 o WV8
+  **é gerado** como aviso, consistente com Câmaras AC-CO-24; o WV8 é das Câmaras,
+  não um código AV): zero erros; avisos AV = {}
   (nenhum AV1, AV2, AV4, AV5, AV7 nem AV8). O conjunto exato vale para as
   **linhas informativas com código AV**: as 29 do AV3 (lista da AC-AR-25), a
   linha "só Ataque" do AV2 (0,0344), as duas linhas de folga do AV2 (AC-AR-17)
@@ -1332,7 +1356,9 @@ são critérios de playtest, não dado de jogo.
   por câmara do Limiar (câmaras completadas / câmaras iniciadas) de uma arma
   fica a ≤ 15 pontos percentuais da outra, por câmara e no total. Fora da meta,
   o resultado vai para o `/balance-check` (só números do `AttackDef`). Mesmo
-  bloqueio da AC-AR-37. **Amostra:** com ~20 runs por arma, a diferença de 15
+  bloqueio da AC-AR-37. **Registro para o `/balance-check` (ADVISORY), não
+  pass/fail:** o veredito de pass/fail exige n ≥ 100 runs por arma; com ~20
+  runs o erro-padrão ≈ 15,6 pontos, que é ≥ a meta de ≤ 15. **Amostra:** com ~20 runs por arma, a diferença de 15
   pontos numa câmara está dentro do ruído (o erro-padrão de uma taxa perto de
   50% com 20 runs é ~11 pontos por arma). O registro anota o número de runs por
   arma e por câmara junto de cada taxa, para o `/balance-check` ler a diferença
@@ -1340,8 +1366,8 @@ são critérios de playtest, não dado de jogo.
 
 **Nota de cobertura**
 
-- Contagem: 30 [L], 5 [I] (AC-AR-06, 14, 21, 35, 36), 1 [UI] (12), 1 [V] (13),
-  2 [M] (37, 38) — 39 critérios (a AC-AR-39 fica no bloco B, junto da R4); nenhum [P] (o GDD não define orçamento; a
+- Contagem: 31 [L] (com a AC-AR-40, teto do M), 5 [I] (AC-AR-06, 14, 21, 35, 36), 1 [UI] (12), 1 [V] (13),
+  2 [M] (37, 38; a AC-AR-38 é ADVISORY) — 40 critérios (a AC-AR-39 fica no bloco B, junto da R4); nenhum [P] (o GDD não define orçamento; a
   validação do catálogo herda o [P] do Conteúdo, se houver).
 - Cobertura por regra: R1 01, 07; R2 02–04, 36; Combate F2 05; R3 13; R4 08–12, 39;
   R5 14, 15; R6 17, 37, 38; R7 (só AV1/AV4 de teste) 23, 26; R8 33, 34; R9 06;

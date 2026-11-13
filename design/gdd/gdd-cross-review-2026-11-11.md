@@ -258,3 +258,116 @@ Efeito da decisão 6: escolhas livres do Limiar caem de 4 para 3 (depois dos ín
 
 ### Aceite do usuário (2026-11-12)
 A revisão cruzada foi **aceita como CONCERNS parcial** (ACs e Edge Cases não avaliados, aceito pelo usuário em 2026-11-12); a terceira leitura por seção não será feita. O critério de conclusão do MVP (22/22 GDDs aprovados, revisão cruzada sem FAIL) está **atendido**.
+
+---
+
+## Terceira leitura (2026-11-12): ACs e Edge Cases
+
+A pedido direto do usuário ("Sim, ler"), que chegou depois do relato do aceite parcial. 3 agentes de leitura, por seção: (A) Armas e Movimento; (B) Combate e Pipeline; (C) RNG, Conteúdo, Cena e Input. Nada foi editado nesta leitura. Os cálculos recalculados fecham quase todos; os achados são sobre ACs desatualizadas, dono de campo e ambiguidades.
+
+### Bloqueante (1)
+🔴 **Input AC-17 × AC-15/AC-18.** AC-17: "Ataque no passo 0 e Especial no passo 8: os dois valem até o passo 17 e somem no 18". Com buffer de 10 passos por ação (AC-15: toque no passo 0 vale nos passos 0–9; AC-18 trata cada ação separadamente), o Ataque some no 10. O número só fecha com prazo único renovado pelo toque mais recente (Input F3, "contador único"), que contradiz AC-15/AC-18 e o princípio "consumir um não remove os outros". Decisão do usuário pendente (prazo por ação ou compartilhado).
+
+### Avisos
+- **Combate/Pipeline:** AC-74/76/77/79 ainda "BLOQUEADO até o GDD de Telégrafos" (o GDD existe); Pipeline "Modo de tela" (~l. 441) diz "o Combate pede" o impact frame (é o Feedback); AC-80b espera 1 leve + 1 pesado e o Feedback soma `sfx_acerto_critico`; AC-PV-49 trata como decidido o corte P4→P2 (Feedback R4 diz "proposta") e a lista de "nunca saem" omite telégrafo partido, passes obrigatórios e P1; AC-72 sem linhas de `recusou_morte` e `quebrou`; AC-77 "6 + 4" sem dizer que 6 é o hitstop do golpe e sem AC do caso da recusa.
+- **Armas/Movimento:** `p_max` com três donos dentro de Armas (nota l. 9, AV3/AV4 l. 578 e 836, AC-AR-25/26); o alias de `ArmasTuning.p_max` e o WV8 não definidos para a região de teste 7; Movimento F6/AC-24 não citam o `teto_multiplicador_dano` 4,0; Movimento "Bidirecionalidade" (l. 698–702) desatualizada; **AC-AR-21** (primeiro acerto no passo 13) não reproduzido (dá 14,6–15,8); AC-AR-38 sem poder estatístico (~20 runs, erro-padrão ≈ 15,6 pontos vs meta ≤ 15); nota de Armas l. 11 ainda diz "teto vazio, DPS ≈ 936" (agora 4,0 e ≈ 265,9) e não há AC de M = 4,0 no lado de Armas.
+- **RNG/Conteúdo/Cena/Input:** AC-28 do RNG compara a "profundidade 3 sem ondas" (é o Santuário); Cena: relógio dos impulsos `ticks_usec` (R7/F3/R12) × `t_apres` (R8) e ACs 26–30 sem dizer qual; estados Bênção/Morte/Transição e o retorno Pausa → Bênção sem AC; Conteúdo sem AC para os tipos novos (HudTuning, TelaBencaoTuning, FeedbackTuning, TelemetriaTuning, RunTuning, BencaosTuning, VisualTuning) nem para AV* e WV8, e Edge Cases só tratam Input e câmera como fora da run; AC-19 da Cena (60 px) × Input F2 (48 px); AC-37 da Cena (vetor bruto 927,540) × Input AC-02 (|mirar| = 1); `rotulo_acao` sem AC.
+- **Contrato antigo:** nenhum AC ou Edge Case dos quatro GDDs de RNG/Conteúdo/Cena/Input cita 4 escolhas livres, chaves 0,1,3,4 ou 0,1,2,4,5, bênção ou Fragmentos no índice 5, 5 bênçãos, 25 Fragmentos, `p_max` Run/Armas ou Combate como remetente.
+
+### Info
+Títulos "quarto acerto" no Combate AC-37/AC-91 (cenário, não campo); AC-91 sem o portador do Pulso (19,2 × 24,0); AC-PV-49 com 30 telégrafos consome a reserva; AC-PV-81 deve marcar o impact frame de 12 passos como dublê; Feedback R4 lista incompleta de causas de negação do impact frame; `M` ainda com dois sentidos no Movimento (cargas × dano); 557,19 × 557,20 em Armas; AC-AR-19 "aguenta 6" deveria dizer "morre no 6º"; AC-16(c) do Movimento sem derivação do 52; AC-26 do Movimento sobre hitstop com empurrão ≥ 900; AC-24 com M = 0; AC-12 do Conteúdo (`fenda_erante`); AC-33 do RNG sem tag; AC-27 do RNG sem as profundidades por finalidade.
+
+### Cobertura da terceira leitura
+Lidos: ACs de Armas (AC-AR-02 a 07 e 16 a 38), de Movimento (13 a 28, 49 a 51), de Combate (37 a 40, 72, 74, 76, 77, 79, 80b, 89, 91, 97), de Pipeline (AC-PV-36, 49, 63, 64, 71, 72, 81), de RNG (01–35), de Conteúdo (01–51), de Cena (01–39) e de Input (01–38), mais os Edge Cases de RNG, Conteúdo, Cena e Input. **Ainda NOT ASSESSED:** Movimento AC-01 a 12 e AC-29 a 58; Armas AC-AR-08 a 15; Combate AC-41 a 71 e AC-81 a 96 (exceto 89 e 91); Edge Cases de Combate e Pipeline; Detailed Design, Fórmulas e Dependencies de RNG, Conteúdo, Cena e Input; vetores hex do RNG; o registro inteiro.
+
+### Veredito da terceira leitura: CONCERNS (parcial), com 1 bloqueante a decidir (Input AC-17)
+
+**Decisão do usuário (2026-11-12) sobre o bloqueante da terceira leitura:** o prazo do buffer do Input é **compartilhado** (contador único, como no cânone). Aplicado: Input AC-15, AC-17 e AC-18 alinhados à F3; o toque preso por outro botão (um Selo sem Fluxo ou uma esquiva sem carga saindo sozinho) fica **aceito** e registrado. Com isso não resta bloqueante conhecido da terceira leitura; os avisos acima seguem como pendências.
+
+### Correção dos avisos da terceira leitura (2026-11-12, "Corrigir avisos")
+Aplicadas por 3 agentes de edição e por mim (sobras), sem nova revisão independente; conferidas por leitura pontual e busca.
+- **Decisões fixadas:** o gancho `sfx_acerto_critico` soma ao do peso (Combate AC-80b, Feedback R3); o corte de vítima P4→P2 do Feedback R4 está **confirmado** (Pipeline R9/AC-PV-49, Combate V15).
+- **Combate:** AC-74/76/77/79 destravados (só o bloqueio de Acessibilidade e opções fica); AC-72 com as linhas de `recusou_morte`, de passo com recusa e atingido, e de `quebrou`; AC-77 com hitstop do golpe + 4 (caso da recusa provisório); AC-80b; AC-37 e AC-91 (portador e `enesimo_acerto`); V15; Dependencies (Telégrafos, Câmaras, HUD e Feedback listam o Combate).
+- **Pipeline:** "o Feedback pede" o impact frame; R3/F2 com o `p` das Câmaras; AC-PV-49 (30 telégrafos consomem a reserva; lista completa de "nunca saem"); AC-PV-81 com o impact frame de 12 passos como dublê.
+- **Feedback:** R4 (causas de negação do impact frame; corte confirmado). **Cena:** relógio dos impulsos = `t_apres` (R7, F3, R12, Edge, ACs 26–30); AC-30b (Bênção, Morte, Transição e Pausa → Bênção); AC-19 (48 px com s 0,5 bruto); AC-37 (vetor bruto).
+- **Armas:** `p_max` lido da região (alias só lido pelo WV8; a região 7 com alias 4 gera WV8); AC-AR-19, 27, 38 (ADVISORY, n ≥ 100); AC-AR-21 com a derivação do passo 13 (nascimento do projétil a 36 px: 225/16,5 = 13,6 → 14 deslocamentos); AC-AR-40 (M = 4,0, TTK do chefe ≈ 2,63 s); contagem 40 critérios. **Movimento:** teto de M em F6/AC-24 (5,0 → 4,0, dano 40); `cargas_max`; AC-26; AC-16(c) com "derivação a conferir no cânone"; Dependencies com Status e Armas.
+- **Status/Selo/Modificadores/IA:** ST5 somado (~20% com M = 4) e nota removida; Armas e Movimento↔Status em Dependencies; Selo OQ 6 (cenário misto, sem decisão); Modificadores (dono único `trocas_iniciais`); IA lista Armas (F5, IV7).
+- **RNG/Conteúdo/Input e demais:** RNG AC-27/28/33; Conteúdo AC-52 (8 Tunings e prefixos), re-injeção do catálogo para HUD/Tela/Feedback/Pipeline, AC-12; Input AC-39 (`rotulo_acao`), Edge da perda de foco e do contexto Morte/Vitória (OQ 9); listas "ainda não existem" atualizadas; "nota de edição pendente" já aplicadas removidas.
+- **Ainda sem decisão ou sem escrever:** prefixos HU/TB no Conteúdo R9 (HudTuning e TelaBencaoTuning sem código de erro); assinatura de `rotulo_acao` (Input OQ 0); `ui_*` durante o passe de morte (Input OQ 9); cenário misto do Selo (OQ 6); duração da inversão no passo da recusa e relógio de `area` (Feedback OQ 8, Combate); "Provação > 0" como erro sem regra; nível "aviso" no Conteúdo R9 (OQ 8).
+- **NOT ASSESSED (inalterado):** Movimento AC-01..12 e AC-29..58; Armas AC-AR-08..15; Combate AC-41..71 e AC-81..96; Edge Cases de Combate e Pipeline; Detailed Design, Fórmulas e Dependencies de RNG, Conteúdo, Cena e Input; vetores hex do RNG; o registro inteiro.
+- **Veredito:** CONCERNS (parcial), nenhum bloqueante conhecido. Registro: validate 0 problemas.
+
+### Pendências fechadas (2026-11-13, decisões do usuário)
+- **Prefixos HU e TB:** Conteúdo R9 ganha HU1–HU14 (`HudTuning`) e TB1–TB10 (`TelaBencaoTuning`), um erro por campo; HUD (AC-HD-37) e Tela (AC-TB-35) listam os códigos; Conteúdo AC-52 inclui os dois.
+- **`rotulo_acao`:** assinatura fechada no Input (entrada: id de ação e dispositivo `teclado`/`gamepad`; saída: rótulo do bind remapeado + id do glifo; inválido: rótulo vazio e aviso); Input OQ 0 resolvida; AC-39 com valores.
+- **Passe de morte:** o Input ignora `ui_*`, `ui_aceitar`, Esc e `pausar` durante o passe; o Menu só abre na tela final; Input States, Edge, AC-40 e OQ 9 resolvida.
+- **Selo misto:** o Selo não tem teto próprio de M; `f_selo` e SV12 só valem com o mesmo M para Selo e arma; o cenário misto (≈ 31,9%) é aviso informativo para o `/balance-check`; Selo OQ 6 resolvida.
+- **Ainda sem decisão:** duração da inversão no passo da recusa e relógio de `area` (Feedback OQ 8, Combate); nível "aviso" no Conteúdo R9 (OQ 8); "Provação > 0" como erro sem regra. NOT ASSESSED inalterado. Veredito: CONCERNS (parcial), sem bloqueante conhecido.
+
+### Três pendências decididas (2026-11-13)
+- **Inversão no passo da recusa e relógio de `area`:** a inversão usa o hitstop pedido pelo golpe (não o 18 da recusa); `area` e o contorno de invulnerabilidade correm no relógio vivo. Aplicado em Combate V1/V10 e Feedback (tabela R3, R12, OQ 8).
+- **Nível "aviso" no Conteúdo:** R9 passa a ter erro (bloqueia) e aviso (só registra), declarado por código; OQ 8 resolvida.
+- **Provação > 0:** regra PV7 (erro) em Portas, listada no Conteúdo R9; AC-PR-18 ampliado.
+- Sem nova revisão independente (conferido por busca). Veredito segue CONCERNS (parcial), sem bloqueante conhecido.
+
+---
+
+## Quarta leitura (2026-11-13): areas NOT ASSESSED
+
+**Metodo.** 6 subagentes so de leitura, um por area. Nada foi corrigido nesta etapa.
+
+### Bloqueantes (6, todos sem correcao)
+| # | Onde | Problema | Deveria ser |
+|---|---|---|---|
+| Q1 | pipeline-visual.md:1135-1137 (Edge Case da recusa) | ordem inversao -> impact frame -> contorno | impact frame (18) -> resto da inversao -> contorno (Combate V10, Feedback R12) |
+| Q2 | combate-nucleo.md:2475-2476 (AC-60) | conjunto exato sem o CV22 | "CV21; CV22" (15/15) e "CV22" (15/14) |
+| Q3 | combate-nucleo.md:1780 (AC-95) | camara limpa avaliada no passo 5 | passo 7 (a Onda pede hitstop 6) |
+| Q4 | entities.yaml `hit_damage_multiplier` | sem teto, "Sem teto por ora" | min(M, 4,0) (Modificadores F2) |
+| Q5 | entities.yaml `dash_cut_damage` | sem teto | M efetivo = min(M, 4,0) (Movimento F6) |
+| Q6 | entities.yaml `flash_limiter` | output_range [0, 3] | 0-4 (Pipeline :807, passe obrigatorio) |
+
+### Aviso que pode virar bloqueante
+- Quanto "resta" da inversao depois da recusa nao e derivavel: 6 de hitstop do golpe + 4 vivos, mas a recusa congela 18. Falta dizer se restam 4 ou 10 passos.
+
+### Avisos (cerca de 55), por area
+- **RNG / Conteudo (12):** prefixos AV, MV e ST fora da tabela de codigos da R9; Telegrafos, IATuning e RoomTuning fora das Dependencies do Conteudo; LinearCurveDef sem linha na R1; EC1/EC2 sem nivel; "R1-R11" (sao 12); textos "Provisorio" e "V1-V11 rodando"; RNG lista HUD/telas como downstream sem volta.
+- **Cena / Input (11):** "tempo real" onde e `t_apres` (Cena :217, :273, :299, :426); Pipeline fora das Dependencies da Cena; delta de `t_apres` negativo no quadro do zero do wipe; exemplo de dois impulsos de chefe no mesmo passo; paragrafo de `rotulo_acao` quebrando a tabela de Interactions do Input; "ainda nao tem GDD" velho; IA nao cita o Input de volta.
+- **Edge Cases Combate / Pipeline (6):** Pipeline R9 "Acima do teto" sem o corte P4->P2; Feedback :306 "Dano 0 (escudo ou armadura)"; Feedback :320 cita F5 em vez de R8/F8; Combate :1040, :982, :1039 incompletos.
+- **ACs Movimento / Armas (11):** Movimento F6 "sem teto" (:485); AC-39/MV1 em referencia circular com Camaras (OQ3); AC-56, AC-47 e AC-AR-12 "BLOQUEADO" por GDD que ja existe; `M` de cargas em :912, :1284, :1291, :1392; AC-AR-10 sem "flag de playtest desligada"; AC-41 sem fixture; AC-12 com justificativa errada.
+- **ACs Combate (7):** AC-91 texto velho; "27 campos" do CombatTuning (sao 30) e CV22 fora da cobertura; AC-89 sem CV7; AC-67 a 70 e AC-83 sem dizer se ja valem; AC-85 "quarto acerto"; AC-58 e AC-96 ambiguos.
+- **Registro (9):** notas velhas em `door_fragments_reward`, `blessing_offer_size`, `telegraph_cap`; sem constante dos 22 Fragmentos por run; `referenced_by` de `damage_multiplier_cap` incompleto; `source` de `boss_fragments` e `blessing_max_taken_limiar`; formulas sob o cabecalho "CONSTANTS". GDDs velhos contra o dono: combate-nucleo.md:598 e armas-das-doutrinas.md:719.
+
+### Conferido sem problema
+- Vetores hex do RNG refeitos em Python: todos batem. Contas de Conteudo F1-F8, Cena F1-F7, Input F1-F5, ACs de Movimento, Armas e Combate (fora Q2 e Q3): batem. 148 de 150 entradas do registro conferidas.
+
+### Ainda nao verificado
+- APIs do Godot de Cena e Input que nao constam na referencia local (Parallax2D, interpolacao de fisica, content_scale_*).
+- Edge Cases, ACs e Open Questions de Cena, Input, RNG e Conteudo; ACs e F1-F4 do Pipeline; `mulberry32_step` e `pulse_knockback` do registro termo a termo; listas `referenced_by`.
+
+### Veredito: FAIL ate corrigir Q1-Q6
+
+### Correcao da quarta leitura (2026-11-13)
+
+**Bloqueantes Q1-Q6: todos corrigidos** e conferidos por leitura das linhas.
+- Q1 Pipeline (Edge Case da recusa): ordem impact frame -> 4 passos vivos de inversao -> contorno.
+- Q2 Combate AC-60: "CV21; CV22" e "CV22". Q3 Combate AC-95: passo 7.
+- Q4/Q5 registro: `hit_damage_multiplier` e `dash_cut_damage` com min(teto, ...). Q6: `flash_limiter` 0-4.
+
+**Decisoes do usuario (2026-11-13):**
+- Depois do impact frame da recusa restam **4 passos vivos** de inversao (os 6 de hitstop se consomem no congelamento de 18). Combate V10, Feedback R12, Pipeline.
+- Regras cruzadas (MV1, PV5, WV2-WV5, WV8) rodam na **segunda passada do validador do Conteudo**. Conteudo R9 e OQ 8, Movimento MV1/AC-39/OQ3, Camaras, Portas.
+
+**Avisos:** aplicados em lote por 3 agentes de edicao (50 itens) e uma segunda rodada minha: prefixos AV/MV/ST e niveis no Conteudo R9; Telegrafos, IATuning, RoomTuning e LinearCurveDef no Conteudo; `t_apres` na Cena e Pipeline nas Dependencies dela; Input (tabela de Interactions, estados, Dependencies); Movimento (`cargas_max`, F6 com teto, ACs desbloqueados, AC-12, AC-41); Armas (AC-AR-10, AC-AR-12, dono do p_max); Combate (AC-85, AC-89, AC-91, 30 campos, Edge Cases); Feedback; registro (notas, referenced_by, constante `run_fragments_max_limiar` 22). Registro: 151 entradas, validate 0 problemas.
+
+**Ficam registrados, sem correcao:**
+- Nivel do EC2 da Economia (o GDD dono diz "emite", o Conteudo lista como erro).
+- Bencaos :223: Portas ainda nao usa `restantes()` no texto.
+- Combate AC-58 e AC-96 (ambiguidade de roteiro); AC-74/76/77/79 ainda com "AC a escrever com o duble atual"; titulo da secao N.
+- Feedback :208, :284, :439 e Run :222, :226, :227: notas de "edicao pendente" nao conferidas.
+- Registro: `source` de `boss_fragments` (Economia x RegionDef); um comentario DIVERGENCIA sobre trocas; formulas sob o cabecalho "CONSTANTS".
+- Movimento: "provisorio" nas celulas de Interactions e OQ 2; Cena: linha nova do Pipeline em Dependencies com redacao do agente.
+- Telegrafos cita a Cena uma unica vez.
+
+**Nao verificado:** APIs do Godot de Cena e Input fora da referencia local; Edge Cases, ACs e OQs de Cena, Input, RNG e Conteudo; ACs e F1-F4 do Pipeline; `mulberry32_step` e `pulse_knockback` termo a termo. As correcoes foram conferidas por leitura das linhas, sem nova revisao independente.
+
+### Veredito: CONCERNS (parcial), sem bloqueante conhecido

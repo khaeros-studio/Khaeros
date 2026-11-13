@@ -236,7 +236,7 @@ as outras: valor × `valor_nao_focada` (0,7). Anel dourado de 4 px × s, com a l
 
 ## Tuning Knobs
 
-`TelaBencaoTuning` (tipo novo no Conteúdo, dono: Tela de bênção; nota de edição pendente):
+`TelaBencaoTuning` (tipo no Conteúdo, dono: Tela de bênção; edição aplicada):
 
 | Knob | Padrão | Faixa | Categoria | Efeito |
 |---|---|---|---|---|
@@ -250,6 +250,8 @@ as outras: valor × `valor_nao_focada` (0,7). Anel dourado de 4 px × s, com a l
 | `valor_nao_focada` | 0,7 | 0,6–0,8 | feel | valor das cartas sem foco |
 | `intervalo_cartas_px` | 48 | 32–64 | feel | intervalo entre cartas |
 | `tremor_botao_ms` | 80 | 0–200 | feel | tremor do botão de troca desabilitado |
+
+**Códigos de validação (decisão 2026-11-13; prefixo TB, hospedado na R9 do Conteúdo).** Um erro por campo de `TelaBencaoTuning` fora da faixa da tabela acima, na ordem da tabela: TB1 `trava_confirmar_ms`, TB2 `trava_troca_ms`, TB3 `entrada_s`, TB4 `anim_troca_s`, TB5 `anim_confirmar_s`, TB6 `foco_escala`, TB7 `foco_sobe_px`, TB8 `valor_nao_focada`, TB9 `intervalo_cartas_px`, TB10 `tremor_botao_ms`. Texto: `TelaBencaoTuning: <campo> <valor> fora da faixa <min>–<max>`.
 
 Constantes fixas pela Art Bible (mudar exige emenda dela): carta 320 × 500, margem de 48 px,
 contorno de 3 px, anel de 4 px, porcentagens das zonas da carta.
@@ -389,6 +391,7 @@ em `production/qa/evidence/`).
 - **AC-TB-32 [L] Game Feel — latência.** O foco e o `escolher` respondem no quadro do aperto (≤ 16,7 ms, relógio falso).
 - **AC-TB-33 [L] R14 — acessibilidade (partes).** Alto contraste: painéis 100% e raridade por linhas e palavra; redução de movimento: fade ≤ 300 ms e foco a 106% em corte seco; "Reduzir flashes": sem flash (três testes separados).
 - **AC-TB-34 [L] Edge — pausa e foco de janela.** Esc na trava abre a pausa; perder o foco da janela não pausa nem escolhe.
+- **AC-TB-35 [L] Validação — faixa do `TelaBencaoTuning`.** `trava_confirmar_ms` 400 gera o erro TB1; `entrada_s` 0,5 gera TB3; `anim_confirmar_s` 0,7 gera TB5; `foco_escala` 1,2 gera TB6; o dado de fábrica não gera nenhum TB; cada um dos 10 campos fora da faixa gera só o código do seu campo (TB1 a TB10).
 
 ## Open Questions
 
@@ -398,6 +401,6 @@ em `production/qa/evidence/`).
 | 2 | Modo arma (tela de início) e modo melhoria (Oficina) do componente | Run OQ 4 / Oficina | fatia vertical |
 | 3 | Teste das 18 combinações da Art Bible (Doutrina × raridade, em cinza) | art-director + QA | `/ux-design` |
 | 4 | `preco_texto` longo: quebra, redução e corte (provisório) | art-director | `/ux-design` |
-| 5 | Conteúdo: `TelaBencaoTuning` (10 campos) e validação do tamanho dos textos do ganho | Conteúdo | próxima edição |
+| 5 | ~~Conteúdo: `TelaBencaoTuning` (10 campos)~~ **Resolvida (2026-11-13):** o tipo e os códigos TB1–TB10 estão no Conteúdo R1/R9; falta só a validação do tamanho dos textos do ganho | Conteúdo | próxima edição |
 | 6 | Sons de entrada, foco, confirmação e rachadura do preço | audio-director | Áudio |
-| 7 | **Edições pendentes:** Bênçãos (monta `CartaView`; `oferta_trocada(cartas, trocas)`; segura `bencao_escolhida` até `tela_fechada`; R11/Edge: a pausa **abre** em Bênção, Input é a fonte), Conteúdo (`BoonDef` com `glifo`, `icone_ganho`, chave do preço; `TelaBencaoTuning`), HUD (recebe `preco_revelado` e o traço dourado), Input (4 e 5 não existem), Pipeline (`modo_bencao` sai em `tela_fechada`) | Bênçãos, Conteúdo, HUD, Input, Pipeline | `/review-all-gdds` |
+| 7 | **Edições pendentes:** Bênçãos (monta `CartaView`; `oferta_trocada(cartas, trocas)`; segura `bencao_escolhida` até `tela_fechada`; R11/Edge: a pausa **abre** em Bênção, Input é a fonte), Conteúdo (`BoonDef` com `glifo`, `icone_ganho`, chave do preço; `TelaBencaoTuning`), HUD (recebe `preco_revelado` e o traço dourado), Input (as teclas 4 e 5 não existem; o glifo e o rótulo do botão vêm de `rotulo_acao(acao, dispositivo)` do Input, assinatura fechada em 2026-11-13), Pipeline (`modo_bencao` sai em `tela_fechada`) | Bênçãos, Conteúdo, HUD, Input, Pipeline | `/review-all-gdds` |

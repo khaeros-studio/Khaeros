@@ -16,7 +16,7 @@ ler de relance de onde vem o golpe e quando, e para nada acertá-lo sem aviso.
 
 > **Quick reference** — Layer: `Feature` · Priority: `MVP` · Key deps: `Pipeline visual, Combate núcleo`
 
-> **Nota (2026-11-11, revisão cruzada):** pendente: Dependencies dizem que IA, Câmaras, VFX e Telemetria "não existem".
+> **Nota (2026-11-11, revisão cruzada):** Dependencies atualizadas: IA, Câmaras, VFX e Telemetria agora existem (Chefes e Áudio seguem sem GDD).
 
 ## Overview
 
@@ -396,8 +396,11 @@ Somam-se às faixas do V2 do Conteúdo. **Erros** vão para a tela de erros do c
 
 - O Pipeline (R5, Dependencies) e o Combate (R13, Interactions, Dependencies) já
   listam Telégrafos.
-- IA, Câmaras, VFX, Áudio, Chefes e Telemetria ainda não existem. Cada um, ao ser
-  escrito, deve listar "Telégrafos" em Dependencies e honrar os contratos acima.
+- IA, Câmaras e ondas, Feedback de combate (VFX) e Telemetria local já existem; a
+  conferência de que cada um lista "Telégrafos" em Dependencies é do
+  `/review-all-gdds`. Chefes e Áudio ainda não existem: ao serem escritos, devem
+  listar "Telégrafos" em Dependencies e honrar os contratos acima. O Combate
+  núcleo já existe e consta em Dependencies (upstream) e nesta lista.
 - **Índice:** a linha 13 lista Pipeline e Combate; acrescentar Conteúdo, IA
   (por contrato) e Câmaras (suave, por contrato).
 

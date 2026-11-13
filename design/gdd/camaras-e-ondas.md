@@ -18,7 +18,7 @@ da profundidade p, da consulta "em combate", do spawn e do fim da câmara.
 
 > **Quick reference** — Layer: `Feature` · Priority: `MVP` · Key deps: `IA de inimigos e elites, RNG com seed, Conteúdo orientado a dados, Cena 3/4 e câmera, Modificadores e atributos`
 
-> **Nota (2026-11-11, revisão cruzada):** pendente: OQ 8 (ordem camara_limpa → Bênção → portas) está resolvida pelas Portas R2; "morte vence a limpeza" (Edge/AC-CO-16) fica como regra única com Run R5, Portas e Economia; Bidirecionalidade diz que Portas, Run e Telemetria "não existem"; Telemetria R11 cita "OQ 10 (dano)", que existe só até a 9.
+> **Nota (2026-11-11, revisão cruzada):** pendente: "morte vence a limpeza" (Edge/AC-CO-16) fica como regra única com Run R5, Portas e Economia. Aplicados: OQ 8 resolvida pelas Portas R2; Bidirecionalidade atualizada; a OQ 10 (dano) existe aqui, e a citação da Telemetria R11 é conferida no GDD dela.
 
 ## Overview
 
@@ -399,7 +399,7 @@ Somam-se às faixas do V2 do Conteúdo. **Erros** vão para a tela de erros do c
 | WV8 | aviso, cruzada com Armas | `ArmasTuning.p_max` ≠ `p_max` derivado da `RegionDef` | validação de armas usa uma profundidade que não existe |
 | WV9 | aviso | campo fora da faixa de design | as contas deste GDD deixam de valer |
 
-**Saída do validador:** uma entrada por regra e por objeto; o erro suspende o aviso da mesma regra. WV2–WV5 e WV8 dependem de dados de outros sistemas e rodam onde roda o MV1 do Movimento (Movimento OQ3).
+**Saída do validador:** uma entrada por regra e por objeto; o erro suspende o aviso da mesma regra. WV2–WV5 e WV8 dependem de dados de outros sistemas e rodam na 2ª passada do validador do Conteúdo, como o MV1 do Movimento (decidido 2026-11-13).
 
 ## Edge Cases
 
@@ -466,7 +466,7 @@ Somam-se às faixas do V2 do Conteúdo. **Erros** vão para a tela de erros do c
 | Combate núcleo | Forte | "em combate", "câmara limpa", retângulo, obstáculos, pedido de troca |
 | Movimento, Selo, Telégrafos | Forte | retângulo jogável e obstáculos |
 | Portas e recompensas | Forte | `camara_limpa(p, tipo)`, estado e posição das portas |
-| Run e regiões | Forte | `camara_limpa`, "câmara pedida", p e `p_max` |
+| Run e regiões | Forte | `camara_limpa`, "câmara pedida", p e `p_max` (Câmaras é a **dona** do `p_max`, R3; o `ArmasTuning.p_max` é só alias, com o aviso WV8) |
 | Armas, Modificadores, Pipeline visual | Suave | p e `p_max` (validação, Vida, escurecimento) |
 | Cena 3/4 e câmera | Suave | tamanho, retângulo e entrada da câmara |
 | HUD / Feedback de combate (VFX) / Áudio | Suave | `camara_limpa`, onda nova, portas abertas |
@@ -476,8 +476,10 @@ Somam-se às faixas do V2 do Conteúdo. **Erros** vão para a tela de erros do c
 
 - Combate, Cena, RNG, IA, Conteúdo, Movimento, Selo, Telégrafos e Efeitos de status
   já citam as Câmaras. O Armas e o Pipeline ainda dizem que a Run informa p (OQ 3).
-- Portas, Run, HUD, VFX, Áudio e Telemetria ainda não existem. Cada um, ao ser
-  escrito, deve listar "Câmaras e ondas" em Dependencies.
+- Portas e recompensas, Run e regiões, HUD, Feedback de combate, Pipeline visual
+  e Telemetria local já existem; a conferência de que cada um lista "Câmaras e
+  ondas" em Dependencies é do `/review-all-gdds`. Só Áudio ainda não existe: ao
+  ser escrito, deve listá-las.
 - **Índice:** a linha 16 lista IA, RNG, Conteúdo, Cena e Modificadores;
   acrescentar Combate, Portas e recompensas e Run e regiões (por contrato).
 
@@ -608,6 +610,6 @@ valores que o critério diz; comparações de distância com tolerância de 1e-9
 | 5 | Altar de Provação (orçamento × 1,35, elite 0,45, até 3 por onda): fora do MVP | Portas / Alpha | GDD de Portas |
 | 6 | Posição do santuário na sequência do Limiar (4ª câmara) e cura de 40% | Run e regiões | GDD de Run |
 | 7 | Layouts desenhados à mão e câmaras maiores que 1920×1080 | level-designer | Alpha |
-| 8 | Ordem entre `camara_limpa`, a Bênção e a abertura das portas | Portas e recompensas | GDD de Portas |
+| 8 | ~~Ordem entre `camara_limpa`, a Bênção e a abertura das portas~~ **Resolvida:** Portas R2 (`camara_limpa` → Bênção → portas) | Portas e recompensas | — |
 | 9 | Índice: linha 16 com Combate, Portas e Run em Depends On | usuário / producer | próxima edição do índice |
 | 10 | O alvo de dano recebido por câmara (IA R12, 0,25 da Vida) e `invuln_atingido_s` (Combate, 40 passos) só se verificam em jogo; a alavanca é a composição por orçamento (F1) (D-W14) | Telemetria / `/balance-check` | primeiro playtest |

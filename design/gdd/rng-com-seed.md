@@ -267,7 +267,7 @@ com `imul(a, b) = (a·(b & 0xFFFF) + (((a·(b >> 16)) & 0xFFFF) << 16)) & M`
 | u | int | 0–2³²−1 | calculated | saída de 32 bits |
 
 **Output Range:** `s'` e `u` em [0, 2³²−1]; período do estado = 2³². O `imul` em
-metades de 16 bits nunca passa de 2⁴⁹, então não estoura o inteiro de 64 bits do
+metades de 16 bits nunca passa de 2⁴⁸, então não estoura o inteiro de 64 bits do
 GDScript. Cada chamada consome **1 número**.
 **Example:** seed 0 → u = `4434B462`, `00159C37`, `39285B08`, `256D8104`,
 `77A2CBD4`. Seed `3F9A07C2` → u = `0865C80A`, `D260910A`, `B37DB9FA`,
@@ -580,13 +580,15 @@ sequência)
 | Bênçãos (Tradições) | Forte | Fluxos `bencaos`, `raridade` |
 | Run e regiões | Forte | Criação e fim da seed; é quem informa região e profundidade |
 | Telemetria local | Suave | Seed, versão, impressão, estado inicial e caminho (escolhas e trocas) |
-| Menus / HUD / telas de fim de run | Suave | Texto da seed (F9) |
+| Menus / telas de fim de run (ainda sem GDD; o HUD do MVP não mostra a seed) | Suave | Texto da seed (F9) |
 | Save e perfil (fatia vertical) | Suave | Seed e estado dos fluxos abertos, se houver save no meio da run |
 
 **Bidirecionalidade:** IA, Câmaras, Portas e Bênçãos já citam "RNG com seed" no
 índice. Run e regiões e Telemetria local passam a citá-lo também (decisão do
-usuário, 2026-11-05). Nenhum desses GDDs existe; cada um, ao ser escrito, deve
-listar "RNG com seed" em Dependencies.
+usuário, 2026-11-05). Esses GDDs agora existem (`camaras-e-ondas.md`,
+`portas-e-recompensas.md`, `bencaos-tradicoes.md`, `run-e-regioes.md`,
+`telemetria-local.md`, `ia-de-inimigos-e-elites.md`). Conferido em 2026-11-13:
+Câmaras, IA, Portas, Bênçãos, Run e Telemetria citam o RNG em Dependencies.
 
 **Pedido ao GDD de Conteúdo (atendido):** a impressão do catálogo entrou como
 R12 do Conteúdo na re-review de 2026-11-05, com o AC-46 de lá.
@@ -733,7 +735,8 @@ uma seed.
   (`ondas`, 0, 2) nem de (`portas`, 0, 3).
 - **AC-27 [I]** **Contrato R7.**
   - **GIVEN** duas runs simuladas A e B com seed `3F9A07C2` e as mesmas escolhas
-    de porta e bênção em 5 profundidades. Em cada profundidade, B consome no
+    de porta e bênção em 5 profundidades (0 a 4). Por finalidade: portas livres
+    nas profundidades 0, 1 e 3; ofertas nas profundidades 0, 1, 2 e 4. Em cada profundidade, B consome no
     fluxo `ia` uma quantidade diferente da de A (0 contra 37), intercalada com
     os sorteios de estrutura. A e B têm o mesmo estado inicial e gastam a mesma
     carga de troca na profundidade 2.
@@ -741,8 +744,8 @@ uma seed.
   - Controle de sanidade: trocar a seed faz os logs diferirem.
   - Variante C: igual a A, mas sem a troca na profundidade 2. As finalidades
     1–4 e 8 continuam idênticas em todas as profundidades.
-- **AC-28 [I]** Pular uma finalidade (profundidade 2 sem ondas) não altera as
-  ondas da profundidade 3. Uma nova run na mesma sessão, com a mesma seed,
+- **AC-28 [I]** Pular uma finalidade (o Santuário, profundidade 3, sem ondas)
+  não altera as ondas da profundidade 4. Uma nova run na mesma sessão, com a mesma seed,
   reproduz a primeira.
 - **AC-29 [I]** A seção `[autoload]` do `project.godot` e as `static var` não
   contêm nenhuma instância de RNG.
@@ -773,7 +776,7 @@ uma seed.
 
 **Desempenho (ADVISORY, `tests/performance/rng/`)**
 
-- **AC-33** Build headless, 1.000.000 passos e 10.000 derivações: o teste
+- **AC-33 [I]** Build headless, 1.000.000 passos e 10.000 derivações: o teste
   **registra** µs/op. Referências: ≤ 2 µs por passo, ≤ 5 µs por derivação,
   ≤ 0,1 ms para abrir uma câmara (≤ 8 fluxos, ~50 sorteios). Nenhum assert de
   tempo; regressão maior que 2× vira bug S3.

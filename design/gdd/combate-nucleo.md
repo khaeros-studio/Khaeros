@@ -12,7 +12,7 @@
 
 > **Nota (2026-11-11, Telemetria local):** pendente: `jogador_atingido` com `atacante_tipo` e `ataque_id` e a causa no `jogador_morreu` (a Telemetria grava `causa: null` sem eles).
 
-> **Nota (2026-11-11, revisão cruzada):** pendente: áudio do acerto marcado soma ao do peso (AC-80b, Feedback R3); duração da inversão no passo da recusa (R17/AC-77/AC-97 × Feedback R12) e relógio de `area` (V1/V3). (Resolvidos em 2026-11-12: V14 remetente único, linhas de `jogador_morreu` e `acerto_de_arma` na R17, Dependencies.)
+> **Nota (2026-11-11, revisão cruzada):** duração da inversão no passo da recusa e relógio de `area` **decididos em 2026-11-13** (V1, V10; Feedback R12 e tabela R3). (Resolvidos em 2026-11-12: V14 remetente único, linhas de `jogador_morreu` e `acerto_de_arma` na R17, Dependencies.)
 
 ## Summary
 
@@ -595,7 +595,7 @@ somado (+1) **antes** do teste
 | a_cada | int | ≥ 1 (4) | data file | param de `dano_enesimo_acerto` |
 | dano_alvo | float | ≥ 0 | calculated | Vida tirada do alvo, sem limitar ao que resta |
 
-**Output Range:** ≥ 0, sem teto (a F2 do Modificadores não tem teto). Dano 0
+**Output Range:** ≥ 0. O M tem teto: `teto_multiplicador_dano` = 4,0, provisório (F2 do Modificadores). Dano 0
 ainda aplica empurrão, cambaleio e status (R8). Entrada de combo ≤ 0 é recusada
 (CV4).
 **Example:** Lâmina, Corte 14, combo [1; 1; 1,8], sem bênção: 14 → 14 → 25,2. Um
@@ -980,7 +980,8 @@ O CV12, o CV14, o CV16, o CV17 e o CV18 dependem de dados de outros sistemas
   passo da esquiva, quando "em esquiva" já é falsa (Movimento R6), se a recarga
   for 0 e o prazo não tiver acabado.
 - **Se o golpe for tocado durante o hitstop:** o prazo do buffer fica parado
-  (Input R6) e o golpe sai no primeiro passo vivo em que a recarga for 0.
+  (Input R6) e o golpe sai no primeiro passo vivo em que valerem as condições
+  da R3 (recarga 0, fora de esquiva e de investida), se o prazo não tiver acabado.
 - **Se o golpe for tocado durante uma investida:** fica no buffer; sai no último
   passo da investida (R6), se o prazo do buffer não tiver acabado. Com N > 10,
   um toque feito cedo se perde; segurar o botão funciona.
@@ -1036,9 +1037,12 @@ O CV12, o CV14, o CV16, o CV17 e o CV18 dependem de dados de outros sistemas
   vale o maior (R10).
 - **Se uma cadeia de mortes passar de 4 passes:** os mortos que sobram morrem no
   próximo passo vivo, com o hitstop de abate deles naquele passo (R14).
-- **Se a câmara trocar com hitstop ativo:** o contador zera (R10).
+- **Se a câmara trocar com hitstop ativo:** o contador zera (R10). É só defesa:
+  a câmara limpa espera o hitstop, então a troca normal já sai de passo vivo.
 - **Se o chefe morrer:** os outros inimigos são zerados e morrem no passe
-  seguinte; o hitstop continua 36, porque o deles (4) é menor.
+  seguinte; o hitstop continua 36, porque o deles (4) é menor. Se o chefe
+  morrer no 4º passe, vale o caso geral acima (R14): os outros ficam para o
+  próximo passo vivo, depois dos 36 congelados.
 
 **Dano no jogador**
 
@@ -1134,8 +1138,8 @@ Movimento (pedidos, `deslocar(v)`, desconto da invulnerabilidade, "em esquiva")
   buffer). O contrato do Movimento (OQ2) foi honrado sem mudança.
 - Selo, Status, Telégrafos, IA, Câmaras, HUD, Feedback de combate, Pipeline, Run e
   Telemetria já existem (2026-11-12); **Chefes continua não existindo** (e o Áudio
-  não tem GDD próprio). Telégrafos, Câmaras, HUD e Feedback devem listar o
-  "Combate núcleo" em Dependencies (a conferir) e honrar os contratos acima. O índice já tem o Combate no Depends
+  não tem GDD próprio). Telégrafos, Câmaras, HUD e Feedback listam o
+  "Combate núcleo" em Dependencies (conferido por busca em 2026-11-12) e devem honrar os contratos acima. O índice já tem o Combate no Depends
   On de Armas, Selo, Status, Telégrafos, IA, HUD e VFX.
 - **Ajuste no índice:** a linha 8 do Combate lista Movimento, Modificadores,
   Conteúdo e Input; falta "IA de inimigos e elites (por contrato)" e "Câmaras e
@@ -1166,7 +1170,8 @@ acerto: o *smear* do arco vai até `alcance_px` com abertura
 **V1. Relógios e o que congela no hitstop**
 
 - **Relógio vivo** (passos vivos; congela no hitstop, na pausa e na Bênção):
-  sprites e rig de jogador e inimigos, *smear*, imagens residuais (Movimento
+  sprites e rig de jogador e inimigos, *smear*, anel e manchas da `area` (V3),
+  contorno tracejado de invulnerabilidade (V10), imagens residuais (Movimento
   V3), flash de acerto, projéteis, telégrafos, animações de morte e partículas
   de status e de dissipação. Emissores do relógio vivo recebem `speed_scale` 0
   no hitstop, porque o hitstop não usa `time_scale` (Cena R7).
@@ -1304,6 +1309,12 @@ acerto: o *smear* do arco vai até `alcance_px` com abertura
 - **Tela:** nada de tela cheia, sem vermelho. Segmento rachado e vinheta de Vida
   baixa são do HUD (§7.7, §7.8).
 - **Escudo absorveu tudo:** a inversão acontece igual; o HUD não racha segmento.
+- **Inversão no passo da recusa (decidido 2026-11-13):** a inversão usa sempre o
+  hitstop **pedido pelo golpe** (`inversao_passos` do evento, R17), nunca o
+  `hitstop_recusa_s` (18). A parte de hitstop (6) se consome dentro do
+  congelamento de 18; depois do `modo_impacto` restam os passos(`extra_inversao_s`)
+  = **4 passos vivos** de inversão, e então entra o contorno tracejado
+  (Feedback R12). Contorno de invulnerabilidade e `area` correm no relógio vivo (V1).
 
 **V11. `recusou_morte`** — a morte (§2.8) revertida.
 
@@ -1376,8 +1387,10 @@ acerto: o *smear* do arco vai até `alcance_px` com abertura
 - Fagulhas: um emissor por golpe, até 24 partículas; até 4 emissores de impacto
   ativos; teto global de 24 emissores. Até 40 flipbooks simultâneos; overdraw
   de VFX ≤ 0,5 tela.
-- Acima do teto sai o mais antigo do relógio de apresentação; nunca se corta
-  flash, telégrafo partido ou inversão.
+- Acima do teto, o Feedback R4 escolhe a vítima de P4 a P2 antes; só então o
+  mais antigo do relógio de apresentação; P0 e P1 nunca saem (nunca se corta
+  flash, telégrafo, telégrafo partido, inversão, passe obrigatório, nem o
+  impact frame da recusa e do chefe).
 - Ordem sobre o inimigo: estrela < flash < número < marca de vulnerável <
   "Quebrou!".
 
@@ -1553,8 +1566,9 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
 > Nada de seed nem de tempo real: tudo roda por passos e com dublês injetados
 > (R16). Os contratos com IA, Telégrafos, Câmaras, Selo e Status são
 > **provisórios**: os critérios que dependem deles usam dublês que honram este
-> GDD e serão rodados de novo com os sistemas reais. O que só pode ser testado
-> com o sistema real fica **BLOQUEADO até o GDD X**.
+> GDD e serão rodados de novo com os sistemas reais. Os GDDs de IA,
+> Telégrafos, Câmaras, Selo e Status já existem. Só o que depende de um GDD
+> ainda não escrito fica **BLOQUEADO** (hoje: Acessibilidade e opções, AC-79).
 >
 > **Fixture padrão (FP):**
 >
@@ -1770,7 +1784,8 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
   dublê). O mesmo roteiro da AC-10 (a), com o Chefe como único inimigo: o
   Câmaras dublê não recebe a avaliação de "câmara limpa" no passo 0 (hitstop
   36 pedido) nem nos passos 1–36, e a recebe no passo 37, com a lista vazia.
-  Com um Eco (abate comum, hitstop 4) no lugar do Chefe, ela chega no passo 5.
+  Com um Eco (abate comum, hitstop 4) no lugar do Chefe, vale o maior entre o
+  hitstop da Onda (6) e o do abate (4): congelados 1–6, e ela chega no passo 7.
 - **AC-96 [L] R1 — ordem da metade do wipe e fora de Jogo** (provisório:
   orquestrador, Câmaras, Cena e Pipeline dublês). Um espião registra as
   chamadas do quadro da metade da Transição: "câmara nova" (Combate),
@@ -2035,22 +2050,22 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
 
 **G. Impacto em inimigo**
 
-- **AC-37 [L] R8/F1 — dano, contador por alvo e quarto acerto.** FP, portador
+- **AC-37 [L] R8/F1 — dano, contador do portador e `enesimo_acerto`.** FP, portador
   real com Ataque +25% (M_sem 1,25) e `dano_enesimo_acerto` com `a_cada` 4 e
   valor 0,6 (M_com 2,0). Ataque segurado.
   - (a) Sacos B (1060; 480), A (1060; 540) e C (1060; 600), nesta ordem; B e C
     surgindo até o passo 18:
     - no passo 0, A recebe 17,5 (contador 1);
     - no passo 19, B recebe 17,5 (2), A 17,5 (3) e C 28,0 (4): `acerto` de C
-      com quarto acerto verdadeiro, pesado e `peso_visual` pesado; **1 pedido
+      com `enesimo_acerto` verdadeiro, pesado e `peso_visual` pesado; **1 pedido
       de hitstop 3** (o quarto acerto não sobe o hitstop do golpe, R4);
-    - sem `dano_enesimo_acerto`, C recebe 17,5 e o quarto acerto é falso.
+    - sem `dano_enesimo_acerto`, C recebe 17,5 e `enesimo_acerto` é falso.
   - (b) Saco A (1060; 540) e Eco ferido (17) D (1060; 600), nesta ordem:
     - no passo 0, A recebe 17,5 (1) e D recebe 17,5 (2) e morre;
       max(3, 4): congelados 1–4;
     - no passo 20, A recebe 17,5 (3);
-    - no passo 39, A recebe 25,2 × 2,0 = 50,4 (4), com finalizador e quarto
-      acerto.
+    - no passo 39, A recebe 25,2 × 2,0 = 50,4 (4), com finalizador e
+      `enesimo_acerto` verdadeiro.
   - (c) FP-R com o mesmo portador: um Pulso tira 15,0.
 - **AC-38 [L] R8/F3 — finalizador, pesado e fator do alvo.** FP, Ataque
   segurado, golpes em 0 e 16 sem alvo (o alvo surge no 32) e o 3º Corte no 32.
@@ -2127,7 +2142,7 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
   | **Corte-900** (FP; Corte com empurrão 900), 1º golpe do combo | (1060; 540) | 6 (empurrão ≥ 900) | verdadeiro | pesado | 1 pedido (Saco, 24) | 1075 |
   | Corte da FP, 1º golpe | (1060; 540) | 3 | falso | leve | nenhum | 1067,5 |
 
-  Nas três linhas o Saco cambaleia. O Corte-900 dá CV8 na validação (AC-62).
+  Nas três linhas o Saco cambaleia. O Corte-900 dá CV7 (aviso) e CV8 na validação (AC-62).
 - **AC-90 [L] R8 — dano de status (`de_status`)** (provisório: Status dublê;
   com o real na AC-70). FP, nenhum toque. No turno do alvo no item 7 do passo
   0, o Status dublê chama `ferir_inimigo` com `de_status` e dano 5:
@@ -2159,13 +2174,13 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
     |---|---|---|---|
     | 1º Corte num Saco (AC-06) | Ataque / arco | falso | leve |
     | 3º Corte, finalizador (AC-38) | Ataque / arco | verdadeiro | pesado |
-    | Quarto acerto num Corte leve: C da AC-37 (a) | Ataque / arco | verdadeiro | pesado |
+    | Quarto acerto num Corte leve: C da AC-37 (a) (portador com Ataque +25%, `dano_enesimo_acerto` `a_cada` 4) | Ataque / arco | verdadeiro | pesado |
     | Onda-270 (AC-89) | Especial / circulo | falso | pesado |
     | Investida: S1 / S2 da AC-34 | Especial / avanco | verdadeiro / verdadeiro | pesado / leve |
     | Pulso (AC-31, 1º bullet) | Ataque / projetil | falso | leve |
     | 3º Pulso-combo, finalizador (AC-31) | Ataque / projetil | verdadeiro | pesado |
-    | Pulso com `dano_enesimo_acerto` (`a_cada` 1, valor 0,6) no portador: dano 19,2, quarto acerto | Ataque / projetil | verdadeiro | leve |
-    | Parede (AC-46 a), reflexo (AC-51), Corte da esquiva (AC-85), explosão (AC-56) | — (`de_arma` falso) | falso | leve |
+    | Pulso com `dano_enesimo_acerto` (`a_cada` 1, valor 0,6) no portador: dano 12 × 1,6 = 19,2 se o portador não tem Ataque +25%; 24,0 com o Ataque +25% da AC-37; `enesimo_acerto` verdadeiro | Ataque / projetil | verdadeiro | leve |
+    | Parede (AC-46 a), reflexo (AC-51), Corte da esquiva (AC-85), explosão (AC-56) | nenhum / `parede`, `reflexo`, `corte`, `explosao` (`de_arma` falso) | falso | leve |
 
   - direção do `acerto` da parede = do jogador ao inimigo (R11.3): (1; 0) na
     AC-46 (a); no canto da AC-47, com o Saco preso em (1896; 1056),
@@ -2182,8 +2197,8 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
   - `recusou_morte` da AC-53: Vida nova 40. `explosao` da AC-56: posição do
     morto, `raio_px` 60.
 
-  Slot e forma são conferidos só com `de_arma` verdadeiro (a R17 não diz o
-  valor nos impactos sem arma).
+  Nos impactos sem arma (`de_arma` falso), o slot é "nenhum" e a forma é a
+  origem (R17).
 
 **H. Empurrão e parede**
 
@@ -2407,8 +2422,8 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
   (`a_cada` 1, valor 0,6), Saco móvel em preparação em (1060; 540), nenhum
   toque. No passo 0, o Movimento dublê envia `aplicar_corte(Saco, 10, (1; 0),
   360, Sangramento 1)`:
-  - 1 `acerto` com dano 10 (o M já veio do Movimento), `de_arma` falso, quarto
-    acerto falso, pesado falso e `peso_visual` leve;
+  - 1 `acerto` com dano 10 (o M já veio do Movimento), `de_arma` falso,
+    `enesimo_acerto` falso, pesado falso e `peso_visual` leve;
   - contador de acertos 0; nenhum `acerto_de_arma`, e os dublês de Selo e de
     Status não recebem acerto (sem Fluxo e sem `golpe_*`);
   - o Status dublê recebe Sangramento 1;
@@ -2465,8 +2480,8 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
   | recusa 36, abate de chefe 36 | nenhum |
   | leve 6 (0,1), pesado 11 (0,1833): f_cong = 23/71 = 0,324 | CV1 (leve > abate) |
   | leve 6, pesado 12: f_cong = 24/72 = 0,333… | CV1 (leve > abate); CV2 |
-  | `invuln_atingido_s` 0,25 (15) e atingido 0,25 (15) | CV21 |
-  | `invuln_atingido_s` 0,25 (15) e atingido 0,2333 (14) | nenhum |
+  | `invuln_atingido_s` 0,25 (15) e atingido 0,25 (15) | CV21; CV22 (15 + 4 = 19 ≥ 15) |
+  | `invuln_atingido_s` 0,25 (15) e atingido 0,2333 (14) | CV22 (14 + 4 = 18 ≥ 15) |
 - **AC-61 [L] CV3/CV4/CV5 — combo.**
 
   | Mudança | Conjunto exato |
@@ -2565,17 +2580,17 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
 
 **N. Contratos com sistemas não escritos**
 
-- **AC-67 [I] IA — GDD existe; AC a escrever com o dublê atual.** Com a IA
+- **AC-67 [I] IA.** Com a IA
   real:
   - o pedido de "Quebrou!" põe o inimigo em recuperação por 24 passos e
     cancela a preparação;
   - "cambaleando" faz a IA andar a 40%, sem parar o relógio de ataque;
   - a separação entre inimigos nunca gera `parede`;
   - um inimigo morto no item 5 não ataca no item 7.
-- **AC-68 [I] Telégrafos — GDD existe; AC a escrever com o dublê atual.** Para cada golpe
+- **AC-68 [I] Telégrafos.** Para cada golpe
   inimigo do MVP, o conjunto de posições do jogador em que `ferir_jogador` é
   chamado é igual à área desenhada pelo telégrafo (amostragem em grade de 3 px).
-- **AC-69 [I] Câmaras — GDD existe; AC a escrever com o dublê atual.**
+- **AC-69 [I] Câmaras.**
   - Na troca de câmara real (a porta, só com hitstop 0, R10), a Transição
     segue a ordem da R1, e o aviso "câmara nova" chega no quadro da metade
     do wipe (as AC-10 (b) e AC-96 com as Câmaras reais).
@@ -2584,7 +2599,7 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
   - O retângulo e os obstáculos reais substituem o dublê da AC-29 e da AC-47.
   - A consulta "em combate" real (porta fechada até câmara limpa, inclusive o
     vão entre ondas) substitui o dublê da AC-87 e da FP.
-- **AC-70 [I] Selo e Status — GDD existe; AC a escrever com o dublê atual (Selo e Fluxo e Efeitos de status).**
+- **AC-70 [I] Selo e Status (Selo e Fluxo e Efeitos de status).**
   - `acerto_de_arma` soma Fluxo e aplica `golpe_*`.
   - O dano por passo do Status mata e dispara `cura_ao_abater`,
     `explosao_ao_abater` e o hitstop de abate (o dano de status não emite `acerto`, R8).
@@ -2664,6 +2679,9 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
   | Corte leve que mata um Eco ferido (14) | leve 1,0, mira (vence o leve 0,6 da morte) |
   | Onda que mata um Chefe com Vida 30 | chefe, vetor nulo |
   | explosão com morte comum | leve 0,6, vetor nulo |
+  | `recusou_morte` | pesado 1,0 (zoom principal), sem direção |
+  | `recusou_morte` e `jogador_atingido` no mesmo passo | o de `recusou_morte`: pesado 1,0 (zoom principal), sem direção (vence `jogador_atingido`) |
+  | `quebrou` | nenhum a mais (V14) |
 - **AC-73 [V] V1/V2 — hitstop e forma igual ao teste.** FP, Saco em
   (1060; 540), 3º Corte. Capturas no passo do contato, no 2º congelado e no 1º
   vivo depois:
@@ -2677,7 +2695,7 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
 - **AC-74 [V] V3/V4 — área e projétil.**
   - Onda: o anel tracejado em osso vai de 40% a 100% de 195 px em 4 passos e
     some até o passo 10; nunca é preenchido. "Fica abaixo de um telégrafo
-    ativo": **BLOQUEADO até o GDD de Telégrafos**.
+    ativo": GDD existe; AC a escrever com o dublê atual.
   - Pulso: o glifo tem raio de 15 ± 1 px; nas capturas em tons de cinza e no
     conta-gotas, nenhum pixel do projétil tem matiz magenta; no
     Pulso-leque, todos os projéteis são iguais.
@@ -2697,14 +2715,17 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
   - "Quebrou!": letreiro de ~44 px a −8°, legível em tons de cinza, e marca de
     três traços por 24 passos.
   - Com dois "Quebrou!" no mesmo passo, sai um letreiro só.
-  - O telégrafo partido fica **BLOQUEADO até o GDD de Telégrafos**.
+  - O telégrafo partido: GDD existe; AC a escrever com o dublê atual.
 - **AC-77 [V] V10/V11 — jogador atingido e recusa.**
-  - Atingido: a inversão de silhueta dura 6 + 4 passos e o contorno tracejado
+  - Atingido: a inversão de silhueta dura hitstop do golpe + 4 passos (golpe com
+    hitstop 6: 10) e o contorno tracejado
     em osso dura exatamente 40 passos, sem piscar; sem vermelho e sem tela
     cheia (contorno tracejado **provisório**, OQ4).
   - Recusa: o *impact frame* (tinta L* ≤ 10, Iniciado em osso L* ≥ 88) é
     segurado pelos 18 passos, com as silhuetas desenhadas por cima. Os
-    telégrafos por cima: **BLOQUEADO até o GDD de Telégrafos**.
+    telégrafos por cima: GDD existe; AC a escrever com o dublê atual.
+  - Caso da recusa: **provisório até o Feedback OQ 8 fechar**: vale o hitstop
+    pedido pelo golpe (6), não o 18 da recusa.
 - **AC-78 [V] V12/V13 — abates.**
   - Morte de inimigo comum em ≤ 30 passos.
   - Elite: a coroa estilhaça e não há *impact frame*.
@@ -2722,7 +2743,7 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
     telégrafo por dois critérios medidos (**proposta**, a confirmar pelo
     art-director): padrão de traço (tracejado no golpe × sólido no telégrafo)
     **e** ΔL* ≥ 20 entre os dois traços, no conta-gotas. As capturas com
-    telégrafo: **BLOQUEADO até o GDD de Telégrafos**.
+    telégrafo: GDD existe; AC a escrever com o dublê atual.
   - Toggles — "Reduzir flashes" troca o *impact frame* pelo mundo
     dessaturado; números "desligado" removem números e "Quebrou!"; o tremor a
     0% mantém hitstop, estrela e flash: **BLOQUEADO até o GDD de
@@ -2738,8 +2759,9 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
   camada de áudio do GDD de Áudio; OQ5). Camada de
   áudio com espião de pedidos de som: no máximo 1 pedido por tipo de som por
   passo. No passo 0 da AC-24 (3 `acerto` leves), 1 pedido de `acerto` leve; no
-  passo 19 da AC-37 (a) (2 leves e 1 quarto acerto), 1 de `acerto` leve e 1 de
-  `acerto` pesado; no passo 0 da AC-55, 1 de `inimigo_morreu` por tipo de
+  passo 19 da AC-37 (a) (2 leves e 1 acerto marcado), 1 de `acerto` leve, 1 de
+  `acerto` pesado e `sfx_acerto_critico` (o gancho do acerto marcado **soma** ao
+  do peso, Feedback R3); no passo 0 da AC-55, 1 de `inimigo_morreu` por tipo de
   inimigo (chefe e comum).
 - **AC-81 [P] desempenho** (em `tests/performance/combat/`, mesmo desvio da
   AC-48 do Movimento).
@@ -2776,7 +2798,7 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
     condições) e que não saíram nele.
 
   Registro com testador, build e o log.
-- **AC-83 [M] nenhuma morte sem telégrafo — GDD existe; AC a escrever com o dublê atual.** Sessão de 30 minutos: em 0 acertos no jogador falta um
+- **AC-83 [M] nenhuma morte sem telégrafo.** Sessão de 30 minutos: em 0 acertos no jogador falta um
   telégrafo visível antes, no log.
 
 Cobertura (versão 2): cada regra, fórmula e validação tem ao menos um
@@ -2791,16 +2813,17 @@ critério.
   AC-23, AC-26; F5 AC-27, AC-28; F6 AC-33–AC-36; F7 AC-39, AC-45; F8 AC-46,
   AC-47; F9 AC-07, AC-08, AC-60; F10 AC-48–AC-50, AC-53; F11 AC-66.
 - **Validação:** CV1, CV2 e CV21 AC-60; CV3–CV5 AC-61; CV6–CV8 AC-62; CV9–CV11,
-  CV13 e CV15 AC-63; CV12, CV14 e CV16–CV20 AC-64; destino AC-65. As faixas
-  dos 27 campos do `CombatTuning` estão na AC-03.
+  CV13 e CV15 AC-63; CV12, CV14 e CV16–CV20 AC-64; CV22 AC-60, AC-97; destino
+  AC-65. As faixas dos 30 campos do `CombatTuning` estão na AC-03.
 
 Lacunas assumidas:
 - **VFX:** agregação de números em 300 ms, teto de 6 números, limitador de 3
   flashes/s e orçamento em multidão (V15) ficam para os critérios do GDD de
   Feedback de combate.
 - **Paridade do dano no jogador:** fica fora da AC-71 (inimigos passivos).
-- **A escrever com o dublê atual (GDDs existem):** AC-67, AC-68, AC-69, AC-70, AC-83. **Bloqueadas:** as partes marcadas das
-  AC-74, AC-76, AC-77 e AC-79.
+- **A escrever com o dublê atual (GDDs existem):** AC-67, AC-68, AC-69, AC-70, AC-83 e as partes marcadas das
+  AC-74, AC-76, AC-77 e AC-79 (Telégrafos). **Bloqueada:** só a parte da AC-79 que
+  depende de Acessibilidade e opções (sem GDD).
 
 Esclarecimentos decididos em 2026-11-09 (o texto das regras foi alinhado):
 - saída do validador: uma entrada por regra e por objeto; o erro vence o aviso
