@@ -40,7 +40,7 @@
 #   unsupported layout, with its number.
 
 version: 1
-last_updated: ""
+last_updated: "2026-11-13"
 
 # ─── STATE OWNERSHIP ─────────────────────────────────────────────────────────
 # Who is the authoritative owner of each piece of shared game state.
@@ -53,7 +53,38 @@ last_updated: ""
 # interface: how other systems access this state (read-only property, method call,
 #   signal, shared resource, etc.) — this is the contract other ADRs depend on.
 
-state_ownership: []
+state_ownership:
+  - state: estado_de_jogo
+    status: active
+    owner_system: orquestrador-do-passo
+    adr: docs/architecture/adr-0001-orquestrador-do-passo.md
+    interface: "OrquestradorDoPasso.estado() -> EstadoDeJogo.Valor (somente leitura); a escrita só por pedir_estado(novo) -> bool"
+    write_access: orquestrador-do-passo-only
+    referenced_by:
+      - docs/architecture/adr-0001-orquestrador-do-passo.md
+    added: 2026-11-13
+    revised: ""
+  - state: relogios_t_vivo_t_apres
+    status: active
+    owner_system: orquestrador-do-passo
+    adr: docs/architecture/adr-0001-orquestrador-do-passo.md
+    interface: "OrquestradorDoPasso.t_vivo() -> float e t_apres() -> float (somente leitura); t_vivo avança 1/60 por passo vivo, t_apres segue o tempo real com teto dt_max_apres"
+    write_access: orquestrador-do-passo-only
+    referenced_by:
+      - docs/architecture/adr-0001-orquestrador-do-passo.md
+    added: 2026-11-13
+    revised: ""
+  - state: eventos_do_passo
+    status: active
+    owner_system: eventos-do-passo
+    adr: docs/architecture/adr-0002-canal-de-eventos.md
+    interface: "EventosDoPasso: emitir(e), ha(tipo), do_tipo(tipo) e todos() (cópias), esvaziar() (só o Orquestrador, devolve o array antigo)"
+    write_access: "emitir só pelos módulos de regra durante o passo; esvaziar só pelo Orquestrador"
+    referenced_by:
+      - docs/architecture/adr-0002-canal-de-eventos.md
+      - docs/architecture/adr-0001-orquestrador-do-passo.md
+    added: 2026-11-13
+    revised: ""
 
 # Example:
 #
@@ -81,7 +112,64 @@ state_ownership: []
 #
 # pattern options: signal | direct_call | event_bus | shared_resource | rpc | none
 
-interfaces: []
+interfaces:
+  - contract: passo_da_simulacao
+    status: active
+    pattern: direct_call
+    producer: orquestrador-do-passo
+    consumers:
+      - todos os módulos que rodam no passo (Input, Combate, Movimento, Selo, Status, Telégrafos, IA, Câmaras)
+    adr: docs/architecture/adr-0001-orquestrador-do-passo.md
+    signal_signature: "Passo.passo(amostra: AmostraDeEntrada) -> void; Passo.passo_congelado() -> void"
+    referenced_by:
+      - docs/architecture/adr-0001-orquestrador-do-passo.md
+    added: 2026-11-13
+    revised: ""
+  - contract: hitstop_consulta
+    status: active
+    pattern: direct_call
+    producer: combate
+    consumers:
+      - orquestrador-do-passo
+      - input
+      - movimento
+    adr: docs/architecture/adr-0001-orquestrador-do-passo.md
+    signal_signature: "hitstop_ativo() -> bool (consulta); o contador e pedir_hitstop(n) são do Combate (R10)"
+    referenced_by:
+      - docs/architecture/adr-0001-orquestrador-do-passo.md
+    added: 2026-11-13
+    revised: ""
+  - contract: eventos_do_passo
+    status: active
+    pattern: shared_resource
+    producer: módulos de regra (Combate, Selo, Status, Movimento, IA, Câmaras, Portas, Bênçãos, Economia)
+    consumers:
+      - módulos de regra posteriores no passo (leitura por do_tipo)
+      - telemetria
+      - hud
+      - feedback-de-combate
+    adr: docs/architecture/adr-0002-canal-de-eventos.md
+    signal_signature: "EventoDoPasso (@abstract RefCounted, subclasses tipadas e imutáveis por convenção); entrega no fim de cada passo_fisico, ordem Telemetria, HUD, Feedback"
+    referenced_by:
+      - docs/architecture/adr-0002-canal-de-eventos.md
+    added: 2026-11-13
+    revised: ""
+  - contract: cadeia_de_controle
+    status: active
+    pattern: direct_call
+    producer: câmaras, portas, bênçãos, run, economia
+    consumers:
+      - portas
+      - bênçãos
+      - tela-de-bencao-e-carta
+      - run-e-regioes
+      - economia-de-fragmentos
+    adr: docs/architecture/adr-0002-canal-de-eventos.md
+    signal_signature: "chamada direta por interface injetada: camara_limpa(p, tipo), pedir_oferta(regiao, indice), escolher(i), trocar(), creditar(origem, q), nova_run(); sinais do Godot só nos nós de Apresentação"
+    referenced_by:
+      - docs/architecture/adr-0002-canal-de-eventos.md
+    added: 2026-11-13
+    revised: ""
 
 # Example:
 #
@@ -141,7 +229,27 @@ performance_budgets: []
 # Register an API decision when the choice is non-obvious and other ADRs might
 # make a different choice for the same purpose without knowing this was decided.
 
-api_decisions: []
+api_decisions:
+  - purpose: pausa_do_jogo
+    status: active
+    api: "estado de jogo próprio do OrquestradorDoPasso (EstadoDeJogo.PAUSA)"
+    not: "SceneTree.paused"
+    adr: docs/architecture/adr-0001-orquestrador-do-passo.md
+    reason: "SceneTree.paused também pararia a UI da Bênção e o Pipeline; o orquestrador só deixa de chamar o passo vivo fora de JOGO"
+    referenced_by:
+      - docs/architecture/adr-0001-orquestrador-do-passo.md
+    added: 2026-11-13
+    revised: ""
+  - purpose: reacao_a_evento_no_passo
+    status: active
+    api: "EventosDoPasso.do_tipo(tipo) -> Array[EventoDoPasso] (cópia), lido pelo módulo de regra posterior no mesmo passo"
+    not: "sinais do Godot ou callbacks entre módulos de regra"
+    adr: docs/architecture/adr-0002-canal-de-eventos.md
+    reason: "A ordem de reação é a ordem do passo (ADR-0001), não a de conexão ou injeção; morte vence a limpeza vira uma leitura da lista"
+    referenced_by:
+      - docs/architecture/adr-0002-canal-de-eventos.md
+    added: 2026-11-13
+    revised: ""
 
 # Example:
 #
@@ -167,7 +275,61 @@ api_decisions: []
 # Register a pattern when an ADR explicitly bans it AND other ADRs might
 # unknowingly use it (i.e., it's a tempting but wrong approach for this project).
 
-forbidden_patterns: []
+forbidden_patterns:
+  - pattern: orquestrador_como_autoload
+    status: active
+    description: "O orquestrador do passo não é um Autoload. O Main, nó fino da cena raiz, o constrói e injeta nos módulos."
+    why: "Singleton global quebra o teste em memória e deixa qualquer módulo pedir transição de estado."
+    adr: docs/architecture/adr-0001-orquestrador-do-passo.md
+    added: 2026-11-13
+  - pattern: scenetree_paused_para_pausar_jogo
+    status: active
+    description: "Não usar SceneTree.paused para pausar, congelar ou fazer hitstop. A pausa é o estado PAUSA do orquestrador."
+    why: "A engine pararia também a UI da Bênção, os menus e o Pipeline, que precisam continuar vivos."
+    adr: docs/architecture/adr-0001-orquestrador-do-passo.md
+    added: 2026-11-13
+  - pattern: engine_time_scale_para_hitstop
+    status: active
+    description: "Não usar Engine.time_scale para hitstop nem para pausar. Hitstop é contador de passos, guardado pelo Combate."
+    why: "time_scale escala todos os relógios, inclusive os de apresentação, e quebra a contagem em passos inteiros (Combate R10)."
+    adr: docs/architecture/adr-0001-orquestrador-do-passo.md
+    added: 2026-11-13
+  - pattern: timer_na_logica_de_jogo
+    status: active
+    description: "A lógica de jogo não usa Timer nem SceneTree.create_timer. O tempo é contagem de passos; esperas de apresentação usam t_apres ou t_vivo."
+    why: "Esses relógios correm no tempo real da engine e não param em hitstop, pausa nem Bênção."
+    adr: docs/architecture/adr-0001-orquestrador-do-passo.md
+    added: 2026-11-13
+  - pattern: ordem_do_passo_por_process_priority
+    status: active
+    description: "Nenhum módulo de jogo tem _physics_process próprio nem ordem por process_priority. A ordem do passo é a do orquestrador."
+    why: "A ordem dos 10 itens do passo é determinística e crítica, e deve ficar legível e testável num só lugar."
+    adr: docs/architecture/adr-0001-orquestrador-do-passo.md
+    added: 2026-11-13
+  - pattern: barramento_de_eventos_autoload
+    status: active
+    description: "Não há event bus global (Autoload com publicar/assinar por nome). Eventos passam pela lista EventosDoPasso, injetada."
+    why: "Singleton global, sem tipo, ordem de assinantes implícita e difícil de testar em memória."
+    adr: docs/architecture/adr-0002-canal-de-eventos.md
+    added: 2026-11-13
+  - pattern: sinal_do_godot_entre_modulos_de_regra
+    status: active
+    description: "Módulos de regra não se comunicam por sinais do Godot. Usam a lista do passo (notificação) ou chamada direta injetada (controle). Sinais só nos nós de Apresentação."
+    why: "A ordem de chamada dos conectados não está na referência da engine e esconderia a ordem do passo dentro da ordem de conexão."
+    adr: docs/architecture/adr-0002-canal-de-eventos.md
+    added: 2026-11-13
+  - pattern: evento_com_node_ou_referencia_de_volta
+    status: active
+    description: "Um EventoDoPasso guarda só dados (valores e identificadores). Nunca Node, nem referência ao EventosDoPasso, ao módulo emissor ou a outro evento."
+    why: "RefCounted não tem coletor de ciclos: uma referência de volta vaza; Node vivo no payload quebra o teste em memória."
+    adr: docs/architecture/adr-0002-canal-de-eventos.md
+    added: 2026-11-13
+  - pattern: consumidor_da_apresentacao_emite_evento
+    status: active
+    description: "HUD, Feedback e Telemetria só leem. Não chamam emitir() nem escrevem em estado de jogo durante a entrega."
+    why: "Preserva o princípio de que a Apresentação nunca altera o jogo; emitir() erra em debug durante a entrega."
+    adr: docs/architecture/adr-0002-canal-de-eventos.md
+    added: 2026-11-13
 
 # Example:
 #
