@@ -511,9 +511,19 @@ raio_jogador_px) / d_passo`
 
 **Output Range:** margem > 1 é seguro.
 
-- Prova: com passo menor que o raio combinado, o ponto de chegada fica no mesmo
-  semiplano do de saída, e o empurrão da R10 devolve o jogador ao lado de onde
-  veio.
+- **Garantia** (decisão do usuário, 2026-11-15): com passo menor que o raio
+  combinado, um passo que começa fora de um obstáculo isolado nunca termina do
+  outro lado do centro dele. O empurrão da R10 devolve o jogador ao lado de onde
+  veio, e ele nunca termina um passo dentro do obstáculo.
+- **Limite aceito:** a colisão confere só o fim de cada passo, de forma
+  discreta, como no cânone. Num trajeto que raspa a borda, o meio do passo pode
+  entrar no obstáculo sem que o fim entre, e nada é corrigido. A invasão máxima
+  é `r_c − √(r_c² − (d_passo/2)²)`, com r_c = raio combinado: 1,64 px no pior
+  caso (r_obs 12,5, raio 27, passo 22,5), durante um passo. Não há varredura nem
+  subpassos (ADR-0008).
+- **Fora da garantia:** começar o passo já sobreposto (a R10 resolve no fim do
+  passo) e o empurrão de um obstáculo jogar o jogador em outro (o vão mínimo do
+  MV4 reduz esse caso).
 - Com passo ≥ raio combinado, já dá para atravessar.
 - A parede é sempre segura, porque a posição é presa ao retângulo.
 
@@ -1108,8 +1118,11 @@ mesmas imagens residuais, sem variante visual.
   Combate dublê (fora `cancelar`, `garantir_invulneravel` e
   `esquiva_iniciada` no passo 0): nenhum pedido de hitstop, acerto, Fluxo ou
   `golpe_*`. Vale para o Corte de fábrica (empurrão 360). Com empurrão ≥
-  `empurrao_pesado` (900), o Combate R8.4 marca golpe pesado e o pedido de
-  hitstop existe. Provisório: confirmar com o Combate real que o Corte não conta
+  `empurrao_pesado` (900), no Combate real, o impacto vira pesado pela R8.4: o
+  evento `acerto` sai com `pesado` verdadeiro e pode dar "Quebrou!". Mesmo
+  assim, **nenhum hitstop é pedido** (R8, Combate R18; decisão do usuário,
+  2026-11-15). Se o Corte matar, o hitstop de abate segue o caminho próprio do
+  Combate (R10). Provisório: confirmar com o Combate real que o Corte não conta
   acerto.
 - **AC-51 [L] R8 — contexto do dano.** FP-Corte com `dano_apos_esquiva` +50%
   ativo no portador. O Combate dublê abre a janela `apos_esquiva` no
@@ -1160,6 +1173,13 @@ mesmas imagens residuais, sem variante visual.
   (1000; 540) com r = 42, esquiva para +x:
   - após 0, x = 922,5; após 1 a 8, x = 931,0;
   - em nenhum passo x passa de 931;
+  - a esquiva dura os 9 passos.
+- **AC-59 [L] F7 — raspar a borda é aceito.** Jogador em (988,75; 608,5), O em
+  (1000; 540) com r = 42, esquiva para +x. Os extremos do passo 0 ficam a 69,42
+  do centro (≥ 69), e o meio fica a 68,5:
+  - após 0, a posição é (1011,25; 608,5): y não muda e nenhum empurrão é
+    aplicado;
+  - após 8, x = 1191,25;
   - a esquiva dura os 9 passos.
 - **AC-31 [L] R10 — esquiva contra a parede.** Jogador em (1880; 540), esquiva
   para +x:
