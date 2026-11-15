@@ -97,6 +97,8 @@ sistema de jogo (Art Bible §8.8).
 | 33 | Acessibilidade e opções | Meta | Vertical Slice | Not Started | — | HUD, Tela de bênção e componente de carta, Menus, Feedback de combate (VFX), Input e controle |
 | 34 | Localização (inferred) | Meta | Vertical Slice | Not Started | — | — |
 | 35 | Telemetria local | Meta | MVP | Approved | [telemetria-local.md](telemetria-local.md) | Run e regiões, Bênçãos (Tradições), RNG com seed |
+| 36 | Co-op online (1 a 4 jogadores; decisão do usuário em 2026-11-13, pós-MVP solo) | Gameplay | Alpha | Not Started | — | Netcode e sincronização, Run e regiões, Câmaras e ondas, RNG com seed, Input e controle, Cena 3/4 e câmera, Combate núcleo, IA de inimigos e elites, Armas das Doutrinas, Bênçãos (Tradições), Portas e recompensas, Economia de Fragmentos, HUD, Save e perfil, Rito de Iniciação e criação do Iniciado (um Iniciado por jogador), Menus (lobby). Exige também netcode e sincronização, que ainda não são um sistema do índice (pergunta aberta: sistema próprio ou parte deste). Ganchos listados em [co-op-ganchos.md](co-op-ganchos.md) |
+| 37 | Netcode e sincronização (co-op online) | Core | Alpha | Not Started | — | Co-op online, RNG com seed, Input e controle, Cena 3/4 e câmera, Combate núcleo, Run e regiões, Conteúdo orientado a dados (impressão do catálogo no lobby). Cobre modelo (host autoritativo ou outro), latência tolerada, desconexão e lobby; decisão de arquitetura (ADR) antes do GDD |
 
 **Escopo de conteúdo por nível** (o sistema é um só; o conteúdo cresce):
 - **Armas das Doutrinas:** MVP = Lâmina e Ressonância (decisão do CD); fatia
@@ -141,8 +143,9 @@ sistema de jogo (Art Bible §8.8).
 - **Fatia vertical (11):** a experiência completa de uma região — o ritual de
   voltar ao Campus, melhorar e descer de novo (P4), a voz dos Mestres (P1) e o
   primeiro chefe.
-- **Alpha (2 + conteúdo):** o resto do jogo canônico — a segunda região e todas
-  as Doutrinas, incluindo Pactos com a criatura.
+- **Alpha (4 + conteúdo):** o resto do jogo canônico — a segunda região e todas
+  as Doutrinas, incluindo Pactos com a criatura. O **Co-op online** (1 a 4
+  jogadores) entra aqui como pós-MVP solo: não muda o escopo do MVP.
 
 ---
 
@@ -246,6 +249,8 @@ Campus, Menus.
 | 33 | Acessibilidade e opções | Vertical Slice | Polish | accessibility-specialist, ux-designer | M |
 | 34 | Criatura do pacto | Alpha | Feature | game-designer, ai-programmer | L |
 | 35 | Desbloqueio de armas | Alpha | Feature | economy-designer | S |
+| 36 | Co-op online (1 a 4 jogadores) | Alpha | Feature | game-designer, network-programmer, systems-designer | XL |
+| 37 | Netcode e sincronização | Alpha | Foundation | network-programmer, technical-director | XL |
 
 S = 1 sessão, M = 2–3 sessões, L = 4+ sessões. Sistemas independentes da mesma
 camada podem ser desenhados em paralelo.
@@ -298,7 +303,7 @@ camada podem ser desenhados em paralelo.
 
 | Metric | Count |
 |--------|-------|
-| Total systems identified | 35 |
+| Total systems identified | 37 |
 | Design docs started | 22 |
 | Design docs reviewed | 22 |
 | Design docs approved | 22 |

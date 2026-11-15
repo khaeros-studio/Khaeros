@@ -78,7 +78,10 @@ vem.
 | P5 | **O mundo não se explica de uma vez** | Lore chega em fragmento, nunca em biografia. Mistérios congelados continuam mistérios. | Lore Freeze v1.0 + Doc Nº 018 §3 ("fragmento, nunca biografia") |
 
 **Anti-pilares (o que este jogo NÃO é):**
-- Não é online, nem MMO, nem tem monetização. É single-player, PC.
+- Não é um serviço vivo: sem MMO, sem ranking obrigatório, sem monetização nem
+  pay-to-win. A **run solo é a experiência completa**; o **co-op online de 1 a 4
+  jogadores é opcional e vem depois do MVP** (decisão do usuário, 2026-11-13;
+  ver seção 13b). PC.
 - Não cria cosmologia nova (o Colapso, a Mentira e os 7 Invioláveis seguem sem conteúdo novo).
 - Não é uma recriação de Hades: a estrutura de gênero é a referência, a identidade é Khaeros.
 
@@ -86,8 +89,10 @@ vem.
 - Pilar 1 "A Interface É o Mundo" — já substituído no modo de ação (§54.2).
 - Pilar 7 "Mobile-First" — este jogo é PC (Windows), teclado/mouse + gamepad parcial.
 - Zero-Trust/servidor/replay determinístico (§54.3) — premissas técnicas do
-  modo web; o jogo Godot é offline. O **determinismo** pode voltar se houver
-  ranking online no futuro.
+  modo web. O MVP e a run solo são offline, sem servidor. O **determinismo**
+  volta como requisito do **co-op online opcional** (pós-MVP): RNG e simulação
+  precisam coincidir entre as máquinas dos jogadores. Isso não obriga ranking
+  online nem serviço vivo.
 
 ## 4. Loop principal
 
@@ -310,6 +315,48 @@ protótipo pelos canônicos. Isso será feito em `/asset-spec`, depois do Art Bi
 | 5 | Guardião do Rito: base Soldado ou Sacerdotisa | Soldado (armadura = rito, guarda) |
 | 6 | Estilo único: ilustração de quadrinho ou pixel-art | Ilustração de quadrinho com traço preto |
 | 7 | Rito de Iniciação jogável dentro do jogo (escolha da Doutrina inicial + nome) | Sim, como tutorial curto |
+
+## 13b. Escopo pós-MVP: co-op online (decisão do usuário, 2026-11-13)
+
+**Decisão.** O jogo terá co-op online de **1 a 4 jogadores**, entrando **depois do
+MVP solo**. O MVP e os pilares P1 a P5 **não mudam**. Regras já decididas:
+
+- A dificuldade **escala com o número de jogadores**; com 4 é o máximo.
+- Cada jogador escolhe **uma das 6 Doutrinas**: 6 Iniciados, um por Doutrina, com
+  o nome escolhido pelo jogador. Sem personagens novos no cânone.
+
+**Perguntas abertas** (nenhuma decidida; ficam para o GDD do Co-op online):
+
+1. Duas pessoas podem escolher a **mesma Doutrina** na mesma run?
+2. **Selo/Fluxo**, **bênçãos** e **recompensas** de porta: por jogador ou
+   compartilhados? E as **Fragmentos**: saldo por jogador ou do grupo?
+3. **Quem escolhe a porta**, e o que acontece quando os jogadores discordam?
+4. **Revive**: existe? A run termina quando todos morrem, ou quando o primeiro
+   morre?
+5. **Câmera** com até 4 alvos: segue o grupo, divide a tela, ou limita a
+   distância entre os jogadores?
+6. **Seed e RNG**: uma seed compartilhada ou um fluxo por jogador? O "mesmo
+   resultado dado o mesmo estado" do RNG precisa valer entre máquinas.
+7. A **bênção modal** (que pausa o jogo) e a **pausa** em geral: o que significam
+   online.
+8. **Netcode**: modelo (host autoritativo ou outro), latência tolerada e
+   desconexão. Hoje não há sistema para isso no índice.
+
+**Conflitos com o texto anterior (resolvidos em 2026-11-14, com autorização do
+usuário repassada pela aba de Produção).**
+
+- O anti-pilar da seção 3 ("Não é online... single-player") foi reescrito: sem
+  serviço vivo, sem ranking obrigatório, sem pay-to-win; a run solo é a
+  experiência completa e o co-op online é opcional e pós-MVP.
+- A frase sobre offline e determinismo foi reescrita: o MVP e a run solo seguem
+  offline, e o determinismo volta como requisito do co-op.
+- **P4 (Ritual, não pressão)** e o Campus como hub: o co-op precisa de lobby; não
+  há conflito de pilar, mas há trabalho de design (Menus e Campus).
+- Os pilares **P1, P2, P3 e P5** não conflitam em princípio. P2 ("a Beira cobra")
+  e P1 (bênção como filosofia) dependem das respostas 2 e 3 acima.
+
+Ganchos nos 22 GDDs aprovados: [co-op-ganchos.md](co-op-ganchos.md). Entrada no
+índice: sistema 36, Alpha, Not Started.
 
 ## 14. Fontes consultadas (somente leitura)
 
