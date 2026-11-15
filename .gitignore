@@ -14,6 +14,8 @@ Desktop.ini
 CLAUDE.local.md
 project.local.yaml
 production/session-logs/
+# Hooks run from a subfolder write logs relative to it; catch those too.
+**/production/session-logs/
 # Ephemeral per-session checkpoint. directory-structure.md documents this as
 # gitignored; the rule was missing, so active.md would have been committed.
 production/session-state/
