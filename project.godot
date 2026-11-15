@@ -1,17 +1,38 @@
 ; Engine configuration file.
-; Created by /setup-engine on 2026-11-05. run/main_scene is left unset on
-; purpose: /dev-story or the developer sets it once the first scene exists.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
 
 config_version=5
 
 [application]
 
 config/name="Khaeros"
+run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep_height"
+window/stretch/scale_mode="fractional"
+
+[physics]
+
+common/physics_ticks_per_second=60
+common/max_physics_steps_per_frame=8
+common/physics_interpolation=true
 
 [rendering]
 
-renderer/rendering_method="forward_plus"
+environment/defaults/default_clear_color=Color(0.035, 0.04, 0.065, 1)
 
 [editor_plugins]
 
