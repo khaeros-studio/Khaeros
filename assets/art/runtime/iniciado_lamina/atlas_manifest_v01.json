@@ -1,0 +1,26 @@
+{
+	"status": "runtime_ready",
+	"canvas": [400, 400],
+	"pivot": [200, 320],
+	"logical_size": 94.0,
+	"animations": {
+		"idle_frente34": { "scale": 0.4087, "frames": 6, "loop": true, "fps": 12 },
+		"dash_frente34": { "scale": 0.4087, "frames": 5, "loop": false, "fps": 12 },
+		"idle_costas34": { "scale": 0.4087, "frames": 6, "loop": true, "fps": 12 },
+		"dash_costas34": { "scale": 0.4087, "frames": 5, "loop": false, "fps": 12 },
+		"run_frente34": { "scale": 0.4087, "frames": 7, "loop": true, "fps": 12 },
+		"run_costas34": { "scale": 0.4087, "frames": 7, "loop": true, "fps": 12 },
+		"attack1_frente34": { "scale": 0.4087, "frames": 5, "loop": false, "fps": 12 },
+		"attack2_frente34": { "scale": 0.4087, "frames": 5, "loop": false, "fps": 12 },
+		"attack1_costas34": { "scale": 0.4087, "frames": 5, "loop": false, "fps": 12 },
+		"attack2_costas34": { "scale": 0.4087, "frames": 5, "loop": false, "fps": 12 },
+		"attack3_frente34": { "scale": 0.4087, "frames": 5, "loop": false, "fps": 12 },
+		"hurt_frente34": { "scale": 0.4087, "frames": 2, "loop": false, "fps": 12 },
+		"attack3_costas34": { "scale": 0.4087, "frames": 5, "loop": false, "fps": 12 },
+		"hurt_costas34": { "scale": 0.4087, "frames": 2, "loop": false, "fps": 12 },
+		"lunge_frente34": { "scale": 0.4087, "frames": 9, "loop": false, "fps": 12 },
+		"lunge_costas34": { "scale": 0.4087, "frames": 9, "loop": false, "fps": 12 },
+		"death_frente34": { "scale": 0.4087, "frames": 10, "loop": false, "fps": 12 },
+		"death_costas34": { "scale": 0.4087, "frames": 10, "loop": false, "fps": 12 }
+	}
+}

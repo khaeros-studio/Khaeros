@@ -2,7 +2,18 @@
 
 > **Fonte:** `design/gdd/ia-de-inimigos-e-elites.md` (R3–R7, Visual/Audio) · **Art Bible:** §2.2, §3.1–3.2, §4.1–4.3, §5.5–5.9, §8.2–8.3, §8.7
 > **Gerado:** 2026-11-13 · rascunho do art-director (lean; technical-artist não consultado) · lista de assets aprovada pelo usuário em 2026-11-12
-> **Status:** E0 aprovada · as demais folhas estão pendentes
+> **Status:** **Eco completo** (2026-11-13):
+> - E0 v01;
+> - E1 frente34 v01 e costas34 v02;
+> - E2 frente34 v02 e costas34 v01.
+>
+> Todos no Nano Banana 2.1; o Pro foi testado e pôs olhos no rosto. A Anomalia, a Fenda e a X0 estão pendentes.
+>
+> **Ficha da Anomalia (A0), decisão do usuário em 2026-11-14:** a ficha gerada no ChatGPT, `assets/art/source/ref/enm_anomalia_menor_ref_chatgpt_v01_upscale.png`.
+> - Ela tem carapaça de pedra em placas com hachura fina nas fissuras, boca de cano e patas curtas.
+> - É uma ampliação de 1672×941 e não tem vista de costas real.
+> - Ela não é exportada: entra **anexada** como primeira imagem da conversa do Gemini que gera as folhas A1 e A2.
+> - As fichas v01–v04 do Gemini ficam como alternativas.
 
 ## 0. Decisões pendentes do usuário (do rascunho do art-director)
 

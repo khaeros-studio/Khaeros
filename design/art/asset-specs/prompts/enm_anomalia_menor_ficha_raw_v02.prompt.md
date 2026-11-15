@@ -1,0 +1,24 @@
+# Prompt — enm_anomalia_menor_ficha_raw_v02
+
+- **Modelo:** Gemini ("Argon" → Nano Banana 2.1, Criar imagem, 16:9), numa conversa NOVA sem imagem, porque a ficha precisa ser a primeira imagem da conversa · **Data:** 2026-11-13 · **Folha:** A0, 4×1
+- **Por que v02:** a v01 ficou fofa, como um tardígrado de brinquedo, e veio em 2×2 com a vista de frente repetida. Esta versão mantém a forma (domo, boca de cano, cortes no dorso), pede o grotesco da "sobra" (Art Bible §3.2) com patas finas e quebradas, assimetria forte e superfície dura, e reforça o layout 1×4. Nada de dentes nem boca humana (§9.2).
+
+## Prompt (colar inteiro)
+
+Gere uma IMAGEM nova de FICHA DE DESIGN de uma criatura para um jogo de ação visto de cima em diagonal. REGRA ABSOLUTA: nenhuma palavra, letra, número, símbolo ou emblema em lugar nenhum; nenhum brilho, aura, faísca, fumaça, gota, respingo, poeira, rastro ou linha de movimento; nenhuma linha divisória, borda ou quadro entre os elementos; fundo verde #00FF00 chapado, perfeitamente uniforme e contínuo, sem sombra no chão e sem nenhum verde na figura. LAYOUT: imagem larga 16:9 com EXATAMENTE 4 elementos numa ÚNICA FILEIRA HORIZONTAL, lado a lado, espaçados por igual, lidos da esquerda para a direita, sem segunda fileira e sem nenhuma vista repetida: [1] a criatura em 3/4 de FRENTE, voltada para a direita; [2] a criatura em 3/4 de COSTAS, voltada para a direita e para longe de quem olha, a boca e os olhos NÃO aparecem; [3] a criatura de PERFIL, voltada para a direita; [4] DETALHE, peças soltas sem o corpo, uma em cima da outra: o LEQUE de cinco CRISTAIS (UMA vez só) e, embaixo, o DISCO DA BOCA. As três figuras na MESMA escala, apoiadas na mesma linha de chão; nada encosta na borda nem na vizinha; nada cortado. CÂMERA: vista um pouco de cima, cerca de 30°. ESTILO: quadrinho de ação adulto em nanquim, arte-final a pincel, traço quebrado e nervoso; contorno externo preto #0D0E14 muito grosso; GRANDES massas de PRETO CHAPADO de borda dura cobrindo mais de um terço da figura, a barriga e o lado de sombra inteiros em preto; luz em 2 tons duros; hachura grossa na transição; sem degradê, sem sombreado macio, sem 3D, sem brilho plástico, sem pixel art. NADA de fofo, NADA de brinquedo, NADA de bichinho simpático, nada arredondado e roliço. CRIATURA — a Anomalia Menor: um lodo endurecido que tenta imitar um bicho rasteiro e erra; ameaçadora, atarracada, BAIXA e LARGA, quase duas vezes mais larga que alta, a frente abaixada como quem mira. CORPO: um domo baixo de lodo DURO, de contorno fechado e anguloso, com a superfície rachada e encaroçada, um lado do corpo mais inchado que o outro; nada escorre, nada pinga; cor ameixa-acinzentada #6B5E72, topo #8A7C8F, sombras em preto chapado. PATAS: SEIS patas FINAS, compridas e ANGULOSAS como as de um inseto quebrado, três de cada lado, cada uma com UMA ARTICULAÇÃO A MAIS bem visível, um joelho extra dobrado para o lado ERRADO; as patas de um lado são um pouco maiores que as do outro; pontas finas e secas; pretas na sombra. BOCA: na frente, uma boca redonda e funda como a boca de um cano grosso, de borda dura, VAZIA, por dentro PRETO CHAPADO; sem dentes, sem lábios. OLHOS: TRÊS olhinhos redondos pretos de tamanhos diferentes amontoados de UM lado da boca, e só UM olho do outro lado. ENCAIXES: no alto das costas, cinco cortes retos e chatos em leque, de onde algo foi arrancado; nas figuras [1], [2] e [3] NÃO há nenhum cristal saindo do corpo. DETALHE [4]: o LEQUE de cinco cristais retos e facetados, de faces planas, como lascas de vidro, o do meio o mais alto e um lado mais alto que o outro, em magenta #E0259C com a face de luz #F070C0 e a face de sombra em preto chapado, sem brilho; o DISCO DA BOCA é um anel grosso magenta #E0259C com o centro preto chapado. Fora do detalhe, nenhum magenta no corpo. POSE: nas três vistas, parada mas tensa, as seis patas apoiadas, a frente baixa.
+
+## Registro de geração
+
+- 2026-11-13: gerada numa conversa nova (`/app/e4e5deebca7142a6`, Argon → Nano Banana 2.1). Original em JPEG 2752×1536.
+- Resultado:
+  - **Deixou de ser fofa.** A carapaça é dura, rachada e encaroçada, as patas são finas e angulosas, e há mais peso de sombra.
+  - A boca de cano e os cortes no dorso continuam no lugar.
+  - O leque de cristais e o disco da boca aparecem uma vez só, soltos.
+  - Os olhos são assimétricos.
+- Problemas:
+  - **Virou aranha ou carrapato:** um ovo alto sobre patas compridas. O Art Bible reserva a aranha para a Anomalia do Veio (§3.2), e o art-director evitou essa leitura na Menor.
+  - **Perdeu o "baixa e larga":** o corpo ficou tão alto quanto largo.
+  - O layout continua 2×2 em vez de 1×4: frente, 3/4 de costas, costas e perfil.
+  - **O fundo é #13EB00**, não #00FF00. O recorte por cor ainda funciona, com tolerância.
+  - A articulação a mais das patas quase não aparece.
+- Comparação: a v01 tem a silhueta certa (baixa e larga) mas é fofa; a v02 tem o tom certo mas a silhueta errada.

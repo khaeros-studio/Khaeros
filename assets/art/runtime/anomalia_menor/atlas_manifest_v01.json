@@ -1,0 +1,644 @@
+{
+	"animations": {
+		"attack_costas34": {
+			"fps": 12,
+			"frames": 2,
+			"loop": false,
+			"scale": 0.313588850174216
+		},
+		"attack_frente34": {
+			"fps": 12,
+			"frames": 2,
+			"loop": false,
+			"scale": 0.307167235494881
+		},
+		"death_costas34": {
+			"fps": 12,
+			"frames": 2,
+			"loop": false,
+			"scale": 0.313588850174216
+		},
+		"death_frente34": {
+			"fps": 12,
+			"frames": 2,
+			"loop": false,
+			"scale": 0.307167235494881
+		},
+		"hurt_costas34": {
+			"fps": 12,
+			"frames": 1,
+			"loop": false,
+			"scale": 0.313588850174216
+		},
+		"hurt_frente34": {
+			"fps": 12,
+			"frames": 1,
+			"loop": false,
+			"scale": 0.307167235494881
+		},
+		"idle_costas34": {
+			"fps": 12,
+			"frames": 2,
+			"loop": true,
+			"scale": 0.354330708661417
+		},
+		"idle_frente34": {
+			"fps": 12,
+			"frames": 2,
+			"loop": true,
+			"scale": 0.333333333333333
+		},
+		"recover_costas34": {
+			"fps": 12,
+			"frames": 2,
+			"loop": false,
+			"scale": 0.313588850174216
+		},
+		"recover_frente34": {
+			"fps": 12,
+			"frames": 2,
+			"loop": false,
+			"scale": 0.307167235494881
+		},
+		"run_costas34": {
+			"fps": 12,
+			"frames": 6,
+			"loop": true,
+			"scale": 0.354330708661417
+		},
+		"run_frente34": {
+			"fps": 12,
+			"frames": 6,
+			"loop": true,
+			"scale": 0.333333333333333
+		},
+		"spawn_costas34": {
+			"fps": 12,
+			"frames": 4,
+			"loop": false,
+			"scale": 0.354330708661417
+		},
+		"spawn_frente34": {
+			"fps": 12,
+			"frames": 4,
+			"loop": false,
+			"scale": 0.333333333333333
+		},
+		"windup_costas34": {
+			"fps": 12,
+			"frames": 3,
+			"loop": false,
+			"scale": 0.313588850174216
+		},
+		"windup_frente34": {
+			"fps": 12,
+			"frames": 3,
+			"loop": false,
+			"scale": 0.307167235494881
+		}
+	},
+	"canvas": [
+		400,
+		400
+	],
+	"logical_idle_width": 90,
+	"pivot": [
+		200,
+		320
+	],
+	"sheets": [
+		{
+			"cols": 6,
+			"frames": [
+				{
+					"action": "spawn",
+					"duration": 1.0,
+					"index": 0,
+					"region": [
+						19,
+						193,
+						268,
+						163
+					]
+				},
+				{
+					"action": "spawn",
+					"duration": 1.0,
+					"index": 1,
+					"region": [
+						308,
+						179,
+						269,
+						174
+					]
+				},
+				{
+					"action": "spawn",
+					"duration": 1.0,
+					"index": 2,
+					"region": [
+						604,
+						162,
+						259,
+						188
+					]
+				},
+				{
+					"action": "spawn",
+					"duration": 1.0,
+					"index": 3,
+					"region": [
+						891,
+						147,
+						262,
+						204
+					]
+				},
+				{
+					"action": "idle",
+					"duration": 1.0,
+					"index": 4,
+					"region": [
+						1187,
+						163,
+						270,
+						189
+					]
+				},
+				{
+					"action": "idle",
+					"duration": 1.0,
+					"index": 5,
+					"region": [
+						1482,
+						156,
+						267,
+						192
+					]
+				},
+				{
+					"action": "run",
+					"duration": 1.0,
+					"index": 6,
+					"region": [
+						15,
+						565,
+						275,
+						186
+					]
+				},
+				{
+					"action": "run",
+					"duration": 1.0,
+					"index": 7,
+					"region": [
+						309,
+						589,
+						271,
+						164
+					]
+				},
+				{
+					"action": "run",
+					"duration": 1.0,
+					"index": 8,
+					"region": [
+						606,
+						565,
+						262,
+						189
+					]
+				},
+				{
+					"action": "run",
+					"duration": 1.0,
+					"index": 9,
+					"region": [
+						889,
+						572,
+						279,
+						184
+					]
+				},
+				{
+					"action": "run",
+					"duration": 1.0,
+					"index": 10,
+					"region": [
+						1193,
+						551,
+						266,
+						203
+					]
+				},
+				{
+					"action": "run",
+					"duration": 1.0,
+					"index": 11,
+					"region": [
+						1483,
+						567,
+						273,
+						183
+					]
+				}
+			],
+			"path": "res://assets/art/source/raw/enm_anomalia_menor_spawnrun_frente34_raw_v02.png",
+			"rows": 2,
+			"scale": 0.333333333333333,
+			"size": [
+				1774,
+				887
+			]
+		},
+		{
+			"cols": 6,
+			"frames": [
+				{
+					"action": "spawn",
+					"duration": 1.0,
+					"index": 0,
+					"region": [
+						44,
+						205,
+						246,
+						146
+					]
+				},
+				{
+					"action": "spawn",
+					"duration": 1.0,
+					"index": 1,
+					"region": [
+						325,
+						175,
+						249,
+						175
+					]
+				},
+				{
+					"action": "spawn",
+					"duration": 1.0,
+					"index": 2,
+					"region": [
+						616,
+						163,
+						253,
+						186
+					]
+				},
+				{
+					"action": "spawn",
+					"duration": 1.0,
+					"index": 3,
+					"region": [
+						903,
+						160,
+						254,
+						188
+					]
+				},
+				{
+					"action": "idle",
+					"duration": 1.0,
+					"index": 4,
+					"region": [
+						1195,
+						163,
+						254,
+						187
+					]
+				},
+				{
+					"action": "idle",
+					"duration": 1.0,
+					"index": 5,
+					"region": [
+						1492,
+						156,
+						243,
+						192
+					]
+				},
+				{
+					"action": "run",
+					"duration": 1.0,
+					"index": 6,
+					"region": [
+						30,
+						558,
+						271,
+						172
+					]
+				},
+				{
+					"action": "run",
+					"duration": 1.0,
+					"index": 7,
+					"region": [
+						302,
+						586,
+						280,
+						145
+					]
+				},
+				{
+					"action": "run",
+					"duration": 1.0,
+					"index": 8,
+					"region": [
+						628,
+						549,
+						235,
+						185
+					]
+				},
+				{
+					"action": "run",
+					"duration": 1.0,
+					"index": 9,
+					"region": [
+						910,
+						554,
+						238,
+						184
+					]
+				},
+				{
+					"action": "run",
+					"duration": 1.0,
+					"index": 10,
+					"region": [
+						1202,
+						538,
+						245,
+						194
+					]
+				},
+				{
+					"action": "run",
+					"duration": 1.0,
+					"index": 11,
+					"region": [
+						1487,
+						558,
+						258,
+						173
+					]
+				}
+			],
+			"path": "res://assets/art/source/raw/enm_anomalia_menor_spawnrun_costas34_raw_v01.png",
+			"rows": 2,
+			"scale": 0.354330708661417,
+			"size": [
+				1774,
+				887
+			]
+		},
+		{
+			"cols": 5,
+			"frames": [
+				{
+					"action": "windup",
+					"duration": 2.0,
+					"index": 0,
+					"region": [
+						35,
+						146,
+						293,
+						195
+					]
+				},
+				{
+					"action": "windup",
+					"duration": 2.0,
+					"index": 1,
+					"region": [
+						383,
+						142,
+						291,
+						199
+					]
+				},
+				{
+					"action": "windup",
+					"duration": 3.0,
+					"index": 2,
+					"region": [
+						727,
+						126,
+						293,
+						215
+					]
+				},
+				{
+					"action": "attack",
+					"duration": 1.0,
+					"index": 3,
+					"region": [
+						1089,
+						131,
+						296,
+						210
+					]
+				},
+				{
+					"action": "attack",
+					"duration": 1.0,
+					"index": 4,
+					"region": [
+						1437,
+						142,
+						306,
+						199
+					]
+				},
+				{
+					"action": "recover",
+					"duration": 9.0,
+					"index": 5,
+					"region": [
+						30,
+						562,
+						307,
+						203
+					]
+				},
+				{
+					"action": "recover",
+					"duration": 9.0,
+					"index": 6,
+					"region": [
+						390,
+						547,
+						281,
+						217
+					]
+				},
+				{
+					"action": "hurt",
+					"duration": 1.0,
+					"index": 7,
+					"region": [
+						748,
+						560,
+						268,
+						202
+					]
+				},
+				{
+					"action": "death",
+					"duration": 1.0,
+					"index": 8,
+					"region": [
+						1069,
+						572,
+						297,
+						192
+					]
+				},
+				{
+					"action": "death",
+					"duration": 1.0,
+					"index": 9,
+					"region": [
+						1437,
+						544,
+						302,
+						219
+					]
+				}
+			],
+			"path": "res://assets/art/source/raw/enm_anomalia_menor_ataquemorte_frente34_raw_v01.png",
+			"rows": 2,
+			"scale": 0.307167235494881,
+			"size": [
+				1774,
+				887
+			]
+		},
+		{
+			"cols": 5,
+			"frames": [
+				{
+					"action": "windup",
+					"duration": 2.0,
+					"index": 0,
+					"region": [
+						42,
+						153,
+						287,
+						200
+					]
+				},
+				{
+					"action": "windup",
+					"duration": 2.0,
+					"index": 1,
+					"region": [
+						389,
+						130,
+						277,
+						222
+					]
+				},
+				{
+					"action": "windup",
+					"duration": 3.0,
+					"index": 2,
+					"region": [
+						730,
+						105,
+						292,
+						248
+					]
+				},
+				{
+					"action": "attack",
+					"duration": 1.0,
+					"index": 3,
+					"region": [
+						1079,
+						146,
+						294,
+						206
+					]
+				},
+				{
+					"action": "attack",
+					"duration": 1.0,
+					"index": 4,
+					"region": [
+						1429,
+						146,
+						302,
+						206
+					]
+				},
+				{
+					"action": "recover",
+					"duration": 9.0,
+					"index": 5,
+					"region": [
+						36,
+						605,
+						306,
+						184
+					]
+				},
+				{
+					"action": "recover",
+					"duration": 9.0,
+					"index": 6,
+					"region": [
+						402,
+						583,
+						282,
+						206
+					]
+				},
+				{
+					"action": "hurt",
+					"duration": 1.0,
+					"index": 7,
+					"region": [
+						747,
+						584,
+						271,
+						194
+					]
+				},
+				{
+					"action": "death",
+					"duration": 1.0,
+					"index": 8,
+					"region": [
+						1083,
+						574,
+						277,
+						209
+					]
+				},
+				{
+					"action": "death",
+					"duration": 1.0,
+					"index": 9,
+					"region": [
+						1428,
+						570,
+						291,
+						212
+					]
+				}
+			],
+			"path": "res://assets/art/source/raw/enm_anomalia_menor_ataquemorte_costas34_raw_v01.png",
+			"rows": 2,
+			"scale": 0.313588850174216,
+			"size": [
+				1774,
+				887
+			]
+		}
+	],
+	"status": "technical_preview_art_review_pending"
+}
