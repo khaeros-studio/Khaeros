@@ -1,6 +1,7 @@
 # Khaeros — Conceito do Jogo e Pilares
 
 > **Status:** v1.0 — **APROVADO pelo Creative Director em 2026-11-05.** Pendências 3–7 da §13 seguem abertas.
+> **Nota de versão v1.1 (emenda Pactos, 2026-11-15, aguarda aprovação do usuário):** Pactos entra no MVP como 3ª Doutrina, com a Besta do Vínculo e as **Maldições** (`maldicoes.md`); o chefe do Limiar no MVP passa a ser a Maldição-chefe **Soberano do Limiar** (`chefes.md`). Emendas em §4, §5, §6, §12 e §13; o resto do documento não mudou.
 > **Data:** 2026-11-05 · **Engine:** Godot 4.7 / GDScript (ver `project.yaml`)
 > **Fonte da verdade do universo:** `C:\Users\lucas\Desktop\Khaeros` (repo Khaeros).
 > Este documento **traduz** o cânone para o jogo novo; nunca reescreve o cânone.
@@ -103,8 +104,14 @@ Campus (hub) ─► Rito/escolha de arma ─► Run na Beira ─► morte ou vit
 ```
 
 **Run** ([ADAPTAÇÃO] de `arenaContent.ts` `ARENA_REGIONS`):
-1. **Limiar da Beira** — 7 câmaras (combate ×3, Santuário, combate ×2, chefe **Anomalia Maior**).
+1. **Limiar da Beira** — 7 câmaras (combate ×3, Santuário, combate ×2, chefe **Anomalia Maior** (substituído pela emenda Pactos: no MVP o chefe do Limiar é o Soberano do Limiar, ver "Chefe do Limiar no MVP" abaixo)).
 2. **Veio Instável** — 7 câmaras (combate ×2, Santuário, combate ×3, chefe **Guardião do Rito**).
+
+**Escopo do MVP (emenda Pactos, 2026-11-15):**
+- **Doutrinas jogáveis:** 3 — Lâmina, Ressonância e **Pactos** (Besta do Vínculo + Maldições). A paridade de TTK das três está em `maldicoes.md` F6 (Pactos `10,47–10,53 s`, Lâmina `10,53 s`, Ressonância `10,45 s`).
+- **Maldições:** 3 espécies de encontro (Vulto Mudo Comum, Espreitador da Fenda Refinado, Baluarte de Cinza Raro) + o Soberano do Limiar Primordial (`maldicoes.md` §Catálogo). O jogador leva 2 por expedição (uma em campo, outra na reserva).
+- **Chefe do Limiar no MVP:** a Maldição-chefe **Soberano do Limiar** na 7ª câmara (`chefes.md` Overview). O cânone e a lista acima dizem **Anomalia Maior**; no MVP ela não entra. A Anomalia Maior fica reservada no manifesto para a Fatia Vertical (`chefes.md` Overview e OQ3) — se volta como 2º chefe possível do Limiar ou sai é **[a confirmar]** pelo usuário. O Guardião do Rito (Veio) segue reservado para o Alpha.
+- **Pacto ou derrota:** só quem jurou Pactos escolhe. O chefe Subjugado pode ser pactuado (0 Fragmentos do chefe) ou exorcizado (+6) (`chefes.md` F6).
 
 **Câmara:** porta fecha → ondas de inimigos → câmara limpa → recompensa
 aparece → portas abrem mostrando a **próxima recompensa** → jogador escolhe.
@@ -136,6 +143,8 @@ Profundo, Fôlego da Beira, Juramento Renovado, Recusa dos Que Ficam).
 | Hub com NPCs e conversas | **Campus da Academia** (Universidade da Ressonância) | Local [CÂNONE]; Campus andável [PROPOSTA] (estava em aberto, §54.8) |
 | Várias armas trocadas entre runs | 6 armas, uma por Doutrina; a Doutrina jurada é a inicial | [ADAPTAÇÃO] — decisão do CD 2026-11-05, ver §6 |
 | Hitstop, buffer de entrada, quebra de guarda | Hitstop, buffer de 10 ticks, "Quebrou!", impacto na parede | [CÂNONE] §55.2 |
+| Aliado que luta junto (familiar/companheiro) | **Maldições** da Doutrina de Pactos: autônomas, ligadas pelo fio de vínculo, troca e técnica combinada; o vínculo atravessa runs (`maldicoes.md`, `vinculo-e-pactos.md`) | [ADAPTAÇÃO] (emenda Pactos, 2026-11-15) |
+| Chefe de fim de região | Limiar no MVP: **Soberano do Limiar** (Maldição-chefe, pactuável por quem jurou Pactos); Anomalia Maior reservada (§4) | [ADAPTAÇÃO] (emenda Pactos, 2026-11-15) |
 
 ## 6. Armas — uma por Doutrina, coerente com a filosofia
 
@@ -152,7 +161,20 @@ armadura pesada — luta **de longe** enquanto a criatura do pacto luta por ele.
 | **Véu** | ocultação, ação indireta | Adagas do Véu | Estocadas rápidas com Sangramento / Leque de Lâminas | [CÂNONE] |
 | **Ressonância** | risco calculado perto do limite | Foco Ressonante (cajado/foco) | Pulso à distância / Onda de Ressonância | [CÂNONE] |
 | **Transmutação** | adaptação, nada se desperdiça | Cálice da Transmutação | Gota Corrosiva (Queimadura) / Transmutar à distância | [CÂNONE] |
-| **Pactos** | vínculo, o fardo nunca é carregado sozinho | **Besta do Vínculo** (arma de longo alcance) + **criatura do pacto** que luta corpo a corpo | Virote à distância / **Chamado do Pacto** (a criatura avança, segura e atrai inimigos) | **[ADAPTAÇÃO — aprovada 2026-11-05]** — substitui o "Laço dos Pactos" (chicote) do modo web |
+| **Pactos** | vínculo, o fardo nunca é carregado sozinho | **Besta do Vínculo** (arma de longo alcance) + **Maldições** que lutam corpo a corpo (antes: "criatura do pacto") | Virote à distância / **Chamado do Pacto** (a Maldição em campo avança, segura e atrai inimigos) | **[ADAPTAÇÃO — aprovada 2026-11-05]** — substitui o "Laço dos Pactos" (chicote) do modo web. **MVP** (emenda Pactos, 2026-11-15) |
+
+**Pactos no MVP (emenda Pactos, 2026-11-15).** A "criatura do pacto" agora tem
+nome e sistema: as **Maldições** (`maldicoes.md` Overview). São resíduos de
+Anomalia que aceitaram um pacto, da mesma natureza da Sombra Muda de Serel. O
+jogador leva **duas** por expedição: uma em campo, autônoma, presa pelo fio de
+vínculo; outra na reserva, que entra pela **Troca** (com Técnica Combinada) ou
+sozinha quando a de campo fica Exausta. O jogador age sobre ela só por pedidos
+(Chamado, Troca), porque o vínculo é "consentido, não comandado". O pacto nasce
+num **encontro especial**: uma Maldição acuada que o jogador protege das
+Anomalias, sem derrotá-la, e que consente. Pactos e vínculo são salvos entre
+sessões (`vinculo-e-pactos.md`, `save-e-perfil.md`). Números da Besta: Virote
+`10` de dano a cada `0,25 s` (`40 DPS`), Chamado `17` de dano com recarga
+`2,0 s` (`maldicoes.md` §Constantes).
 
 **Por que Pactos muda:** o "Laço dos Pactos" atual é um chicote corpo a corpo
 que cura. A nova versão segue a decisão do CD **e** o cânone dos romances: Serel,
@@ -287,7 +309,7 @@ ilustração de quadrinho, que é a que se aproxima do alvo.
 |---|---|---|
 | **Iniciado** — ficha (frente/lado/costas) + 8 poses de frente + 8 de costas | ✅ Serve | Protagonista. A espada combina com Lâmina; outras Doutrinas precisam da arma trocada. Regerar as poses no estilo final se o Art Bible escolher quadrinho. |
 | **Retratos do Iniciado** (várias versões, inclusive um rosto masculino de pele mais escura) | ✅ Serve | Retrato de diálogo; as variações podem virar opções de aparência na criação do personagem ([PROPOSTA]). |
-| **Armas**: espada, cajado, adagas | ✅ 3 de 6 | Lâmina, Ressonância (foco), Véu. **Faltam:** escudo + arma pesada (Guardião), cálice (Transmutação), **besta** (Pactos) e a **criatura do pacto**. |
+| **Armas**: espada, cajado, adagas | ✅ 3 de 6 | Lâmina, Ressonância (foco), Véu. **Faltam:** escudo + arma pesada (Guardião), cálice (Transmutação), **besta** (Pactos) e a **criatura do pacto**. Emenda Pactos (2026-11-15): a criatura virou as **Maldições** — faltam 4 artes no MVP (Vulto Mudo, Espreitador da Fenda, Baluarte de Cinza e Soberano do Limiar nas formas aliada e de chefe; silhuetas em `maldicoes.md` §Catálogo e `chefes.md` CH-V1). |
 | **Espectro** encapuzado | ✅ | **Eco Perdido** (e variante recolorida = Eco do Veio). |
 | **Lodo** com olhos | ✅ | **Anomalia Menor** (à distância). |
 | **Golem de cristal** (verde-água) / golem de coral (rosa) | ✅ | **Estilhaço Vivo** (investida pesada). |
@@ -315,6 +337,18 @@ protótipo pelos canônicos. Isso será feito em `/asset-spec`, depois do Art Bi
 | 5 | Guardião do Rito: base Soldado ou Sacerdotisa | Soldado (armadura = rito, guarda) |
 | 6 | Estilo único: ilustração de quadrinho ou pixel-art | Ilustração de quadrinho com traço preto |
 | 7 | Rito de Iniciação jogável dentro do jogo (escolha da Doutrina inicial + nome) | Sim, como tutorial curto |
+| 8 | Anomalia Maior: volta na Fatia Vertical como 2º chefe possível do Limiar, ou sai | **[a confirmar]** — `chefes.md` a reserva para a Fatia Vertical (OQ3) |
+
+**Decisões do usuário de 2026-11-15 (emenda Pactos; não reabrir):**
+- Pactos ("Domadora de Pactos") é a **3ª Doutrina do MVP**, com a Besta do Vínculo (Virote / Chamado do Pacto).
+- As criaturas do pacto se chamam **Maldições** (`maldicoes.md`).
+- O jogador leva **2 Maldições** por expedição (uma em campo, outra na reserva). No MVP: 3 espécies de encontro (Vulto Mudo Comum, Espreitador da Fenda Refinado, Baluarte de Cinza Raro) + Soberano do Limiar Primordial.
+- **Tudo atravessa runs:** pactos e vínculo de cada Maldição são salvos entre sessões (save mínimo no MVP).
+- O pacto nasce num **encontro especial**: a Maldição acuada/ferida é protegida das Anomalias, sem ser derrotada, e consente. Cânone: vínculo "consentido, não comandado", "sem jaulas".
+- Raridade é da **espécie** (Comum, Refinado, Raro, Épico, Primordial) e significa quantidade de habilidades.
+- Só quem jurou Pactos escolhe entre pacto e derrota. A **Maldição-chefe Soberano do Limiar** fecha o Limiar já no MVP (Subjugado → Pactuar 0 Fragmentos do chefe / Exorcizar +6).
+- Abates da Maldição contam como do dono; golpes dela são `de_arma` falso (sem Fluxo, sem hitstop).
+- Inimigos miram o jogador salvo se atraídos; Exaustão com troca automática; técnica combinada na Troca manual; ação nova `Troca` com recarga.
 
 ## 13b. Escopo pós-MVP: co-op online (decisão do usuário, 2026-11-13)
 

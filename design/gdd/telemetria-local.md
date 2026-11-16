@@ -1,8 +1,8 @@
 # Telemetria local
 
-> **Status**: Approved (2026-11-11; revisão única por subagente: 8 bloqueantes e recomendadas, corrigidos sem re-review; sem entrada no review log)
+> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — emenda de 2026-11-15: resumo da run com `desfecho_chefe` e `dupla`, estado inicial com `pactos` e `dupla`, eventos `encontro_pacto`, `pacto` e `vinculo_fim_run` (R4-P, F3-P, F4-P, Edge Cases, AC-TL-34 a AC-TL-40). Antes: Approved (2026-11-11; revisão única por subagente: 8 bloqueantes e recomendadas, corrigidos sem re-review; sem entrada no review log)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-11
+> **Last Updated**: 2026-11-15 (emenda Pactos)
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P2 *A Beira cobra* (dado para calibrar o preço); P4
 
@@ -138,6 +138,35 @@ curso com `resultado` `abandono`.
 arquivo** (testes usam um escritor em memória e um que falha) e `TelemetriaTuning`. Os testes
 montam tudo sem disco.
 
+**R4-P. Eventos e campos de Pactos (emenda Pactos, 2026-11-15).** Pedidos de
+`run-e-regioes.md` R7-P e de `vinculo-e-pactos.md` V45. Acrescenta à R4; o resto
+não muda. O `schema` passa a **2** (campos novos em linhas existentes e tipos novos).
+
+| `t` | Quando | Campos (além dos comuns) | Fonte |
+|---|---|---|---|
+| `run_iniciada` (ampliado) | ao criar a seed (com Pactos, em `dupla_confirmada`, RNG R2-P) | `estado_inicial` ganha `dupla` (lista `[campo, reserva]` de ids de `CurseDef`; vazia fora de Pactos, um item ou itens vazios quando a Run assim mandar) e `pactos` (objeto: `especies` = lista de `{id, nivel}` das pactuadas, `encontro_pendente`, `primeiro_encontro_visto`, `runs_pactos_sem_encontro`; `null` fora de Pactos), como o RNG R7-P | RNG, Run, Vínculo |
+| `run_encerrada` (ampliado) | `run_encerrada` | o resumo passa a **12 campos** (Run R7-P): os 10 de antes, `desfecho_chefe` (`abatido`, `exorcizado`, `pactuado` ou `nenhum`) e `dupla` (ids de campo inicial e reserva; vazia fora de Pactos ou com 0 pactuadas) | Run |
+| `encontro_pacto` | quando o Vínculo resolve o encontro da run | `indice_camara`, `especie`, `resultado` (`pactuada`, `reafirmada`, `deixada`, `voltara`, `fugiu`, `abandonado`), `vida_restante` (Vida da acuada no desfecho, inteiro) | Vínculo (V45) |
+| `pacto` | a cada pacto registrado | `especie`, `origem` (`primeiro`, `encontro`, `chefe`) | Vínculo (V45) |
+| `vinculo_fim_run` | quando o Vínculo fecha a run (`vinculo_atualizado`, Vínculo V20) | `especies`: lista, uma entrada por espécie da dupla, com `id`, `pontos_run`, `vinculo_pontos`, `nivel`, `subiu_nivel` (bool) | Vínculo (V45) |
+
+Regras de ordem e de `run`:
+
+- **`pacto` de `origem = primeiro`** acontece na Escolha de arma (Vínculo V3), antes
+  de `run_iniciada`. A linha sai com `run` = **0** (fora de run, R3), e as
+  ferramentas a ligam à `run_iniciada` seguinte. **[a confirmar]** Alternativa
+  recusada: segurar a linha até a `run_iniciada`, o que obrigaria a Telemetria a
+  guardar estado.
+- **`vinculo_fim_run`** sai **depois** de `run_encerrada` e antes de qualquer
+  `run_iniciada` seguinte, com o mesmo `run`: o Vínculo consolida ao receber
+  `run_encerrada` (V20, V42). **[a confirmar]**
+- **`encontro_pacto`** sai uma vez por run, no máximo (Vínculo V6), sempre antes da
+  `run_encerrada` da mesma run.
+- Runs de Lâmina e Ressonância não geram nenhuma das três linhas novas (Vínculo V21).
+
+O nome dos sinais que o Vínculo emite para cada linha é do Vínculo (V45); a
+Telemetria só os escuta (R1).
+
 ### States and Transitions
 
 | Estado | Entra quando | Sai para |
@@ -161,6 +190,8 @@ montam tudo sem disco.
 | Portas e recompensas | porta escolhida e opções | nada | Portas |
 | Economia de Fragmentos | `saldo_mudou` (origem) para `fragmentos_por_origem` | nada | Economia |
 | Conteúdo orientado a dados | `TelemetriaTuning`, impressão do catálogo | nada | Conteúdo |
+| Vínculo e pactos (emenda Pactos, 2026-11-15) | `encontro_pacto`, `pacto`, `vinculo_fim_run`; perfil para o estado inicial (via RNG R7-P) | nada | Vínculo |
+| Run e regiões (emenda Pactos, 2026-11-15) | resumo com `desfecho_chefe` e `dupla` (R7-P) | nada | Run |
 | Opções / menus | `telemetria_ligada`, "Abrir pasta", "Apagar dados" | estado atual | Opções (reservado) |
 | `/balance-check`, playtest, `tools/` | — | leem o arquivo | fora do jogo |
 
@@ -174,7 +205,12 @@ Transição (R5). Ex.: 1 044 passos → 17,40 s.
 `dano_rel = dano_recebido / vida_max` (ambos gravados na linha `camara`). O alvo da IA é 0,25
 por câmara (IA R12). Ex.: 20 de dano com `vida_max` 80 → 0,25; 28 com 80 → 0,35 (acima do alvo).
 
-**F3. Tamanho de uma run no Limiar (caso máximo).** No Limiar (6 câmaras, índices 0–5, santuário
+> **Substituída pela F3-P** (emenda Pactos, 2026-11-15): com o chefe, o Limiar tem 7
+> câmaras (Run R3-P) e a conta de tamanho vale na F3-P abaixo. Esta F3 (6 câmaras, 21
+> linhas) fica como registro do aprovado e base da F3-P; o AC-TL-28 segue nela até o
+> chefe entrar na fixture, e o AC-TL-40 cobre a F3-P.
+
+**F3. Tamanho de uma run no Limiar (caso máximo, sem chefe — substituída pela F3-P).** No Limiar (6 câmaras, índices 0–5, santuário
 no 3) há **5 portas** (3 livres, depois dos índices 0, 1 e 3, e 2 forçadas, depois do 2 e do 4) e, no máximo, **4 ofertas** (nos índices 0, 1, 2 e 4: a recompensa
 da câmara pode ser bênção, Fragmentos ou cura, Portas R9; o santuário não oferece bênção e o índice 5 não dá recompensa).
 Linhas de uma run vencedora no teto: 1 `run_iniciada` + 6 `camara` + 4 `oferta` + 4 `bencao` + 5
@@ -188,6 +224,36 @@ total de um passo ≤ `orcamento_passo_ms` (3 ms). O pior passo real é a **mort
 (`morte`) + `morte` + `run_encerrada` (~1 KB) = 3 linhas ≤ 3 ms de 16,7. A `camara` e a `oferta`
 (passos seguidos) e a `porta` (escolha do jogador, depois) não caem no mesmo passo. Passar dos
 orçamentos não derruba nada: só conta o aviso `TL2` (R8).
+
+**F3-P. Tamanho de uma run de Pactos no Limiar (emenda Pactos, 2026-11-15).** Com o
+chefe, o Limiar tem **7** câmaras (Run R3-P). Caso máximo, uma run vencedora de
+Pactos que é a primeira (V3 primeiro pacto, G1 força o encontro, pacto com o chefe):
+
+`linhas = 1 run_iniciada + 7 camara + 4 oferta + 4 bencao + n_portas + 1 run_encerrada + 1 encontro_pacto + 3 pacto + 1 vinculo_fim_run`
+
+| Variável | Tipo | Faixa | Descrição |
+|---|---|---|---|
+| `n_portas` | int | 5–6 | 5 hoje; 6 se a emenda de Portas abrir uma porta depois do índice 5 para o chefe **[a confirmar com Portas]** |
+| linhas curtas | int | 24–25 | `camara`, `oferta`, `bencao`, `porta`, `encontro_pacto`, `pacto`, ~300 B cada |
+| `run_iniciada` | — | ~900 B | 600 B de antes + ~300 B de `pactos` e `dupla` |
+| `run_encerrada` | — | ~1 100 B | ~1 000 B de antes + 2 campos |
+| `vinculo_fim_run` | — | ~400 B | até 2 espécies |
+| `bytes_run` | int | 9 600–9 900 B | soma |
+
+Com `n_portas = 6`: 28 linhas; `25 × 300 + 900 + 1 100 + 400` = **9 900 B**;
+`2 097 152 / 9 900` ≈ **211 runs** por sessão. Saída limitada (as contagens são
+tetos das regras de cada dono). Uma run de Lâmina ou Ressonância com o chefe:
+`1 + 7 + 4 + 4 + 6 + 1 = 23` linhas, `21 × 300 + 600 + 1 100` = **8 000 B**. O limite
+de 2 MiB continua só protegendo.
+
+**F4-P. Pior passo com Pactos (emenda Pactos, 2026-11-15).** Morte com encontro ainda
+em aberto: `camara` (`morte`) + `encontro_pacto` (se o Vínculo resolver no mesmo
+passo) + `morte` + `run_encerrada` + `vinculo_fim_run` = **5 linhas** no mesmo
+passo. No teto de `orcamento_linha_ms` (1 ms) isso daria 5 ms > `orcamento_passo_ms`
+(3 ms). Nada muda na regra: passar do orçamento só conta `TL2` (R8). O custo real
+por linha deve ficar bem abaixo do teto (OQ 3). **[a confirmar]** Se a medição der
+`TL2` nesse passo, a saída é subir `orcamento_passo_ms` para 5,0 (dentro da faixa
+1,0–8,0), não cortar linhas.
 
 **F5. Retenção.** Ao iniciar a sessão: `apagar = max(0, existentes − (max_sessoes − 1))`, as mais
 antigas primeiro (pelo nome, que ordena por data UTC). Ex.: 20 existentes e `max_sessoes` 20 →
@@ -240,6 +306,21 @@ apaga 1; 12 existentes → apaga 0.
 - **Pasta com arquivos que não são `sessao-*.jsonl`:** nunca apagados (R6, R9).
 - **Pausa ou Bênção aberta:** `ms` continua a correr (monotônico), a duração da câmara **não**
   (F1).
+- **(emenda Pactos, 2026-11-15) Primeiro pacto com a Telemetria Armada:** a linha
+  `pacto` (`primeiro`) chega antes de `run_iniciada`, quando o arquivo ainda não abriu
+  (R6: Armada só abre na `run_iniciada`). A linha se perde; nenhum `TL3`. O perfil da
+  `run_iniciada` seguinte já mostra a espécie pactuada.
+- **(emenda Pactos) Sair do jogo pelo menu no meio de uma run de Pactos:** o Vínculo
+  consolida a run como abandono (Vínculo V20b). A Telemetria grava `camara`
+  (`abandono`), o `encontro_pacto` com `abandonado` se o encontro estava em aberto e
+  o Vínculo o emitir, `vinculo_fim_run` e `sessao_encerrada` (`saida`), **sem**
+  `run_encerrada` (como antes).
+- **(emenda Pactos) Pacto com o chefe:** `pacto` (`chefe`) sai antes de
+  `run_encerrada`, cujo resumo traz `desfecho_chefe = pactuado`.
+- **(emenda Pactos) Run de Pactos com 0 ou 1 espécie pactuada:** `dupla` com o que a
+  Run mandar (vazia ou um id); `vinculo_fim_run.especies` tem 0 ou 1 entrada.
+- **(emenda Pactos) Leitor com arquivo de `schema` 1:** as ferramentas tratam os
+  campos novos como ausentes; o jogo nunca lê (R1).
 
 ## Dependencies
 
@@ -256,6 +337,14 @@ apaga 1; 12 existentes → apaga 0.
 | Conteúdo orientado a dados | entra | rígida | `TelemetriaTuning`, impressão do catálogo |
 | Opções / menus (reservado) | entra e sai | por contrato | `telemetria_ligada`, "Abrir pasta", "Apagar dados" |
 | `/balance-check`, playtest, `tools/` | sai | leitura do arquivo | `.jsonl`, `schema` versionado |
+
+**Acréscimos (emenda Pactos, 2026-11-15).**
+
+| Sistema | Direção | Natureza | Interface |
+|---|---|---|---|
+| Vínculo e pactos | entra | por contrato (V45) | `encontro_pacto`, `pacto`, `vinculo_fim_run`; perfil no estado inicial. Vínculo já lista a Telemetria (Dependencies, "Suave") |
+| Run e regiões | entra | por contrato (R7-P) | resumo de 12 campos com `desfecho_chefe` e `dupla` |
+| RNG com seed | entra | por contrato (R7-P) | estado inicial com `pactos` e `dupla` |
 
 Nenhum sistema depende da Telemetria para **rodar**: sem ela o jogo é idêntico.
 
@@ -323,6 +412,35 @@ Tipos: [L] lógica (unitário, escritor de arquivo e relógio falsos), [I] integ
 - **AC-TL-32 [L] R6/R9 — apagar com arquivo aberto.** Um arquivo que não pode ser apagado é ignorado com `TL1` e a gravação segue.
 - **AC-TL-33 [L] R4 — `ms_inicio`.** A 1ª `camara` traz `ms_inicio`, e `ms_inicio − ms(run_iniciada)` é o tempo do "Jogar" à 1ª câmara (Run OQ 9).
 
+**Emenda Pactos (emenda Pactos, 2026-11-15)**
+
+- **AC-TL-34 [L] R4-P — `run_iniciada` de Pactos.** Run de Pactos com dupla
+  (`vulto_mudo`, `espreitador_da_fenda`): `estado_inicial` traz `dupla` nessa ordem e
+  `pactos` com `especies` (`id` + `nivel`), `encontro_pendente`,
+  `primeiro_encontro_visto` e `runs_pactos_sem_encontro`; numa run de Lâmina, `dupla`
+  vazia e `pactos` `null`; a linha 0 da sessão tem `schema` 2.
+- **AC-TL-35 [L] R4-P — resumo de 12 campos.** `run_encerrada` de uma vitória com
+  `desfecho_chefe = pactuado` traz os 12 campos da Run R7-P por nome; uma morte
+  traz `desfecho_chefe = nenhum`.
+- **AC-TL-36 [L] R4-P — `encontro_pacto`.** O evento do Vínculo com índice 1,
+  `espreitador_da_fenda`, `pactuada` e Vida 37 grava `encontro_pacto` com esses 4
+  campos; um `resultado` fora da lista sai como está e conta `TL3` uma vez.
+- **AC-TL-37 [L] R4-P — `pacto` e ordem.** Primeira run de Pactos: `pacto`
+  (`primeiro`, `run` 0) antes de `run_iniciada`; `pacto` (`encontro`) e `pacto`
+  (`chefe`) antes de `run_encerrada`; com a Telemetria Armada, o `pacto`
+  (`primeiro`) não é gravado e nada falha.
+- **AC-TL-38 [L] R4-P — `vinculo_fim_run`.** Depois de `run_encerrada`, com o mesmo
+  `run`: uma entrada por espécie da dupla com `pontos_run`, `vinculo_pontos`, `nivel`
+  e `subiu_nivel` (ex.: 19 → 50 pontos, nível 1 → 3, `subiu_nivel` verdadeiro); Nova
+  run no mesmo passo: `run_encerrada`, `vinculo_fim_run`, `run_iniciada`.
+- **AC-TL-39 [L] R4-P — outras Doutrinas.** Uma run de Ressonância completa não grava
+  `encontro_pacto`, `pacto` nem `vinculo_fim_run`.
+- **AC-TL-40 [I] F3-P — run de Pactos completa.** Run vencedora de Pactos no Limiar
+  (7 câmaras) com Run, Câmaras, Bênçãos, Portas, Combate, Chefes e Vínculo reais, na
+  fixture "primeira run de Pactos, todas as portas livres dão bênção, pactuar o
+  chefe": o número de linhas da run é o da F3-P com o `n_portas` da emenda de Portas,
+  na ordem esperada, e o arquivo fica abaixo de 12 KB para essa run.
+
 ## Open Questions
 
 | # | Pergunta | Dono | Resolver até |
@@ -333,4 +451,6 @@ Tipos: [L] lógica (unitário, escritor de arquivo e relógio falsos), [I] integ
 | 4 | Ferramenta de análise em `tools/` (resumo de runs, dano por câmara, escolhas) | tools-programmer | primeiro playtest |
 | 5 | Menu de opções (ligar, abrir pasta, apagar), aviso único da 1ª execução e base legal (LGPD/GDPR) para o envio manual do arquivo | UX / localização / usuário | GDD de Acessibilidade e opções |
 | 6 | Conteúdo: `TelemetriaTuning` (5 campos) e avisos `TL1`–`TL3` como códigos V* | Conteúdo | próxima edição |
+| 8 | **(emenda Pactos)** Portas: a porta depois do índice 5 para o chefe existe? Fixa `n_portas` da F3-P (5 ou 6) | Portas e recompensas | próxima edição de Portas |
+| 9 | **(emenda Pactos)** Vínculo: nomes dos sinais que alimentam `encontro_pacto`, `pacto` e `vinculo_fim_run` (a V45 dá os nomes das linhas e os campos); quando o `encontro_pacto` sai numa morte com o encontro em aberto | Vínculo e pactos | antes das epics de Pactos |
 | 7 | **Edições pendentes:** Combate (`atacante_tipo` e `ataque_id` no `jogador_atingido` e a causa no `jogador_morreu`), Portas (evento de porta escolhida com `tipo` e `opcoes`), Run (sinais "câmara entrou" e passo vivo; `run_iniciada`/`run_encerrada` com resumo e caminho; Run OQ 7 resolvida), Bênçãos (eventos), Câmaras (OQ 10), IA (OQ 10), RNG (Interactions) | donos de cada GDD | `/review-all-gdds` |

@@ -1,8 +1,10 @@
 # Armas das Doutrinas
 
-> **Status**: Approved (`/design-review` 2026-11-10, lean, por subagente: NEEDS REVISION — 6 bloqueantes, revisados; re-review por script: NEEDS REVISION — 4 nos critérios, revisados; veredito final do revisor APPROVED; aprovado pelo usuário)
+> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — antes: Approved (`/design-review` 2026-11-10, lean, por subagente: NEEDS REVISION — 6 bloqueantes, revisados; re-review por script: NEEDS REVISION — 4 nos critérios, revisados; veredito final do revisor APPROVED; aprovado pelo usuário)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-10
+> **Last Updated**: 2026-11-15
+
+> **Nota (emenda Pactos, 2026-11-15):** a Besta do Vínculo (Doutrina de Pactos) entra no MVP como 3ª arma, com os números de `maldicoes.md` §Constantes (l. 462) sem mudança. Acrescentados: R2b (`WeaponDef pactos`, Virote, Chamado do Pacto, evento `acerto_virote`), F7 (DPS composto Besta + Maldição, leitura da F6 de Maldições), contas das F1–F6 para a Besta, AV9, Edge Cases, Dependencies (Maldições, Forte, bidirecional), ACs AC-AR-41 a 52 e Open Questions 11–16. O texto aprovado antes da emenda fica; onde ele diz "duas armas", vale a R2b. Só o usuário aprova.
 > **Last Verified**: 2026-11-10
 > **Implements Pillar**: P1 *Toda bênção é uma filosofia* (a arma é a Doutrina jurada) e P3 *Reflexo que se lê*
 
@@ -18,7 +20,14 @@ Combate núcleo; aqui ficam os números e a identidade. No MVP entram a Lâmina 
 Juramento (perto, combo que quebra a preparação, Investida) e o Foco Ressonante
 (Pulso à distância, Onda em área, menos Vida), escolhidas numa tela antes da run.
 As duas ficam dentro de ±15% no tempo para matar o chefe (hoje 0,7%), e a arma
-não restringe as bênçãos.
+não restringe as bênçãos. **(emenda Pactos, 2026-11-15)** Entra no MVP a terceira
+arma, a Besta do Vínculo (Pactos): Virote à distância e Chamado do Pacto, que
+manda a Maldição em campo saltar. Ela é uma arma **composta** (Besta + Maldição),
+com paridade medida pela F7 (TTK 10,47–10,53 s, diferença máxima 0,74%).
+**(emenda Pactos, 2026-11-15, valores da Maldições R18)** Com o ataque básico
+da Maldição em `18,00–18,36 DPS` e a técnica contada, a F7 dá TTK
+`10,09–10,82 s` (piso `64,70`, teto `69,35 DPS`) e paridade máxima `4,33%`,
+dentro da meta `±5%` (`meta_paridade_pactos`).
 
 > **Quick reference** — Layer: `Feature` · Priority: `MVP` · Key deps: `Combate núcleo, Modificadores e atributos, Conteúdo orientado a dados; Tela de bênção e componente de carta (por contrato); Input e controle (suave)`
 
@@ -43,6 +52,18 @@ As outras quatro armas (Guardião e Véu na fatia vertical; Transmutação e Pac
 no Alpha) já têm lugar no dado, mas os números delas são decididos quando a fase
 chegar. No MVP o jogador escolhe a arma numa tela simples antes da run. A arma
 não restringe as bênçãos: qualquer Tradição pode sair com qualquer arma.
+
+**(emenda Pactos, 2026-11-15)** O MVP passa a ter **três** armas: Lâmina,
+Ressonância e **Besta do Vínculo** (Pactos), esta com números de `maldicoes.md`
+(§Constantes, l. 462):
+
+- **Besta do Vínculo** (Pactos): distância com parceira. O Virote dirige o foco
+  da Maldição em campo (Maldições R4.1), e o Chamado do Pacto a manda saltar,
+  segurar e atrair inimigos (Maldições R13). Cerca de 60% do dano vem da Besta e
+  40% da Maldição (Maldições F6, ML7).
+
+Ficam para depois só três armas: Guardião e Véu (fatia vertical) e Transmutação
+(Alpha).
 
 **Para o jogador:** lutar do jeito da Doutrina que ele jurou. Com a Lâmina, ele
 entra, encadeia e quebra o ataque do inimigo antes que saia. Com a Ressonância,
@@ -96,12 +117,81 @@ Combate).
 - **Nenhuma arma do MVP cura por acerto nem tem guarda** (Modificadores R12;
   Combate R3).
 
+**R2b. Besta do Vínculo, 3ª arma do MVP** (emenda Pactos, 2026-11-15). Números de
+`maldicoes.md` §Constantes (l. 462) e F6 (l. 382–415), sem mudança. Mesma
+estrutura da R2:
+
+| | Besta do Vínculo |
+|---|---|
+| `id` / `doutrina` | `pactos` / `pactos` |
+| `vida_max` | 90 |
+| `velocidade` | 382,5 px/s (4,25 u) |
+| **Ataque** | **Virote**: `projetil`, `velocidade_pxs` 1170, `raio_px` 12, `vida_s` 0,75 (45 passos), `leque` [0], `atravessa` falso, dano 10, `recarga_s` 0,25 (15 passos), `empurrao` 360 px/s, sem combo, sem status |
+| **Especial** | **Chamado do Pacto**: forma nova `chamado` (sem params próprios; a geometria é do `MaldicoesTuning`: `alcance_chamado_px` 420, `duracao_salto_s` 0,20, `raio_chamado_px` 135, `raio_atracao_px` 210), dano 17, `recarga_s` 2,0 (120 passos), `empurrao` **0** **[a confirmar]**, sem combo, sem status |
+| Recuperação (Combate F2) | Virote 8 passos (round(7,5) longe do zero); Chamado 12 (min(12, 60), preso no teto) |
+
+- **Virote** (projétil do jogador; Combate R7, R8.2): é golpe de arma
+  (`de_arma` verdadeiro). Atinge o **primeiro inimigo atingível** com
+  `distância ≤ 12 + r_inimigo` e some (`atravessa` falso). Conta acerto, emite
+  `acerto_de_arma` (gera Fluxo no Selo) e **não pede hitstop**, como todo
+  projétil do jogador (Combate R10: projétil do jogador 0). Não fere a Maldição
+  (Maldições R1). Empurrão 360 < `parede_vel_min` 630 e < `empurrao_pesado` 900:
+  nunca é pesado nem bate na parede sozinho (F5b).
+- **Chamado do Pacto** (Especial; mecânica em Maldições R13 e F4): ao disparar,
+  pede à Maldição em campo o salto até o ponto mirado, limitado a
+  `alcance_chamado_px`. O golpe de área no pouso é da Maldição: dano 17 ×
+  ~~`M_maldicao` (Maldições F4)~~ `M_chamado` = M do jogador no grupo
+  Especial, congelado no disparo (Combate R3.1) (emenda Pactos, 2026-11-15),
+  `de_arma` **falso** (sem acerto, sem Fluxo, sem
+  `golpe_*`, sem hitstop; Maldições R6).
+  - **Recusa** (Maldições R13 e Edge Cases l. 498): sem Maldição em campo, ou
+    com ela `Saltando`, o Chamado é **recusado**: a recarga do Especial **não**
+    é gasta, não há recuperação, e o toque sai do buffer. No mesmo passo, o
+    teste do Ataque segue normal (Combate R3: "senão, o mesmo teste para o
+    Ataque"). A recusa emite o evento lógico `chamado_indisponivel`, uma vez por
+    toque novo (mesma regra de `troca_indisponivel`) **[a confirmar]**.
+  - **Ponto mirado:** mouse, o ponto do cursor (vetor de mira do Input R5, com
+    módulo); gamepad, `jogador + mira × alcance_chamado_px` (a mira do gamepad
+    não tem módulo) **[a confirmar; contrato pedido ao Input]**. O caso de vetor
+    zero é o da Maldições F4.
+  - **Ordem no passo:** o Combate R3 vale como para qualquer Especial (Especial
+    primeiro, um golpe por passo, recarga = passos(`recarga_s`), recuperação 12).
+    Os itens 1–3 do R3 (combo, M, dano do golpe) **não** se aplicam à forma
+    `chamado`: o dano é calculado no pouso pela Maldições F4. O item 8 (forma)
+    é o pedido de salto. **Contrato pedido ao Combate núcleo** (forma `chamado`
+    na lista das R4–R6 e teste de recusa antes do disparo) e ao **Conteúdo** (valor
+    novo no enum de forma; ver AV9).
+- **Empurrão 0 no Chamado [a confirmar]:** o Chamado segura e atrai (R13.3–4);
+  empurrar espalharia o grupo que a atração junta e brigaria com a *Convergência*
+  do Soberano (puxa 60 px para o centro). Com 0, não há cambaleio nem "Quebrou!"
+  pelo Chamado (Combate R8.4, R8.7).
+- **Evento `acerto_virote`** (saída deste GDD, para Maldições R4.1): todo
+  `acerto_de_arma` do Combate (R8.2, R17) com `slot` = ataque, enquanto a arma
+  equipada é `pactos`. Campos: `alvo` (id), `autor_player_id`, `passo`. Sai no
+  mesmo passo do impacto, depois da Vida descontada, **inclusive** com dano 0
+  (M = 0; Combate Edge Cases l. 1019) e inclusive se o golpe mata (a Maldições
+  R4.1 descarta marca não atingível). Implementação: é um **filtro** sobre o
+  `acerto_de_arma`, sem sinal novo e sem regra própria da arma (R1)
+  **[a confirmar: filtro ou sinal republicado]**. O Chamado nunca gera
+  `acerto_virote` (é `de_arma` falso).
+- **Bênçãos de slot com a Besta** (R5): `dano_ataque_pct` vale para o Virote
+  como para qualquer Ataque. O Chamado usa o M do portador da Maldição
+  (Maldições F4). Para a R5 continuar valendo, este GDD **pede** que o
+  `dano_especial_pct` do dono some no M do golpe do Chamado (slot especial do
+  portador da Maldição) **[a confirmar; contrato pedido a Maldições e
+  Modificadores, ligado à OQ3 de Maldições]**. Sem isso, a bênção de Especial não
+  faz nada com a Besta (falsa escolha, P1).
+- **Sem Maldição pactuada** (Maldições R2: "com nenhuma, o Iniciado luta só com a
+  Besta"): o Chamado é sempre recusado e o DPS cai para o do Virote (40, F7). A
+  paridade da R6 vale só com Maldição em campo (Edge Cases; Open Questions 12).
+
 **R3. Identidade** (game-concept §6–§7; Art Bible §3.3, §5.4).
 
 | Arma | Filosofia (Mestre) | Papel na câmara | Leitura da silhueta |
 |---|---|---|---|
 | Lâmina do Juramento | foco, timing, ímpeto (Halvar) | perto; combo que quebra a preparação a cada terceiro golpe; a Investida entra ou sai com 0,2 s invulnerável | diagonal: espada reta longa, corpo inclinado para a frente |
 | Foco Ressonante | risco calculado perto do limite (Maren) | longe; Pulso contínuo sem hitstop; a Onda é o golpe pesado e controla a área; menos Vida | círculos concêntricos: orbe acima da cabeça, braço estendido |
+| Besta do Vínculo (emenda Pactos) | vínculo: o fardo nunca é carregado sozinho (Sorcha; game-concept §6) | longe, em dupla: o Virote marca o alvo da Maldição, o Chamado a manda segurar e atrair; Vida intermediária | "par ligado por fio" (Art Bible §3.3); a silhueta da Besta é do `art-director` (o §5.4 ainda não a tem; Open Questions 15) |
 
 O alcance que o jogador lê é o do desenho do golpe (*smear*, anel, projétil;
 Combate Visual/Audio V2–V5), não o tamanho da arma no sprite: a espada mede ~54
@@ -117,7 +207,9 @@ px, o Corte acerta até 142,5 px do centro.
   `AttackDef` (sem campo novo no `WeaponDef` nem no `AttackDef`; R1).
 - **Velocidade relativa:** `velocidade` < `ArmasTuning.vel_media_min` (360) é
   "lenta"; de 360 a `vel_media_max` (400), inclusive, "média"; acima de 400,
-  "rápida". As duas armas do MVP (387 e 378) são "média".
+  "rápida". As duas armas do MVP (387 e 378) são "média". **(emenda Pactos)** A
+  tela mostra **três** cartas; a Besta (382,5) também é "média". Na primeira
+  vez, continua a Lâmina.
 - A última arma confirmada vem selecionada; na primeira vez, a Lâmina. A escolha
   é lembrada no arquivo local `user://preferencias.cfg` (`ConfigFile`, seção
   `[armas]`, chave `ultima_arma` = id da arma), sem perfil. O arquivo só é
@@ -155,6 +247,14 @@ px, o Corte acerta até 142,5 px do centro.
   playtest, sem pré-seleção; R4) confere:
   - escolha de arma entre 35% e 65% das runs (Telemetria local);
   - taxa de vitória por câmara sem diferença maior que 15 pontos.
+  - **(emenda Pactos, 2026-11-15)** Com três armas, a faixa de escolha passa a
+    **18%–48%** por arma (1/3 ± 15 pontos, a mesma folga da faixa de duas)
+    **[a confirmar]**; a vitória por câmara compara **cada par** de armas. A
+    Besta é medida em runs com ao menos uma Maldição pactuada; runs sem
+    Maldição são anotadas à parte (R2b).
+  - **Pactos é arma composta:** o "TTK do chefe" dela soma Besta e Maldição em
+    campo (F7, leitura da Maldições F6). A validação dela é o ML7/ML8 de
+    Maldições, não o AV2 (Validação).
 - Fora da meta, quem ajusta é o `/balance-check`, mexendo só nos números do
   `AttackDef` (este GDD).
 
@@ -165,7 +265,7 @@ px, o Corte acerta até 142,5 px do centro.
 | Escudo-Bastião (Guardião) | fatia vertical | números do cânone como ponto de partida; dois problemas a resolver no GDD da fase: a guarda (2 s) é maior que a recarga da Muralha (1,33 s) e fica ativa o tempo todo, e o Golpe de Escudo (900 = pesado em todo acerto; o CV8 do Combate avisa) trava a preparação de qualquer inimigo comum, o que o CV18 não pega (AV4 deste GDD; Open Questions) |
 | Adagas do Véu | fatia vertical | números do cânone; margem apertada no CV17 (cambaleio 8 × recarga 9) |
 | Cálice da Transmutação | Alpha | números do cânone |
-| Besta do Vínculo (Pactos) | Alpha | sem números: o cânone só tem o "Laço dos Pactos" (chicote, `arenaContent.ts:67–74`), descartado pela adaptação aprovada no game-concept (§6, 2026-11-05; Conteúdo OQ4); os números nascem aqui com o GDD da Criatura do pacto, e a cura por acerto do Laço não é herdada (cross-review C-I8) |
+| Besta do Vínculo (Pactos) | ~~Alpha~~ **MVP (emenda Pactos, 2026-11-15)** | números na R2b, vindos de `maldicoes.md` §Constantes; o cânone só tem o "Laço dos Pactos" (chicote, `arenaContent.ts:67–74`), descartado pela adaptação aprovada no game-concept (§6, 2026-11-05; Conteúdo OQ4); a cura por acerto do Laço não é herdada (cross-review C-I8) |
 
 - As armas são **horizontais**: todas no mesmo nível de poder; não há níveis de
   arma. O desbloqueio (custo, ordem) é do GDD de Desbloqueio de armas.
@@ -217,6 +317,7 @@ Não há troca de arma durante a run.
 | Telemetria local | arma escolhida em cada run | — | Telemetria |
 | Feedback de combate (VFX) / Pipeline visual | — (o desenho segue a forma do `AttackDef`) | — | VFX |
 | Rito de Iniciação, Campus, Desbloqueio de armas (fases futuras) | lista de armas e Doutrinas | quais armas estão disponíveis | esses GDDs |
+| Maldições (emenda Pactos) | `WeaponDef pactos`; o disparo do Chamado (forma `chamado`); o evento `acerto_virote` (R2b) | o salto e o golpe do Chamado; a consulta "pode chamar" (Maldição em campo e não `Saltando`); o DPS da Maldição em campo (F3 dela) para a F7 | Maldições (salto, golpe, marca), este GDD (números do `WeaponDef`, recarga, evento) |
 
 ## Formulas
 
@@ -507,6 +608,169 @@ Uma bênção de Especial +25% dá +6,3% (Lâmina) e +7,0% (Ressonância) no DPS
 combinado; uma de Ataque +25% dá +18,7% e +18,0%. O valor relativo de uma bênção
 de Ataque é ~3× o de uma de Especial em um alvo, nas duas armas.
 
+### F7. DPS composto da Besta do Vínculo e paridade (emenda Pactos, 2026-11-15)
+
+The pact_weapon_composite_dps formula is defined as:
+
+Leitura da **F6 de Maldições** (`pact_doctrine_combined_ttk`, l. 382–415), sem
+redefinir. Primeiro a F1 deste GDD só com a arma, depois a Maldição em campo:
+`k = R_esp / R_atk` ; `D_ciclo = k × dano_virote + dano_chamado` ; `H_ciclo = 0`
+(Virote: projétil do jogador; Chamado: `de_arma` falso) ;
+`DPS_arma = D_ciclo × M × 60 / R_esp` (vivo = real) ;
+`f_campo_atk = (R_esp − N_salto) / R_esp` ;
+`DPS_pactos = DPS_arma + f_campo_atk × DPS_autonomo` ;
+`TTK_pactos = Vida_chefe / DPS_pactos` ; paridade pela F2, com `DPS_real_x` =
+`DPS_pactos` para a Besta.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| dano_virote, R_atk | float, int | 10; 15 | data file / calculated | Ataque da `WeaponDef pactos` (R2b) |
+| dano_chamado, R_esp | float, int | 17; 120 | data file / calculated | Especial da `WeaponDef pactos` (R2b) |
+| N_salto | int | 6–18 (12) | data file | `passos(MaldicoesTuning.duracao_salto_s)`; a Maldição não ataca no salto |
+| DPS_autonomo | float | 20,0–20,4 (M = 1) | calculated | Maldições F3, da espécie em campo |
+| M | float | ≥ 0 (1) | calculated | igual para o jogador e a Maldição só se o `dano_todo` propagar (Maldições OQ3) |
+| DPS_arma, DPS_pactos | float | ≥ 0 | calculated | Vida/s contra um alvo |
+| TTK_pactos | float | > 0 s | calculated | tempo até 700 de dano |
+
+**Output Range:** `DPS_pactos` ≥ `DPS_besta` (Virote só) = 40. Vale com a Maldição
+em campo **o tempo todo** e o Chamado nunca recusado. Sem Maldição, `DPS_pactos`
+= 40 (só o Virote; o Chamado é recusado). A perda (a) da F1 (Ataque atrasa 1
+passo quando os dois ficam prontos juntos) aqui acontece **todo ciclo**, porque
+120 = 8 × 15: ≤ 1/120 = 0,8% do ciclo. A paridade **não** é invariante a
+`dano_todo` se ele não propagar para a Maldição: aí só 60,2% do DPS sobe
+(Open Questions 13).
+
+**Example (M = 1, um alvo, chefe 700):** k = 8; D_ciclo = 80 + 17 = 97;
+DPS_arma = 97 × 60 / 120 = **48,5**; f_campo_atk = 108 / 120 = 0,9.
+
+| Besta + | DPS_arma | Maldição autônoma (0,9 × F3) | **DPS_pactos** | **TTK** | paridade × Lâmina (10,5310) | × Ressonância (10,4533) |
+|---|---|---|---|---|---|---|
+| Vulto / Baluarte / Soberano (20,0) | 48,5 | 18,0 | **66,50** | **10,5263 s** | 0,0004 | 0,0070 |
+| Espreitador (20,4) | 48,5 | 18,36 | **66,86** | **10,4697 s** | 0,0059 | 0,0016 |
+| sem Maldição (Chamado recusado) | 40,0 | 0 | 40,00 | 17,50 s | 0,6618 | **0,6741** |
+
+- **Divisão 60/40 (ML7):** `f_besta` = 40 / 66,5 = **0,6015**; 40 / 66,86 =
+  **0,5983**. O Chamado é 8,5 / 66,5 = **12,8%** do total; o resto da Maldição,
+  27,1%.
+- **Paridade máxima do MVP** com as três armas: continua **0,0074** (Lâmina ×
+  Ressonância); a Besta fica entre as duas.
+- **Conferência com Maldições F6:** DPS e TTK batem. A coluna "Diferença p/ o
+  menor TTK" de lá mostra 0,73% para Vulto/Baluarte/Soberano; com valores sem
+  arredondar dá **0,70%** (66,964 / 66,5 − 1 = 0,00698). Diferença de
+  arredondamento, sem efeito no ML8 (registrado, não alterado).
+- **"Só Ataque" (informativo):** Virote + Maldição autônoma o ciclo todo, sem
+  Chamado: 40 + 20 = 60 → 11,67 s (12,8% mais rápida que a Lâmina só Ataque,
+  16,7% que a Ressonância). Não vira aviso, como no AV2.
+- **Folga de ajuste** (combinado, Lâmina e Ressonância fixas): paridade ≤ 0,15
+  com o dano do Virote entre **7,93 e 12,40** (hoje 10); o ML7 só aperta fora
+  de 6,63–15,46.
+- **Fluxo (informativo, um alvo):** acertos de arma por segundo real — Besta
+  8 / 2,0 s = 4,0; Lâmina 5,375 / 1,558 s = 3,45; Ressonância 7,43 / 1,6 s =
+  4,64. O Chamado não gera Fluxo.
+
+**Contas das F1–F6 para a Besta** (emenda Pactos; mesma regra, números da R2b):
+
+- **F1 por golpe:** Virote vivo = real = 10 × 60 / 15 = **40,0**; Chamado (como
+  golpe da arma) 17 × 60 / 120 = **8,5**, hitstop 0.
+- **F3, golpes até matar** (sem bênção; Virote 10k; Chamado 17k: 17 · 34 · 51 ·
+  68 · 85; o Chamado sozinho a cada 2 s não é como o inimigo morre, a linha é
+  informativa). `*` = margem ou falta ≤ 2; `=` exato:
+
+| Inimigo | p | Vida_p | Virote | Chamado |
+|---|---|---|---|---|
+| Eco | 0 | 30 | **3 `=`** | 2 (margem 4) |
+| Eco | 1 | 32 | 4 (falta 2) `*` | 2 (margem 2) `*` |
+| Eco | 2 | 33 | 4 | 2 (margem 1) `*` |
+| Eco | 3 | 35 | 4 | 3 (falta 1) `*` |
+| Eco | 4 | 36 | 4 | 3 (falta 2) `*` |
+| Anomalia | 0 | 24 | 3 | 2 |
+| Anomalia | 3 | 28 | 3 (margem 2) `*` | 2 |
+| Anomalia | 4 | 29 | 3 (margem 1) `*` | 2 |
+| Anomalia | 5 | 30 | 3 `=` | 2 (margem 4) |
+| Anomalia | 7 | 32 | 4 | 2 (margem 2) `*` |
+| Fenda | 0 | 46 | 5 | 3 |
+| Fenda | 1 | 48 | 5 (margem 2) `*` | 3 |
+| Fenda | 2 | 51 | 6 (falta 1) `*` | **3 `=`** |
+| Fenda | 3 | 53 | 6 | 4 (falta 2) `*` |
+| Eco elite | 3 | 83 | 9 | 5 (margem 2) `*` |
+| Eco elite | 4 | 86 | 9 | 6 (falta 1) `*` |
+| Anomalia elite | 4 | 69 | 7 (margem 1) `*` | 5 (falta 1) `*` |
+| Fenda elite | 4 | 132 | 14 (falta 2) `*` | 8 |
+
+- **F4, golpes recebidos (Vida 90):** Eco 9 → **10 `=`**; Eco elite 11 → 9;
+  Anomalia 8 → 12; Anomalia elite 10 → **9 `=`**; Fenda 13 → 7; Fenda elite 16
+  → 6; chefe 16 → 6 (tempo mínimo 5 × 40 = 200 passos, 3,33 s). Contra o chefe:
+  Lâmina 7, Besta 6, Ressonância 5. Inimigos **atraídos** miram a Maldição, não o
+  jogador (Maldições R7): a Vida da Besta conta menos acertos do que a F4 supõe.
+- **F5b, empurrão do Virote** (F7 do Combate, q 0,78, z 4,5): emp_ef comum 360
+  (18 passos, 26,96 px), elite 144 (14 passos, 10,57 px), chefe 43,2 (10 passos,
+  3,00 px); `v_sust` = 360 / (1 − 0,78¹⁵) = 360 / 0,97593 = **368,88 px/s** <
+  630; teto do AV5 com R = 15: 630 × 0,97593 = **614,84 px/s**.
+- **F5 do Combate, alcance testado do Virote:** s = 1170 / 60 = 19,5; L = 45;
+  36 + 44 × 19,5 = **894 px** (o F6 do Conteúdo mostra 877,5).
+- **F6, fração do Especial:** `f_esp` da arma = 17 / 97 = **0,1753** (dentro de
+  0,15–0,40, sem AV8). No composto, o Chamado é 12,8% (abaixo de 0,15):
+  `dano_ataque_pct` +25% dá **+15,0%** no DPS composto; `dano_especial_pct` +25%
+  dá **+3,2%**, e só se o contrato da R2b for aceito (senão, 0). É a OQ 8 mais
+  forte na Besta (Open Questions 14).
+
+#### F7 com os valores da emenda Pactos (2026-11-15)
+
+A Maldições mudou os números depois desta F7: R18 (ataque básico `−10%`: dano
+`9` / `7,65` / `12,6` / `9,8`, F3 `18,00–18,36 DPS`; Saída `5`; Entrada `6`,
+`9` com sinergia, ou `7`; `D_tecnica_max = 14`, F5), R17/F4b (atração `1,5 s`)
+e F6 com a técnica (meta `meta_paridade_pactos = 0,05`). A arma não muda:
+`DPS_arma = 48,5`. A tabela acima fica como registro; vale esta.
+
+`DPS_pactos_piso = DPS_arma + f_campo_atk × DPS_autonomo` (vínculo nível 1,
+sem técnica) ;
+`DPS_pactos_teto = DPS_arma + f_campo_atk × DPS_autonomo(vínculo nível 5) +
+D_tecnica_max / recarga_troca_s` (Maldições F6 com a técnica) ;
+paridade pela F2.
+
+| Variável | Tipo | Faixa | Fonte | Descrição |
+|---|---|---|---|---|
+| DPS_autonomo | float | `18,00–18,36` (nível 1); `18,82–19,28` (nível 5) | Maldições F3 (emenda) e Vínculo F4 | ataque básico da espécie em campo, M = 1 |
+| D_tecnica_max, recarga_troca_s | float | `14`; `4,0 s` | Maldições F5, `MaldicoesTuning` | técnica a cada recarga: `3,50 DPS` |
+| meta_paridade_pactos | float | `0,05` | `MaldicoesTuning` | meta da Doutrina; o AV2/ML8 (`0,15`) continua como erro de piso |
+
+| Besta + | DPS_arma | Maldição autônoma (0,9 × F3) | Técnica | **DPS_pactos** | **TTK** | × Lâmina (10,5310) | × Ressonância (10,4533) | `f_besta` |
+|---|---|---|---|---|---|---|---|---|
+| Vulto / Baluarte / Soberano (18,00), piso | 48,5 | 16,20 | 0 | **64,70** | **10,8192 s** | 0,0274 | **0,0350** | 0,6182 |
+| Espreitador (18,36), piso | 48,5 | 16,52 | 0 | **65,02** | **10,7653 s** | 0,0222 | 0,0298 | 0,6152 |
+| Espreitador nível 1 + técnica | 48,5 | 16,52 | 3,50 | 68,52 | 10,2154 s | 0,0309 | 0,0233 | 0,5837 |
+| **Espreitador nível 5 (19,28) + técnica, teto** | 48,5 | 17,35 | 3,50 | **69,35** | **10,0937 s** | **0,0433** | 0,0356 | 0,5768 |
+| sem Maldição (Chamado recusado) | 40,0 | 0 | 0 | 40,00 | 17,50 s | 0,6618 | 0,6741 | 1 |
+
+- **Parcela da Maldição (leitura da Maldições F6):** Maldição autônoma +
+  Chamado (`8,5`) = **`24,70–25,85 DPS`** (piso `24,70` no *Vulto*; `25,02` no
+  *Espreitador*; `25,85` no *Espreitador* nível 5). Aqui o Chamado está dentro
+  do `DPS_arma` (golpe da arma); lá, na parcela da Maldição. O total é o mesmo.
+- **Divisão (ML7):** `f_besta` `0,577–0,618`, dentro de `[0,50; 0,70]`. O
+  Chamado é `8,5 / 64,70 = 13,1%` do piso; a Maldição autônoma, `25,0%`.
+- **Paridade:** piso `3,50%` (Ressonância), teto **`4,33%`** (Lâmina), as duas
+  `≤ 5%`. Margem `0,67` ponto no teto. A Besta deixa de ficar entre as duas
+  armas: sem técnica fica abaixo, com técnica acima. Paridade máxima do MVP com
+  as três armas: **`0,0433`**.
+- **Conferência com Maldições F6 com a técnica:** DPS e TTK batem. Lá o piso
+  dá `3,49%` porque usa `10,454 s`; aqui `10,4533 s` dá `3,50%`. Arredondamento,
+  sem efeito na meta.
+- **"Só Ataque" (informativo):** Virote + Maldição autônoma o ciclo todo, sem
+  Chamado: `40 + 18 = 58` → `12,07 s` (`7,7%` mais rápida que a Lâmina só
+  Ataque, `12,1%` que a Ressonância). Não vira aviso, como no AV2.
+- **Folga do dano do Virote** (`DPS_arma = 4 × dano_virote + 8,5`; Lâmina,
+  Ressonância e Maldição fixas): com a meta `0,05`, piso `≥ 66,96 / 1,05 =
+  63,77` e teto `≤ 66,47 × 1,05 = 69,79` dão **`9,77–10,11`** (hoje `10`). Com o
+  `0,15` do AV2/ML8: `8,38–11,77`. O ML7 só aperta fora de `7,34–14,41`. A folga
+  ficou estreita: mexer no Virote mexe na meta.
+- **F6, fração do Especial no composto:** `dano_ataque_pct` +25% dá **+15,5%**
+  no piso (`10 / 64,70`); `dano_especial_pct` +25% dá **+3,3%**
+  (`2,125 / 64,70`), e só se o contrato da R2b for aceito (Open Questions 14).
+- **F4, inimigos atraídos:** a atração dura no máximo `1,5 s` e cada inimigo
+  recusa atração por `0,5 s` depois (Maldições R17, F4b): mira a Maldição no
+  máximo `75%` do tempo. A Vida da Besta volta a contar acertos na janela livre.
+
 ### Faixas dos campos (V2 do Conteúdo)
 
 A coluna **V2** é erro de carga (a run não começa). A coluna **Faixa de design**
@@ -546,6 +810,22 @@ da F1–F5 do Conteúdo.
 | `avanco` | `distancia_px` | ≥ 0 | 150–450 | 330 | CV16 (pula alvos); > 450 atravessa meia câmara invulnerável |
 | `avanco` | `duracao_s` | > 0 | 0,1–0,3 (6–18) | 0,1667 (10) | CV15 ((N + E) / R > 0,5); 1 + N ≥ R_atk faz a investida custar Ataques (F1) |
 | `avanco` | `raio_px` | > 0 | 40–100 | 69 | CV16 |
+| `chamado` (emenda Pactos) | — (sem params; geometria no `MaldicoesTuning`, faixas e ML1/ML6 de Maldições) | — | — | — | — |
+
+**Besta do Vínculo nas faixas (emenda Pactos, 2026-11-15)** — todos dentro, sem AV7:
+`vida_max` 90 (70–140); `velocidade` 382,5 (342–423); Virote `dano` 10 (6–30),
+R 15 (10–30), `velocidade_pxs` 1170 (600–1500), `raio_px` 12 (9–30), alcance
+testado 894 px (400–1100), `leque` [0], `empurrao` 360 (< 900; < teto do AV5
+614,84); Chamado `dano` 17, R 120 (40–150), `empurrao` 0.
+
+- **Faixa de `dano` do Especial de forma `chamado`:** a faixa do Especial aqui é
+  12–60 e a de `dano_chamado` na Maldições F4 é 10–35. Para a forma `chamado`, o
+  AV7 usa a **interseção 12–35** **[a confirmar]** (acima de 35 o Chamado passa
+  do golpe da Maldição que Maldições calibrou; abaixo de 12, a regra deste GDD).
+- **CVs do Combate com o Virote** (AV6): CV12 s 19,5 < 12 + 22,5 = 34,5; CV13 L
+  45 ≥ 2; CV17 R 15 > cambaleio 8; CV20 36 + 19,5 − 34,5 = 21 ≤ 27 + 22,5 =
+  49,5; CV6 menor empurrão efetivo do catálogo passa a 360 × 0,12 = 43,2 > z
+  4,5; CV7 maior empurrão leve continua 540 (Pulso). Nenhum dispara.
 
 ### Validação das armas
 
@@ -563,6 +843,24 @@ CV10, CV12, CV13, CV15–CV20); este GDD não os repete.
 | AV6 | — | ver acima | — |
 | AV7 | aviso | campo fora da faixa de design (tabelas acima) | o número sai do espaço em que as contas deste GDD valem |
 | AV8 | aviso | `f_esp` (F6) fora de `f_esp_min`–`f_esp_max` (0,15–0,40) | uma das bênçãos de slot perde ou domina o valor |
+| AV9 (emenda Pactos) | erro | forma `chamado` fora do slot `especial`, ou num `WeaponDef` cuja `doutrina` não é `pactos`; ou `chamado` com `multiplicadores_combo`, `status` ou `guarda_s` | o Chamado só existe como pedido à Maldição (Maldições R13); combo, status e guarda não têm efeito nele e esconderiam erro de dado. **Contrato pedido ao Conteúdo** (vira regra de carga) |
+
+**Pactos na validação (emenda Pactos, 2026-11-15):**
+
+- **AV2 e Pactos:** o AV2 compara só armas **sem** Maldição. Pares com `pactos`
+  são do **ML8** de Maldições (2ª passada, com o catálogo de `CurseDef`), que já
+  estende o AV2; assim o mesmo par não sai duas vezes **[a confirmar]**. A
+  divisão 60/40 é o **ML7**. As contas são as da F7.
+- **AV3 com a Besta:** Virote e Chamado são golpes de arma da tabela da F3 (F7).
+  Com `p_max` 4 (fábrica) entram **8** linhas: Virote — Eco (0, 3), Anomalia (3,
+  3), (4, 3); Chamado — Eco (1, 2), (2, 2), (3, 3), (4, 3), Fenda (2, 3). O
+  catálogo de fábrica passa de 20 para **28** linhas AV3. Com `p_max` 7 entram
+  mais 2 — Virote Anomalia (5, 3) e Chamado Anomalia (7, 2) — e o conjunto da
+  AC-AR-25 passa de 29 para **39** (AC-AR-49).
+- **AV4:** o Virote nunca é pesado e o Chamado é Especial com empurrão 0: o AV4
+  não se aplica à Besta.
+- **AV5:** Virote 368,88 < 630, sem aviso. **AV8:** 0,1753, sem aviso (o 12,8%
+  do composto é linha informativa da F7, não AV8). **AV1:** sem guarda.
 
 **Esclarecimentos da validação** (2026-11-10, a partir da revisão dos critérios):
 
@@ -658,6 +956,43 @@ Ressonância: o Pulso nunca é pesado; o AV4 não se aplica.
   l. 638–641, 2026-11-10).
 - Os dois problemas do Guardião (fatia vertical) ficam nas Open Questions.
 
+**Besta do Vínculo (emenda Pactos, 2026-11-15)**
+
+- **Se o jogador apertar Especial sem Maldição em campo** (nenhuma pactuada, as
+  duas Exaustas, ou só uma e ela Exausta): o Chamado é recusado, a recarga do
+  Especial fica como está (0), sem recuperação, e sai `chamado_indisponivel`
+  uma vez por toque novo (R2b; Maldições R13, AC-ML-18). Segurado, não repete o
+  evento.
+- **Se a Maldição estiver `Saltando`:** recusado do mesmo jeito (Maldições Edge
+  Cases l. 498). Com R_esp 120 > N_salto 12, só acontece se a recarga for
+  reduzida por dado de teste.
+- **Se Especial e Ataque estiverem segurados e o Chamado for recusado:** o
+  Virote sai no mesmo passo, se a recarga dele for 0 (Combate R3).
+- **Se o Virote matar o inimigo:** `acerto_virote` sai com esse alvo; a marca
+  aponta para um morto e a Maldições R4.1 cai para o item 2 (mais perto do
+  jogador).
+- **Se o Virote acertar com dano 0** (M = 0): ainda é acerto de arma e move a
+  marca (R2b).
+- **Se o Virote passar pela Maldição:** não a atinge (Maldições R1) e segue até o
+  primeiro inimigo atingível.
+- **Se o jogador jogar Pactos sem nenhuma Maldição pactuada:** DPS 40, TTK 17,5 s,
+  67% mais lento que a Ressonância (F7). Não há aviso: o ML8 só olha a dupla.
+  Isso fere a paridade da R6 na primeira run de Pactos; registrado como conflito
+  (Open Questions 12).
+- **Se a atração do Chamado (180 passos) for renovada antes de acabar** (recarga
+  120): os inimigos no raio podem mirar a Maldição sem parar enquanto ela estiver
+  em campo. É cobertura forte para o jogador (a F4 deixa de valer); a Exaustão
+  (Maldições R9) é o limite. Registrado para o `/balance-check` (Open Questions
+  16), sem mudar números de Maldições.
+  **(emenda Pactos, 2026-11-15) Resolvido:** a Maldições R17/F4b pôs a atração
+  em `1,5 s` (`90` passos) com respiro de `0,5 s` (`30` passos). Atração e
+  respiro somam `120` passos, igual à recarga do Chamado: o Chamado a cada
+  recarga atrai `90` e deixa `30` livres. Nenhum inimigo mira a Maldição mais
+  de `1,5 s` seguidos nem mais de `75%` do tempo, com qualquer mistura de
+  fontes. A F4 vale de novo na janela livre (F7 com os valores da emenda).
+- **Se uma bênção de `dano_todo` for pega com a Besta:** sobe o Virote; sobe a
+  Maldição só se a propagação da Maldições OQ3 for aceita (F7).
+
 ## Dependencies
 
 **Depende de (upstream)**
@@ -669,6 +1004,7 @@ Ressonância: o Pulso nunca é pesado; o AV4 não se aplica.
 | Conteúdo orientado a dados | Forte | formato do `WeaponDef` e do `AttackDef`, conversões F2–F7, validação V1–V11, nomes canônicos (V5) | números no código, o que a regra do projeto proíbe |
 | Tela de bênção e componente de carta | Suave, **por contrato** | o componente de carta para a tela de escolha (R4) | a tela de escolha usa uma lista simples |
 | Input e controle | Suave | navegação da tela de escolha (teclado, mouse, gamepad); Ataque e Especial segurados chegam via Combate (Input R7) | a tela de escolha não navega |
+| Maldições (emenda Pactos) | **Forte** | a Maldição em campo que o Chamado manda saltar (R13), a consulta "pode chamar", o DPS autônomo (F3) para a F7, ML7/ML8 | o Chamado é sempre recusado e a Besta fica em 40 DPS (F7) |
 
 **É dependência de (downstream)**
 
@@ -685,7 +1021,7 @@ Ressonância: o Pulso nunca é pesado; o AV4 não se aplica.
 | Selo e Fluxo | Suave | recargas, DPS e Vida por profundidade (Formulas F3–F5, SV6, SV12 do Selo) |
 | Efeitos de status | Suave | `status` dos `AttackDef` (nenhum nas armas do MVP; DPS de referência para ST5) |
 | Feedback de combate (VFX) / Pipeline visual | Suave | as formas e os params dos `AttackDef` (o desenho do golpe tem o tamanho do teste) |
-| Criatura do pacto (Alpha) | Forte | a Besta do Vínculo e o Chamado do Pacto |
+| ~~Criatura do pacto (Alpha)~~ **Maldições (MVP; emenda Pactos)** | Forte | a `WeaponDef pactos`, o disparo do Chamado do Pacto (forma `chamado`) e o evento `acerto_virote` (marca, Maldições R4.1); `maldicoes.md` Dependencies l. 510 já lista Armas (bidirecional) |
 | Desbloqueio de armas (Alpha) | Forte | a lista de armas e Doutrinas |
 | Rito de Iniciação e Campus (fatia vertical) | Forte | a arma da Doutrina jurada, que substitui a tela de escolha |
 
@@ -700,6 +1036,13 @@ Ressonância: o Pulso nunca é pesado; o AV4 não se aplica.
 - O Input e controle já lista Armas (`input-e-controle.md:542`). O Movimento cita
   o `WeaponDef` pelo Conteúdo, sem nomear Armas: na próxima edição dele,
   acrescentar "Armas das Doutrinas (suave, via Modificadores)".
+- **(emenda Pactos)** Maldições ↔ Armas é **Forte nos dois sentidos**: Armas
+  fornece a Besta, o Chamado e `acerto_virote`; Maldições fornece o salto, a
+  consulta "pode chamar" e o DPS da F7. `maldicoes.md` já cita Armas
+  (Interactions l. 224, Dependencies l. 510). A forma `chamado` pede emenda no
+  Combate núcleo (R3, R4–R6) e no Conteúdo (enum, AV9); o ponto mirado no
+  gamepad pede emenda no Input (R5). A "Criatura do pacto" deixou de ser GDD
+  separado: é o GDD de Maldições.
 - **Índice:** a linha 9 lista Combate, Modificadores e Conteúdo; acrescentar
   "Tela de bênção e componente de carta (suave, por contrato)" e "Input e
   controle (suave)", e o status passa de "Not Started" para "Designed".
@@ -723,7 +1066,11 @@ de `*Tuning` do Conteúdo). Nada disso fica literal no GDScript.
 | Faixas de design | tabelas de Faixas dos campos | — | curva | AV7 | o espaço em que as contas deste GDD valem |
 
 As metas do playtest (escolha de 35–65%, vitória por câmara a ≤ 15 pontos; R6)
-são critérios de playtest, não dado de jogo.
+são critérios de playtest, não dado de jogo. **(emenda Pactos)** Com três armas,
+18–48% (R6, [a confirmar]). A Besta não acrescenta campo ao `ArmasTuning`: os
+números dela vivem no `WeaponDef pactos` (R2b) e a geometria do Chamado no
+`MaldicoesTuning` (dono: Maldições). A faixa de `dano` 12–35 da forma `chamado`
+entra nas faixas de design do AV7.
 
 ## Visual/Audio Requirements
 
@@ -747,6 +1094,11 @@ são critérios de playtest, não dado de jogo.
 - **Áudio** (requisito provisório): cada arma tem a sua família de sons de golpe,
   dentro do clima do Combate A1 (Lâmina: risco de pincel seco; Foco: estalo de
   tinta leve no Pulso, grave na Onda).
+- **(emenda Pactos)** Besta do Vínculo: o Virote usa o desenho de projétil do
+  jogador (Combate V4), em escala menor que o Pulso (raio 12 contra 15). O
+  Chamado não tem desenho próprio da arma: o que se vê é o salto e o pouso da
+  Maldição (Maldições ML-V3, ML-V4, Game Feel). Silhueta, sprite e som da Besta
+  ficam com `art-director` e `audio-director` (Open Questions 15).
 
 > 📌 **Asset Spec** — rodar `/asset-spec system:armas-das-doutrinas` depois do
 > Art Bible: sprites e rig das duas armas do MVP, quadros por golpe e ícones das
@@ -765,6 +1117,11 @@ são critérios de playtest, não dado de jogo.
   jogador sente que está perto do limite; é a filosofia de Maren.
 - **Alvo de playtest:** os testadores conseguem descrever a diferença entre as
   duas armas em uma frase cada, sem dica (registro [M]).
+- **(emenda Pactos) Nunca sozinho:** com a Besta, o jogador atira e esquiva sem
+  microgerenciar; mirar o Virote já escolhe o alvo da Maldição, e o Chamado é o
+  momento pedido (salto, segura, atrai). O Virote não congela; o peso vem do
+  pouso do Chamado (chute de câmera da Maldições Game Feel). Alvo de playtest:
+  o testador diz, sem dica, que "a criatura vai atrás do que eu acerto" (AC-AR-52).
 
 ## UI Requirements
 
@@ -776,6 +1133,12 @@ são critérios de playtest, não dado de jogo.
   build de playtest, em que nada vem selecionado (R4).
 - **HUD:** nenhuma informação nova; os chevrons e a Vida já existem. O nome da
   arma aparece na pausa (GDD de HUD/Menus).
+- **(emenda Pactos)** A tela de escolha mostra três cartas. A carta da Besta usa
+  os mesmos campos (Vida 90, "média", "Virote" / "Chamado do Pacto"). Se o
+  jogador não tem Maldição pactuada, a carta mostra uma linha de aviso
+  ("sem Maldição: o Chamado não responde") **[a confirmar; texto do
+  ux-designer]**. A recusa do Chamado (`chamado_indisponivel`) pede feedback no
+  HUD como o da Troca (Maldições UI Requirements); dono: HUD.
 
 > **📌 UX Flag — Armas das Doutrinas:** a tela de escolha é uma tela nova. No
 > Pre-Production, rodar `/ux-design` para ela (pode reaproveitar o componente de
@@ -794,6 +1157,9 @@ são critérios de playtest, não dado de jogo.
 | `design/art/art-bible.md` | §3.1, §3.3, §5.4, §5.8 | silhueta, forma dominante, animação |
 | Khaeros `packages/combat-rules/src/arenaContent.ts` | `ARENA_WEAPONS`, `ARENA_ENEMIES` | números das 6 armas e dos inimigos do Limiar |
 | Khaeros `packages/action-core/src/engine.ts` | `:1174` | o empurrão fixo de 6 u do projétil (origem do Pulso 540) |
+| `design/gdd/maldicoes.md` (emenda Pactos) | R1, R2, R4.1, R6, R7, R9, R13, F3, F4, F6, §Constantes (l. 462), ML1, ML7, ML8, Edge Cases (l. 498), OQ3, AC-ML-05, 18, 22 | números da Besta, Chamado, marca do Virote, DPS da Maldição, paridade composta |
+| `design/gdd/input-e-controle.md` (emenda Pactos) | R5 | vetor de mira e ponto mirado do Chamado |
+| `design/gdd/combate-nucleo.md` (emenda Pactos) | R7 (projétil do jogador: primeiro atingível), R8.2, R10 (hitstop 0 do projétil), R17, F5, Edge Cases l. 1019 | Virote e `acerto_virote` |
 
 ## Acceptance Criteria
 
@@ -1364,6 +1730,97 @@ são critérios de playtest, não dado de jogo.
   arma e por câmara junto de cada taxa, para o `/balance-check` ler a diferença
   com esse ruído.
 
+**I. Besta do Vínculo (emenda Pactos, 2026-11-15)**
+
+> Fixture extra **FA-P**: catálogo de fábrica com `pactos` (R2b) e os 4 `CurseDef`
+> e o `MaldicoesTuning` de fábrica de `maldicoes.md`; Maldições real em memória
+> (ou dublê que honra Maldições R4, R13 e F3, dito no critério). Onde as ACs
+> antigas falam do "catálogo de fábrica com as duas armas", o catálogo de fábrica
+> pós-emenda tem as três; as contagens que mudam estão na AC-AR-49 e AC-AR-50, e
+> as linhas das ACs antigas sobre `lamina` e `ressonancia` continuam valendo.
+
+- **AC-AR-41 [L] R2b — Besta do Vínculo, carregada do catálogo de fábrica.**
+  **GIVEN** FA-P, **WHEN** o carregador real lê `pactos`, **THEN** `id` e
+  `doutrina` `pactos`, `vida_max` 90, `velocidade` 382,5; Ataque `projetil`,
+  `velocidade_pxs` 1170, `raio_px` 12, `vida_s` = 45/60 (L = 45), `leque` [0],
+  `atravessa` falso, `dano` 10, `recarga_s` = 15/60 (R = 15), `empurrao` 360,
+  sem combo, sem status; Especial forma `chamado`, `dano` 17, `recarga_s` =
+  120/60 (R = 120), `empurrao` 0, sem combo, sem status, sem `guarda_s`; zero
+  erros e zero avisos AV/CV para `pactos`.
+- **AC-AR-42 [L] Combate F2 — recuperação da Besta.** **GIVEN** a FA, **WHEN**
+  Virote e Chamado disparam, **THEN** `rec` = 8 (round(7,5)) e 12 (min(12, 60)).
+  Um Chamado **recusado** não põe recuperação (rec 0).
+- **AC-AR-43 [I] R2b — Virote é golpe de arma sem hitstop.** **GIVEN** Combate e
+  Selo dublê reais, jogador em (960; 540) mira (1; 0), Saco em (1100; 540),
+  **WHEN** um Virote acerta, **THEN** o Saco perde 10, sai 1 `acerto_de_arma`
+  (slot ataque), o contador de acertos sobe 1, o dublê do Selo recebe 1 acerto
+  para Fluxo, **nenhum** pedido de hitstop, `pesado` falso, e o projétil some.
+  Com dois Sacos em linha (1100 e 1200), só o primeiro é atingido.
+- **AC-AR-44 [L] R2b — evento `acerto_virote` e marca.** **GIVEN** `pactos`
+  equipada e o espião de eventos, **WHEN** (a) um Virote acerta o inimigo id 5,
+  (b) um Virote com M = 0 acerta o id 2, (c) um Virote mata o id 7, (d) o
+  Chamado acerta o id 9, **THEN** saem `acerto_virote` com alvo 5, 2 e 7, no
+  passo do impacto, e **nenhum** para o id 9. Com `lamina` equipada, o Corte não
+  gera `acerto_virote`. Com Maldições real, após (a) o alvo da Maldição é o id 5
+  no passo vivo seguinte (Maldições AC-ML-05).
+- **AC-AR-45 [I] R2b — Chamado dispara o salto.** **GIVEN** FA-P, `vulto_mudo` em
+  campo em (900; 540), jogador em (960; 540), cursor do mouse em (1460; 540),
+  Especial com recarga 0, **WHEN** o jogador aperta Especial, **THEN** a
+  Maldição recebe o pedido com ponto alvo (1380; 540) (limitado a 420 px), a
+  recarga do Especial passa a 120, a recuperação a 12, e o golpe do pouso é
+  `de_arma` falso (nenhum `acerto_de_arma`, nenhum hitstop, nenhum Fluxo).
+  Com gamepad e mira (0; 1): ponto alvo (960; 960) **[provisório até o Input]**.
+- **AC-AR-46 [L] R2b — Chamado recusado não gasta recarga.** **GIVEN** recarga
+  do Especial 0, **WHEN** o jogador aperta Especial com (a) nenhuma Maldição em
+  campo, (b) a Maldição `Saltando`, **THEN** nada salta, a recarga fica 0, a
+  recuperação fica 0, sai 1 `chamado_indisponivel` por toque novo (segurar 30
+  passos não repete) e, com o Ataque segurado e pronto, um Virote sai no mesmo
+  passo.
+- **AC-AR-47 [L] F7 — DPS composto e paridade, M = 1.** **GIVEN** FA-P e chefe
+  700, **WHEN** o validador calcula a F7, **THEN** DPS_arma 48,500; DPS_pactos
+  66,500 (Vulto, Baluarte, Soberano) e 66,860 (Espreitador); TTK 10,5263 e
+  10,4697 s; `f_besta` 0,6015 e 0,5983; paridade máxima entre as três armas
+  0,0074 (Lâmina × Ressonância); zero AV2 com `pactos` (o par é do ML8) e zero
+  ML7/ML8. Linha informativa sem Maldição: 40,000 e 17,5000 s.
+  **(emenda Pactos, 2026-11-15) Valores que valem (F7 com os valores da
+  emenda):** DPS_arma 48,500; piso DPS_pactos 64,700 (Vulto, Baluarte,
+  Soberano) e 65,024 (Espreitador); TTK 10,8192 e 10,7653 s; teto (Espreitador
+  nível 5 + técnica `14 / 4,0`) 69,350 e 10,0937 s; `f_besta` 0,6182, 0,6152 e
+  0,5768; paridade máxima entre as três armas 0,0433 (teto × Lâmina), piso
+  0,0350 (× Ressonância), ambas `≤ meta_paridade_pactos` 0,05; zero AV2 com
+  `pactos` e zero ML7/ML8. Com dano do Virote 10,2 (teto 70,15 DPS, 9,9786 s, 5,54%), sai
+  o aviso da meta de Pactos (Maldições ML8).
+- **AC-AR-48 [L] F3/F4/F5b — contas da Besta.** **GIVEN** a região de teste,
+  **THEN** os `g`, margens e faltas da tabela da F7 batem exatos (±0,001); F4
+  com Vida 90: 10, 9, 12, 9, 7, 6, 6 (Eco, Eco elite, Anomalia, Anomalia elite,
+  Fenda, Fenda elite, chefe); F5b: 26,96 px / 18 passos, 10,57 / 14, 3,00 / 10
+  (±0,01), `v_sust` 368,88 e teto 614,84; alcance testado 894 px.
+- **AC-AR-49 [L] AV3 com a Besta — conjunto exato.** **GIVEN** catálogo de
+  fábrica pós-emenda, **WHEN** a validação roda com a região de teste `p_max` 7,
+  **THEN** as linhas AV3 são as 29 da AC-AR-25 **mais** estas 10: Virote — Eco
+  (0, 3), Anomalia (3, 3), (4, 3), (5, 3); Chamado — Eco (1, 2), (2, 2), (3, 3),
+  (4, 3), Anomalia (7, 2), Fenda (2, 3): 39 no total. Com `ArmasTuning` de
+  fábrica (`p_max` 4): 20 + 8 = **28** (saem Virote Anomalia 5 e Chamado
+  Anomalia 7). Com `margem_fragil` 0: 9 + 3 = 12 (Virote Eco 0, Anomalia 5;
+  Chamado Fenda 2).
+- **AC-AR-50 [L] AV9 e relatório de fábrica.** **GIVEN** FA-T, **WHEN** (a) a
+  Lâmina tem Especial de forma `chamado`, (b) `pactos` tem `chamado` no slot
+  Ataque, (c) o Chamado tem `multiplicadores_combo` [1; 1,8], **THEN** cada caso
+  dá 1 erro AV9 e a run não começa. Catálogo de fábrica pós-emenda: zero erros,
+  zero avisos AV, linhas informativas = as da AC-AR-32 com as 39 AV3 da AC-AR-49
+  no lugar das 29 e mais a linha de alcance do Virote (L = 45, 894 px).
+- **AC-AR-51 [I] R5 — bênçãos com a Besta.** **GIVEN** Combate, Modificadores e
+  Maldições reais, **WHEN** `dano_ataque_pct` +0,25, **THEN** o Virote causa
+  12,5 e o ataque básico da Maldição não muda. **WHEN** `dano_especial_pct`
+  +0,25, **THEN** o Chamado causa 21,25. **BLOQUEADO até o contrato da R2b ser
+  aceito por Maldições/Modificadores** (OQ3 de Maldições).
+- **AC-AR-52 [M] R3/Game Feel — leitura da dupla.** Em ≥ 10 runs com a Besta e
+  ao menos uma Maldição, ≥ 70% dos testadores descrevem, sem dica, que a
+  Maldição ataca o que o Virote acerta e que o Chamado a faz saltar. Registro com
+  testador, build e frase. A AC-AR-37 passa a usar a faixa 18–48% por arma
+  (R6, [a confirmar]) e a AC-AR-38 compara cada par; a AC-AR-12 ganha a carta
+  da Besta (Vida 90, "média").
+
 **Nota de cobertura**
 
 - Contagem: 31 [L] (com a AC-AR-40, teto do M), 5 [I] (AC-AR-06, 14, 21, 35, 36), 1 [UI] (12), 1 [V] (13),
@@ -1389,6 +1846,10 @@ são critérios de playtest, não dado de jogo.
   AC-AR-21 (passo 166, 10º acerto; 41 acertos e Vida 508 em 600 passos) e a
   AC-AR-35 (6 Especiais por arma com "passo vivo anterior"; o Especial guloso
   daria 7 e a Lâmina a −4,4%), e listou os 20 AV3 de fábrica (`p_max` 4).
+- **(emenda Pactos)** +12 critérios (AC-AR-41 a 52): 8 [L] (41, 42, 44, 46–50),
+  3 [I] (43, 45, 51; a 51 BLOQUEADA), 1 [M] (52). Total 52. Cobertura: R2b
+  41–46, 51; F7 47; F3/F4/F5b 48; AV3 49; AV9 50; R6 52. Contas da F7 feitas à
+  mão nesta emenda; o script da re-review precisa refazê-las antes da aprovação.
 - **Ambiguidades:** nenhuma aberta. As 1 a 11 da proposta original foram
   resolvidas na 1ª revisão e na re-review (2026-11-10): o Saco parado do F1 na
   AC-AR-35 (o Saco móvel fica na AC-AR-21) e o roteiro "perfeito" com "passo
@@ -1400,7 +1861,7 @@ são critérios de playtest, não dado de jogo.
 |---|---|---|---|
 | 1 | Guardião (fatia vertical): a guarda de 2 s contra a recarga de 1,33 s (AV1) e a trava do Golpe de Escudo (AV4; o CV18 do Combate precisa contar Ataques sempre pesados, n = 1, e a Vida da maior profundidade) | game-designer + dono do Combate | GDD de Armas da fatia vertical |
 | 2 | ~~Nomes do Ataque e do Especial da Besta do Vínculo~~: resolvida, "Virote" / "Chamado do Pacto" aprovados no game-concept (§6, 2026-11-05) | — | — |
-| 3 | Números da Besta do Vínculo, com a Criatura do pacto | game-designer + ai-programmer | Alpha |
+| 3 | ~~Números da Besta do Vínculo, com a Criatura do pacto~~: **resolvida (emenda Pactos, 2026-11-15)**: R2b com os números de `maldicoes.md` §Constantes; F7 confere a paridade | — | — |
 | 4 | Emenda no Art Bible §5.8: quadros por golpe × entradas do combo da arma, e o Especial (hoje 8–12 quadros-chave por arma) contra o gesto de 1 quadro da Onda | art-director | antes de produzir as animações |
 | 5 | Pontos frágeis de golpes até matar (Onda × Eco, Pulso × Anomalia, Corte × Fenda em p = 3): manter, ou subir um ponto de dano para estabilizar | `/balance-check` | depois do primeiro playtest |
 | 6 | Combate: o CV18 deve olhar Ataques sempre pesados (n = 1) e a Vida da profundidade máxima da região (achado do systems-designer) | dono do Combate | próxima edição do Combate |
@@ -1408,4 +1869,10 @@ são critérios de playtest, não dado de jogo.
 | 8 | Bênçãos: contra um alvo, uma bênção de Ataque vale ~3× a de Especial nas duas armas (F6: +18,7% contra +6,3%/+7,0% com +25%). Magnitudes diferentes por slot, ou valor do Especial em grupo, para a escolha não ser falsa (P1) | game-designer (GDD de Bênçãos) | GDD de Bênçãos |
 | 9 | Conteúdo: regra de erro para propriedade desconhecida e para tipo errado no texto do `.tres` (o Godot ignora ou converte em silêncio); AC-AR-01 e AC-AR-30 são provisórias até lá | dono do Conteúdo | antes das epics de Armas |
 | 10 | Modificadores: fixar a ordem de cálculo da fonte `profundidade` (um percentual 0,05 × p) para os meios exatos da F3 | dono do Modificadores | antes da AC-AR-18 |
+| 11 | (emenda Pactos) Forma `chamado`: emenda no Combate (R3: teste de recusa antes do disparo; itens 1–3 não se aplicam; item 8 = pedido de salto) e no Conteúdo (enum de forma, AV9 como erro de carga) | donos do Combate e do Conteúdo | antes das epics de Pactos |
+| 12 | (emenda Pactos) Besta sem Maldição pactuada: 40 DPS, TTK 17,5 s (67% fora da paridade). Garantir um pacto antes da 1ª run de Pactos (Vínculo e pactos), ou aceitar a desvantagem | usuário + Vínculo e pactos | GDD de Vínculo e pactos |
+| 13 | (emenda Pactos) `dano_todo` e `dano_especial_pct` do dono no M da Maldição (Maldições OQ3): sem propagação, a paridade muda com bênção e a bênção de Especial é morta na Besta (AC-AR-51 bloqueada) | Maldições + Modificadores | antes da AC-AR-51 |
+| 14 | (emenda Pactos) Bênção de Especial com a Besta vale +3,2% (+3,3% com os valores da emenda de 2026-11-15) do DPS composto com +25% (Lâmina 6,3%, Ressonância 7,0%); agrava a OQ 8 | GDD de Bênçãos / `/balance-check` | GDD de Bênçãos |
+| 15 | (emenda Pactos) Silhueta, sprite, animação e som da Besta do Vínculo (Art Bible §5.4 não tem) | art-director + audio-director | antes dos assets de Pactos |
+| 16 | ~~(emenda Pactos) Atração do Chamado (180 passos) maior que a recarga (120)~~: **fechada (emenda Pactos, 2026-11-15)**: Maldições R17/F4b põe a atração em `1,5 s` (90 passos) e o respiro em `0,5 s` (30); `90 + 30 = 120` = recarga do Chamado; teto `75%` do tempo e `1,5 s` seguidos (Edge Cases; F7 com os valores da emenda) | — | — |
 | 11 | Registry: registrar as F1–F6 e as constantes (100/80, 387/378, Pulso 540, `ArmasTuning`) | producer | próxima passada do `/design-system` |

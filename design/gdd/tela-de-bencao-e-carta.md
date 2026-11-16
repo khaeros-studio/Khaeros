@@ -1,8 +1,8 @@
 # Tela de bênção e componente de carta
 
-> **Status**: Approved (2026-11-11; revisão única por subagente: 9 bloqueantes e 13 recomendadas, corrigidos sem re-review; sem entrada no review log)
+> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — antes: Approved (2026-11-11; revisão única por subagente: 9 bloqueantes e 13 recomendadas, corrigidos sem re-review; sem entrada no review log)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-11
+> **Last Updated**: 2026-11-16 (emenda Pactos, 2026-11-15: R15-P, R15b-P, AC-TB-36 a 38, OQ 8–9)
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P1 *Toda bênção é uma filosofia*; P2 *A Beira cobra*; P3; P4
 
@@ -177,6 +177,33 @@ servem a qualquer tela de escolha; o **modo** define o topo: **bênção** e **a
 Doutrina) e **melhoria** (topo reto neutro, Oficina; grade com ordem de foco fixa, comprado
 × caro demais por forma e texto). **No MVP só o modo bênção é implementado**; arma e
 melhoria ficam como interface para a Run (tela de início) e a Oficina.
+
+**R15-P. Modo arma com três cartas** (emenda Pactos, 2026-11-15). A Escolha de
+arma do MVP usa o componente (Armas R4, contrato suave; Run R2-P/R4-P) e passa a
+ter **3 cartas**: Lâmina, Ressonância e Besta do Vínculo, `n` = 3, fileira de
+1 056 px (R3, sem mudança de conta), foco inicial na do meio (R6). Por isso o
+**modo arma entra no MVP** (o "só o modo bênção" acima fica para a melhoria). Os
+campos da carta de arma são do Armas (nome, Doutrina, Vida, rótulo de velocidade,
+nomes de Ataque e Especial); a trava, a navegação e a entrada são as mesmas; não
+há troca nem preço revelado (`preco_revelado` não é emitido; `tela_fechada`
+sim). **Aviso da Besta:** `CartaView` ganha o campo opcional **`aviso_texto`**
+(chave de texto, nulo por padrão). Quem monta a carta de arma o preenche na Besta
+quando o perfil não tem Maldição pactuada (Armas UI, "sem Maldição: o Chamado não
+responde", texto do ux-designer). Ele ocupa a **posição do selo do preço** (76–92%,
+R4), que a carta de arma não usa, em tinta sobre osso com ícone de alerta, sem
+magenta (magenta é preço, P2) **[a confirmar]**. Na bênção, `aviso_texto` é
+sempre nulo.
+
+**R15b-P. Tela "Escolha do Pacto" (Vínculo V16): contrato** (emenda Pactos,
+2026-11-15). A tela é do Vínculo; ele não diz se usa este componente. Proposta,
+**contrato pedido a `vinculo-e-pactos.md`** **[a confirmar]**: um modo
+**`maldicao`** reutiliza `CartaView` + `GrupoDeCartas` (foco, trava R7, entrada
+R10, acessibilidade R14). Diferenças, todas do Vínculo: topo neutro (a raridade é
+da espécie, lida por palavra e ornamento como em R14); corpo com nível, barra de
+vínculo, kit e memórias (V16, UI Requirements); **duas escolhas** em ordem
+("Campo", depois "Reserva"), com Voltar; sem troca nem preço. Até 4 espécies no
+MVP (3 de encontro + Soberano): `n` ≤ 4 usa a largura reservada de 4 (R3) e a
+seleção direta 1–3 (R13). Se o Vínculo preferir tela própria, nada aqui muda.
 
 **R16. Injeção.** Recebe as cartas por interface (`CartaView[]`, trocas) e chama
 `escolher`/`trocar` por um objeto injetado; o relógio é injetável. Os testes montam tudo em
@@ -392,6 +419,9 @@ em `production/qa/evidence/`).
 - **AC-TB-33 [L] R14 — acessibilidade (partes).** Alto contraste: painéis 100% e raridade por linhas e palavra; redução de movimento: fade ≤ 300 ms e foco a 106% em corte seco; "Reduzir flashes": sem flash (três testes separados).
 - **AC-TB-34 [L] Edge — pausa e foco de janela.** Esc na trava abre a pausa; perder o foco da janela não pausa nem escolhe.
 - **AC-TB-35 [L] Validação — faixa do `TelaBencaoTuning`.** `trava_confirmar_ms` 400 gera o erro TB1; `entrada_s` 0,5 gera TB3; `anim_confirmar_s` 0,7 gera TB5; `foco_escala` 1,2 gera TB6; o dado de fábrica não gera nenhum TB; cada um dos 10 campos fora da faixa gera só o código do seu campo (TB1 a TB10).
+- **AC-TB-36 [L] R15-P — modo arma (emenda Pactos, 2026-11-15).** GIVEN 3 `CartaView` de arma, WHEN a tela abre em modo arma, THEN a fileira mede 1 056 px a 100%, o foco inicial é o índice 1, não há botão de troca e confirmar envia `escolher(i)` e `tela_fechada`, sem `preco_revelado`.
+- **AC-TB-37 [L] R15-P — aviso da Besta.** GIVEN a carta da Besta com `aviso_texto` preenchido, THEN o aviso aparece na faixa 76–92% e a altura da carta não muda; com `aviso_texto` nulo, a faixa fica vazia de osso; uma `CartaView` de bênção com `aviso_texto` nulo desenha igual à de antes da emenda.
+- **AC-TB-38 [UI] R15-P — evidência.** Captura retida em `production/qa/evidence/` da Escolha de arma com 3 cartas, com e sem o aviso na Besta.
 
 ## Open Questions
 
@@ -404,3 +434,5 @@ em `production/qa/evidence/`).
 | 5 | ~~Conteúdo: `TelaBencaoTuning` (10 campos)~~ **Resolvida (2026-11-13):** o tipo e os códigos TB1–TB10 estão no Conteúdo R1/R9; falta só a validação do tamanho dos textos do ganho | Conteúdo | próxima edição |
 | 6 | Sons de entrada, foco, confirmação e rachadura do preço | audio-director | Áudio |
 | 7 | **Edições pendentes:** Bênçãos (monta `CartaView`; `oferta_trocada(cartas, trocas)`; segura `bencao_escolhida` até `tela_fechada`; R11/Edge: a pausa **abre** em Bênção, Input é a fonte), Conteúdo (`BoonDef` com `glifo`, `icone_ganho`, chave do preço; `TelaBencaoTuning`), HUD (recebe `preco_revelado` e o traço dourado), Input (as teclas 4 e 5 não existem; o glifo e o rótulo do botão vêm de `rotulo_acao(acao, dispositivo)` do Input, assinatura fechada em 2026-11-13), Pipeline (`modo_bencao` sai em `tela_fechada`) | Bênçãos, Conteúdo, HUD, Input, Pipeline | `/review-all-gdds` |
+| 8 | (emenda Pactos, 2026-11-15) Posição e estilo do `aviso_texto` na carta da Besta (faixa do selo, tinta, sem magenta) e o texto final | ux-designer / art-director | `/ux-design` da Escolha de arma |
+| 9 | (emenda Pactos, 2026-11-15) Contrato pedido a Vínculo e pactos: a Escolha do Pacto (V16) usa o modo `maldicao` deste componente, com duas escolhas em ordem? | Vínculo e pactos / ux-designer | próxima edição do Vínculo |

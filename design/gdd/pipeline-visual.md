@@ -1,6 +1,7 @@
 # Pipeline visual
 
-> **Status**: Approved (2026-11-10, `/review-all-gdds` 3ª passada, mantido Approved por decisão do usuário: S-B1, a troca na metade do wipe segue a ordem do estado Transição do Combate R1; S-B2, a Bênção só abre com o hitstop em 0; C-B2, os campos de duração do `CombatTuning` citados na R7 e na R12) — (`/design-review` 2026-11-10, lean, por subagentes: NEEDS REVISION — 7 bloqueantes nas regras e 9 nos critérios, revisados; re-review: NEEDS REVISION leve — 3 nas regras e 3 nos critérios, revisados na mesma data; os dois revisores confirmaram a aprovação com as correções; aprovado pelo usuário)
+> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — R5a (contorno tracejado secundário do telégrafo do chefe), R5b (fio de vínculo, marca do Virote, Maldição sem telégrafo SDF); faixas no `VisualTuning`, Dependencies, Edge Cases, AC-PV-84 a AC-PV-88, OQ 15–16. Last Updated: 2026-11-15.
+> **Status anterior**: Approved (2026-11-10, `/review-all-gdds` 3ª passada, mantido Approved por decisão do usuário: S-B1, a troca na metade do wipe segue a ordem do estado Transição do Combate R1; S-B2, a Bênção só abre com o hitstop em 0; C-B2, os campos de duração do `CombatTuning` citados na R7 e na R12) — (`/design-review` 2026-11-10, lean, por subagentes: NEEDS REVISION — 7 bloqueantes nas regras e 9 nos critérios, revisados; re-review: NEEDS REVISION leve — 3 nas regras e 3 nos critérios, revisados na mesma data; os dois revisores confirmaram a aprovação com as correções; aprovado pelo usuário)
 > **Author**: usuário + Claude (design-system, modo Lean)
 > **Last Updated**: 2026-11-10
 > **Last Verified**: 2026-11-10
@@ -198,6 +199,70 @@ tempo e qual ataque usa cada um.
   o preenchimento").
 - **Acessibilidade futura:** o contorno aceita `contorno_telegrafo_alto_px`
   (6 px) para a opção de intensidade do telégrafo (Art Bible §7.9, rodapé).
+
+**R5a. Contorno tracejado secundário** (emenda Pactos, 2026-11-15; responde ao
+contrato pedido por Telégrafos R5a, OQ 13 e AC-TG-36, e por Chefes F2/F3). Um
+telégrafo pode ter **um** contorno secundário: um círculo de raio
+`raio_secundario_px` (dado do `BossPatternDef`; no MVP só o Padrão 3 do
+*Soberano do Limiar*, *Convergência da Fenda*, com 420 px), centrado na mesma
+posição do telégrafo.
+
+- **Só contorno:** sem preenchimento, sem núcleo e sem anel interno. É desenhado
+  pelo mesmo `tel_sdf`, como um segundo trecho da malha de borda do **mesmo**
+  telégrafo (um por dono, Telégrafos R1), na camada `contorno de telégrafo` (z 5).
+- **Tracejado de perigo, distinto do tracejado do jogador:** cor `#FF3DAE` (a do
+  anel interno, magenta de perigo), espessura `contorno_telegrafo_px` (4 px),
+  traço `traco_secundario_px` (16) e intervalo `intervalo_secundario_px` (10),
+  escalados com a resolução (F3); fase angular estática (F7). O tracejado do
+  jogador é osso, 1,75 px, 8/6 (R6): cor, espessura e ritmo diferem
+  **[a confirmar pelo art-director]**.
+- **Estados:** em `crescendo`, aparece inteiro desde `p` = 0 e **não cresce nem
+  pulsa** (é o aviso do alcance do puxão, que vale no disparo). Em `disparo`,
+  some no mesmo passo em que o flash do contorno principal começa, **sem flash
+  próprio** (não conta na área do limitador, F6). Em `quebrado` e `cancelado`,
+  segue o principal (opacidade 1 → 0,5 → 0 em 2 passos vivos).
+- **Orçamento:** não conta no `teto_telegrafos` (Telégrafos R5a) e cabe na mesma
+  malha do contorno principal (a mesma draw call; um trecho a mais de vértices).
+  Overdraw da malha (F10): anel de 4 px × 2π × 420 ≈ 10.560 px² + margem de
+  suavização, < 0,01 tela.
+- **Modo de impacto:** como o contorno principal (tabela da R1): osso `#E6DFCF`
+  na `recusa`, tinta no `chefe`.
+- **Oclusão:** o contorno secundário está acima do y-sort, como o principal: o
+  corpo do chefe nunca o cobre.
+
+**R5b. Maldições: fio de vínculo, marca do Virote e sem telégrafo** (emenda
+Pactos, 2026-11-15; `maldicoes.md` ML-V1 a ML-V4).
+
+- **Fio de vínculo (ML-V2):** shader `traco_sdf`, família `sem_grading` (já na
+  tabela da R1). Camada **sombras e telégrafos (z −5), logo abaixo do y-sort**,
+  num nó irmão anterior ao dos anéis de área: os corpos o cobrem e todo
+  telégrafo e anel de área fica por cima dele. Curva do peito do Iniciado ao
+  peito da Maldição em campo, `largura_fio_px` (2 px a 1080p, × `escala_traco`,
+  F3), osso `#CFC6B4` a `opacidade_fio` (0,6).
+  - **Tenso** (`d_jog` > 0,85 × `alcance_fio_px` = 408 px): linha reta tracejada
+    com o mesmo traço/intervalo do jogador (8/6, R6).
+  - **Estourado** (`d_jog` > 480 px): osso claro `#E6DFCF`, opacidade oscilando
+    entre `opacidade_fio` e 1,0 com período `ciclo_fio_estourado_s` (0,5 s), no
+    relógio de **apresentação**. É mudança de opacidade, não flash: não passa
+    pelo limitador (F6) **[a confirmar]**.
+  - Sem Maldição em campo (reserva, Exausta, troca de câmara): sem fio.
+  - Posições lidas do estado vivo a cada quadro; no hitstop o fio congela com
+    os corpos.
+- **Marca do Virote (ML-V3):** pequeno ilhós/elo em osso `#CFC6B4`, raio
+  `raio_marca_virote_px` (9 px a 1080p), sob os pés do inimigo marcado. Shader
+  `traco_sdf` (anel sólido, não tracejado), camada z −5, nó entre o fio e os
+  anéis de área. Nunca magenta nem dourado (magenta = perigo; dourado = elite).
+  No máximo uma por câmara (a marca é única, `maldicoes.md` R4).
+- **Sem telégrafo SDF para a Maldição (ML-V4):** nenhum golpe de Maldição
+  (ataque básico, Saída, Entrada, Chamado, Pulso de Soberania) usa o `tel_sdf`.
+  São lidos pelos smears e anéis rápidos do Feedback de combate em `vfx_sprite`
+  e `traco_sdf`, em tinta e osso, na camada de VFX. Um telégrafo vindo de uma
+  entidade da facção do jogador é erro de autoria (aviso do validador, como o
+  nó sem família da R1).
+- **Corpo da Maldição:** `char_sprite` (família `char_tint`), como os aliados da
+  R1; sem contorno de invulnerabilidade e sem inversão (só o jogador, R6).
+- **Orçamento:** fio e marca = até 2 draw calls no grupo **VFX** (como os anéis
+  de área em z −5, R9); overdraw desprezível (< 0,01 tela).
 
 **R6. Traço do jogador e leitura do corpo.**
 
@@ -1032,6 +1097,12 @@ contorno em quad cheio, os 24 dariam 1,38.
 | `duracao_flash_telegrafo_s` | 0,033 (2 passos) | 0,033–0,05 (2–3 passos) | 1 passo (16,7 ms) não é percebido; ≥ 4 atrasa a leitura do disparo |
 | `contorno_telegrafo_px` | 4 | 3,5–6 | ≤ 3: igual ao traço do herói; > 6: come a área útil (VV9) |
 | `contorno_telegrafo_alto_px` | 6 | ≥ contorno, ≤ 8 | — |
+| `traco_secundario_px` *(emenda Pactos)* | 16 | 12–24 | ≤ 8: confunde com o tracejado do jogador (8/6); > 24: o círculo vira arcos soltos |
+| `intervalo_secundario_px` *(emenda Pactos)* | 10 | 6–16 | > 16: a borda do alcance deixa de ler como linha |
+| `largura_fio_px` *(emenda Pactos)* | 2 | 1,5–3 | < 1,5: some em 1280 × 800; > 3: compete com o tracejado do jogador |
+| `opacidade_fio` *(emenda Pactos)* | 0,6 | 0,4–0,8 | acima: o fio domina a cena com a Maldição longe |
+| `ciclo_fio_estourado_s` *(emenda Pactos)* | 0,5 | 0,4–1,0 | < 0,4: lê como flash; > 1,0: não avisa a tempo |
+| `raio_marca_virote_px` *(emenda Pactos)* | 9 | 6–14 | > 14: compete com a sombra de contato e o sinal de status |
 | `largura_anel_px` *(a confirmar pelo art-director)* | 6 | 0–12 | acima: o anel domina e o núcleo crescido some em telégrafos pequenos |
 | `opacidade_base_telegrafo` *(a confirmar pelo art-director)* | 0,25 | 0–0,4 | 0: a área só aparece pelo contorno em p = 0; acima de 0,4: a base (L* > 52,3 sobre o chão padrão) apaga o crescimento |
 | `largura_tracejado_px` | 1,75 | 1,5–2,5 | ≥ 3: confunde com contorno; < 1,5: esmaece em 720p |
@@ -1204,6 +1275,15 @@ campo.
   `chefe`); a duração vale em passos de apresentação (R7). Emenda feita no Combate em
   2026-11-10 (`impact_chefe_s`, R15; OQ9 fechada).
 
+**Emenda Pactos (2026-11-15)**
+
+- **Se o contorno secundário de 420 px passar da borda da tela ou do retângulo jogável:** é desenhado assim mesmo e recortado pela viewport; não é preso ao retângulo (o puxão do chefe também não é).
+- **Se o chefe for empurrado durante o preparo do Padrão 3:** o secundário acompanha o dono, como o principal (Telégrafos R3).
+- **Se o fio cruzar um telégrafo ou um anel de área:** o fio fica por baixo (nó anterior em z −5); o telégrafo nunca é coberto por ele.
+- **Se o inimigo marcado morrer:** a marca some no mesmo quadro em que a marca lógica é limpa (`maldicoes.md` R4); sem animação de saída.
+- **Se o `modo_impacto` for `recusa` ou `chefe`:** fio e marca somem como todo `traco_sdf` (tabela da R1); voltam ao fim do momento.
+- **Se a Maldição estiver `Saltando` (Chamado):** o fio segue a posição viva dela a cada quadro, e pode passar de tenso a normal durante o salto.
+
 ## Dependencies
 
 **Depende de (upstream)**
@@ -1228,6 +1308,9 @@ campo.
 | Movimento e esquiva | Suave | material das imagens residuais |
 | HUD / Tela de bênção / Menus | Suave | material sem grading e sem névoa; dessaturação da Bênção |
 | Chefes (fatia vertical) | Suave | impact frame do abate, luz (≤ 2 PointLight2D), oclusão por chefe (a decidir no GDD de Chefes) |
+| Chefes (MVP, emenda Pactos) | Suave | contorno tracejado secundário (R5a) para o Padrão 3 do *Soberano do Limiar*; lê `raio_secundario_px` do `BossPatternDef` |
+| Telégrafos (emenda Pactos) | Forte | contorno secundário (R5a), pedido na Telégrafos R5a e OQ 13 |
+| Maldições (emenda Pactos) | Suave | fio de vínculo e marca do Virote (R5b); garantia de que golpes de Maldição não usam `tel_sdf`; corpo em `char_sprite` |
 | Acessibilidade e opções | Suave | o lado de render das opções (R11) |
 
 **Bidirecionalidade:**
@@ -2304,6 +2387,14 @@ Ele define como a arte autorada pelo Art Bible é desenhada.
   cima e embaixo. Se o tracejado esmaecer, registrar a ação (o VV7 não dispara no
   padrão: 1,75 × 0,667 = 1,17 ≥ 1,0; não bloqueia).
 
+**Emenda Pactos (2026-11-15)**
+
+- **AC-PV-84 [I] R5a — contorno secundário.** **GIVEN** a cena de captura com o Padrão 3 do *Soberano do Limiar* (`circulo` 225 px, secundário 420 px, preparo 42), **WHEN** o telégrafo vai de `p` = 0 a 1, **THEN** o secundário aparece inteiro em `p` = 0 em `#FF3DAE`, 4 px, traço 16 e intervalo 10 (± 1 px a 1080p), sem preenchimento, em z 5, não muda de tamanho nem de opacidade até o disparo, e a lista de telégrafos conta 1. Retenção: captura em `production/qa/evidence/`.
+- **AC-PV-85 [L] R5a — estados.** **GIVEN** o telégrafo do AC-PV-84, **WHEN** passa a `disparo`, **THEN** o secundário some no mesmo passo, sem flash, e a área do flash enviada ao limitador (F6) é só a do contorno principal; em `cancelado` (Telégrafos R7a), o secundário vai a 0,5 e a 0 com o principal em 2 passos vivos.
+- **AC-PV-86 [I] R5b — fio de vínculo.** **GIVEN** jogador e Maldição em campo a 300, 420 e 500 px, **WHEN** a cena é capturada, **THEN** o fio está em z −5 abaixo dos corpos e abaixo de um telégrafo sobreposto, a 300 px é curvo e contínuo (2 px, opacidade 0,6), a 420 px é reto e tracejado (8/6), a 500 px oscila em `#E6DFCF` entre 0,6 e 1,0 com período 0,5 s de apresentação; com a Maldição na reserva, não há fio.
+- **AC-PV-87 [I] R5b — marca do Virote.** **GIVEN** um Virote que acerta o inimigo A e depois o B, **WHEN** a cena é capturada após cada acerto, **THEN** há um só ilhós osso (raio 9 px) sob os pés do alvo atual, em z −5, sem magenta nem dourado.
+- **AC-PV-88 [L] R5b — Maldição sem `tel_sdf`.** **GIVEN** uma câmara com as 4 espécies executando ataque básico, Saída, Entrada, Chamado e Pulso de Soberania, **WHEN** o validador lista os nós `tel_sdf` criados, **THEN** nenhum tem dono da facção do jogador; um telégrafo de teste com dono Maldição gera o aviso de autoria.
+
 ### Nota de cobertura
 
 | Item | Critérios |
@@ -2386,4 +2477,6 @@ texto atual):
 | 11 | Relógios na Morte (`t_vivo` parado, `t_apres` correndo) e Bênção só com a câmara limpa | dono da Run e regiões | GDD de Run e regiões |
 | 12 | Margem transparente ≥ `contorno_silhueta_px` nos quadros de inimigo (6 texels com arte em 2×) × padding de 4 px do §8.6; aviso na ferramenta de recorte | art-director + technical-artist | antes de produzir os atlas de inimigo |
 | 13 | Aspecto dos `sem_grading` e do jogador no impact frame (VFX de ataque inimigo em osso na `recusa` e em tinta no `chefe`; jogador em tinta no `chefe`), escolhido nesta revisão para manter o P3 | art-director | antes de produzir os VFX do combate |
+| 15 | (emenda Pactos) Cor e ritmo do contorno secundário (`#FF3DAE`, 16/10) e do fio estourado (oscilação de opacidade sem limitador): confirmar com o art-director e o accessibility-specialist; o Art Bible §6.3 ganha a linha "contorno secundário de alcance" | art-director + accessibility-specialist | antes de produzir os telégrafos do chefe |
+| 16 | (emenda Pactos) Telégrafos OQ 11: variante de desenho para telégrafo travado na Maldição (P3). Este GDD não muda a primitiva; se o playtest pedir, o candidato é um contorno principal em osso | art-director + game-designer | primeiro playtest de Pactos |
 | 14 | Pendências pequenas apontadas pelo qa-lead (2026-11-10): número do "passo na escada" do `modo_impacto` = `reduzido`; se a pausa e a Bênção param o `progresso_wipe`; se Redução de movimento ligada no meio de um wipe o converte em fade; cor do contorno no `disparo`; experimento para o tracejado `traco_sdf` (AC-PV-29) | technical-artist + accessibility-specialist | antes da story de VFX de tela |

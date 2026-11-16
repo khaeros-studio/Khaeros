@@ -1,8 +1,8 @@
 # RNG com seed
 
-> **Status**: Approved (re-review `/design-review` de 2026-11-05: APPROVED; ver `reviews/rng-com-seed-review-log.md`)
+> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — emenda de 2026-11-15: finalidade 9 `pactos`, estado inicial com a dupla e o perfil de vínculo, seed depois da dupla (R2-P, R3-P, R7-P, States, F2, AC-36 a AC-40). Antes: Approved (re-review `/design-review` de 2026-11-05: APPROVED; ver `reviews/rng-com-seed-review-log.md`)
 > **Author**: usuário + Claude (design-system)
-> **Last Updated**: 2026-11-05
+> **Last Updated**: 2026-11-15 (emenda Pactos)
 > **Last Verified**: 2026-11-05
 > **Implements Pillar**: P3 *Reflexo que se lê* (indireto: bugs e playtests reproduzíveis); P1/P2 (sorteios justos de bênção e porta)
 
@@ -192,6 +192,77 @@ Também são injetados, para que a R2 seja testável: a **fonte de entropia**, o
 As operações F3–F8 existem também como **funções puras de u**, para os testes
 partirem de um valor de u fixo.
 
+**Emenda Pactos (emenda Pactos, 2026-11-15).** Pedido de `vinculo-e-pactos.md`
+V40 (com V6, V16, F1) e de `run-e-regioes.md` R1-P/R2-P. Acrescenta; o texto acima
+vale onde não é citado.
+
+**R2-P. Quando a seed nasce.** Com Lâmina ou Ressonância, nada muda: a seed nasce
+ao confirmar a arma. Com a **Besta do Vínculo** (Doutrina `pactos`), a seed nasce
+**ao confirmar a dupla** (Run R2-P passo 1b, Vínculo V16), porque a dupla e o perfil
+de vínculo fazem parte do estado inicial (R7-P). Isso vale também quando a tela
+da dupla é pulada (1 espécie pactuada): a seed nasce quando a Run recebe
+`dupla_confirmada`. O cartão do primeiro pacto (Vínculo V3) e a tela da dupla
+acontecem **antes** da seed e não pedem fluxo (em Sem run, pedir fluxo é erro).
+Voltar (Esc) na tela da dupla não cria seed. Continua sendo o único uso do gerador
+global.
+
+**R3-P. Finalidade nova.**
+
+| Id | Finalidade | Sorteia | Dono | Reproduzível |
+|---|---|---|---|---|
+| 9 | `pactos` | se há encontro de pacto na run, em que câmara e com que espécie (Vínculo F1) | Vínculo e pactos | sim |
+
+- **Chave:** (`pactos`, região, 0). Um fluxo por região; no MVP, um por run.
+- **Quando:** ao criar a run, logo depois da seed (Run R2 passo 2), só em runs de
+  Pactos. Em runs de outra Doutrina o fluxo **não é pedido** (Vínculo V21).
+- **Consumo fixo (R4b):** sempre **4 reais** `u0…u3` (F3), na ordem `u0, u1, u2,
+  u3`, mesmo quando uma garantia (G1, G2, G3) já decide. O `u3` alimenta a escolha
+  ponderada como função pura de u (F6 com u fixo, R9), sem consumo extra; a lista
+  de espécies vai na ordem do manifesto (Conteúdo R10, R10-P).
+- O id 9 é o próximo livre e nunca é renumerado. As **finalidades de estrutura**
+  passam a ser **1–6, 8 e 9**; onde o texto acima diz "1–6 e 8", leia "1–6, 8 e 9".
+
+**Nenhum fluxo existente muda de ordem.** Conferido contra os donos:
+
+- `pactos` é um trio próprio; pela F2, ele não toca o estado de nenhum outro trio.
+  O momento em que é pedido (antes da câmara 0) não importa para os demais, porque
+  cada fluxo nasce do seu trio, não de uma sequência global.
+- A acuada entra na câmara do encontro em pontos fixos e **não consome RNG**
+  (Vínculo V7, l. 142); a câmara do encontro segue com o mesmo layout, ondas e
+  porta (Vínculo V4). `layout`, `ondas`, `spawn` e `portas` têm o mesmo consumo com
+  ou sem encontro. **[a confirmar]** com Câmaras (contrato V41 de Vínculo): a acuada
+  não pode ocupar nem filtrar candidatos de spawn de um jeito que mude o consumo;
+  o ponto **escolhido** já não era garantido (R7).
+- A dupla e o portador da Maldição não consomem fluxo de estrutura. O que a
+  Maldição muda no combate só pode afetar `ia` (não garantido) e o ponto de spawn
+  escolhido (não garantido).
+- A câmara do chefe (índice 6) não consome `ondas`, `elites` nem `layout` (IA R21,
+  Chefes AC-CH-01; layout fixo de Câmaras R14). Se a emenda de Portas fizer o
+  índice 5 abrir porta para o chefe, o trio (`portas`, 0, 5) passa a ser consumido:
+  é consumo **novo** num trio antes não usado, não reordena nenhum outro. A
+  profundidade 6 entra no fluxo `ia` do chefe só se Chefes pedir (hoje não pede:
+  esperas fixas, IA R21).
+
+**R7-P. Estado inicial ampliado.** O quarto elemento do contrato passa a ser:
+
+- arma e Doutrina jurada, e o nível de cada melhoria da Oficina (como antes);
+- **em runs de Pactos**, também:
+  - a **dupla**: ids da Maldição de campo inicial e da reserva, nessa ordem
+    (qualquer um pode vir vazio, Run R2-P);
+  - o **perfil de vínculo** que a F1 de Vínculo lê: as espécies pactuadas com o
+    `nivel` de cada uma, `encontro_pendente`, `primeiro_encontro_visto` e
+    `runs_pactos_sem_encontro` (Vínculo V40).
+
+Fora de Pactos, esses campos não entram (a dupla vazia e nenhum perfil):
+o perfil não afeta nenhuma finalidade de estrutura nessas runs. **[a confirmar]**
+O `nivel` entra mesmo sem afetar sorteio, porque muda o combate e ajuda a
+comparar playtests; o contrato de estrutura só depende de pactuada/não pactuada,
+`encontro_pendente`, `primeiro_encontro_visto` e `runs_pactos_sem_encontro`.
+
+O texto da seed (R8) **não muda**: continua com seed, versão e impressão. O estado
+inicial ampliado vai na telemetria de início de run (`run_iniciada.estado_inicial`,
+Telemetria R4-P) e em todo relatório de erro, como antes.
+
 ### States and Transitions
 
 | Estado | Significado | Entra quando | Sai para |
@@ -201,6 +272,12 @@ partirem de um valor de u fixo.
 | Encerrada | A seed fica legível para a tela final e a telemetria; qualquer pedido de fluxo, novo ou já aberto, é erro | Morte, vitória ou abandono | Sem run (ao voltar ao Campus) ou, por `nova_run`, **Escolha de arma** (sem run nem seed ainda; a seed nasce **ao confirmar a arma**, quando a run é criada, porque o estado inicial inclui a arma; Run R1/R2/R8) |
 
 Em **Sem run**, ler a seed devolve "sem seed".
+
+**(emenda Pactos, 2026-11-15)** Com Pactos, "Sem run" inclui a **Escolha da dupla**
+(Run R1-P) e o cartão do primeiro pacto: não há seed e pedir fluxo é erro. A
+transição Sem run → Run ativa acontece em `dupla_confirmada` (R2-P), não na
+confirmação da arma. Por `nova_run` com a Besta, Encerrada → Escolha de arma →
+Escolha da dupla → Run ativa; a seed nasce no último passo.
 
 Cada fluxo nasce no primeiro pedido de (finalidade, região, profundidade) e
 guarda só o estado de 32 bits. Pedir de novo o mesmo trio na mesma run devolve
@@ -219,6 +296,15 @@ guarda só o estado de 32 bits. Pedir de novo o mesmo trio na mesma run devolve
 | HUD / Menus / telas de fim de run | texto da seed (R8) | — | UI |
 | Telemetria local | seed, versão, impressão e estado inicial no início da run; caminho (escolhas e trocas) no fim | — | Telemetria |
 | Save e perfil (fatia vertical) | seed e estados de fluxo, se houver save no meio da run | — | Save |
+
+**Linhas novas (emenda Pactos, 2026-11-15):**
+
+| Sistema | Recebe daqui | Fornece para cá | Dono da interface |
+|---|---|---|---|
+| Vínculo e pactos | fluxo `pactos` (4 reais por run de Pactos) | perfil de vínculo para o estado inicial (R7-P) | este GDD (fluxo), Vínculo (ordem dos 4 reais, F1) |
+| Run e regiões | seed criada em `dupla_confirmada` com Pactos (R2-P) | a dupla para o estado inicial | Run |
+| Conteúdo orientado a dados | — | `CurseDef` na ordem do manifesto (Conteúdo R10-P) | Conteúdo |
+| Telemetria local | estado inicial ampliado (`pactos`, `dupla`) | — | Telemetria |
 
 **Impressão do catálogo:** definida no GDD de Conteúdo orientado a dados (R12,
 incorporada em 2026-11-05). O texto da seed usa a forma curta, e a telemetria e o
@@ -286,7 +372,7 @@ com `mix(h, x) = fmix32(((h ^ x) + G) & M)` e
 | Variable | Type | Range | Source | Description |
 |---|---|---|---|---|
 | seed | int | 0–2³²−1 | calculated (R2) | seed da run |
-| finalidade | int | 1–8 | constant (tabela R3) | id da finalidade |
+| finalidade | int | 1–8; **1–9** com a emenda Pactos (2026-11-15) | constant (tabela R3, R3-P) | id da finalidade |
 | região | int | 0–255 | calculated | índice da região na run |
 | profundidade | int | 0–1023 | calculated | índice da câmara na região, a partir de 0, santuário e chefe incluídos (no MVP, com uma região, igual ao número da câmara na run); o `p` das Câmaras é outra coisa |
 | s0 | int | 0–2³²−1 | calculated | estado inicial do fluxo |
@@ -590,6 +676,16 @@ usuário, 2026-11-05). Esses GDDs agora existem (`camaras-e-ondas.md`,
 `telemetria-local.md`, `ia-de-inimigos-e-elites.md`). Conferido em 2026-11-13:
 Câmaras, IA, Portas, Bênçãos, Run e Telemetria citam o RNG em Dependencies.
 
+**Acréscimos (emenda Pactos, 2026-11-15).**
+
+| Sistema | Direção | Tipo | O que |
+|---|---|---|---|
+| Vínculo e pactos | downstream | Forte | fluxo `pactos` (finalidade 9); Vínculo já lista o RNG (Dependencies, "Forte, por contrato (V40)") |
+| Vínculo e pactos | upstream | Contrato | perfil de vínculo no estado inicial (R7-P) |
+| Run e regiões | downstream | Forte | criação da seed em `dupla_confirmada` com Pactos (R2-P) |
+| Conteúdo orientado a dados | upstream | Suave | `CurseDef` na ordem do manifesto (Conteúdo R10-P), base da F1 de Vínculo |
+| Telemetria local | downstream | Suave | estado inicial com `pactos` e `dupla` |
+
 **Pedido ao GDD de Conteúdo (atendido):** a impressão do catálogo entrou como
 R12 do Conteúdo na re-review de 2026-11-05, com o AC-46 de lá.
 
@@ -793,6 +889,39 @@ uma seed.
 - **AC-35 [L]** Um consumidor falso que invoca 3 reforços pelo fluxo `ia` no
   meio da luta não altera as saídas de (`ondas`, 0, 2), (`spawn`, 0, 2) nem
   (`layout`, 0, 2).
+
+**Emenda Pactos (emenda Pactos, 2026-11-15)**
+
+- **AC-36 [L] R3-P — finalidade 9.** **GIVEN** uma fonte com seed fixa **WHEN** se
+  pede (`pactos`, 0, 0) **THEN** o fluxo nasce pela F2 com finalidade 9 **AND** o
+  seu `s0` difere dos de (finalidade 1–8, 0, 0) com a mesma seed **AND** pedir de
+  novo o mesmo trio continua de onde parou. O vetor de referência de
+  (`pactos`, 0, 0) com a seed `3F9A07C2` é calculado pelo mesmo script de paridade
+  dos Vetores de referência e entra nessa tabela antes da story.
+- **AC-37 [L] R3-P/R4b — consumo fixo.** **GIVEN** um dono falso de Vínculo que
+  lê 4 reais **WHEN** (a) G1 verdadeiro (garantia) e (b) nenhuma garantia e
+  `u0 ≥ chance_encontro` (sem encontro) **THEN** nos dois casos o fluxo avançou
+  exatamente 4 reais e o estado depois é igual (casa com Vínculo AC-VP com fluxo
+  `pactos`).
+- **AC-38 [L] R3-P — nada muda nos outros fluxos.** **GIVEN** a mesma seed e as
+  mesmas escolhas **WHEN** uma run de Pactos com encontro no índice 1 e outra sem
+  encontro são simuladas até o índice 5 **THEN** as saídas de `layout`, `ondas`,
+  `elites`, `spawn` (candidatos), `portas`, `bencaos` e `raridade` em cada
+  profundidade são idênticas **AND** idênticas às de uma run de Lâmina com a mesma
+  seed e as mesmas escolhas.
+- **AC-39 [L] R2-P — seed depois da dupla.** **GIVEN** a Besta confirmada na
+  Escolha de arma **WHEN** a tela da dupla está aberta **THEN** ler a seed devolve
+  "sem seed" e pedir qualquer fluxo é erro **AND** ao chegar `dupla_confirmada` a
+  seed existe e o primeiro fluxo pedido é (`pactos`, 0, 0) **AND** Esc na tela da
+  dupla volta à Escolha de arma sem seed **AND** com Lâmina a seed nasce ao
+  confirmar a arma, como antes.
+- **AC-40 [L] R7-P — estado inicial.** **GIVEN** uma run de Pactos com dupla
+  (`vulto_mudo`, `espreitador_da_fenda`) **WHEN** a run é criada **THEN** o estado
+  inicial exposto à Telemetria e ao relatório de erro traz arma `pactos`, Doutrina
+  `pactos`, a dupla nessa ordem e o perfil (espécies pactuadas com `nivel`,
+  `encontro_pendente`, `primeiro_encontro_visto`, `runs_pactos_sem_encontro`)
+  **AND** numa run de Ressonância a dupla vem vazia e o perfil não vem **AND** o
+  texto da seed (F9) é igual nos dois casos para a mesma seed.
 
 Cobertura: R1–R9 (inclusive R4b) e F1–F9 têm pelo menos um critério cada. O período, o viés, as
 permutações com n ≥ 13 e a colisão de fluxos são "verificados por análise"

@@ -1,8 +1,9 @@
 # Portas e recompensas
 
-> **Status**: Approved (2026-11-11; revisão única por subagente, 3 bloqueantes corrigidos sem re-review; sem entrada no review log)
+> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16)
+> **Status anterior**: Approved (2026-11-11; revisão única por subagente, 3 bloqueantes corrigidos sem re-review; sem entrada no review log)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-11
+> **Last Updated**: 2026-11-15 (emenda Pactos: R1-P, R2-P passo 2b, R6-P, R9-P, R12-P, F1-P, F3-P, Edge Cases, Dependencies e AC-PR-26 a AC-PR-37)
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P2 *A Beira cobra* (escolher uma porta custa as outras); P4
 
@@ -14,7 +15,7 @@
 
 > **Nota (2026-11-13):** Provação > 0 como erro agora é a regra PV7 (validação da `RewardTable`).
 
-> **Decisões do usuário (2026-11-12) aplicadas:** a câmara de índice 5 do Limiar não dá recompensa (só a vitória, Run R4); a porta depois do índice 4 é forçada `ultima`; 3 escolhas livres (depois dos índices 0, 1 e 3); recompensas concedidas nos índices 1, 2 e 4; o `p_max` é das Câmaras (R3).
+> **Decisões do usuário (2026-11-12) aplicadas:** ~~a câmara de índice 5 do Limiar não dá recompensa (só a vitória, Run R4); a porta depois do índice 4 é forçada `ultima`;~~ (substituído pela emenda Pactos, ver R1-P); 3 escolhas livres (depois dos índices 0, 1 e 3); recompensas concedidas nos índices 1, 2 e 4; o `p_max` é das Câmaras (R3).
 
 ## Summary
 
@@ -94,6 +95,8 @@ ordem:
 3. pede às Câmaras que abram as portas (R6 a R8).
 
 No chefe (reservado), a recompensa é a do chefe (Run e regiões) e não há portas.
+*(Ver R1-P e R2-P: o chefe entra no MVP como última câmara jogável, índice 6; o
+índice 5 vira câmara comum; passo 2b no encontro de pacto.)*
 
 **R3. Bênção.** Pede ao GDD de Bênçãos **3 ofertas** (fluxos `bencaos` e
 `raridade`). Se não restar nenhuma bênção por tomar, a recompensa **vira
@@ -115,6 +118,8 @@ com a Ressonância), limitada à Vida máxima. A cura é dada mesmo com a Vida c
 - a próxima é a **última câmara jogável** (no Limiar, a de índice 5; a porta é a
   depois do índice 4): 1 porta, `ultima`, **sem ícone de recompensa** (a câmara não
   dá recompensa); não sorteia e consome **0 reais** do fluxo `portas`.
+*(Ver R6-P: no Limiar com chefe, a porta depois do índice 4 é livre e a depois do
+índice 5 é a forçada `chefe`.)*
 
 **R7. Quais tipos** (decisão do usuário, 2026-11-11: tipos distintos). O fluxo
 `portas` usa a chave (`portas`, região, **índice da câmara na região**, santuário e chefe incluídos; Câmaras R3, RNG): a escolha feita ao limpar a câmara de índice i usa a chave de i, e não p. Consome **sempre 4 reais** por escolha de combate (RNG R4b):
@@ -156,6 +161,68 @@ A cura do santuário (40%) é do `RoomTuning` das Câmaras, **não** da `RewardT
 a Vida do jogador e a conta de Fragmentos. As ofertas vêm do GDD de Bênçãos. Os
 testes montam tudo em memória.
 
+#### Regras da emenda Pactos (emenda Pactos, 2026-11-15)
+
+> Pedidas por `vinculo-e-pactos.md` (V4, V9, V12, V41), `chefes.md` (R9, F6),
+> `run-e-regioes.md` (R3-P, R4-P, F2-P, OQ 10) e `camaras-e-ondas.md` (R11-P,
+> R13-P, R18-P). O texto antigo fica; onde diverge, vale a regra "-P".
+
+**R1-P. Última câmara jogável = chefe.** No Limiar com 7 câmaras (Run R3-P), a
+**última câmara jogável é o chefe (índice 6)**. A exceção da R1 ("não dá
+recompensa") passa a valer para ele. O **índice 5 vira câmara de combate comum
+[a confirmar, Run R3-P / OQ 10 da Run]**: tem a recompensa da porta escolhida
+depois do índice 4. A primeira câmara continua `bencao`. Os Fragmentos do chefe
+(`creditar(chefe, 6)`, ou 0 se pactuado) são dos Chefes (F6), **não** destas
+Portas.
+
+**R2-P. Conceder com encontro e chefe.** A R2 passa a ser:
+0. morte vence a limpeza (sem mudança);
+1. santuário: nenhuma recompensa; vai ao passo 3 (sem mudança);
+1b. **última câmara jogável (o chefe, índice 6, tipo `chefe`):** nenhuma
+   recompensa, nenhum `pedir_oferta`, nenhuma porta; a Run responde `fim_da_run`
+   (Run R4-P). Isso vale para `camara_limpa(4, chefe)` venha ele do abate ou da
+   escolha Pactuar/Exorcizar (Câmaras R18-P). As Portas não leem a escolha;
+2. concede a recompensa da câmara (R3 a R5); bênção espera `tela_fechada` (sem
+   mudança);
+2b. **encontro de pacto (contrato V41):** as Portas consultam Vínculo e pactos
+   `encontro_aguardando()`. Se é verdadeiro (acuada em `Aguardando`), as Portas
+   entram em **Aguardando pacto** e só seguem ao passo 3 ao receber
+   `pacto_resolvido`. Se é falso (sem encontro, ou acuada em `Fugiu`), seguem na
+   hora. Se `pacto_resolvido` já chegou antes de o passo 2b rodar, ele é lembrado
+   e o passo 2b segue na hora;
+3. pede às Câmaras que abram as portas (R6-P a R8).
+
+A ordem é sempre: **recompensa → (Bênção) → pacto → portas**. O jogador não perde
+a recompensa nem o encontro: as portas ficam fechadas enquanto a acuada espera
+(Câmaras R11-P).
+
+**R6-P. Portas no Limiar com chefe.** Substitui a 4ª linha da R6 para o Limiar:
+- depois do **índice 4** (próxima é o índice 5, combate): **escolha livre**,
+  `n` = 2 ou 3, sorteio da R7 com a chave do índice 4 (4 reais);
+- depois do **índice 5** (próxima é o chefe): **1 porta forçada `chefe`**, sem
+  ícone de recompensa de porta (mostra o símbolo do chefe), sem sorteio, **0 reais**;
+- depois do **índice 6**: nenhuma porta (R2-P 1b).
+A porta `ultima` fica para uma região futura cuja última câmara jogável não seja
+chefe. No MVP nenhuma região a usa.
+
+**Escolhas livres no Limiar:** depois dos índices **0, 1, 3 e 4** (`k = 4`, F3-P).
+Forçadas: depois do 2 (`santuario`) e do 5 (`chefe`).
+
+**R9-P. Porta `chefe`.** Não carrega recompensa de porta (R9). A recompensa do
+chefe é o desfecho dos Chefes (F6: 6 Fragmentos no abate e no Exorcizar, 0 no
+Pactuar) mais a vitória da Run (+15). A porta mostra o símbolo do chefe e
+nenhuma quantidade **[a confirmar]**: o preço do Pactuar (perder os 6) é mostrado
+na tela da escolha (Vínculo V18), não na porta.
+
+**R12-P. Encontro não muda a porta.** A câmara do encontro (índice 1 ou 2) recebe
+a recompensa da porta como qualquer câmara de combate (Vínculo V4). O encontro
+**não** consome o fluxo `portas`, não muda os pesos e não muda o número de portas
+depois dela. Quem vê a câmara do encontro na porta não sabe que há encontro: a
+porta mostra só a recompensa **[a confirmar]**.
+
+**R11-P. Injeção.** A R11 ganha: a consulta `encontro_aguardando()` e o evento
+`pacto_resolvido` de Vínculo e pactos.
+
 ### States and Transitions
 
 | Estado | Entra quando | Sai para |
@@ -167,6 +234,17 @@ testes montam tudo em memória.
 
 **Mundo:** a recompensa e as portas só acontecem na fase Limpa das Câmaras (sem combate).
 Na Bênção, o mundo para até a escolha.
+
+**Emenda Pactos (2026-11-15):**
+
+| Estado | Entra quando | Sai para |
+|---|---|---|
+| Recompensa concedida | R2-P passo 2 | Aguardando pacto (encontro em `Aguardando`) ou Portas fechadas → abertas |
+| **Aguardando pacto** | R2-P passo 2b com `encontro_aguardando()` verdadeiro | Portas abertas (`pacto_resolvido`); fim sem portas (morte ou abandono, Run) |
+| Fim da região | R2-P passo 1b (chefe limpo) | — (Run `fim_da_run`) |
+
+Em Aguardando pacto o mundo **anda** (fase Limpa, sem ameaça); a tela de
+consentimento é fora de Jogo (Vínculo V9).
 
 ### Interactions with Other Systems
 
@@ -181,6 +259,8 @@ Na Bênção, o mundo para até a escolha.
 | Conteúdo orientado a dados | — | `RewardTable`, tokens de recompensa | Conteúdo |
 | Modificadores e atributos | cura (Vida) | `vida_max` | Modificadores |
 | HUD / Feedback de combate (VFX) / Áudio | evento `recompensa`, portas | — | apresentação |
+| Vínculo e pactos *(emenda Pactos)* | — (as Portas só esperam) | `encontro_aguardando()`, `pacto_resolvido` | Vínculo e pactos (V41) |
+| Chefes *(emenda Pactos)* | — | nada direto: o crédito do chefe é dos Chefes; as Portas só veem `camara_limpa(4, chefe)` | Chefes (F6) |
 
 ## Formulas
 
@@ -261,6 +341,35 @@ The door_heal formula is defined as:
 **Output Range:** 0 a Vida_max.
 **Example:** Lâmina (100): 30; Ressonância (80): 24; com Vida 85/100: o jogador ganha 15, mas o evento mostra 30 (nominal). O santuário cura 40% (32 com a Ressonância; Câmaras).
 
+### F1-P. Fragmentos por porta no Limiar com chefe (emenda Pactos, 2026-11-15)
+
+A fórmula da F1 não muda. Muda **onde** ela paga: com o índice 5 recompensado
+**[a confirmar, R1-P]**, a porta de Fragmentos paga nos índices **1, 2, 4 e 5**,
+com p 1, 2, 3 e 4:
+
+`max_portas_limiar = Σ fragmentos(p) para p ∈ {1, 2, 3, 4} = 2 + 2 + 3 + 3 = 10`
+
+**Output Range:** de 0 (nunca escolhe Fragmentos) a **10** (antes: 7). O índice 0
+dá sempre `bencao` (R1); o 3 é o santuário; o 6 (chefe) não dá recompensa de
+porta. Soma com a Run (Run F2-P): máximo 10 + 6 (chefe) + 15 (vitória) = **31**.
+**Example:** escolhendo Fragmentos depois dos índices 0, 1, 3 e 4: 2 + 2 + 3 + 3 =
+10. ~~**Conflito:** Chefes F6 ainda usa "até 7 de portas" (22/28); a Run F2-P usa 10
+(25/31). Ver OQ 9.~~ **Resolvido:** Chefes F6 foi emendado e usa 10 de portas
+(10/25/31), como a Run F2-P.
+
+### F3-P. Bênçãos por run no Limiar com chefe (emenda Pactos, 2026-11-15)
+
+Mesma fórmula da F3, com **k = 4** escolhas livres (depois dos índices 0, 1, 3 e
+4; R6-P):
+
+`E[bênçãos] = 1 + 4 × 0,895 = 4,58` ; teto `1 + 4 = 5` ; mínimo 1
+
+**Output Range:** 1 a 5 (antes 1 a 4, média 3,69).
+**Example:** `u0 ≥ 0,3` e `u1 < 0,5` nas 4 escolhas: 5 bênçãos. A última delas
+cai no índice 5, logo antes do chefe. Conferir com o GDD de Bênçãos que o pool
+por tomar comporta 5 por run (a Fixture PR usa 8); se o pool esvaziar, a R3
+converte em Fragmentos.
+
 ### Faixas da `RewardTable`
 
 | Campo | Inicial | Faixa | O que quebra fora dela |
@@ -287,6 +396,7 @@ Somam-se às faixas do V2 e do V8 do Conteúdo (pesos ≥ 0, soma > 0). **Erros*
 | PV4 | aviso | `cura_pct` ≥ `santuario_cura` (0,4, Câmaras) | a porta cura mais que o santuário |
 | PV5 | aviso, cruzada com Bênçãos | F2: P(bênção na escolha) < 0,8 | pouca Tradição por run (hoje 0,895) |
 | PV6 | aviso | campo fora da faixa de design | as contas deste GDD deixam de valer |
+| PV8 *(emenda Pactos)* | aviso, cruzada com Run e Bênçãos | `1 + k` (escolhas livres da `RegionDef`, hoje 5) > bênçãos do pool da região | a última porta de bênção vira Fragmentos com frequência |
 
 **Saída do validador:** uma entrada por regra e por objeto; o erro suspende o aviso da mesma regra. PV5 depende de dados de outros sistemas e roda na 2ª passada do validador do Conteúdo, como o MV1 do Movimento (decidido 2026-11-13).
 
@@ -320,6 +430,17 @@ Somam-se às faixas do V2 e do V8 do Conteúdo (pesos ≥ 0, soma > 0). **Erros*
 - **Se p for maior que `p_max`:** os Fragmentos seguem a fórmula (F1), sem teto.
 - **Se o jogador estiver em outra posição ou com outra Vida:** o fluxo `portas` não muda (RNG R4b).
 
+**Encontro de pacto e chefe (emenda Pactos, 2026-11-15)**
+
+- **Se a câmara do encontro limpar com a acuada viva e recompensa bênção:** recompensa → Tela de bênção → Aguardando pacto → portas (R2-P).
+- **Se a acuada fugiu antes da limpeza (`Fugiu`):** `encontro_aguardando()` é falso; as portas abrem na hora, sem esperar (Vínculo V12).
+- **Se `pacto_resolvido` chegar antes do passo 2b:** fica lembrado; o 2b segue na hora (R2-P). Na prática não acontece, porque a Bênção para o mundo.
+- **Se `pacto_resolvido` chegar duas vezes ou fora de Aguardando pacto:** a segunda é ignorada; as portas abrem uma vez.
+- **Se o jogador morrer ou abandonar em Aguardando pacto:** as portas não abrem; a Run encerra; o encontro vira `Abandonado` em Vínculo e pactos (V20).
+- **Se a câmara limpa for o chefe (índice 6), em qualquer desfecho:** nenhuma recompensa de porta, nenhuma porta, `fim_da_run` (R2-P 1b). O crédito do chefe já foi feito (ou não, no Pactuar) pelos Chefes.
+- **Se o índice 5 der bênção:** vale; a Tela de bênção abre antes da porta `chefe`.
+- **Se a câmara do encontro for a 1ª depois de uma escolha com 3 portas:** nada muda; o encontro não aparece na porta (R12-P).
+
 **Divergências do cânone, declaradas:** a porta antes do santuário é `santuario` (no cânone era `heal`) e o fluxo `portas` consome 4 reais fixos (RNG R4b).
 
 **Conflitos com outros GDDs:** um, resolvido: a cura do santuário aparece na `RewardTable` do Conteúdo e no `RoomTuning` das Câmaras; o dono é as Câmaras, e o Conteúdo é editado.
@@ -337,6 +458,8 @@ Somam-se às faixas do V2 e do V8 do Conteúdo (pesos ≥ 0, soma > 0). **Erros*
 | Bênçãos (Tradições) | Forte, **por contrato** | 3 ofertas por pedido; "sem bênção por tomar" | a recompensa de bênção não existe |
 | Economia de Fragmentos | Suave, **por contrato** | a conta da run | Fragmentos sem destino |
 | Modificadores e atributos | Suave | `vida_max` para a cura | cura sem base |
+| Vínculo e pactos *(emenda Pactos)* | Forte, **por contrato** (V41) | `encontro_aguardando()`, `pacto_resolvido` | o jogador sairia sem resolver o encontro |
+| Chefes *(emenda Pactos)* | Suave | o desfecho chega como `camara_limpa(4, chefe)` via Câmaras; os 6 do chefe são dos Chefes (F6) | — |
 
 **É dependência de (downstream)**
 
@@ -348,8 +471,14 @@ Somam-se às faixas do V2 e do V8 do Conteúdo (pesos ≥ 0, soma > 0). **Erros*
 | Economia de Fragmentos | Suave | Fragmentos por porta |
 | HUD / Feedback de combate (VFX) / Áudio | Suave | evento `recompensa`, portas abertas |
 | Telemetria local | Suave | escolhas de porta por tipo |
+| Vínculo e pactos *(emenda Pactos)* | Forte | a recompensa sai antes da tela de consentimento (V9); as portas esperam o pacto |
+| Run e regiões *(emenda Pactos)* | Forte | 4 escolhas livres e máximo de 10 Fragmentos de porta (Run F2-P) |
 
 **Bidirecionalidade:**
+
+- *(emenda Pactos, 2026-11-15)* Vínculo e pactos (V41, Dependencies) e a Run
+  (R3-P, F2-P) já citam as Portas. Chefes F6 cita "portas" só no total (7): ver
+  OQ 9.
 
 - Câmaras (R11, R13), RNG (finalidade `portas`), Conteúdo (`RewardTable`) e o
   cross-review já citam Portas e recompensas.
@@ -414,6 +543,10 @@ Somam-se às faixas do V2 e do V8 do Conteúdo (pesos ≥ 0, soma > 0). **Erros*
 | `design/gdd/gdd-cross-review-2026-11-10.md` | D-W16, D-W8 | porta de Fragmentos, soma com a Economia |
 | `design/gdd/game-concept.md` | §3, §6 | pilar P2, portas |
 | Khaeros `packages/action-core/src/engine.ts` | `:231`, `:394–416`, `:467–533` | sorteio, recompensas, avanço |
+| `design/gdd/vinculo-e-pactos.md` *(emenda Pactos)* | V4, V9, V12, V18, V41 | passo 2b, `pacto_resolvido` |
+| `design/gdd/chefes.md` *(emenda Pactos)* | R9, F6 | desfecho e Fragmentos do chefe |
+| `design/gdd/run-e-regioes.md` *(emenda Pactos)* | R3-P, R4-P, F2-P, OQ 10 | 7 câmaras, índice 5 comum, totais |
+| `design/gdd/camaras-e-ondas.md` *(emenda Pactos)* | R11-P, R13-P, R18-P | portas fechadas no encontro, porta `chefe`, fim do chefe |
 
 ## Acceptance Criteria
 
@@ -465,6 +598,25 @@ Somam-se às faixas do V2 e do V8 do Conteúdo (pesos ≥ 0, soma > 0). **Erros*
 - **AC-PR-24 [L] R2 passo 1b — `fim_da_run`.** Limpar o índice 5 do Limiar: nenhuma recompensa (nenhum evento `recompensa`, nenhum `pedir_oferta`), nenhuma porta, a Run responde `fim_da_run`. `fim_da_run` e `jogador_morreu` no mesmo passo: vale a morte (AC-PR-23).
 - **AC-PR-25 [L] R2 passo 2 — roteamento da oferta.** Recompensa `bencao`: as Portas chamam `pedir_oferta(região, índice da câmara limpa)` e não abrem a tela; `bencao_escolhida` só é aceita depois de `tela_fechada`; as portas abrem só depois dele.
 
+**Emenda Pactos (2026-11-15)** — Fixture PR-P: a Fixture PR com o Limiar de 7
+câmaras (Run R3-P) e um dublê de Vínculo e pactos (`encontro_aguardando()`,
+`pacto_resolvido`). Os AC-PR-08, 10, 15, 17 e 24 antigos valem só onde não
+contrariam os abaixo (a porta `ultima` e o índice 5 sem recompensa saem do
+Limiar).
+
+- **AC-PR-26 [L] R2-P 2b — espera o pacto.** GIVEN a câmara do encontro limpa com recompensa `fragmentos` e `encontro_aguardando()` verdadeiro, WHEN `camara_limpa` chega, THEN `recompensa(fragmentos, 2)` sai, as Portas entram em Aguardando pacto e **não** pedem as portas; WHEN chega `pacto_resolvido`, THEN pedem as portas no mesmo passo.
+- **AC-PR-27 [L] R2-P 2b — ordem com bênção.** GIVEN o encontro em `Aguardando` e recompensa `bencao`, WHEN a câmara limpa, THEN a ordem é `recompensa` → `pedir_oferta` → `tela_fechada`/`bencao_escolhida` → espera `pacto_resolvido` → portas; um `pacto_resolvido` recebido antes do 2b é lembrado e o 2b segue na hora.
+- **AC-PR-28 [L] R2-P 2b — sem espera.** GIVEN `encontro_aguardando()` falso (sem encontro, ou acuada em `Fugiu`), WHEN a câmara limpa, THEN as portas são pedidas sem esperar nada.
+- **AC-PR-29 [L] R2-P 2b — duplicado e morte.** Um 2º `pacto_resolvido` é ignorado (portas pedidas uma vez); `jogador_morreu` em Aguardando pacto: nenhuma porta é pedida.
+- **AC-PR-30 [L] R2-P 1b — chefe.** GIVEN `camara_limpa(4, chefe)` do índice 6 (abate, Pactuar ou Exorcizar), WHEN chega, THEN nenhum `recompensa`, nenhum `pedir_oferta`, nenhum `creditar` pelas Portas, nenhuma porta; a Run responde `fim_da_run`.
+- **AC-PR-31 [L] R1-P — índice 5 comum.** GIVEN a porta `fragmentos` escolhida depois do índice 4, WHEN o índice 5 (p 4) fica limpo, THEN `recompensa(fragmentos, 3)` sai e depois abre 1 porta `chefe`.
+- **AC-PR-32 [L] R6-P — portas do Limiar.** Depois do índice 4: 2 ou 3 portas livres, 4 reais do fluxo com a chave do índice 4; depois do 5: 1 porta `chefe`, 0 reais; depois do 6: nenhuma. A porta `ultima` não sai em nenhuma run do Limiar.
+- **AC-PR-33 [L] R6-P/R7 — chaves.** As escolhas livres do Limiar usam as chaves 0, 1, 3 e 4; as forçadas (depois do 2 e do 5) consomem 0. Mesma seed: mesmas portas, com ou sem encontro (R12-P).
+- **AC-PR-34 [L] F1-P — Fragmentos máximos.** Escolhendo Fragmentos depois dos índices 0, 1, 3 e 4: créditos de porta 2, 2, 3 e 3 = 10.
+- **AC-PR-35 [L] F3-P — bênçãos por run.** Escolhendo sempre bênção quando há, a média em 100 000 runs é 4,58 (± 0,05); determinística com `u0` ≥ 0,3 e `u1` < 0,5 nas 4 escolhas: 5 bênçãos; nunca escolhendo: 1.
+- **AC-PR-36 [L] R9-P — porta `chefe`.** `porta_escolhida` da porta `chefe` não guarda recompensa; a porta mostra o símbolo do chefe e nenhuma quantidade.
+- **AC-PR-37 [I] PV8 — aviso.** Com um pool de bênçãos de 4 e `k` = 4: aviso PV8; o catálogo de fábrica não gera PV8 se o pool tiver ≥ 5.
+
 ## Open Questions
 
 | # | Pergunta | Dono | Resolver até |
@@ -477,3 +629,7 @@ Somam-se às faixas do V2 e do V8 do Conteúdo (pesos ≥ 0, soma > 0). **Erros*
 | 6 | Quantidade de Fragmentos da Economia (outras fontes: chefe, vitória) soma com a F1 (D-W8) | Economia de Fragmentos | GDD de Economia |
 | 7 | Índice: linha 17 com Run, Bênçãos e Economia em Depends On | usuário / producer | próxima edição do índice |
 | 8 | Ordem da Tela de bênção e das portas na pausa e na perda de foco | Tela de bênção / Input | GDD de Tela de bênção |
+| 9 *(emenda Pactos)* | ~~Índice 5 recompensado (Run R3-P, F2-P: 10 de portas, totais 25/31) vs. Chefes F6 ("até 7 de portas", 22/28). Esta emenda segue a Run; se o usuário escolher "sem recompensa", voltam a porta `ultima` depois do 4, `k` = 3 e o máximo de 7~~ **Resolvida:** Chefes F6 emendado com o índice 5 recompensado (10/25/31) | usuário; Run; Chefes | ~~antes de aprovar a emenda~~ — |
+| 10 *(emenda Pactos)* | A porta `chefe` sem quantidade (R9-P) e a porta da câmara do encontro sem aviso (R12-P) **[a confirmar]** | usuário / UX | revisão da emenda |
+| 11 *(emenda Pactos)* | Pool de bênçãos comporta 5 por run (F3-P, PV8)? | Bênçãos | próxima edição de Bênçãos |
+| 12 *(emenda Pactos)* | ~~Nome da consulta `encontro_aguardando()` (contrato pedido a Vínculo e pactos, V41)~~ **Resolvida:** o Vínculo e pactos passa a definir `encontro_aguardando()` (V41) | Vínculo e pactos | ~~próxima edição~~ — |

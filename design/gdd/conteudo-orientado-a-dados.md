@@ -1,8 +1,8 @@
 # Conteúdo orientado a dados
 
-> **Status**: Approved (2026-11-11: `RewardTable` com os campos de Portas e recompensas (cura do Santuário passa ao `RoomTuning`); `RoomTuning` na R1 e em Interactions, do GDD de Câmaras; `IATuning` e o máximo de elites por onda na R1 e em Interactions, do GDD de IA; `TelegraphTuning` na R1 e em Interactions, do GDD de Telégrafos; 2026-11-10: o empurrão do projétil da arma passa a ser o do `AttackDef` (Armas R2), com aval do usuário, sem mudar regra; 4ª re-review independente de 2026-11-06, lean: APPROVED; C-B1 e S-B1 do `/review-all-gdds` resolvidos; warnings da 2ª passada do cross-review aplicados em 2026-11-06 — AC-39 por token inteiro, params da `recusa`, retirada do Tuning ao sair de Pronto — com o status mantido por decisão do usuário)
+> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — emenda de 2026-11-15 (tipos `CurseDef`, `BossPatternDef`, `MaldicoesTuning`, `VinculoTuning`, `ChefesTuning`; forma `chamado`; prefixos ML, VP, CH, HU15–HU17, AV9, RN2/RN3; R1-P a R11-P, AC-53 a AC-60, OQ 9–10). Antes: Approved (2026-11-11: `RewardTable` com os campos de Portas e recompensas (cura do Santuário passa ao `RoomTuning`); `RoomTuning` na R1 e em Interactions, do GDD de Câmaras; `IATuning` e o máximo de elites por onda na R1 e em Interactions, do GDD de IA; `TelegraphTuning` na R1 e em Interactions, do GDD de Telégrafos; 2026-11-10: o empurrão do projétil da arma passa a ser o do `AttackDef` (Armas R2), com aval do usuário, sem mudar regra; 4ª re-review independente de 2026-11-06, lean: APPROVED; C-B1 e S-B1 do `/review-all-gdds` resolvidos; warnings da 2ª passada do cross-review aplicados em 2026-11-06 — AC-39 por token inteiro, params da `recusa`, retirada do Tuning ao sair de Pronto — com o status mantido por decisão do usuário)
 > **Author**: usuário + Claude (design-system)
-> **Last Updated**: 2026-11-06
+> **Last Updated**: 2026-11-15 (emenda Pactos)
 > **Last Verified**: 2026-11-06
 > **Implements Pillar**: P1 *Toda bênção é uma filosofia* (indireto: sustenta todos os pilares)
 
@@ -302,8 +302,8 @@ Knobs de cada GDD dono.
 | BN | Bênçãos | BN1 e BN2 (erros) |
 | TL | Telemetria local | TL1 a TL3 (avisos) |
 | FB | Feedback de combate | FB1 a FB3 (erros; FB3 = histerese dos limiares) |
-| PV | Portas e recompensas | PV1, PV2 e PV7 (erros; PV7 = peso de `provacao` > 0); PV3 a PV6 (avisos) |
-| WV | Câmaras e ondas | WV1 a WV4 (erros); WV5 a WV9 (avisos) |
+| PV | Portas e recompensas | PV1, PV2 e PV7 (erros; PV7 = peso de `provacao` > 0); PV3 a PV6 (avisos); **PV8 (aviso, cruzada com Run e Bênçãos; emenda Pactos, 2026-11-15)**: `1 + k` escolhas livres da `RegionDef` > bênçãos do pool da região (`portas-e-recompensas.md:398`) |
+| WV | Câmaras e ondas | WV1 a WV4 (erros); WV5 a WV9 (avisos); **(emenda Pactos, 2026-11-15)** WV10 (aviso): `spawn_dist_acuada_px` > `spawn_dist_jogador_px`; WV11 (erro, cruzada com Run): `RegionDef` com câmara `chefe` fora do último índice jogável, ou mais de uma (`camaras-e-ondas.md:596–597`) |
 | VV | Pipeline visual | VV1 a VV17 (erros e avisos, conforme a tabela do Pipeline) |
 | HU | HUD | HU1 a HU14 (erros; um por campo de `HudTuning` fora da faixa, na ordem da tabela de Tuning Knobs do HUD; HU1 = `vida_por_segmento`, HU14 = `margem_segura_px`) |
 | TB | Tela de bênção e carta | TB1 a TB10 (erros; um por campo de `TelaBencaoTuning` fora da faixa, na ordem da tabela de Tuning Knobs da Tela; TB1 = `trava_confirmar_ms`, TB10 = `tremor_botao_ms`) |
@@ -407,6 +407,165 @@ no texto da seed (RNG R8, o campo `c____`).
   é importado como tradução, que é o que ele é. A V6 confere as chaves pela
   tradução importada, não lendo o CSV, e por isso funciona no release.
 
+#### Emenda Pactos (emenda Pactos, 2026-11-15)
+
+Fontes: `maldicoes.md` (§Constantes, ML1–ML8), `vinculo-e-pactos.md` (Tabela
+consolidada, VP1–VP9, V40, V43, V45), `chefes.md` (R11, Tabela consolidada,
+CH1–CH7), `hud.md` (Tuning Knobs, emenda), `armas-das-doutrinas.md` (AV9, Ataque e
+Especial da Besta), `combate-nucleo.md` R3.1, `run-e-regioes.md` (R3-P, R11-P,
+Tuning Knobs emenda, Edge Cases emenda), `modificadores-e-atributos.md` (R14, Edge
+Cases) e `ia-de-inimigos-e-elites.md` R21. Este bloco **acrescenta**; o texto acima
+continua valendo onde não é citado aqui. Como antes, este GDD guarda só o formato
+(R1); significado, valores e faixas são dos donos.
+
+**R1-P. Tipos novos e ampliados.**
+
+| Tipo | Uma definição por | Campos principais | Dono do significado | Fonte inicial | Conteúdo no MVP |
+|---|---|---|---|---|---|
+| `CurseDef` | espécie de Maldição | id, chave de nome, `raridade` (`comum`, `refinado`, `raro`, `epico`, `primordial`), `vida_max`, `velocidade`, `raio_px`, ataque básico (forma, alcance, `dano_basico`, empurrão, `preparo_s` / `execucao_s` / `recuperacao_s`), `efeito_saida`, `efeito_entrada` (com `bonus_sinergia_pct`), passivas, efeito no Chamado, habilidade única, `chefe_origem_id` (só Primordial), `memorias[]` (chaves de texto; Vínculo F5) | Maldições (Vínculo para `memorias`) | nenhuma: valores nascem no GDD dono (OQ 4) | 4: `vulto_mudo`, `espreitador_da_fenda`, `baluarte_de_cinza`, `soberano_do_limiar` (`maldicoes.md` Catálogo) |
+| `BossPatternDef` (sub-recurso) | padrão de chefe, na lista `padroes` do `EnemyDef` | nome (chave), forma de telégrafo (`setor`, `retangulo`, `anel`, `circulo`), dimensões, `preparo_s`, `execucao_s`, `recarga_s`, dano e efeitos | Chefes | nenhuma | 4, no `EnemyDef soberano_do_limiar` (Chefes Tabela consolidada §2) |
+| `MaldicoesTuning` (único) | o jogo | 12 campos de `maldicoes.md` §Constantes 1 | Maldições | — | 1 |
+| `VinculoTuning` (único) | o jogo | campos da Tabela consolidada de `vinculo-e-pactos.md` | Vínculo e pactos | — | 1 |
+| `ChefesTuning` (único) | o jogo | 13 campos de `chefes.md` Tabela consolidada §1 | Chefes | — | 1 |
+
+Os nomes de campo do `CurseDef` sem citação literal nos GDDs donos (ataque básico,
+passivas, efeito no Chamado, habilidade única) são **provisórios**: o dono fixa os
+nomes e as faixas por campo (pedido em OQ 9). Os citados (`vida_max`,
+`velocidade`, `raio_px`, `efeito_saida`, `efeito_entrada`, `chefe_origem_id`,
+`memorias`) ficam como estão.
+
+**`*Tuning` novos (faixas que o dono declara).**
+
+| Tipo | Dono | Campos (valor MVP; faixa de **carga** V2 → faixa de **design**, aviso do dono) |
+|---|---|---|
+| `MaldicoesTuning` | Maldições | `alcance_fio_px` (480; 180–960 e > `distancia_seguir_px` → 360–660), `distancia_seguir_px` (105; 45–240 → 75–150), `alcance_chamado_px` (420; 120–960 e ≤ `alcance_fio_px` → 240–480), `duracao_salto_s` (0,20; ≥ 1 passo → 0,10–0,30), `raio_chamado_px` (135; > 0 → 90–195), `raio_atracao_px` (210; > 0 e ≥ `raio_chamado_px` → 135–300), `duracao_imobilizar_s` (1,50; ≥ 1 passo → 0,75–2,50), `duracao_atracao_s` (3,00; ≥ 1 passo → 1,50–5,00), `recarga_troca_s` (4,00; ≥ 1 passo → 2,00–8,00), `recuperacao_exausta_s` (10,00; ≥ 1 passo → 6,00–16,00), `vida_retorno_frac` (0,50; (0, 1] → 0,25–0,75), `regen_reserva_frac_s` (0,05; ≥ 0 → 0,02–0,10). Aviso de design: ML6 (`maldicoes.md:447–460`) |
+| `VinculoTuning` | Vínculo e pactos | `especie_primeiro_pacto` (`vulto_mudo`), `chance_encontro` (0,6; 0,3–0,9), `pity_runs` (2; 1–4), `indices_encontro` ([1, 2]), `chance_nao_pactuada` (0,75; 0,5–1,0), `peso_raridade` (3/2/1/1; 1–6), `pontos_acuada` (5 pontos), `frac_vida_acuada` (1,2; 0,8–1,6), `encontros_para_consentir` (1/1/2/2/1; 1–3), `pts_camara`/`pts_abate`/`pts_tecnica`/`pts_vitoria` (2/1/1/8), `teto_abates_run`/`teto_tecnicas_run` (12/6), `pts_reafirmar`/`pts_reafirmar_chefe` (6/10), `limiares_nivel` ([20, 50, 90, 140]), `nivel_max` (5), `pontos_teto` (9 999), `bonus_vida` (0,05; 0–0,055), `mult_recuperacao` (0,90; 0,80–1,0), `bonus_dano_basico` (0,05; 0–0,12), `memorias_por_raridade` (1/2/3/4/4). Faixas de design em `vinculo-e-pactos.md:702–724`; os erros de carga são VP1–VP4 e VP8; o aviso de design é VP9 |
+| `ChefesTuning` | Chefes | `espera_inicial_chefe_s` (0,50; ≥ 1 passo → 0,25–1,00), `espera_entre_padroes_chefe_s` (0,25; ≥ 1 passo → 0,15–0,60), `limiar_furia_frac` (0,50; (0,10; 0,90) → 0,35–0,65), `fator_recarga_furia` (0,60; (0,20; 1,00] → 0,40–0,85), `mult_velocidade_furia` (1,15; [1,00; 2,00] → 1,00–1,35), `transicao_fase_s` (0,50; ≥ 1 passo → 0,30–1,00), `raio_pulso_furia_px` (240; > 0 → 150–360), `empurrao_pulso_furia_px` (120; ≥ 0 → 60–210), `raio_puxao_px` (420; > 225 → 300–600), `puxao_convergencia_px` (75; ≥ 0 → 45–120), `max_lacaios_vivos` (3; 1–6 → 1–4), `lacaios_por_convergencia` (2; 1–4 e ≤ `max_lacaios_vivos` → 1–3), `dist_spawn_lacaio_px` (135; ≥ 90 → 90–180). Aviso de design: CH7 (`chefes.md:353–367`) |
+| `HudTuning` (ampliado) | HUD | passa de 14 a **17 campos**: `pacto_tremor_px` (4; 0–8), `pacto_tremor_s` (0,15; 0,05–0,30), `pacto_intervalo_px` (12; 8–24) (`hud.md:359–361`) |
+| `RunTuning` (ampliado) | Run e regiões | `camaras_jogaveis` do Limiar passa a **7** (faixa 1–7; 7 inclui o chefe no índice 6); `arma_padrao` aceita `lamina`, `ressonancia` **ou `pactos`** (`run-e-regioes.md:390–391`) |
+
+**Definições ampliadas.**
+
+- **`WeaponDef pactos`** (Besta do Vínculo) entra no MVP: valores em
+  `maldicoes.md:462` e em Armas (emenda). O MVP de `WeaponDef` passa a `lamina`,
+  `ressonancia`, `pactos`.
+- **`AttackDef`, forma `chamado`:** forma nova registrada pelo Combate (R3.1).
+  Sem params próprios de geometria: só `dano` e `recarga_s`; a geometria é do
+  `MaldicoesTuning` (Armas, tabela de params por forma). Válida **só no slot
+  `especial`** (AV9, abaixo).
+- **`EnemyDef soberano_do_limiar`** (comportamento `chefe`, Vida 700, lista
+  `padroes` com 4 `BossPatternDef`; `chefes.md:371–378`). O `EnemyDef` ganha o campo
+  opcional `padroes` (obrigatório quando `comportamento = chefe` e o inimigo é
+  chefe ativo de região: CH1).
+- **`RegionDef limiar`:** `chefe = soberano_do_limiar` (Chefes R2, CH1). O
+  `anomalia_maior` **continua no manifesto** como dado reservado da fatia vertical
+  (Chefes Overview), com `comportamento = chefe`; ele não é referenciado por região
+  no MVP, e nunca sai do catálogo (V9).
+
+**R2-P. Identidade.** Tokens novos (Art Bible §8.2, snake_case ASCII):
+
+- espécies (`CurseDef`): `vulto_mudo`, `espreitador_da_fenda`,
+  `baluarte_de_cinza`, `soberano_do_limiar`;
+- chefe (`EnemyDef`): `soberano_do_limiar`. O mesmo id em `CurseDef` e em
+  `EnemyDef` não colide (unicidade dentro do tipo, R2), e é intencional: a forma
+  hostil e a forma aliada da mesma Maldição-chefe (ML4: `chefe_origem_id =
+  soberano_do_limiar`);
+- forma de ataque: `chamado`;
+- raridades de espécie: `comum`, `refinado`, `raro`, `epico`, `primordial` (lista
+  fechada de Maldições R3; distinta da `RarityTable` de bênçãos, que é outro tipo).
+
+**Mapa cânone → Godot:** nada de Pactos é importado do cânone (OQ 4), então
+`CurseDef`, `BossPatternDef`, `soberano_do_limiar` e `chamado` **não têm linha** em
+`mapa_ids.csv`, como os `trad_*` não passam pelo mapa. A importação não os toca; eles
+nascem à mão.
+
+**Registro de ids (V9):** entram em `ids_registrados.csv`, no commit que criar os
+`.tres`: (`curse`, `vulto_mudo`), (`curse`, `espreitador_da_fenda`), (`curse`,
+`baluarte_de_cinza`), (`curse`, `soberano_do_limiar`), (`enemy`,
+`soberano_do_limiar`), (`weapon`, `pactos`) se ainda não estiver, (`tuning`,
+`maldicoes_tuning`), (`tuning`, `vinculo_tuning`), (`tuning`, `chefes_tuning`).
+A partir daí valem as regras da V9: nunca renomear nem apagar. Os ids de espécie
+são também chave do perfil salvo (Vínculo §H, Save), o que torna a V9 ainda mais
+importante aqui.
+
+**R8-P. Comportamentos registrados.**
+
+- **IA, comportamento `chefe`:** deixa de ser reservado (IA R21). A V4 resolve
+  `chefe` como chave ativa; criar um inimigo `chefe` passa a ser válido. O texto da
+  R8 sobre "reservada" segue valendo como regra geral de chaves reservadas.
+- **Combate, forma `chamado`:** chave nova da lista de formas (Combate R3.1).
+- **Câmaras, tipo de sala `chefe`:** a Run (R3-P) monta o índice 6 do Limiar no
+  MVP, o que exige o tipo de sala `chefe` ativo. O GDD de Câmaras ainda o declara
+  reservado (Câmaras R1). **Contrato pedido a Câmaras e ondas:** tirar a marca de
+  reservado do tipo de sala `chefe`. Até lá, a V4 aceita a chave (já aceitava como
+  reservada) e o pedido em jogo seria erro do dono, o que conflita com a Run R3-P.
+- **Modificadores, fonte `vinculo:<curse_id>`:** fonte nova, só no portador da
+  Maldição (Modificadores R14). Não é tipo de efeito de `EffectDef`: o Vínculo
+  aplica por código os bônus do `VinculoTuning`. Hoje só `bonus_vida` vira fonte
+  (`vida_max` percentual, Vínculo V43); `bonus_dano_basico` e `mult_recuperacao`
+  entram direto nas fórmulas das Maldições (F3, F2) e não passam por Modificadores.
+
+**R9-P. Validação.**
+
+- **V4 ampliada (fonte `vinculo`).** Todo atributo que uma fonte
+  `vinculo:<curse_id>` declara tem de estar na lista de atributos do **portador da
+  Maldição** (Modificadores R2 emenda, R14). Atributo fora da lista (ex.:
+  `cargas_esquiva`) é **erro V4**: `vinculo: atributo cargas_esquiva fora da lista do
+  portador da Maldição`. Atributo novo entra primeiro na tabela de Modificadores
+  (Modificadores Edge Cases). **[a confirmar]** O código V4 foi escolhido porque
+  Modificadores não nomeia um código próprio e a regra é de "referência que não
+  resolve".
+- **V5 ampliada (nomes canônicos).** A V5 passa a conferir também:
+  - o nome PT-BR de cada `CurseDef` contra a lista canônica (R11-P): *Vulto Mudo*,
+    *Espreitador da Fenda*, *Baluarte de Cinza*, *Soberano do Limiar*;
+  - o nome do `EnemyDef soberano_do_limiar`: *Soberano do Limiar*;
+  - o nome do `WeaponDef pactos`: **"Besta do Vínculo"** (regra que já existia,
+    exemplo da tabela V5), e os do Ataque e Especial: *Virote* e *Chamado do Pacto*;
+  - o termo de categoria **"Maldições"**: toda chave de texto de UI que nomeia as
+    criaturas do pacto (grupo de chaves `CURSE_*` de categoria, lista do dono) tem
+    de usar "Maldição" / "Maldições", nunca "criatura" nem "Laço dos Pactos".
+    Exemplo de erro: `CURSE_CATEGORY_NAME: "Criaturas" ≠ canônico "Maldições"`.
+    **[a confirmar]** O prefixo de chave `CURSE_*` é proposta deste GDD; o dono das
+    chaves (Localização / UX) pode trocá-lo.
+- **V8 ampliada.** `peso_raridade` do `VinculoTuning` é tabela de peso (pesos ≥ 0,
+  soma > 0), como a `RewardTable`. VP4 já cobre peso < 0; a V8 cobre soma 0.
+- **V9:** registro ampliado acima (R2-P).
+
+**Códigos dos sistemas donos acrescentados (emenda Pactos, 2026-11-15).** Mesma
+regra de antes: condição, nível e texto no GDD dono; este GDD só hospeda.
+
+| Prefixo | Dono | Códigos e tipo |
+|---|---|---|
+| ML | Maldições | ML1 a ML4 (erros: geometria do fio e do Chamado; durações e Vida; kit por raridade; Primordial sem `chefe_origem_id`); ML5 e ML6 (avisos); ML7 e ML8 (avisos, **2ª passada**: F6 60/40 e paridade de TTK de Pactos). Tabela em `maldicoes.md:481–490` |
+| VP | Vínculo e pactos | VP1 a VP4 e VP8 (erros: `limiares_nivel`; `especie_primeiro_pacto`; `indices_encontro`; chances, pesos e contagens; nenhuma espécie regular além da do primeiro pacto); VP5 a VP7 (avisos, **2ª passada**: ML5, ML8 e F5 com o vínculo); VP9 (aviso de faixa de design). Tabela em ~~`vinculo-e-pactos.md:726–738`~~ `vinculo-e-pactos.md:756–768` |
+| CH | Chefes | CH1 a CH3 (erros: 4 padrões e formas; passos ≥ 1 e `limiar_furia_frac`; lacaios e puxão); CH4 (aviso, cruzado com Telégrafos); CH5 e CH6 (avisos, **2ª passada**, cruzados com Armas/Combate e Pipeline/Câmaras); CH7 (aviso de faixa de design e velocidade na Fúria); **CH8 (aviso)**: `BossPatternDef.raio_secundario_px < 0`, ou `> 0` e `≤` o raio do próprio telégrafo, ou, no Padrão 3 (puxão), `raio_secundario_px ≠ raio_puxao_px`. Tabela em ~~`chefes.md:384–392`~~ `chefes.md:421–434` |
+| HU (ampliado) | HUD | **HU15** `pacto_tremor_px`, **HU16** `pacto_tremor_s`, **HU17** `pacto_intervalo_px` (erros, um por campo fora da faixa, no mesmo texto de HU1–HU14: `HudTuning: <campo> <valor> fora da faixa <min>–<max>`) |
+| AV (ampliado) | Armas das Doutrinas | **AV9 (erro de carga)**: forma `chamado` fora do slot `especial`, ou num `WeaponDef` cuja `doutrina` não é `pactos`; ou `chamado` com `multiplicadores_combo`, `status` ou `guarda_s` (`armas-das-doutrinas.md:784`). Os outros AV seguem avisos |
+| RN (ampliado) | Run e regiões | RN1 (erro): `arma_padrao` fora de {`lamina`, `ressonancia`, `pactos`}. **RN2 (erro)**: a última câmara jogável tem de ser `combate` **ou `chefe`**; `santuario` segue proibido. **RN3 (erro)**: `camaras_jogaveis` 0 ou > 7 (> tamanho da região), região sem câmara de combate jogável, ou pedido de montar índice `≥ camaras_jogaveis` (`run-e-regioes.md:454–456`) |
+
+Na tabela original de códigos, as linhas RN, AV e HU ficam como registro do estado
+anterior; onde divergem, vale esta tabela.
+
+**Segunda passada (ampliada).** ML7, ML8, VP5–VP7, CH5 e CH6 rodam na segunda
+passada (leem `WeaponDef`, `CurseDef`, `VinculoTuning`, `EnemyDef` e tunings de
+outros donos). CH4 é cruzada com `TelegraphTuning` e também roda na segunda
+passada. ML3, ML4 e CH3 leem mais de uma definição do mesmo catálogo de carga
+(ex.: `lacaio_id` em `EnemyDef`), mas cabem na primeira passada se o catálogo de
+`EnemyDef` já estiver lido; **[a confirmar]** por simplicidade, rodam todas na
+segunda passada, com o mesmo nível.
+
+**R10-P. Consulta.** A lista de `CurseDef` sai na ordem do manifesto (R10). Isso
+é carga de RNG: o sorteio ponderado de espécie do Vínculo F1 (`pond(S, u)`) itera
+nessa ordem. Reordenar o manifesto muda o resultado da F1 com a mesma seed e
+muda a impressão (R12), então a reprodução continua honesta.
+
+**R11-P. Lista canônica.** `assets/data/canon/` ganha os nomes das 4 espécies
+(id, raridade, nome), do chefe *Soberano do Limiar* e o termo de categoria
+"Maldições", como **adaptação aprovada** (decisão do usuário, 2026-11-15, brief do
+lote Pactos), do mesmo jeito que a Besta do Vínculo em 2026-11-05. **[a confirmar]**
+A R11 pede aval do CD para mudar a lista (Lore Freeze); no modo Lean, a decisão do
+usuário vale como esse aval, mas o registro formal fica para o usuário confirmar.
+
 ### States and Transitions
 
 | Estado | Significado | Entra quando | Sai para |
@@ -449,6 +608,24 @@ Não há transição durante a run: o catálogo nunca muda no meio de uma run.
 | Telemetria local | ids estáveis para registrar escolhas e mortes; `TelemetriaTuning` (5 campos); avisos TL1 a TL3 (R9) | — | Telemetria |
 | HUD | `HudTuning` (14 campos); chaves de texto e arte das definições | — | HUD |
 | Tela de bênção e carta | `TelaBencaoTuning` (10 campos); `BoonDef` com `glifo`, `icone_ganho` e a chave de texto do preço (com `{valor}`); chaves de texto e arte | — | Tela de bênção |
+
+**Linhas novas (emenda Pactos, 2026-11-15).** Onde estas divergem das linhas acima
+(IA, Chefes, Run, HUD, Armas), valem estas.
+
+| Sistema | O que recebe daqui | O que fornece para cá | Dono da interface |
+|---|---|---|---|
+| Maldições | `CurseDef` (4), `MaldicoesTuning`; erros ML1–ML4, avisos ML5–ML8 (R9-P) | raridades de espécie registradas; nomes canônicos das espécies (V5) | Maldições |
+| Vínculo e pactos | `VinculoTuning`, `CurseDef` (lista na ordem do manifesto, `memorias`); erros VP1–VP4 e VP8, avisos VP5–VP7 e VP9 | atributos citados pela fonte `vinculo` (V4 ampliada) | Vínculo |
+| Chefes (MVP) | `EnemyDef soberano_do_limiar` com `padroes` (`BossPatternDef`), `ChefesTuning`; erros CH1–CH3, avisos CH4–CH7 | — | Chefes |
+| IA de inimigos e elites | `chefe` como comportamento **ativo** (R8-P) | — | IA |
+| Câmaras e ondas | tipo de sala `chefe` (contrato pedido: deixar de ser reservado) | — | Câmaras |
+| Combate núcleo | forma `chamado` (só no slot Especial, AV9) | registro da forma `chamado` | Combate |
+| Armas das Doutrinas | `WeaponDef pactos`; AV9 como erro de carga | — | Armas |
+| Run e regiões | `RunTuning` com `camaras_jogaveis` 7 e `arma_padrao` aceitando `pactos`; RN1–RN3 na forma emendada | — | Run |
+| Modificadores e atributos | lista do portador da Maldição para a V4 ampliada (fonte `vinculo:<curse_id>`) | lista de atributos do portador | Modificadores |
+| HUD | `HudTuning` com 17 campos; HU15–HU17 | — | HUD |
+| RNG com seed | ordem do manifesto de `CurseDef` (R10-P) | — | este GDD |
+| Save e perfil | ids de `CurseDef` (estáveis pela V9) para conferir o perfil ao carregar | — | Save |
 
 Este GDD é dono do contrato **R1–R12** e das fórmulas de conversão de unidades.
 Cada GDD consumidor é dono do significado e dos valores dos seus campos.
@@ -855,6 +1032,25 @@ inicialização; nenhum deles lê o catálogo para isso, então não há ciclo.
 | Feedback de combate | Forte | `FeedbackTuning` |
 | Pipeline visual | Forte | `VisualTuning`, LUTs e máscaras como recursos |
 
+**Acréscimos (emenda Pactos, 2026-11-15).**
+
+| Sistema | Tipo | O que recebe |
+|---|---|---|
+| Maldições | Forte | `CurseDef`, `MaldicoesTuning`, ML1–ML8 |
+| Vínculo e pactos | Forte | `VinculoTuning`, `CurseDef` (ordem do manifesto, `memorias`), VP1–VP9 |
+| Chefes (agora MVP) | Forte | `EnemyDef soberano_do_limiar` com `BossPatternDef`, `ChefesTuning`, CH1–CH7 |
+| Save e perfil (agora MVP) | Suave | ids de `CurseDef` estáveis |
+| Armas das Doutrinas | Forte | + `WeaponDef pactos`, AV9 |
+| Run e regiões | Forte | `RunTuning` emendado, RN1–RN3 emendados |
+| HUD | Forte | `HudTuning` com 17 campos, HU15–HU17 |
+
+Upstream novo: **Modificadores e atributos** (contrato de inicialização) entrega a
+lista de atributos do portador da Maldição para a V4 ampliada, como os outros donos
+entregam chaves registradas; sem ela, a V4 da fonte `vinculo` reporta "registro de
+chaves ausente". Os GDDs `maldicoes.md`, `vinculo-e-pactos.md` e `chefes.md` já
+listam este sistema em Dependencies (Maldições l. 512, Vínculo l. 819, Chefes
+l. 414); Save e perfil deve listá-lo (conferência do `/review-all-gdds`).
+
 "Forte" = o sistema não funciona sem as definições daqui. "Suave" = usa ids ou
 ordem, mas não depende do conteúdo.
 
@@ -1159,6 +1355,50 @@ Os consumidores estão em Dependencies.
   **AND** o `p_max` do `ArmasTuning` é alias: se divergir do `p_max` da
   `RegionDef`, sai o aviso WV8.
 
+**Emenda Pactos (emenda Pactos, 2026-11-15)**
+
+- **AC-53 [L] Tipos novos de fábrica.** **GIVEN** o catálogo do MVP com os 4
+  `CurseDef`, `MaldicoesTuning`, `VinculoTuning`, `ChefesTuning`, `WeaponDef pactos`
+  e `EnemyDef soberano_do_limiar` (4 `BossPatternDef`) **WHEN** a carga e as duas
+  passadas rodam **THEN** 0 erros e 0 avisos ML, VP e CH (casa com AC-ML-22,
+  AC-VP-21 e AC-CH-21) **AND** a `RegionDef limiar` tem `chefe =
+  soberano_do_limiar` **AND** `anomalia_maior` continua no manifesto.
+- **AC-54 [L] Erros dos donos.** **GIVEN** catálogos de teste com, um por vez:
+  `distancia_seguir_px = 500` (ML1); `CurseDef` com `preparo_s = 0` (ML2);
+  `CurseDef primordial` sem `chefe_origem_id` (ML4); `limiares_nivel = [20, 20, 90,
+  140]` (VP1); `indices_encontro = [0, 1]` (VP3); chefe com 3 padrões (CH1);
+  `lacaios_por_convergencia = 4` com `max_lacaios_vivos = 3` (CH3) **WHEN** o
+  validador roda **THEN** cada um sai com o código citado, nível erro, e a run não
+  começa.
+- **AC-55 [L] HU15–HU17.** **GIVEN** `HudTuning` de fábrica com 17 campos **THEN**
+  carrega sem erro **AND** `pacto_tremor_px = 9` gera HU15, `pacto_tremor_s = 0,04`
+  gera HU16 e `pacto_intervalo_px = 30` gera HU17, cada um com o texto
+  `HudTuning: <campo> <valor> fora da faixa <min>–<max>`.
+- **AC-56 [L] Forma `chamado` e AV9.** **GIVEN** FA-T de Armas **WHEN** (a) o
+  Especial da `lamina` tem forma `chamado`, (b) o Ataque de `pactos` tem forma
+  `chamado`, (c) o Especial de `pactos` tem `chamado` com `status` **THEN** cada
+  caso dá 1 erro AV9 e a run não começa **AND** a `WeaponDef pactos` de fábrica
+  (Especial `chamado`, sem combo, status nem guarda) passa sem erro e a V4 resolve
+  `chamado` como forma registrada (casa com AC-AR-50).
+- **AC-57 [L] Run emendada.** **GIVEN** `RunTuning` com `arma_padrao = pactos`
+  **THEN** passa **AND** `camaras_jogaveis = 7` com a última câmara `chefe` passa
+  **AND** `camaras_jogaveis = 8` dá RN3 **AND** última jogável `santuario` dá RN2
+  **AND** `arma_padrao = veu` dá RN1 (casa com AC-RN-38).
+- **AC-58 [L] Comportamento `chefe` ativo.** **GIVEN** o registro de
+  comportamentos da IA emendado **WHEN** a V4 resolve `EnemyDef
+  soberano_do_limiar` **THEN** `chefe` é chave ativa (não reservada) e criar o
+  inimigo não entrega erro ao relator (R10).
+- **AC-59 [L] Fonte `vinculo` (V4 ampliada).** **GIVEN** a lista de atributos do
+  portador da Maldição de Modificadores **WHEN** uma fonte `vinculo:vulto_mudo`
+  declara `vida_max` **THEN** passa **AND** com `cargas_esquiva` sai 1 erro V4
+  citando o atributo (casa com Modificadores AC-38).
+- **AC-60 [L] V5 e V9 de Pactos.** **GIVEN** a lista canônica emendada (R11-P)
+  **WHEN** a V5 roda (CI/debug) **THEN** `CurseDef vulto_mudo` com nome "Vulto
+  mudo" é erro V5, `WeaponDef pactos` com "Laço dos Pactos" é erro V5 e uma chave de
+  categoria com "Criaturas" no lugar de "Maldições" é erro V5 **AND** com
+  `ids_registrados.csv` sem a linha (`curse`, `baluarte_de_cinza`) sai erro V9
+  **AND** os 4 `CurseDef` saem de "listar" na ordem do manifesto.
+
 **Desempenho (ADVISORY)**
 
 - **AC-38 [I, perf]** **GIVEN** o catálogo do MVP (30–60 `.tres`) na máquina
@@ -1188,4 +1428,7 @@ AC-12, AC-39, AC-47 e AC-48. A 2ª passada do cross-review
 | 5 | Formato das definições de fala e de fragmentos de lore | narrative-director | GDD Diálogo e lore (fatia vertical) |
 | 6 | Mecanismo de injeção (Autoload só de leitura, nó raiz ou `RefCounted`) e o relator de erros | technical-director | ADR, via `/architecture-decision`, antes de `/create-architecture` |
 | 8 | **Decidido (2026-11-13):** o Conteúdo tem os dois níveis (erro bloqueia; aviso só registra) e hospeda o validador; as regras cruzadas (MV1, PV5, WV2–WV5, WV8) rodam aqui, na segunda passada (R9) | Conteúdo / Movimento OQ3 | — |
+| 4b | **(emenda Pactos, 2026-11-15)** Resposta à OQ 4: os valores de Pactos nascem em `maldicoes.md`, `vinculo-e-pactos.md`, `chefes.md` e Armas (emenda); nada de Pactos é importado do cânone e nada passa pelo mapa (R2-P) | — | resolvida |
+| 9 | **(emenda Pactos)** Nomes finais e faixas por campo do `CurseDef` (ataque básico, passivas, efeito no Chamado, habilidade única) e do `BossPatternDef`; forma do sub-recurso (`EnemyDef.padroes` ou `BossDef`, ADR de Chefes) | Maldições, Chefes / technical-director | antes das epics de Pactos |
+| 10 | **(emenda Pactos)** Câmaras e ondas ainda declara o tipo de sala `chefe` reservado (Câmaras R1), mas a Run R3-P monta o índice 6 no MVP | Câmaras e ondas | próxima edição de Câmaras |
 | 7 | ~~Nada foi verificado localmente: o Godot não está instalado~~ **Resolvida em 2026-11-05:** Godot 4.7.2 instalado, `project.godot` importa sem erro. As perguntas 1 e 2 agora podem ser testadas na engine. | usuário | ✅ |

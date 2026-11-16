@@ -1,8 +1,8 @@
 # Feedback de combate (VFX)
 
-> **Status**: Approved (2026-11-11; revisão única por subagente: 11 bloqueantes e recomendadas, corrigidos sem re-review; sem entrada no review log)
+> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — 2026-11-15: respostas das Maldições (R15–R18, Edge Cases, Dependencies, AC-FB-32 a 41), aguardando aprovação do usuário. Histórico anterior: Approved (2026-11-11; revisão única por subagente: 11 bloqueantes e recomendadas, corrigidos sem re-review; sem entrada no review log)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-11
+> **Last Updated**: 2026-11-16 (alinhamento: ganchos `sfx_maldicao_*`, `chamado_indisponivel` emitido pelo Combate R3.1); 2026-11-15 (emenda Pactos: Maldições); 2026-11-11
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P3 *Reflexo que se lê*; P4; P2 *A Beira cobra*
 
@@ -218,6 +218,89 @@ os **dois relógios**; devolve a **lista ordenada de pedidos** (resposta, camada
 gancho). Os testes montam tudo em memória, sem renderizar. O Feedback não escreve em
 nenhum sistema.
 
+#### Maldições (emenda Pactos, 2026-11-15)
+
+Pedido por Maldições (R6–R13, ML-V1–V5, ML-A1, Game Feel). As regras R1–R14 valem sem
+mudança; aqui só entram linhas novas e duas regras de exceção (números e câmera).
+
+**R15. Catálogo das Maldições.** Mesmas colunas da R3. Todas as respostas em **Tinta e
+Osso**, sem Magenta e sem dourado (ML-V1); **nenhuma usa o telégrafo de chão** (ML-V4):
+smears e anéis vão na camada de VFX, e os anéis de área ficam em z −5, abaixo do
+telégrafo (R11). As Maldições congelam no hitstop (Maldições R15), por isso as respostas
+do corpo delas são do relógio **vivo**.
+
+| Evento (emissor: Maldições, salvo nota) | Resposta (resumo) | Relógio | Dono | Câm. | → P | ♪ |
+|---|---|---|---|---|---|---|
+| `maldicao_golpe` (ataque básico: arco, círculo ou investida curta) | smear em Tinta com borda de Osso, menor que o do jogador; sem alvo: só o smear | vivo | Maldições ML-V4; forma: Combate V2/V3/V5 | — | 3 | `sfx_maldicao_ataque` |
+| impacto da Maldição num inimigo: flash | o flash vivo do alvo (Combate V6), igual ao de qualquer acerto | vivo | Combate V6 | — | **0** | `sfx_acerto_leve` / `sfx_acerto_pesado` |
+| impacto da Maldição: resto | estrela leve (pesado, como o *Quebra-Limiar*: estrela grande); **sem fagulha, sem tranco, sem hitstop** (`de_arma` falso, Combate R8/R10) | apres. | Combate V6 | — | 3 (pesado: 2) | (idem, um por passo) |
+| número do impacto da Maldição | faixa **golpe** (R16) | apres. | este GDD | — | 3 | — |
+| `maldicao_atingida` (`ferir_maldicao`, Combate) | flash de Osso no sprite por 4 passos vivos (ML-V5); sem inversão, sem impact frame, sem câmera, **sem número** (R16) | vivo | Maldições ML-V5 | — | 3 | — |
+| `maldicao_exausta` | dissolve em partículas de tinta que correm pelo fio até o jogador em 12 passos (ML-V5) | vivo | Maldições ML-V5 | — | 2 | `sfx_maldicao_exausta` |
+| `maldicao_entrou` (troca automática, volta de Exausta com campo vazio) | a silhueta se condensa de tinta ao lado do jogador em 6 passos **[a confirmar]**; sem técnica | vivo | este GDD (resposta mínima) | — | 3 | — |
+| `maldicao_pronta` (fim da Exaustão na reserva) | só o HUD (anel se fecha, HUD R17) e o gancho | — | HUD R17 | — | 4 | `sfx_maldicao_pronta` |
+| `chamado_salto` | rastro de pincelada em Tinta e Osso ao longo do salto, 12 passos (Maldições F4) | vivo | Maldições R13, F4 | — | 3 | `sfx_maldicao_chamado_salto` |
+| `chamado_pouso` | anel sólido de Osso que abre até `raio_chamado_px` em 6 passos (z −5) e smear largo de Tinta; o dano usa as linhas de impacto acima | vivo (anel) | Maldições R13, Game Feel | **leve, `escala` 0,6** (R17) | 2 | `sfx_maldicao_chamado_pouso` |
+| `tecnica_combinada` (troca manual, Maldições R12) | a que sai se desfaz em tinta pelo fio (6 passos) e executa o smear/anel do seu Efeito de Saída; no mesmo passo a que entra se condensa e executa o do Efeito de Entrada; smears largos | vivo | Maldições R12, Game Feel | **leve, `escala` 0,6** (R17) | 2 | `sfx_maldicao_troca_tecnica` |
+| `troca_indisponivel` | só HUD (sacudida do Slot de Reserva, HUD R18) | — | HUD R18 | — | 4 | `sfx_maldicao_recusa` |
+| `chamado_indisponivel` (**emissor: Combate**, Combate R3.1: Chamado sem Maldição em campo ou com ela saltando; campos `player_id`, motivo) | só o gancho (sem VFX; o HUD não sacode) **[a confirmar]** | — | este GDD | — | 4 | `sfx_maldicao_recusa` |
+| marca do Virote (`marca_virote_mudou`) | ilhós/elo de Osso junto aos pés do inimigo marcado; **um só na tela**; muda de alvo no passo; some com a morte do alvo ou na troca de câmara | vivo | Maldições ML-V3, R4, R14 | — | 3 | — |
+| inimigo atraído (`atraido` / fim) | traço vertical de Osso acima da cabeça enquanto durar a atração; com sinal de status, o traço fica 8 px acima dele | vivo | Maldições UI Requirements, R7 | — | 3 | — |
+| inimigo imobilizado (Chamado R13.3 ou Efeito de Saída) | duas amarras de Osso cruzadas nos pés enquanto durar **[a confirmar]** | vivo | este GDD (pedido a Maldições) | — | 3 | — |
+| fio de vínculo estoura (`fio_estourou`) | pulso de Osso claro no fio enquanto puxa a Maldição (ML-V2) | vivo | Maldições ML-V2 | — | 3 | — |
+
+O **fio de vínculo** em si (curva de Osso, tensão a 408 px) é desenho permanente do
+Pipeline (ML-V2), **não** é resposta deste árbitro e não entra no orçamento da F3.
+Abates feitos pela Maldição usam as linhas de `inimigo_morreu` da R3 sem mudança
+(Maldições R6: o hitstop e a câmera de abate do Combate R14 valem).
+
+**R16. Números das Maldições.**
+
+- O dano da Maldição num inimigo (ataque básico, Chamado, Efeitos de Saída e de
+  Entrada, *Pulso de Soberania*) gera número na faixa **golpe** do alvo e **soma** com
+  o número de golpe aberto, inclusive o do jogador, pela F1. Um alvo continua com no
+  máximo um número de golpe aberto.
+- **Nunca dourado:** o dano da Maldição não conta acerto (Maldições R6), então não
+  traz a flag de acerto marcado; se uma flag chegar num impacto com origem Maldição, o
+  árbitro a **ignora** e o número vai para a faixa golpe.
+- **Dano recebido pela Maldição não gera número** (como o do jogador, R6): a Vida dela é
+  lida no Bloco do Pacto do HUD.
+- O teto de 6 (F2) e a opção "Números de dano" (R6, F5) valem igual.
+- Na **técnica combinada**, Saída e Entrada no mesmo alvo e passo somam num número só
+  (Maldições F5: 8 + 18 = "26").
+
+**R17. Câmera das Maldições.**
+
+- Só os **pedidos do jogador** mexem a câmera: `chamado_pouso` e `tecnica_combinada`
+  enviam o preset **leve** com `escala` 0,6, o que dá chute de **6 px** (Cena F5: Ak 10
+  px × 0,6), tremor de 1,8 px e zoom de 0,012 (sem zoom com redução de movimento). É o
+  "chute leve de 6 px" do Game Feel da Maldições, sem preset novo na Cena.
+- `dir`: no pouso, do jogador para o ponto de pouso; na técnica, a direção `mirar` do
+  jogador no passo.
+- **Ataque básico, impacto e dano recebido da Maldição nunca enviam impulso** (são até 2
+  por segundo e virariam ruído; P3).
+- A regra de um impulso por passo (R12) vale: um acerto leve do jogador no mesmo passo
+  (escala 1,0) vence o da Maldição (0,6); um pesado ou um abate também.
+
+**R18. Limites das Maldições.**
+
+- **Flash de Osso da Maldição atingida:** não reinicia se já está aceso e só acende de
+  novo **20 passos vivos** depois do início do anterior (≤ 3 por segundo, Art Bible §7.9
+  nº 4) **[a confirmar]**. Com "Reduzir flashes" (opção 4), fica mais baixo, como o flash
+  de inimigo (R7).
+- **Áudio:** os ganchos ML-A1 seguem a R9 (um som por gancho por passo) e a F4, com as
+  prioridades da R15. Os nomes usam o prefixo `sfx_` como os demais ganchos deste GDD
+  (`sfx_maldicao_*`, alinhado a Maldições ML-A1); sons e mixagem ficam para o
+  audio-director (OQ 9).
+- **Orçamento:** as respostas das Maldições contam na F3 como as demais e entram na
+  degradação (R8) e no corte P4 → P2 (R4) pela prioridade da R15. Nenhuma resposta de
+  Maldição é P0 ou P1, exceto o flash do inimigo atingido, que já era P0 (Combate V6).
+- **Evento pedido:** `maldicao_entrou`, `marca_virote_mudou`, `atraido`/fim,
+  `imobilizado`/fim e `fio_estourou` são contratos pedidos ao GDD de Maldições (R20);
+  `chamado_indisponivel` é emitido pelo **Combate** (Combate R3.1), não pelas
+  Maldições; o impacto com origem Maldição (`de_arma` falso e autor Maldição) é
+  contrato pedido ao Combate.
+
 ### States and Transitions
 
 Sem máquina de estados. Estado local: a **fila do passo**, a **janela de agregação** dos
@@ -238,6 +321,8 @@ histerese 90%/75%). Tudo é limpo na Transição (R13).
 | HUD | — | nada (o HUD tem o fio, o prompt e os números de Fluxo/Vida) | HUD |
 | Áudio (audio-director) | — | ganhos de gancho e prioridade | Feedback |
 | Acessibilidade e opções (reservado) | opções 3, 4, 5, 7 e o encurtar do hitstop | — | Opções |
+| Maldições (emenda Pactos, 2026-11-15) | `maldicao_golpe`, `maldicao_atingida`, `maldicao_exausta`, `maldicao_entrou`, `maldicao_pronta`, `chamado_salto`, `chamado_pouso`, `tecnica_combinada`, `troca_indisponivel`, `marca_virote_mudou`, `atraido`, `imobilizado`, `fio_estourou` (R15) | — | Maldições |
+| Combate núcleo (emenda Pactos, 2026-11-15) | `chamado_indisponivel` (Combate R3.1) e o impacto com origem Maldição | — | Combate |
 
 ## Formulas
 
@@ -334,6 +419,31 @@ emissores) **não** são knobs daqui: são do Combate, da Cena e do Pipeline (R1
 - **Nova run:** a fila, a janela de agregação e o modo de degradação voltam ao estado inicial
   (R13).
 
+**Maldições (emenda Pactos, 2026-11-15)**
+
+- **Jogador e Maldição acertam o mesmo alvo no mesmo passo:** um número de golpe só, com a
+  soma (R16); flash P0 uma vez (mesma resposta no mesmo alvo e passo, R12); o impulso de
+  câmera é o do jogador (R17).
+- **Acerto marcado do jogador e golpe da Maldição no mesmo alvo e passo:** o dourado abre
+  só com o dano do jogador; o da Maldição vai ao número de golpe.
+- **Maldição atingida por 5 inimigos no mesmo passo:** um flash de Osso (R18) e nenhum
+  número.
+- **Exaustão no mesmo passo de um `chamado_pouso`:** impossível; a Maldição em salto é
+  imune até o pouso (Maldições Edge Cases). Exaustão logo depois do pouso: o anel do pouso
+  termina e a dissolução corre por cima.
+- **Troca de câmara com marca, atração ou imobilização ativas:** ilhós, traços e amarras
+  somem na Transição (R13; Maldições R14 encerra os três).
+- **Dissolução da Exaustão interrompida pela Transição:** descartada (R13); o gancho
+  `maldicao_exausta` já emitido toca.
+- **Técnica combinada e pouso do Chamado no mesmo passo:** impossível (a troca é recusada
+  em salto); técnica e abate do jogador no mesmo passo: vence o maior preset (R12).
+- **Degradação nível 2 com a Maldição atacando:** o smear dela vira 1 quadro (P3, R8);
+  marca e traço de atraído são P3 e só saem no teto (uso ≥ 1,0), do mais antigo.
+- **Status e atraído no mesmo inimigo:** o traço de atraído fica 8 px acima do sinal de
+  status (R15), sem sobrepor.
+- **Opção "Números de dano" desligada:** nenhum número da Maldição; o resto das respostas
+  segue.
+
 ## Dependencies
 
 | Sistema | Direção | Natureza | Interface |
@@ -349,6 +459,7 @@ emissores) **não** são knobs daqui: são do Combate, da Cena e do Pipeline (R1
 | HUD | paralelo | independente | o HUD fica com fio, prompt e números de Vida/Fluxo; o Feedback não os desenha |
 | Áudio (audio-director, sem GDD no MVP) | sai | por contrato | nomes de gancho e prioridade |
 | Acessibilidade e opções (reservado) | entra | por contrato | opções 3, 4, 5, 7 e encurtar o hitstop |
+| Maldições (emenda Pactos, 2026-11-15) | entra | leitura (por contrato) | eventos da R15 e ganchos ML-A1; Maldições lista o Feedback em "Depended On By" (HUD e Feedback, Suave, por contrato) e em ML-A1 |
 
 Nenhum sistema depende do Feedback para **rodar**: sem ele o jogo segue, só sem apresentação.
 
@@ -386,6 +497,9 @@ Nenhum sistema depende do Feedback para **rodar**: sem ele o jogo segue, só sem
 
 - Combate V1–V15 e R10; Cena F5; Pipeline R7, R9, R11, F5, F6, F8, F10; Telégrafos; Selo; Status
   R8; Movimento V2–V5; Art Bible §7.7, §7.9; HUD R9/R10 e OQ 6.
+- Emenda Pactos (2026-11-15): `design/gdd/maldicoes.md` (R4, R6–R9, R12–R15, F4, F5,
+  ML-V1–V5, ML-A1, Game Feel, UI Requirements); HUD R15–R19 (Bloco do Pacto); Cena F5
+  (preset leve, `escala`).
 - Índice: linha 31.
 
 ## Acceptance Criteria
@@ -423,6 +537,19 @@ vídeo curto em `production/qa/evidence/`).
 - **AC-FB-28 [L] R4 — P0/P1 sob degradação.** Em qualquer nível de degradação, o flash de acerto, o telégrafo, o telégrafo partido, a inversão, a recusa e o chefe continuam sendo pedidos.
 - **AC-FB-29 [I] R3/R5 — Combate real.** Um combo com a bênção de enésimo acerto (a_cada 4): números, estrela e o 4º dourado aparecem na ordem e no peso certos; um `quebrou` mostra o letreiro e o telégrafo se parte.
 - **AC-FB-30 [V] R3/R6/R11 — cena de combate.** Screenshot de uma câmara com 5 inimigos, 6 números e 2 letreiros: nenhum P4 e nenhuma estrela cobre o contorno de um telégrafo; o dourado se distingue do normal em cinza.
+**Maldições (emenda Pactos, 2026-11-15)**
+
+- **AC-FB-32 [L] R15 — catálogo.** Cada evento da R15 tem linha, prioridade, preset (ou "—") e gancho (ou "—"); nenhuma resposta de Maldição pede telégrafo de chão, magenta ou dourado; `maldicao_golpe` é P3.
+- **AC-FB-33 [L] R15 — impacto sem hitstop.** Golpe da Maldição de 10 num Eco: flash P0 do alvo e estrela leve; nenhuma fagulha, nenhum tranco, nenhum impulso de câmera; o *Quebra-Limiar* (`pesado`) dá estrela grande P2, também sem câmera.
+- **AC-FB-34 [L] R16 — faixa golpe.** Jogador acerta 10 em 0,00 s e a Maldição 10 em 0,10 s no mesmo alvo: "10" → "20"; um impacto de Maldição com a flag de acerto marcado gera número de golpe, nunca dourado.
+- **AC-FB-35 [L] R16 — dano recebido.** `maldicao_atingida` com 8 de dano: nenhum número; flash de Osso de 4 passos vivos.
+- **AC-FB-36 [L] R16 — técnica.** Técnica Combinada de Emboscada (Saída 8 + Entrada 18 no mesmo Eco e passo): um número "26".
+- **AC-FB-37 [L] R17 — câmera.** `chamado_pouso` sozinho: um impulso leve com `escala` 0,6 e `dir` do jogador ao pouso; no mesmo passo de um acerto leve do jogador: vale o do jogador (escala 1,0); 30 passos de ataques básicos da Maldição: nenhum impulso.
+- **AC-FB-38 [L] R18 — flash limitado.** Maldição atingida nos passos 0, 5 e 20: o flash acende no 0 (até o 3), não reacende no 5 e acende de novo no 20; nunca mais de 3 por segundo.
+- **AC-FB-39 [L] R15 — marca única.** Virote acerta o inimigo A e depois B: no passo do segundo acerto o ilhós sai de A e aparece em B; nunca há dois; A morre marcado: o ilhós some no passo.
+- **AC-FB-40 [L] R15/R9 — ganchos.** Exaustão com troca automática no mesmo passo: `maldicao_exausta` uma vez; dois ataques básicos de Maldição no mesmo passo: um `sfx_maldicao_ataque`; `troca_indisponivel`: `sfx_maldicao_recusa` P4 e nenhum VFX de mundo; um `chamado_indisponivel` emitido pelo dublê de **Combate**: `sfx_maldicao_recusa` P4, nenhum VFX.
+- **AC-FB-41 [V] R15 — leitura com Maldição.** Screenshot de uma câmara com 5 inimigos, a Maldição atacando, 2 inimigos atraídos e 1 marcado: o contorno de todo telégrafo segue visível; traço de atraído, ilhós e sinais de status não se sobrepõem; nada da Maldição é magenta ou dourado.
+
 - **AC-FB-31 [V] R8 — multidão.** Vídeo curto com 9 inimigos, status e explosões em cadeia: a degradação liga sem cortar telégrafo nem inversão; o fio de Vida e o HUD seguem legíveis.
 
 ## Open Questions
@@ -436,4 +563,7 @@ vídeo curto em `production/qa/evidence/`).
 | 5 | Conteúdo: `FeedbackTuning` (9 campos) e erros `FB1`–`FB3` como códigos V* | Conteúdo | próxima edição |
 | 6 | Chefes (fatia vertical): intro, transição de fase e zoom de intro do chefe; barra de chefe | Chefes | fatia vertical |
 | 8 | **Decidido (2026-11-13):** `area` e contorno de invulnerabilidade no relógio vivo; no passo da recusa a inversão vale o hitstop do golpe (Combate V1/V10) | Combate | — |
+| 9 | **(emenda Pactos, 2026-11-15)** Ganchos ML-A1 já com prefixo `sfx_` (R18, alinhado em 2026-11-16); sons e mixagem das Maldições; gancho próprio para `maldicao_atingida` (hoje "—") | audio-director | Áudio |
+| 10 | **(emenda Pactos, 2026-11-15)** Contratos: Combate emite `chamado_indisponivel` (R3.1); Maldições emite `maldicao_entrou`, `marca_virote_mudou`, `atraido`/fim, `imobilizado`/fim, `fio_estourou`; Combate marca o impacto com origem Maldição (R18) | Maldições, Combate | aprovação da emenda |
+| 11 | **(emenda Pactos, 2026-11-15)** Desenho do ilhós da marca, do traço de atraído, das amarras de imobilizado e da condensação de entrada (6 passos) | art-director | polimento |
 | 7 | **Edições pendentes:** Combate (V7 cita a fonte única e a exceção do dourado; V14 diz que o Feedback envia o impulso; A1 provisória; crítico = flag `enesimo_acerto`), HUD (OQ 6 encerrada: fio e prompt ficam no HUD), Cena (F5 aceita `escala` como entrada; um impulso por passo é do Feedback), Pipeline (`modo_impacto` negado: só o flash sai), Conteúdo (`FeedbackTuning`, 9 campos) | Combate, HUD, Cena, Pipeline, Conteúdo | `/review-all-gdds` |

@@ -1,8 +1,9 @@
 # Selo e Fluxo
 
-> **Status**: Approved (2026-11-10; Efeitos de status: o AC-SF-21 passa a 28 passos de Abalo depois do círculo, F4 de Efeitos de status)
+> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16)
+> **Status anterior**: Approved (2026-11-10; Efeitos de status: o AC-SF-21 passa a 28 passos de Abalo depois do círculo, F4 de Efeitos de status)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-10
+> **Last Updated**: 2026-11-15 (emenda Pactos: R1a, R3a, linha da Besta em F3–F5, ACs SF-29 a SF-32)
 > **Last Verified**: 2026-11-10
 > **Implements Pillar**: P3 *Reflexo que se lê* (área e tempo do Selo visíveis)
 
@@ -82,7 +83,19 @@ armas do MVP compartilham.
   limitar em qualquer ordem dá o mesmo resultado (os dois ganhos são ≥ 0).
 - No hitstop e fora de Jogo (Combate R1), o Fluxo não muda.
 
-**R2. Plantar o Selo** (item 6 da R1 do Combate, depois do golpe do jogador).
+**R1a. Fluxo com a Besta do Vínculo (emenda Pactos, 2026-11-15).** A regra do
+ganho não muda: só `acerto_de_arma` gera Fluxo.
+
+- O **Virote** é golpe de arma (`de_arma` verdadeiro, Armas R2b): cada Virote que
+  acerta dá +3, no item 8 (projétil), como o Pulso.
+- **Golpes de Maldição não geram Fluxo:** ataque básico, Efeitos de Saída e de
+  Entrada, Pulso de Soberania e o golpe de pouso do **Chamado do Pacto** têm
+  `de_arma` falso (`maldicoes.md` R6, R13.2; Armas R2b). O Chamado é o Especial
+  da Besta, mas, diferente da Investida e da Onda, o seu dano é da Maldição e
+  não rende Fluxo.
+- Abates da Maldição contam como do dono (`maldicoes.md` R6), mas abate não é
+  acerto: não rende Fluxo.
+ (item 6 da R1 do Combate, depois do golpe do jogador).
 
 1. A recarga do Selo, se > 0, cai 1.
 2. O Selo sai se **todas** valem:
@@ -132,6 +145,13 @@ armas do MVP compartilham.
   - com o gatilho `selo_abala`, recebe o Abalo (Modificadores R5), renovado a
     cada passo dentro do Selo.
 - Um Selo plantado neste passo já fere neste passo.
+- **(emenda Pactos, 2026-11-15) R3a. O Selo nunca fere a Maldição.** A Maldição é
+  da facção do jogador e não está na lista de inimigos (`maldicoes.md` R1). O teste
+  "dentro" só percorre inimigos, então ela não leva dano, não fica "no Selo", não
+  é desacelerada e não recebe o Abalo do `selo_abala`. O Selo funciona **igual**
+  com a Besta: mesmo custo, distância, raio, duração e dano. Um inimigo
+  **atraído** pela Maldição (`maldicoes.md` R7) que esteja dentro do Selo é
+  desacelerado e ferido normalmente.
 - Depois, `restante` −= 1 em cada Selo; ao chegar a 0, o Selo some e sai o
   evento `selo_fim` (centro). Um Selo fere, portanto, em exatamente 200 passos
   vivos.
@@ -356,6 +376,28 @@ Fluxo real chega em degraus de 3 por alvo.
 ≥ 14 alvos pagariam 40. Em grupo, a Lâmina ganha até ~2× o Fluxo da Ressonância
 (decisão do usuário, 2026-11-10: aceitar e vigiar no playtest).
 
+**Besta do Vínculo (emenda Pactos, 2026-11-15).** Números da Armas R2b: Virote
+`projetil`, dano 10, R_atk = 15 (0,25 s), hitstop 0 (Combate R10); Chamado
+R_esp = 120 (2,0 s), hitstop 0, e **N conta 0 acerto** porque o golpe é da
+Maldição (R1a). O Virote não atravessa, então m = 1 sempre.
+
+- k = 120 / 15 = 8; acertos_ciclo = 8 × 1 + 0 = 8
+- G_vivo = 3,6 + 3 × 8 × 60 / 120 = 3,6 + 12 = **15,60/s**
+- H_ciclo = 8 × 0 + 0 = 0 → ρ = 1; G_real = **15,60/s**
+- g = 15,60 / 60 = 0,26 por passo
+
+| Cenário | G vivo (/s) | G real (/s) |
+|---|---|---|
+| Besta, Virote 1 (Chamado 0 acerto) | 15,60 | 15,60 |
+| Besta em grupo (qualquer número de alvos) | 15,60 | 15,60 |
+
+**Leitura:** num alvo, a Besta ganha 90% do Fluxo vivo da Lâmina (15,60 /
+17,42) e mais Fluxo real (15,60 > 13,04), porque não tem hitstop. Em grupo ela
+não cresce: o Virote para no primeiro inimigo e a Maldição não rende Fluxo. Em
+grupo de 5, rende 56% da Lâmina com Investida 5 (15,60 / 27,71). É coerente com
+a Doutrina (o dano em área é da Maldição, não do Selo); vigiar no playtest
+**[a confirmar]**.
+
 ### F4. Ritmo de Selos
 
 The seal_rhythm formula is defined as:
@@ -390,6 +432,16 @@ sempre ativo custa 12/s, e as duas armas passam disso num alvo só.
 
 Só regeneração: Selos em 0 (100 → 60) e 30 (61,8 → 21,8); o 3º precisa de
 18,2 / 0,06 → 304 passos depois, no passo 334.
+
+**Besta do Vínculo (emenda Pactos, 2026-11-15)**, g = 0,26 (F3):
+T = max(30, 40 / 0,26 = 153,8) = 153,8 passos = **2,56 s vivos**;
+A = min(0,26 / 40 ; 1 / 30) × 200 = 0,0065 × 200 = **1,30**;
+3º Selo: t₃ = max(60, ⌈20 / 0,26⌉ = 77) = **≈ 77** (o Fluxo chega em degraus de 3).
+O laço de recarga (G_vivo ≥ 80/s) é inalcançável com a Besta em qualquer grupo.
+
+| Cenário | T (s vivos) | A | 3º Selo (passo) |
+|---|---|---|---|
+| Besta, Virote 1 (emenda Pactos) | 2,56 | 1,30 | ≈ 77 |
 
 ### F5. Fração do dano vinda do Selo
 
@@ -433,6 +485,31 @@ se cancela na razão `f_selo`; os números da tabela acima não mudam (Lâmina 1
 31,8%; Ressonância 13,4% e 34,4%), dentro da meta. **Cenário misto** (M do Selo = 4 e
 M da arma menor; p. ex. Lâmina com 1 alvo ≈ 31,9%) fica **fora da meta e do SV12**: é só
 um aviso informativo para o `/balance-check`, não um erro nem um SV12.
+
+**Besta do Vínculo, 1 alvo (emenda Pactos, 2026-11-15; M = 1, ρ = 1):**
+DPS_selo_real = 1,30 × 7,2 × 1 × 1 × 1 = 9,36;
+DPS_arma_real = (8 × 10 + 17) × 60 / (120 + 0) = 48,5 (o Chamado entra no ciclo
+da arma como na Armas F1, 8,5/s) → f_selo = 9,36 / (9,36 + 48,5) = **16,2%**,
+dentro da meta 5–20%. ~~Contando também o DPS autônomo da Maldição em campo
+(~26,5/s, `maldicoes.md` F3/F6, fora do ciclo da arma): 9,36 / (9,36 + 48,5 +
+26,5) = **11,1%**.~~ (o 26,5 somava o Chamado, que já está nos 48,5.)
+**Correção (emenda Pactos, 2026-11-15):** contando também a parcela autônoma da
+Maldição em campo, sem o Chamado: 0,9 × 18,00 = **16,20 DPS** (Armas F2,
+`armas-das-doutrinas.md` l. 740, piso Vulto/Baluarte/Soberano; fora do ciclo da
+arma): f_selo = 9,36 / (9,36 + 48,5 + 16,2) = 9,36 / 74,06 = **12,6%**.
+O SV12 avalia a primeira conta (só arma), como faz com a
+Lâmina e a Ressonância **[a confirmar]**. Em grupo de 5 no Selo:
+DPS_selo = 46,8 contra 48,5 da Besta (o Virote fere um só) → 46,8 / 95,3 = 49,1% só com a
+arma, **acima** do teto 0,45 da meta; com a Maldição no grupo ~~(≥ 26,5) fica
+≤ 38,4%~~ (16,2, só no alvo dela; emenda Pactos, 2026-11-15) fica
+46,8 / (46,8 + 48,5 + 16,2) = 46,8 / 111,5 = **42,0%**, abaixo do teto. Ver Open Questions 9.
+
+| Cenário | f_selo |
+|---|---|
+| Besta, 1 alvo (só arma) | 16,2% |
+| Besta, 1 alvo (arma + Maldição) | ~~11,1%~~ **12,6%** (emenda Pactos, 2026-11-15) |
+| Besta, 5 no Selo (só arma) | 49,1% |
+| Besta, 5 no Selo (arma + Maldição, só no alvo dela) | ~~38,4%~~ **42,0%** (emenda Pactos, 2026-11-15) |
 
 ### F6. Centro do Selo preso ao retângulo jogável
 
@@ -557,6 +634,14 @@ e SV12 dependem de dados de outros sistemas e rodam onde roda o MV1 do Movimento
 - **Se `duracao_s` ou `recarga_s` resultar em 0 passos:** é erro (SV2); a run não começa.
 - **Se o M do Selo for 0:** o Selo desacelera e abala, sem dano.
 
+**Besta e Maldições (emenda Pactos, 2026-11-15)**
+
+- **Se a Maldição estiver dentro de um Selo:** nada acontece com ela: sem dano, sem lentidão, sem Abalo e sem marca "no Selo" (R3a).
+- **Se o Virote acertar no item 8 e completar 40:** o Selo só sai no passo seguinte, como com o Pulso (F1).
+- **Se a Maldição abater um inimigo dentro do Selo:** o abate é do dono, mas não rende Fluxo (R1a).
+- **Se o Chamado e o Selo forem pedidos no mesmo passo:** o Chamado não é investida do jogador; o Selo sai normalmente (R2).
+- **Se um inimigo atraído pela Maldição correr para ela através do Selo:** é desacelerado e ferido como qualquer inimigo (R3a, R4).
+
 **Troca de câmara e fim da run**
 
 - **Se a câmara trocar com Selos ativos:** são apagados na metade do wipe, sem `selo_fim`. O Fluxo e a recarga passam (R6).
@@ -586,6 +671,9 @@ e SV12 dependem de dados de outros sistemas e rodam onde roda o MV1 do Movimento
 | IA de inimigos e elites | Forte, **por contrato** | lista de inimigos (posição, raio, atingível) | não há alvo |
 | Câmaras e ondas | Suave, **por contrato** | retângulo jogável; "câmara nova" | câmara padrão 1920×1080 sem obstáculos |
 | Run e regiões | Suave, **por contrato** | Fluxo cheio no início da run | o Fluxo começa em `fluxo_max` por padrão |
+| Maldições (emenda Pactos, 2026-11-15) | Suave | facção do jogador (não está na lista de inimigos); golpes com `de_arma` falso | — (a regra "só inimigos" já a exclui) |
+
+- **Armas das Doutrinas (emenda Pactos):** o Virote emite `acerto_de_arma` (Armas R2b); a Besta entra na linha "Armas das Doutrinas" acima (F3–F5).
 
 **É dependência de (downstream)**
 
@@ -736,6 +824,13 @@ quando o critério diz.
 - **AC-SF-27 [L] R2 — buffer.** `selo` tocado no passo 0 com Fluxo 39,00 (sem acertos): o Fluxo só chega a 40 no 17º passo; com o prazo de 10 passos do buffer vencido antes disso, o Selo não sai. Com Fluxo 39,70 (chega a 40 no 5º passo), sai no 5º.
 - **AC-SF-28 [L] R3/F2 — M por Selo.** Selos plantados com `dano_selo_pct` +60% (M 1,6) e depois com o bônus removido (M 1): o dano de cada passo usa o M do passo, igual para os dois Selos; a marca "no Selo" é uma só.
 
+**Besta e Maldições (emenda Pactos, 2026-11-15)**
+
+- **AC-SF-29 [L] R1a/F1 — Virote gera Fluxo.** **GIVEN** FS com a Besta e Fluxo 10, **WHEN** um Virote acerta o Saco no item 8 do passo 0, **THEN** o Fluxo sai do passo com 13,06 (regeneração 0,06 + 3) e o acerto só conta no teste do Selo do passo 1.
+- **AC-SF-30 [L] R1a — Maldição não gera Fluxo.** **GIVEN** Fluxo 10, **WHEN** no mesmo passo o ataque básico da Maldição, um Efeito de Saída, um de Entrada e o pouso do Chamado acertam o Saco, **THEN** o Fluxo só sobe a regeneração (10,06) e nenhum `acerto_de_arma` é emitido.
+- **AC-SF-31 [L] R3a — Selo não fere a Maldição.** **GIVEN** um Selo em (1140; 540) e uma Maldição com Vida 110 no mesmo ponto, **WHEN** correm 200 passos vivos com `selo_abala` ativo, **THEN** a Vida dela continua 110, a velocidade dela não muda e `no_selo` nunca é consultado para ela; o Saco no mesmo ponto leva 24 de dano.
+- **AC-SF-32 [I] F3–F5 — números da Besta.** **GIVEN** o catálogo de fábrica com `pactos`, **WHEN** o validador calcula F3–F5, **THEN** G_vivo = G_real = 15,60/s, T = 2,56 s, A = 1,30 e f_selo 1 alvo = 16,2% (± 0,1 p.p.), sem SV12.
+
 ## Open Questions
 
 | # | Pergunta | Dono | Resolver até |
@@ -749,3 +844,4 @@ quando o critério diz.
 | 6 | Assimetria de Fluxo em grupo (Lâmina até 2× a Ressonância) | `/balance-check` | depois do primeiro playtest |
 | 7 | Índice: linha 10 com Movimento, IA, Câmaras e Run em Depends On | usuário / producer | próxima edição do índice |
 | 8 | Selo no mesmo passo do disparo da investida (cânone aceito aqui): conferir com Combate e IA | game-designer | `/design-review` |
+| 9 | (emenda Pactos) Besta com 5 inimigos no Selo: f_selo 49,1% só com a arma, acima do teto 0,45 da meta (o Virote fere um só alvo). O SV12 em grupo deve contar o DPS da Maldição (≤ 38,4%) ou aceitar a exceção da Besta? Recomendação: contar a Maldição, porque ela é metade da arma da Doutrina **[a confirmar]** | usuário / `/balance-check` | `/design-review` desta emenda |

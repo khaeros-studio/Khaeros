@@ -1,8 +1,8 @@
 # Bênçãos (Tradições)
 
-> **Status**: Approved (2026-11-11; revisão única por subagente: 5 bloqueantes e 5 grupos de recomendadas, corrigidos sem re-review; sem entrada no review log)
+> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — antes: Approved (2026-11-11; revisão única por subagente: 5 bloqueantes e 5 grupos de recomendadas, corrigidos sem re-review; sem entrada no review log)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-11
+> **Last Updated**: 2026-11-16 (emenda Pactos, 2026-11-15: R13-P, R14-P, F4-P, Edge Cases, AC-BN-24 a 26, OQ 12–13)
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P1 *Toda bênção é uma filosofia*; P4
 
@@ -37,7 +37,8 @@ jogador escolher e entrega a escolhida ao Modificadores, que aplica o efeito.
   a base é 0). Não se pode pular.
 - **O fim do pool:** sem bênção por tomar, a recompensa vira Fragmentos. É código
   defensivo: o Limiar dá no máximo 4 bênçãos (o pool termina em 14), e o caso só se
-  testa por injeção.
+  testa por injeção. **(emenda Pactos, 2026-11-15)** Com o chefe, o Limiar dá até
+  **5** (Portas F3-P): o pool termina em **13** e continua sem esgotar (R13-P).
 - **Sem Mestre:** no MVP a oferta é anônima; o Mestre de cada Doutrina é da fatia
   vertical.
 
@@ -126,6 +127,42 @@ Bênção). A tela e o componente de carta são do GDD de Tela de bênção.
 (`tamanho_oferta` 3, `trocas_iniciais` 0), os fluxos e o Modificadores. Os testes
 montam tudo em memória.
 
+#### Regras da emenda Pactos (emenda Pactos, 2026-11-15)
+
+**R13-P. Cinco bênçãos por run.** O Limiar com chefe tem 7 câmaras e `k = 4`
+escolhas livres (Portas R6-P, F3-P): média **4,58**, teto **5**, mínimo 1. O pool
+de 18 comporta: depois de 5 tomadas sobram **13**, então toda oferta do Limiar tem
+3 cartas e `sem_bencao` segue só por injeção. **Nenhuma regra muda**: R2–R4 já
+sorteiam sem repetição sobre `18 − k`, e o consumo de 6 reais por oferta não
+depende de quantas já foram tomadas. As câmaras que podem dar oferta passam a ser
+as de índice **0, 1, 2, 4 e 5** (3 é o santuário; 6 é o chefe, cuja recompensa é
+dos Chefes), com as chaves desses índices (R4). O aviso PV8 das Portas (pool da
+região < `1 + k`) não dispara com o catálogo de fábrica (18 ≥ 5).
+
+**R14-P. Bênçãos com a Besta do Vínculo.** Nenhum efeito novo; esta regra só
+registra como os efeitos de hoje valem quando a arma é a Besta (Armas R2b) e a
+Maldição luta junto. A Maldição é um portador sem slot (Modificadores R14):
+- **Propagam para a Maldição** (hipótese do Modificadores R14, `tipos_propagados_maldicao`
+  **[a confirmar]** lá, OQ 7): `dano_todo_pct` e `velocidade_pct`, como espelho em
+  cada portador da dupla, inclusive a Exausta na reserva.
+- **Só no jogador** (não propagam): `dano_ataque_pct` (sobe o Virote),
+  `dano_especial_pct` (sobe o Pouso do Chamado, que usa o grupo Especial do
+  jogador, Modificadores R12), `dano_vida_baixa_pct`, `dano_enesimo_acerto` e
+  `dano_apos_esquiva` (os acertos da Maldição não contam acerto) e os gatilhos
+  `golpe_*` (os golpes da Maldição são `de_arma` falso).
+- **Valem para os abates da Maldição** sem propagar: `cura_ao_abater` e
+  `explosao_ao_abater`, porque o abate é do dono (Combate R14).
+- **Cura por acerto:** nenhuma Tradição do pool nem arma de fábrica cura por
+  acerto (Modificadores R12, l. 292; a cura do Laço não foi herdada, Armas R2b).
+  Nada a anotar no MVP.
+- **Risco declarado:** a Maldição faz ~60% do DPS composto da Besta (Armas F7);
+  as Tradições de slot (ex.: **Traço Único**, +25% Ataque) sobem só a parte do
+  jogador, e a de Especial vale +3,3% do composto contra 6,3% na Lâmina (Armas OQ
+  14). Com Pactos, as Tradições de `dano_todo_pct` ficam relativamente mais fortes.
+  Não se corrige aqui: medir no `/balance-check` antes da fatia de Pactos (OQ 12).
+- **Sem Tradições nem Mestre de Pactos novos no MVP:** o pool continua o das 18
+  (R1). As 3 Tradições próprias de Pactos e a Mestre Sorcha ficam para depois.
+
 ### States and Transitions
 
 | Estado | Entra quando | Sai para |
@@ -163,6 +200,10 @@ P(ao menos uma Rara ou melhor) = 1 − 0,6³ = **0,784**.
 
 **F4. Pool.** n = 18 − k tomadas. No Limiar há no máximo 4 bênçãos (Portas F3), então
 n termina em 14 e o pool não esgota sem debug.
+
+**F4-P. Pool com chefe** (emenda Pactos, 2026-11-15). Teto de 5 bênçãos (Portas
+F3-P): n termina em **13**; F1 na última oferta = 3/13 (**0,231**). Com a média
+4,58, o pool final médio é 13,42. Folga até esgotar: 18 − 5 = 13 cartas.
 
 **F5. Exemplo de sorteio (F7 do RNG).** n = 18 (índices 0 a 17 do manifesto), u =
 (0,5; 0; 0,99): i = 0 → j = 0 + `F4(18)` = 9, troca 0 ↔ 9; i = 1 → j = 1 + `F4(17)` =
@@ -207,6 +248,15 @@ ou escalas não crescentes.
 - **A mesma bênção em raridades diferentes pela troca:** é normal (R6).
 - **Bênção com efeito negativo** (O Preço com Nome: Vida −10): o Modificadores resolve
   o piso de Vida.
+
+**Pactos (emenda Pactos, 2026-11-15)**
+- **5ª bênção no índice 5, logo antes do chefe:** oferta normal de 3 cartas (pool
+  13); a escolha acontece antes da porta `chefe` (Portas R9-P).
+- **Bênção de `dano_todo_pct` com uma Maldição Exausta ou só 1 pactuada:** o espelho
+  entra em cada portador que existir (Modificadores Edge Cases); a Bênçãos não faz
+  nada diferente.
+- **Traço Único com a Besta:** aplica só ao Virote; a carta mostra o mesmo texto
+  (sem nota de Pactos na carta no MVP) **[a confirmar]**.
 
 **Mundo**
 - **Morte ou abandono com a oferta aberta:** não acontece: o mundo está parado, a morte
@@ -278,6 +328,9 @@ quando o GDD for aprovado.
 - **AC-BN-21 [L] F1/F4 — presença e pool.** Com seed fixa, pool 18 e 100 000 ofertas num fluxo contínuo, cada bênção aparece com frequência 0,1667 (± 0,005); com 14 livres, 0,2143 (± 0,005); depois de 4 tomadas o pool tem 14.
 - **AC-BN-22 [L] F3 — raridade.** Nas mesmas 100 000 ofertas, a fração com ao menos uma Épica é 0,271 (± 0,005) e com ao menos uma Rara ou melhor, 0,784 (± 0,005).
 - **AC-BN-23 [L] Validação.** `tamanho_oferta` 0 ou 6 e `trocas_iniciais` −1: BN1; pesos 0 / 0 / 0 ou escalas 1 / 1 / 2: BN2.
+- **AC-BN-24 [L] R13-P — cinco ofertas (emenda Pactos, 2026-11-15).** GIVEN a Fixture BN e 5 pedidos com as chaves 0, 1, 2, 4 e 5, pegando sempre a carta 0, WHEN a 5ª oferta abre, THEN ela tem 3 cartas distintas, nenhuma já tomada; depois da escolha, `restantes()` = 13, `tomadas()` tem 5 entradas e nenhum `sem_bencao` foi emitido.
+- **AC-BN-25 [L] F4-P — presença com 13 livres.** Com seed fixa, pool 13 e 100 000 ofertas num fluxo contínuo, cada bênção aparece com frequência 0,2308 (± 0,005).
+- **AC-BN-26 [I] R14-P — Besta.** GIVEN a Besta com 1 Maldição em campo, WHEN o jogador pega Traço Único Comum, THEN o M do Virote sobe e o `dano_todo` da Maldição não muda; WHEN pega uma bênção de `dano_todo_pct`, THEN o portador da Maldição ganha o espelho no mesmo passo (dublê do Modificadores; números no Modificadores AC-34/35).
 
 ## Open Questions
 
@@ -293,4 +346,6 @@ quando o GDD for aprovado.
 | 8 | Sinergia garantida com a Doutrina da arma e pool filtrado por arma: revisitar depois do playtest | game-designer | primeiro playtest |
 | 9 | Eventos novos: `bencao_tomada`, `oferta_aberta`, `oferta_trocada`, `oferta_ja_aberta` ainda não existem em Run, Portas, HUD e Telemetria | donos de cada GDD | próxima edição de cada um |
 | 10 | O RNG chama a profundidade de "número da câmara na run" e Portas R7 de "índice na região": iguais no MVP (uma região); alinhar quando houver mais de uma | RNG / Portas | Alpha (Veio Instável) |
+| 12 | (emenda Pactos, 2026-11-15) Tradições de slot sobem só a Besta (~60% do DPS é da Maldição); a hipótese do Modificadores R14 (propagam `dano_todo_pct` e `velocidade_pct`) está **[a confirmar]**. Medir se Pactos fica atrás da Lâmina com as bênçãos de slot | usuário + systems-designer / `/balance-check` | antes da fatia de Pactos |
+| 13 | (emenda Pactos, 2026-11-15) A carta de uma Tradição de slot deveria avisar, com a Besta, que não vale para a Maldição? Hoje não avisa **[a confirmar]** | ux-designer | playtest de Pactos |
 | 11 | `trocas_oferta` (atributo do Modificadores) × `trocas_iniciais` (`BencaosTuning`): o dono único da base de trocas é `trocas_iniciais`; o Modificadores só soma. Ajustar o texto do Modificadores e conferir que a R6 lê o total sem contar a base duas vezes | Bênçãos / Modificadores | próxima edição do Modificadores |

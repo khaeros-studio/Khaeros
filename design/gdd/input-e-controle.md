@@ -1,8 +1,8 @@
 # Input e controle
 
-> **Status**: Approved (2026-11-10: contexto Transição na R10 e na R11, do `/review-all-gdds` 3ª passada (S-B1), mantido Approved por decisão do usuário; 2026-11-09: R6 diz que o orquestrador lê o hitstop do Combate, alinhado ao Combate núcleo R10 com aval do usuário; 4ª re-review `/design-review` 2026-11-06, sessão independente: APPROVED, 0 bloqueantes, recomendadas no log; anteriores: 3ª re-review NEEDS REVISION e `/review-all-gdds` FAIL, ambos revisados; 2ª passada do cross-review, CONCERNS: retirada do `InputTuning` ao sair de Pronto na R12 e Cross-References, aplicadas em 2026-11-06 com o status mantido por decisão do usuário)
+> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — 2026-11-15: ação `troca`, campo `ponto_mira` e consumidor Maldições (R1, R2, R6, F3, Interactions, Edge Cases, Dependencies, AC-41 a AC-46), aguardando aprovação do usuário. Histórico anterior: Approved (2026-11-10: contexto Transição na R10 e na R11, do `/review-all-gdds` 3ª passada (S-B1), mantido Approved por decisão do usuário; 2026-11-09: R6 diz que o orquestrador lê o hitstop do Combate, alinhado ao Combate núcleo R10 com aval do usuário; 4ª re-review `/design-review` 2026-11-06, sessão independente: APPROVED, 0 bloqueantes, recomendadas no log; anteriores: 3ª re-review NEEDS REVISION e `/review-all-gdds` FAIL, ambos revisados; 2ª passada do cross-review, CONCERNS: retirada do `InputTuning` ao sair de Pronto na R12 e Cross-References, aplicadas em 2026-11-06 com o status mantido por decisão do usuário)
 > **Author**: usuário + Claude (design-system)
-> **Last Updated**: 2026-11-10 (contexto Transição: R10, R11, AC-22, AC-23)
+> **Last Updated**: 2026-11-15 (emenda Pactos: ação `troca` e `ponto_mira`); 2026-11-10 (contexto Transição: R10, R11, AC-22, AC-23)
 > **Last Verified**: 2026-11-06
 > **Implements Pillar**: P3 *Reflexo que se lê* ("a esquiva sempre responde")
 > **Creative Director Review (CD-GDD-ALIGN)**: pulada (modo Lean)
@@ -26,7 +26,8 @@ prazo congelado no hitstop.
 
 **Input e controle** é a camada que transforma teclado, mouse e gamepad em
 **ações de jogo**: mover, mirar, Ataque, Especial, Selo, Esquiva, Interagir,
-pausar e as escolhas de tela (bênção, porta, menus). Nenhum outro sistema lê
+Troca (emenda Pactos, 2026-11-15), pausar e as escolhas de tela (bênção, porta,
+menus). Nenhum outro sistema lê
 tecla ou botão diretamente: todos recebem ações já traduzidas, amostradas uma vez
 por passo de física (60/s).
 
@@ -75,6 +76,7 @@ código de jogo. Os nomes são `StringName`.
 | Jogo | `selo` | botão | Q (F) | B (LB) |
 | Jogo | `esquiva` | botão | Espaço (Shift, L) | A (RT) |
 | Jogo | `interagir` | botão | E | RB |
+| Jogo | `troca` (emenda Pactos, 2026-11-15) | botão | R (Tab) **[a confirmar]** | LT **[a confirmar]** |
 | Jogo, Pausa e Bênção | `pausar` | botão | Esc | Start |
 | Pausa, Bênção e Menu | `ui_aceitar` | botão | Enter (Espaço, E) | A |
 | Menu | `ui_voltar` | botão | Esc | B |
@@ -90,6 +92,39 @@ existem em build de debug. Os contextos estão na R10. Esc está em `pausar` e e
 Menu usa `ui_voltar`. O contexto Texto não usa ações de tela: só Enter e Esc
 físicos, fixos (R10).
 
+**R1a. Ação `troca` (emenda Pactos, 2026-11-15).** Botão de jogo que pede a
+Troca de Maldições (Maldições R11). Existe em toda run e em toda Doutrina: só o
+GDD de Maldições a consome, e sem Maldição em campo o pedido é recusado lá, não
+aqui. Bind padrão escolhido por conflito com o mapa atual:
+
+- **Teclado: R (primário) e Tab (secundário) [a confirmar].** A sugestão da
+  Maldições OQ1 era Q / Tab, mas Q é o primário do `selo` no contexto Jogo. R
+  fica no mesmo grupo da mão esquerda (Q, E, R ao redor do WASD) e só é usado na
+  Bênção (`ui_trocar_ofertas`), contexto diferente, o que a R8 permite. Tab não
+  tem uso no MVP.
+- **Gamepad: LT (primário) [a confirmar].** A sugestão era LB, mas LB é o
+  secundário do `selo`. LT é o único botão de ombro livre no contexto Jogo e
+  espelha o RT (secundário da `esquiva`). Vira botão pela histerese da R12
+  (aperta em ≥ 0,5, solta em < 0,4). Alternativa, se o usuário preferir LB:
+  tirar LB do `selo` (que fica só com B).
+- Com o mapa padrão, nenhuma entrada fica em duas ações do contexto Jogo
+  (AC-35 continua valendo).
+
+**R1b. Mira do Chamado do Pacto (emenda Pactos, 2026-11-15).** O Chamado é o
+Especial da Besta do Vínculo e usa a **mesma mira do Especial**: `mirar` (R5) e
+o botão `especial`. O salto precisa de um **ponto** (Maldições F4,
+`pos_mirada`), por isso a amostra ganha o campo `ponto_mira` (R2) **[a
+confirmar]**:
+
+- `fonte_mira = mouse`: o ponto do cursor em mundo, o mesmo que já gera `mirar`
+  (conversão da Cena 3/4 R9/F6).
+- `fonte_mira = automatica`, critério 2 (F4): a posição do inimigo escolhido.
+- nos outros casos (analógico e critérios 3 a 5): **vazio**. O consumidor usa
+  `pos_jogador + mirar × alcance` (no Chamado, `alcance_chamado_px`, salto ao
+  alcance máximo na direção da mira).
+
+Esta camada não conhece o alcance do Chamado; só entrega o ponto ou vazio.
+
 **R2. Amostragem.** Uma vez por passo de física (60/s), **antes** de qualquer
 sistema de jogo, esta camada produz uma **amostra de entrada**:
 
@@ -98,6 +133,7 @@ sistema de jogo, esta camada produz uma **amostra de entrada**:
 - `fonte_mira`: `mouse`, `analogico` ou `automatica` (R5);
 - `intensidade_mira`: o módulo do analógico direito depois da zona morta (F2),
   de 0 a 1; vale 0 quando `fonte_mira` não é `analogico`;
+- `ponto_mira`: vec2 de mundo ou vazio (R1b; emenda Pactos, 2026-11-15);
 - botões **segurados**;
 - botões **apertados neste passo**;
 - o **buffer** (R6);
@@ -173,6 +209,18 @@ Ele decide a fonte da mira (R5) e os ícones de comando da UI.
   do Ataque. A prioridade do buffer sai dessa ordem: quem roda antes consome
   antes.
 
+- **Troca (emenda Pactos, 2026-11-15):** `troca` entra no buffer como Esquiva e
+  Selo: toque apertado neste passo, prazo de `buffer_passos` (10), prazo
+  congelado no hitstop, consumo **só** "no buffer" (segurar não repete). Ela
+  segue o **contador único** (F3): um toque de Troca renova o prazo de todos os
+  botões no buffer, como qualquer outro. O consumidor é o GDD de Maldições, que
+  roda **depois do Selo**: a ordem passa a ser **Movimento → Combate → Selo →
+  Maldições**, e a prioridade do buffer fica **Esquiva > Especial > Ataque >
+  Selo > Troca**. A Troca não ocupa o corpo do jogador: pode sair no mesmo passo
+  de um Ataque ou de uma Esquiva. Emitir `troca_indisponivel` uma vez por toque
+  novo é do GDD de Maldições (R11), com a flag "apertado neste passo" desta
+  camada, como em `selo_sem_fluxo`.
+
 As regras de cancelamento (a esquiva cancela a recuperação etc.) são do GDD de
 Movimento e esquiva.
 
@@ -202,10 +250,13 @@ e a recarga permitir. Esta camada só informa.
 - **Pausa:** Esc e Start não podem ser removidos de `pausar`; só se pode
   acrescentar alternativos (até o limite de 3).
 - **Persistência:** "Restaurar padrão" vale por dispositivo. Os binds são
-  salvos no arquivo do usuário (`user://`) e carregados ao iniciar.
+  salvos no arquivo do usuário (`user://`) e carregados ao iniciar. O arquivo é
+  `input_binds.cfg` em `user://`, decisão do GDD de Save e perfil (emenda
+  Pactos, 2026-11-15).
 - **Mensagens:** usam chaves de tradução `INPUT_*`
   (`INPUT_BINDS_CORROMPIDOS`, `INPUT_CONTROLE_DESCONECTADO`,
-  `INPUT_CONFLITO_TROCA`, `INPUT_RECUSA_TECLA`, `INPUT_RECUSA_PAUSA`). Cada aviso
+  `INPUT_CONFLITO_TROCA`, `INPUT_RECUSA_TECLA`, `INPUT_RECUSA_PAUSA` e, pela
+  emenda Pactos de 2026-11-15, `INPUT_ACAO_NOVA`, ver Edge Cases). Cada aviso
   aparece **uma vez por sessão**.
 
 **R9. Telas sem mouse.**
@@ -321,6 +372,7 @@ injetam sequências roteirizadas de amostras, sem dispositivo real.
 | Movimento e esquiva | `mover`, `esquiva` (só buffer) | — | este GDD (amostra), Movimento (cancelamentos) |
 | Combate núcleo / Armas | `ataque`, `especial`, `mirar`, segurados, buffer | consumo do buffer ("executei X") | idem |
 | Selo e Fluxo | `selo` (só buffer), `mirar` | consumo do buffer | idem |
+| Maldições (emenda Pactos, 2026-11-15) | `troca` (só buffer, apertado neste passo); `mirar` e `ponto_mira` para o Chamado (via Armas, Especial) | consumo do buffer ("executei troca") | este GDD (amostra), Maldições (condições e recusa) |
 | Cena 3/4 e câmera | `fonte_mira`, `intensidade_mira` (amostra) e consulta de cursor (render), para o lookahead (Cena F2) | conversão tela → mundo do cursor | Cena 3/4 (conversão), este GDD (amostra e consulta) |
 | IA / Câmaras e ondas | — | consulta de alvos (inimigo mais próximo, ≤ raio, fora do spawn) | este GDD (pergunta), IA (resposta) |
 | Tela de bênção / Menus | `ui_*`, atalhos 1–3, troca de ofertas, contexto Texto | troca de contexto (Jogo, Bênção, Menu, Texto) | este GDD |
@@ -329,7 +381,7 @@ injetam sequências roteirizadas de amostras, sem dispositivo real.
 | Save e perfil | binds do usuário (arquivo próprio) | — | este GDD (formato), Save (onde) |
 | Conteúdo orientado a dados | — | `InputTuning` | Conteúdo |
 
-**`rotulo_acao(acao, dispositivo)` (assinatura, decidido 2026-11-13).** Entrada: `acao` = id de ação do Input (ex.: `selo`, `interagir`, `ataque`) e `dispositivo` = o dispositivo ativo, `teclado` ou `gamepad`. Saída: o rótulo textual do bind **remapeado do usuário** para essa ação nesse dispositivo, mais o id do glifo (no gamepad, o glifo do botão; no teclado, o rótulo da tecla lógica do layout ativo). `acao` ou `dispositivo` inválido: rótulo vazio e um aviso registrado, sem falha. HUD (R6, R10) e Tela de bênção só consomem; a consulta é a mesma para o glifo do Selo.
+**`rotulo_acao(acao, dispositivo)` (assinatura, decidido 2026-11-13).** Entrada: `acao` = id de ação do Input (ex.: `selo`, `interagir`, `ataque`) e `dispositivo` = o dispositivo ativo, `teclado` ou `gamepad`. Saída: o rótulo textual do bind **remapeado do usuário** para essa ação nesse dispositivo, mais o id do glifo (no gamepad, o glifo do botão; no teclado, o rótulo da tecla lógica do layout ativo). `acao` ou `dispositivo` inválido: rótulo vazio e um aviso registrado, sem falha. HUD (R6, R10) e Tela de bênção só consomem; a consulta é a mesma para o glifo do Selo. **Emenda Pactos (2026-11-15):** `rotulo_acao("troca", dispositivo)` é a consulta do rótulo da Troca no Bloco do Pacto do HUD; com os binds padrão devolve "R" no teclado e o glifo de LT no gamepad; remapeada, devolve o bind novo.
 
 **Provisório:** só Acessibilidade e Menus ainda não têm GDD. A
 consulta de alvos é um pedido que o GDD de IA vai precisar honrar. A conversão
@@ -388,6 +440,13 @@ The buffer_deadline formula is defined as:
 
 Consumir X: `B = B − {X}`. A ordem de consumo é **esquiva > especial > ataque >
 selo**.
+
+**Emenda Pactos (2026-11-15):** o conjunto de botões do buffer passa a ser
+`{esquiva, especial, ataque, selo, troca}`, em `P` e em `B`, e a ordem de consumo
+termina em `> troca` (consumidor Maldições, depois do Selo; R6). A fórmula não
+muda: com `troca`, `P = apertados_neste_passo ∩ {esquiva, especial, ataque,
+selo, troca}`. Ex.: Troca tocada no passo 0 durante um hitstop de 6 passos
+(0–5): T fica em 10 até o passo 5, a Troca vale do passo 6 ao 14 e some no 15.
 
 **Variables:**
 | Variable | Type | Range | Source | Description |
@@ -539,6 +598,34 @@ contínuos.
 - **Se a entrada capturada for um gatilho analógico** (LT ou RT): vira botão
   que aperta em ≥ 0,5 e solta em < 0,4 (R12).
 
+**Troca e mira do Chamado (emenda Pactos, 2026-11-15)**
+
+- **Se a Troca for tocada sem condição (recarga, reserva Exausta ou ausente,
+  Maldição saltando):** o toque fica no buffer até o prazo acabar, como a
+  Esquiva sem carga. Se a condição vier antes do prazo, a Troca sai. Decidir e
+  emitir `troca_indisponivel` (uma vez por toque novo) é do GDD de Maldições.
+- **Se a Troca for tocada durante o hitstop:** o prazo congela (F3) e a Troca
+  pode sair no primeiro passo vivo. Isso já é o que Maldições R15 espera
+  (a recarga da Troca também congela).
+- **Se a Troca for segurada:** conta só o primeiro passo. Segurar não repete
+  (como Esquiva e Selo); para outra Troca é preciso soltar e tocar de novo.
+- **Se o jogador não jurou Pactos ou não tem Maldição:** a ação existe e entra
+  no buffer, mas ninguém a consome; o toque renova o prazo do buffer (contador
+  único) e expira. Nenhuma recusa visual além da do GDD de Maldições.
+- **Se a Troca for tocada no passo da troca de contexto ou durante a
+  Transição:** ignorada, pela R10, como os demais botões de jogo.
+- **Se um arquivo de binds antigo (sem `troca`) for carregado:** a ação recebe o
+  padrão (regra "faltar uma ação nova"). Se o padrão já estiver em outra ação do
+  contexto Jogo no arquivo do usuário, ela recebe o **primeiro bind livre** da
+  lista R, Tab, G, C (teclado) ou LT, D-pad baixo, D-pad esquerda (gamepad), sem
+  tirar bind de outra ação, e o aviso `INPUT_ACAO_NOVA` aparece uma vez por
+  sessão na tela de remapeamento **[a confirmar]**.
+- **Se o cursor estiver sobre o personagem ao usar o Chamado** (vetor zero):
+  `mirar` mantém a direção anterior (R5) e `ponto_mira` vale a posição do
+  jogador; Maldições F4 trata `||u|| = 0` com `mira × alcance_chamado_px`.
+- **Se o inimigo da mira automática sumir no passo do Chamado:** a amostra
+  daquele passo já escolheu (F4); `ponto_mira` é a posição dele naquele passo.
+
 ## Dependencies
 
 **Depende de (upstream)**
@@ -548,7 +635,7 @@ contínuos.
 | Conteúdo orientado a dados | Suave | `InputTuning` (buffer, zonas mortas, raio, limiar do mouse), re-injetado a cada entrada em Pronto | Com o catálogo em Falhou, só entradas digitais na tela de erros (R12, Sem catálogo) |
 | Cena 3/4 e câmera | Forte (para a mira do mouse) | Conversão tela → mundo do cursor (R5; Cena 3/4 R9, F6) | A mira do mouse fica errada sob a projeção 3/4 |
 | IA de inimigos e elites (via contrato) | Suave, **por contrato** | Implementa a **consulta de alvos** definida aqui (inimigos fora do spawn, em ordem estável) | A mira do gamepad cai no critério 3 (movimento) |
-| Save e perfil | Suave | Onde o arquivo de binds mora | Binds em `user://` próprio até o GDD de Save existir |
+| Save e perfil (`design/gdd/save-e-perfil.md`) | Suave | Onde o arquivo de binds mora: os binds ficam em `input_binds.cfg` (`user://`), decisão do GDD de Save e perfil (emenda Pactos, 2026-11-15; o formato do conteúdo segue deste GDD, R8) | Sem ele, os binds não persistem entre sessões e valem os padrões |
 
 **Ciclo resolvido por contrato:** a IA depende do Combate, que depende do
 Movimento, que depende do Input. O Input só **define a interface** da consulta
@@ -563,6 +650,8 @@ diretamente.
 | Combate núcleo | Forte | `ataque`, `especial`, `mirar`, segurados, buffer |
 | Armas das Doutrinas | Forte (via Combate) | Ataque e Especial segurados (R7) |
 | Selo e Fluxo | Forte | `selo`, `mirar`, buffer |
+| Maldições (emenda Pactos, 2026-11-15) | Forte | `troca` (buffer, apertado neste passo); `mirar` e `ponto_mira` do Chamado, via Armas (Especial). Maldições lista o Input em "Depends On" (Forte, emenda) |
+| Armas das Doutrinas — Besta do Vínculo (emenda Pactos, 2026-11-15) | Forte (via Combate) | `ponto_mira` no Especial `Chamado do Pacto` (R1b) |
 | Tela de bênção e componente de carta | Forte | `ui_*`, atalhos 1–3, troca de ofertas, contexto Bênção; consulta `rotulo_acao(acao, dispositivo)` |
 | Menus | Forte | `ui_*`, `pausar`, estado Remapeando |
 | HUD | Suave | Dispositivo ativo (ícones de comando); consulta `rotulo_acao(acao, dispositivo)` |
@@ -576,6 +665,10 @@ usuário, 2026-11-05). Já existem os GDDs de Movimento, Combate núcleo, Selo e
 Fluxo, Armas, IA, Tela de bênção, HUD e Cena 3/4; a conferência de que cada um
 lista "Input e controle" em Dependencies é do `/review-all-gdds`. Ainda não
 existem Menus e Acessibilidade e opções: ao serem escritos, devem listá-lo.
+**Emenda Pactos (2026-11-15):** Maldições (`design/gdd/maldicoes.md`) já lista o
+Input em "Depends On" (ação `Troca`, buffer congelado no hitstop); Save e perfil
+(`design/gdd/save-e-perfil.md`) decide onde mora `input_binds.cfg` e deve listar
+o Input como dependente.
 
 **Cena 3/4 nos dois sentidos:** o Input usa a conversão tela → mundo da Cena, e a
 Cena usa a fonte da mira e a consulta de cursor do Input. O ciclo se resolve por
@@ -626,6 +719,8 @@ Requirements). Som de navegação de menu é do GDD de Áudio.
 | `design/art/art-bible.md` | §7.9 | Remapeamento completo, menus sem mouse, tamanho da mira |
 | `design/art/art-bible.md` | §7.6 | Foco único (o mouse move o mesmo foco), confirmar com Enter/Espaço/E, 1/2/3 só movem o foco, trava contra escolha acidental |
 | `design/gdd/cena-3-4-e-camera.md` | R9, F6 | Conversão tela → mundo do cursor |
+| `design/gdd/maldicoes.md` | R11, R13, R15, F4, UI Requirements, OQ1 (emenda Pactos, 2026-11-15) | Ação `troca`, recusa `troca_indisponivel`, ponto mirado do Chamado, bind sugerido |
+| `design/gdd/save-e-perfil.md` | arquivo de binds (emenda Pactos, 2026-11-15) | `input_binds.cfg` em `user://` |
 | `.claude/docs/technical-preferences.md` | Input & Platform | Plataforma, WASD e mira no mouse, telas sem mouse |
 | Khaeros `packages/preview/src/arena/input.ts` | `KEY_BINDINGS`, `readGamepad`, `computeAim` | Layout padrão, zona morta 0,2, mira automática 900 unidades (1350 px) |
 | Khaeros `packages/action-core/src/engine.ts` | `bufferInput`, `BUFFER_TICKS` | Buffer de 10 passos e ordem de consumo |
@@ -871,6 +966,41 @@ Requirements). Som de navegação de menu é do GDD de Áudio.
   entregue **AND** quando a tela final abre, o contexto Menu vale: `ui_aceitar`
   aciona o botão em foco e Esc/`ui_voltar` seguem as regras do Menu.
 
+**Troca e mira do Chamado (emenda Pactos, 2026-11-15)**
+
+> AC-01 e AC-02 passam a contar a ação `troca` e o campo `ponto_mira`: o
+> conjunto de ações é o da R1 com `troca`, e a amostra tem **9 campos**. Os
+> demais ACs antigos não mudam.
+
+- **AC-41 [L] R1a — binds padrão da Troca.** **GIVEN** o mapa padrão **WHEN** se
+  lê `troca` **THEN** o teclado tem R (primário) e Tab, o gamepad tem LT **AND**
+  uma varredura do contexto Jogo não acha R, Tab ou LT em outra ação **AND** R
+  continua em `ui_trocar_ofertas` na Bênção sem conflito (contextos diferentes).
+- **AC-42 [L] R6/F3 — Troca no buffer, sem hitstop.** **GIVEN** Troca tocada no
+  passo 0 e nenhum outro toque **THEN** `quer(troca)` é verdadeiro nos passos
+  0–9 e falso no 10 **AND** segurar a Troca por 30 passos com o buffer já vazio
+  dá `quer(troca)` falso a partir do passo 10.
+- **AC-43 [L] R6/F3 — Troca no hitstop.** **GIVEN** hitstop nos passos 0–5 e
+  Troca tocada no passo 0 **THEN** T fica em 10 até o passo 5, `quer(troca)` é
+  verdadeiro de 6 a 14 e falso no 15.
+- **AC-44 [L] R6 — ordem dos consumidores.** **GIVEN** buffer = {esquiva,
+  ataque, troca}, consumidores Movimento → Combate → Selo → Maldições **WHEN** o
+  passo roda **THEN** a esquiva e o ataque são consumidos pelos seus donos e a
+  Troca pelo consumidor Maldições no mesmo passo **AND** consumir a Troca não
+  remove os outros nem muda o prazo.
+- **AC-45 [L] R1b — `ponto_mira`.** **GIVEN** mouse ativo com o cursor no ponto
+  de mundo (1000, 500) **THEN** `ponto_mira` = (1000, 500) **AND** com gamepad,
+  analógico direito na zona morta e um inimigo em (900, 500) no raio, `ponto_mira`
+  = (900, 500) **AND** com o analógico direito ativo, `ponto_mira` é vazio.
+- **AC-46 [I] Edge — arquivo de binds sem `troca`.** **GIVEN** um
+  `input_binds.cfg` antigo sem `troca` e com R atribuído ao `especial` no teclado
+  **WHEN** o jogo carrega **THEN** `troca` recebe Tab (primeiro livre), o
+  `especial` mantém R **AND** `INPUT_ACAO_NOVA` aparece uma vez na sessão **AND**
+  `rotulo_acao("troca", teclado)` devolve "Tab".
+- **AC-47 [L] rótulo da Troca.** Com os binds padrão, `rotulo_acao("troca",
+  teclado)` devolve "R" e `rotulo_acao("troca", gamepad)` o glifo de LT; com a
+  Troca remapeada para G, a consulta seguinte devolve "G".
+
 Fora do escopo: "a Esquiva sempre responde" (P3) é critério do GDD de
 Movimento. Aqui só se garantem o AC-16 e o AC-18. Cobertura: R1–R13 e F1–F5 têm
 pelo menos um critério cada. AC-35 e AC-36 entraram na revisão de 2026-11-06.
@@ -893,3 +1023,6 @@ cross-review de 2026-11-06 entrou o AC-38.
 | 8 | O RNG (UI Requirements, campo de seed) diz que o campo é "usável por teclado e gamepad"; aqui o gamepad só navega até ele e não digita (R10 Texto). Alinhar o texto do RNG | game-designer | Próxima revisão do GDD de RNG |
 | 9 | ~~`ui_*` durante o passe de morte~~ **Resolvida (2026-11-13):** não valem; o Menu só abre na tela final (Edge Cases, States, AC-40) | — | — |
 | 10 | Trava de 500 ms / 300 ms contra escolha acidental (Art Bible §7.6) | ux-designer | GDD da Tela de bênção |
+| 11 | **(emenda Pactos, 2026-11-15)** Bind padrão da `troca`: R / Tab e LT (R1a), em vez de Q / Tab e LB da Maldições OQ1, que colidem com o `selo`. Alternativa: LB na Troca e o `selo` só com B | usuário | aprovação da emenda |
+| 12 | **(emenda Pactos, 2026-11-15)** Campo `ponto_mira` (R1b) e salto ao alcance máximo com analógico. Alternativa: escalar a distância pela `intensidade_mira` | usuário + game-designer | aprovação da emenda |
+| 13 | **(emenda Pactos, 2026-11-15)** Chave nova `INPUT_ACAO_NOVA` e lista de binds livres para ação nova em arquivo antigo (Edge Cases) | usuário | aprovação da emenda |

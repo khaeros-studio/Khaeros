@@ -1,8 +1,8 @@
 # HUD
 
-> **Status**: Approved (2026-11-11; revisão única por subagente: 7 bloqueantes e recomendadas, corrigidos sem re-review; sem entrada no review log)
+> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — 2026-11-15: Bloco do Pacto (R15–R19, F8, Tuning, Edge Cases, Dependencies, AC-HD-38 a 47), aguardando aprovação do usuário. Histórico anterior: Approved (2026-11-11; revisão única por subagente: 7 bloqueantes e recomendadas, corrigidos sem re-review; sem entrada no review log)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-11
+> **Last Updated**: 2026-11-15 (emenda Pactos: Bloco do Pacto); 2026-11-11
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P3 *Reflexo que se lê*; P4
 
@@ -72,6 +72,7 @@ A regra "nada no retângulo central de 60% × 70%" vale **só para os elementos 
 | Fio de Vida do inimigo | no mundo, sob os pés | Vida atual e máxima do inimigo, primeiro golpe (Combate) | sim |
 | Prompt de interação | no mundo, acima da porta | porta interagível (Câmaras R13), glifo do botão (Input) | sim |
 | Barra de chefe | topo, centro, ~960 px | Vida e fases do chefe (Chefes) | reservado |
+| Bloco do Pacto (emenda Pactos, 2026-11-15) | inferior esquerdo, **acima** do grupo do jogador (R15) | estado da dupla, Vida, Pronta/Exausta, recarga da Troca, `troca_indisponivel` (Maldições); rótulo `rotulo_acao("troca", dispositivo)` (Input) | sim, só com Pactos |
 
 O grupo inferior esquerdo (~420 × 110 px) tem **placa de tinta ≥ 92%** própria. Não há
 lista de bênçãos, progresso de câmara, minimapa nem telégrafos no HUD.
@@ -156,6 +157,105 @@ contorno).
 **R14. Injeção e dados.** Ao ser criado (inclusive recriado na Transição) o HUD lê o estado atual por consultas (`saldo()`, Vida, Fluxo, cargas, `tomadas()` da Bênçãos para a marca do Fundo do Poço), nunca só por eventos. O HUD recebe as **fontes por interface de leitura** (R2) e o
 `HudTuning` (Tuning Knobs); os testes montam fontes falsas e verificam a cena sem jogo.
 
+#### Bloco do Pacto (emenda Pactos, 2026-11-15)
+
+Pedido por Maldições (UI Requirements, R9, R10, R11). Mostra a dupla de Maldições:
+*quem está lutando comigo, quanto ela aguenta e se posso trocar agora*. Segue R1
+(só lê), R13 (escala, forma e valor) e R14 (estado inicial por consulta).
+
+**R15. Visibilidade e posição.**
+
+- **Só aparece com Pactos:** a run com a Doutrina de Pactos e ≥ 1 Maldição na
+  dupla (Maldições R2). Sem Pactos, ou Pactos sem Maldição, o bloco **não existe
+  na cena** (como a barra de chefe, R11) e nenhuma fonte é exigida.
+- **Posição a 1920 × 1080 / 100%:** placa própria de tinta ≥ 92%, **332 × 88
+  px**, ancorada na borda esquerda (x = 48, a margem segura) e **12 px acima do
+  topo da placa do grupo do jogador**. Com o grupo padrão (~420 × 110, de y 922
+  a 1032), o bloco vai de **x 48 a 380** e de **y 822 a 910**.
+- **Por que acima e não ao lado (decisão própria):** o retângulo central de
+  60% × 70% vai de x 384 a 1536 e de y 162 a 918. A faixa de baixo (y > 918) é
+  do grupo, cuja barra de Vida cresce para a direita até 480 px com Vigor (F2).
+  A faixa da esquerda (x < 384) tem 336 px livres acima do grupo: o bloco cabe
+  nela com 4 px de folga e nunca disputa espaço com a barra que cresce. Fica
+  também junto do ícone do Selo e da gota de Fluxo, na mesma coluna de leitura
+  (Maldições UI Requirements: "junto à arma e ao Selo").
+- **Ancoragem dinâmica:** o bloco segue o **topo da placa do grupo**, não um y
+  fixo. Se o grupo crescer para cima (barra em duas linhas a 150%, OQ 3), o
+  bloco sobe junto e mantém os 12 px (× escala).
+- **Escala:** a R13 multiplica medidas e intervalo. A 125% e 150% o bloco pode
+  passar de x 384 (exceção já aceita na R2 para o grupo inferior). A 150% em
+  1280 × 720: grupo ~165 px + 18 + bloco 132 px = 315 px de altura a partir da
+  margem, cabe.
+
+**R16. Layout interno** (medidas a 100%, origem no canto superior esquerdo da
+placa, preenchimento de 8 px):
+
+| Peça | Posição (x, y) | Tamanho | O que mostra |
+|---|---|---|---|
+| Slot de Campo | (8, 8) | 72 × 72, moldura chanfrada | silhueta da espécie em campo, em osso |
+| Vida de Campo | (88, 12) | barra 132 × 12 | Vida inteira da Maldição em campo (F8), segmentos de `vida_por_segmento` |
+| Número de Vida de Campo | (88, 30) | texto 20 px | "88/110"; segue a opção 8 (número de Vida), como a R3 |
+| Marca de Saltando | (88, 56) | ícone 20 × 20 | arco em osso; aceso só no estado Saltando |
+| Slot de Reserva | (236, 12) | 56 × 56, moldura chanfrada | silhueta da 2ª espécie; anel de recuperação por fora (4 px) |
+| Vida de Reserva | (236, 72) | barra 56 × 6 | Vida inteira da reserva, subindo na regeneração |
+| Selo da Troca | (296, 44) | 28 × 28, encostado ao canto inferior direito do Slot de Reserva | glifo de `rotulo_acao("troca", dispositivo)` e o setor da recarga |
+
+O Slot de Reserva é menor que o de Campo (56 contra 72): o tamanho diz quem
+luta agora. As duas silhuetas seguem a Art Bible §3.3 (Tinta e Osso, sem
+Magenta, ML-V1).
+
+**R17. Estados das peças** (cada um por **forma**, nunca só por cor, R13):
+
+- **Campo, Ativa:** silhueta cheia. **Saltando:** silhueta cheia e a Marca de
+  Saltando acesa.
+- **Campo, vazio** (as duas Exaustas, Maldições R9): o Slot de Campo mostra a
+  Maldição que volta primeiro (menor `restante_exausta`; empate: a que ficou
+  Exausta primeiro, Maldições Edge Cases) só em **contorno**, com o anel de
+  recuperação por fora, e a barra de Vida de Campo vazia. A outra fica no Slot
+  de Reserva, também em contorno com anel.
+- **Reserva, Pronta:** silhueta cheia; a barra de Vida sobe com a regeneração
+  (Maldições R10, F2).
+- **Reserva, Exausta:** silhueta só em **contorno** (dissolvida), e o **anel de
+  recuperação** por fora do slot enche no sentido horário pela fração da F8.
+  Ao ficar Pronta: o anel some e a silhueta volta cheia num preenchimento de
+  0,25 s (com redução de movimento: troca direta).
+- **Recarga da Troca:** um **setor escuro** cobre o Selo da Troca e recua no
+  sentido horário até sumir (F8), como o "Em recarga" do Selo (R6). O glifo fica
+  legível por cima do setor.
+- **Troca disponível** (reserva Pronta, recarga 0, Maldição em campo e fora do
+  salto: as condições da Maldições R11): o Selo da Troca fica **cheio** (glifo
+  sobre fundo osso). Em qualquer outro caso, só **contorno**. O HUD não decide
+  as condições: lê o booleano `troca_disponivel` da fonte.
+- **Sem reserva** (dupla de 1): Slot de Reserva, Vida de Reserva e Selo da
+  Troca **não aparecem**; a placa encolhe para 228 × 88.
+
+**R18. Eventos.**
+
+- **`troca_indisponivel`** (Maldições R11): o Slot de Reserva e o Selo da Troca
+  **sacodem** `pacto_tremor_px` (4 px, horizontal) por `pacto_tremor_s` (0,15
+  s), **uma vez por evento** (o evento já sai uma vez por toque novo, como
+  `esquiva_sem_carga` e `selo_sem_fluxo`). Um evento novo durante a sacudida a
+  reinicia, sem somar amplitude. Com **redução de movimento** (opção 5), a
+  sacudida vira um **pulso do contorno** do Selo da Troca (borda de 2 para 3 px
+  por 0,15 s), sem deslocamento. O som (~~`maldicao_recusa`~~ `sfx_maldicao_recusa`, emenda Pactos, 2026-11-15) é do Feedback.
+- **Troca feita** (manual ou automática): os dois slots trocam de conteúdo no
+  passo do evento (≤ 1 passo). Sem animação de cruzar no MVP **[a confirmar]**:
+  a resposta de peso é do Feedback (técnica combinada), não do HUD.
+- **Dano na Maldição em campo:** a barra de Vida de Campo cai no passo (≤ 1
+  passo), sem rachar segmento (o racho é da Vida do jogador, R3, para não
+  competir com ela). Sem número flutuante (Feedback R6).
+
+**R19. Fonte e injeção.** O bloco recebe uma **interface de leitura** do GDD de
+Maldições (contrato pedido a Maldições): `estado_pacto()` devolve
+`{campo, reserva, recarga_troca_passos, recarga_troca_total, troca_disponivel}`,
+em que `campo` e `reserva` são vazios ou
+`{especie_id, vida, vida_max, estado, restante_exausta, total_exausta}` e
+`estado` ∈ {Ativa, Saltando, Pronta, Exausta}; e os eventos `troca_indisponivel`
+e `troca_feita(manual|automatica)`. Ao ser criado ou recriado (Transição), o
+bloco lê `estado_pacto()` (R14), nunca só eventos. O rótulo vem de
+`rotulo_acao("troca", dispositivo)` do Input e troca no passo seguinte à troca
+de dispositivo, como o glifo do Selo (R10).
+
 ### States and Transitions
 
 Sem máquina de estados própria. Cada elemento tem estados locais que seguem a fonte:
@@ -180,6 +280,7 @@ Vida **normal ↔ baixa** (R4, com histerese); Fluxo **pronto / sem Fluxo / em r
 | Pipeline visual | camada de UI, fonte, orçamento de draw calls | — | Pipeline |
 | Feedback de combate (VFX) | — | divisão de elementos (R2) | Feedback |
 | Chefes (reservado) | Vida e fases do chefe | — | Chefes |
+| Maldições (emenda Pactos, 2026-11-15) | `estado_pacto()`, `troca_indisponivel`, `troca_feita` | — | Maldições |
 
 ## Formulas
 
@@ -218,6 +319,23 @@ depois, +3 → "+5" por mais 1,5 s.
 visível por `fio_visivel_s` (2 s = 120 passos) após o **último** dano. Ex.: Vida 12/40:
 fio a 30%.
 
+**F8. Bloco do Pacto (emenda Pactos, 2026-11-15).**
+
+- **Vida da Maldição:** a barra usa a F1 com a `vida_max` da espécie (Vida
+  inteira, Maldições R8) e **largura fixa** (132 px no campo, 56 na reserva):
+  `segmento_px'' = (largura − 2 × (n_seg − 1)) / n_seg`, intervalo de 2 px no
+  campo; na reserva, barra contínua sem segmentos (56 px não comportam 14).
+  Ex.: Baluarte 135 → 14 segmentos de (132 − 26) / 14 = 7,6 px; Vida 68/135 → 6
+  cheios e o 7º a 0,8.
+- **Anel de recuperação:** `fracao_anel = 1 − restante_exausta / total_exausta`,
+  com `total_exausta` lido da fonte (600 passos; 480 no *Soberano do Limiar*,
+  Passiva 2 do catálogo de Maldições), nunca 600 fixo. Ex.: 210 restantes de
+  600 → 0,65.
+- **Setor da Troca:** `fracao_setor = recarga_troca_passos / recarga_troca_total`
+  (240 no MVP, `recarga_troca_s` 4,0 s). Ex.: 90 de 240 → 0,375 coberto.
+- Todos limitados a [0, 1]; denominador 0 (dado inválido) vale fração 0, sem
+  erro, porque a validação é do Conteúdo (Maldições ML2).
+
 ## Tuning Knobs
 
 `HudTuning` (tipo no Conteúdo desde a R1 de lá, dono: HUD; edição aplicada). `margem_segura_px` (48) e `barra_max_frac` (0,25) seguem a Art Bible §7.8: mexer neles exige emenda dela. Constantes fixas (não são knobs): 0,25 s de racha e cura, 60% da pausa, 3 pontos de recusa, 99 999 do "+N".
@@ -238,6 +356,14 @@ fio a 30%.
 | `esquiva_tremor_ms` | 80 | 0–200 | feel | tremor em `esquiva_sem_carga` |
 | `fade_estado_s` | 0,25 | 0,1–0,3 | feel | fade do HUD em Transição |
 | `margem_segura_px` | 48 | 32–64 | gate | margem segura |
+| `pacto_tremor_px` (emenda Pactos, 2026-11-15) | 4 | 0–8 | feel | amplitude da sacudida em `troca_indisponivel` (Maldições UI Requirements) |
+| `pacto_tremor_s` (emenda Pactos, 2026-11-15) | 0,15 | 0,05–0,30 | feel | duração da sacudida (Maldições UI Requirements) |
+| `pacto_intervalo_px` (emenda Pactos, 2026-11-15) | 12 | 8–24 | gate | distância entre o topo do grupo e o Bloco do Pacto (R15) |
+
+**Emenda Pactos (2026-11-15):** o `HudTuning` passa a 17 campos; contrato pedido
+ao Conteúdo para os códigos HU15 `pacto_tremor_px`, HU16 `pacto_tremor_s` e HU17
+`pacto_intervalo_px`, no mesmo texto dos demais. Os tamanhos das peças (R16) são
+constantes de layout da spec de UX, não knobs.
 
 **Códigos de validação (decisão 2026-11-13; prefixo HU, hospedado na R9 do Conteúdo).** Um erro por campo de `HudTuning` fora da faixa da tabela acima, na ordem da tabela: HU1 `vida_por_segmento`, HU2 `segmento_px`, HU3 `barra_max_frac`, HU4 `vida_baixa_pct`, HU5 `vida_baixa_histerese`, HU6 `vinheta_max_borda`, HU7 `vinheta_opacidade_max`, HU8 `janela_ganho_s`, HU9 `fio_visivel_s`, HU10 `largura_fio`, HU11 `fio_elite_escala`, HU12 `esquiva_tremor_ms`, HU13 `fade_estado_s`, HU14 `margem_segura_px`. Texto: `HudTuning: <campo> <valor> fora da faixa <min>–<max>`.
 
@@ -276,6 +402,32 @@ fio a 30%.
 - **Run encerrada (morte):** o HUD some na tela final; a vinheta fecha só com a morte
   (Art Bible §2.8), não antes.
 
+**Bloco do Pacto (emenda Pactos, 2026-11-15)**
+
+- **Troca automática por Exaustão no mesmo passo de um `troca_indisponivel`:** os
+  slots trocam (R18) e a sacudida corre sobre o novo conteúdo; nada se perde.
+- **Toque de Troca bufferizado que sai depois da recarga:** nenhuma sacudida extra;
+  só o evento da Maldições conta (um por toque novo).
+- **Maldição em campo Exausta com a reserva já Exausta:** o Slot de Campo mostra a
+  que volta primeiro em contorno (R17); quando ela volta, entra em campo e a silhueta
+  fica cheia no mesmo passo.
+- **Vida 0 no passo:** a barra de Campo vai a 0 e, no mesmo passo, a troca automática
+  troca os slots; nunca aparece uma barra vazia em silhueta cheia.
+- **Bênção aberta:** o bloco fica visível com o grupo (R12); Pausa: esmaecido a 60%;
+  Transição: fade com o resto, e o estado é relido ao recriar (R19).
+- **Troca de câmara:** Vida, estados e recargas continuam (Maldições R14); o bloco
+  recriado mostra os mesmos valores, sem animação.
+- **Troca de dispositivo:** o glifo do Selo da Troca troca no passo seguinte.
+- **Rótulo longo (bind "Tab", glifo de LT):** o glifo cabe em 28 × 28 com fonte de
+  14 px; rótulo com mais de 3 caracteres vira o glifo genérico de tecla com as 3
+  primeiras letras **[a confirmar]**.
+- **Alto contraste (opção 10):** placa 100%, molduras dos slots de 3 px, anel e
+  setor em osso puro sobre tinta.
+- **Vida colorida (opção 9):** vale só para a Vida do jogador; as barras das
+  Maldições continuam em osso, para nunca serem confundidas com a do jogador.
+- **Espécie sem silhueta de HUD (dado faltando):** moldura com o contorno genérico de
+  Maldição e aviso no log; o bloco segue.
+
 ## Dependencies
 
 | Sistema | Direção | Natureza | Interface |
@@ -295,6 +447,8 @@ fio a 30%.
 | Chefes (reservado) | entra | reservada | Vida e fases do chefe (R11) |
 | Feedback de combate (VFX) | sai | divisão | o HUD não mostra números de dano nem "Quebrou!" |
 | Tela de bênção e carta | entra | leitura | `preco_revelado`, `tela_fechada`; o HUD recebe (não compartilham elementos; o HUD esconde fios e prompt na oferta e os reexibe em `tela_fechada`) |
+| Maldições (emenda Pactos, 2026-11-15) | entra | leitura (por contrato) | `estado_pacto()`, `troca_indisponivel`, `troca_feita` (R19). Maldições lista o HUD em "Depended On By" (HUD e Feedback, Suave, por contrato) |
+| Input e controle (emenda Pactos, 2026-11-15) | entra | leitura | `rotulo_acao("troca", dispositivo)` |
 
 Nenhum sistema depende do HUD para **rodar**; sem ele o jogo funciona, só sem
 interface.
@@ -313,6 +467,11 @@ interface.
 - **Fragmentos:** acende por 1,5 s ao ganhar, com som de moeda leve.
 - **Sons:** `jogador_atingido` e `recusou_morte` são do Áudio/Feedback; o HUD só dispara
   a animação.
+- **Bloco do Pacto (emenda Pactos, 2026-11-15):** silhuetas em osso sobre tinta, sem
+  magenta (Maldições ML-V1; a gota de Fluxo segue a única cor do grupo); anel de
+  recuperação e setor da Troca em osso; nenhum som próprio (`maldicao_recusa`,
+  `maldicao_pronta` são ganchos do Feedback). Silhueta de HUD por espécie: asset novo,
+  pedido ao art-director (OQ 11).
 
 ## Game Feel
 
@@ -326,6 +485,8 @@ interface.
 ## UI Requirements
 
 - **Grupo inferior esquerdo** (Vida, Fluxo, Esquiva) com placa de tinta ≥ 92%.
+- **Bloco do Pacto** (emenda Pactos, 2026-11-15): placa própria ≥ 92%, acima do grupo
+  (R15–R19); entra na spec de UX do HUD (`design/ux/hud.md`).
 - **Opções do HUD** (menu de opções, outro GDD de UX): escala de UI, número de Vida,
   Vida colorida, alto contraste, vinheta, fonte.
 - Todas as medidas a 1920 × 1080 / 100%; a 150% o grupo cabe em 1280 × 720 (R13).
@@ -339,6 +500,9 @@ interface.
 - Art Bible §7.1, §7.4, §7.8, §7.9; Combate "UI Requirements" e V10/V11; Movimento "UI
   Requirements" e V5; Selo "UI Requirements"; Economia R8, F1; Câmaras R12 e R13; Run R7/R12.
 - Índice: linha 28.
+- Emenda Pactos (2026-11-15): `design/gdd/maldicoes.md` (R8–R11, R14, UI Requirements,
+  ML-V1, catálogo: Passiva 2 do *Soberano do Limiar*); `design/gdd/input-e-controle.md`
+  (R1a, `rotulo_acao("troca")`).
 
 ## Acceptance Criteria
 
@@ -382,6 +546,19 @@ Tipos: [L] lógica (unitário, fontes falsas), [I] integração, [V] visual (scr
 - **AC-HD-34 [V] R2 — ancoragem em ultrawide (provisório).** Screenshot a 2560 × 1080 a 100%: Vida, Fluxo, Esquiva e Fragmentos ancorados nas bordas do viewport (margem de 48 px), e nenhum elemento de tela dentro do retângulo central de 60% × 70% do quadro de 1920 × 1080 centralizado.
 - **AC-HD-35 [L] R3 — `preco_revelado`.** Bênção com preço em Vida: o número e o preenchimento da Vida mudam no quadro de `escolher`; nenhum segmento racha antes de `preco_revelado`; ao receber `preco_revelado` a animação de rachar começa (0,25 s); o traço dourado da confirmação voa para o grupo inferior (Vida).
 - **AC-HD-36 [L] R12 — `tela_fechada`.** Com a Bênção aberta, fios e prompt ficam ocultos; em `tela_fechada` fios (com a janela de `fio_visivel_s` ainda válida) e o prompt (se a porta continua interagível) voltam a aparecer no mesmo passo; sem `tela_fechada`, não voltam.
+**Bloco do Pacto (emenda Pactos, 2026-11-15)**
+
+- **AC-HD-38 [L] R15 — existência.** Run sem Pactos, ou Pactos com dupla vazia: o bloco não existe na cena e nenhum erro por fonte ausente; Pactos com 1 Maldição: Slot de Campo e Vida, sem Slot de Reserva nem Selo da Troca, placa de 228 × 88.
+- **AC-HD-39 [L] R15 — posição.** Grupo padrão de y 922 a 1032: o bloco ocupa x 48–380 e y 822–910 a 100%; com o topo do grupo movido para y 880, o bloco vai a y 780–868 (intervalo de 12 px mantido).
+- **AC-HD-40 [L] F8 — Vida.** Baluarte em campo com 68/135: 14 segmentos, 6 cheios, o 7º a 0,8, número "68/135"; com a opção 8 desligada, sem número.
+- **AC-HD-41 [L] F8/R17 — Exausta.** Reserva Exausta com `restante_exausta` 210 de 600: silhueta em contorno, anel a 0,65; *Soberano do Limiar* com 240 de 480: anel a 0,50; ao ficar Pronta, o anel some e a silhueta volta cheia.
+- **AC-HD-42 [L] F8/R17 — recarga da Troca.** `recarga_troca_passos` 90 de 240: setor a 0,375 e Selo da Troca em contorno; recarga 0, reserva Pronta e campo Ativa (`troca_disponivel` verdadeiro): Selo cheio, sem setor; campo Saltando (`troca_disponivel` falso): Selo em contorno.
+- **AC-HD-43 [L] R18 — recusa.** Um `troca_indisponivel`: uma sacudida de 4 px por 0,15 s do Slot de Reserva e do Selo; segurar o botão (sem evento novo) não sacode de novo; dois eventos em 0,1 s: a sacudida reinicia sem passar de 4 px; com redução de movimento: pulso do contorno, deslocamento 0.
+- **AC-HD-44 [L] R18 — troca.** `troca_feita(automatica)` com Vida 0 em campo: no mesmo passo o Slot de Campo mostra a antiga reserva e o Slot de Reserva a Exausta em contorno com anel 0.
+- **AC-HD-45 [L] R17 — duas Exaustas.** Campo vazio, Exaustas com 300 e 120 restantes de 600: o Slot de Campo mostra a de 120 em contorno (anel 0,80) e o de Reserva a de 300 (anel 0,50).
+- **AC-HD-46 [L] R19 — rótulo e estado inicial.** Recriar o HUD na Transição com a dupla em (Ativa 60/95; Exausta 210/600) e recarga 90: os valores aparecem sem evento; binds padrão: o Selo mostra "R" no teclado e o glifo de LT no gamepad; trocar de dispositivo troca o glifo no passo seguinte.
+- **AC-HD-47 [V] R15 — layout com Pactos.** Screenshot a 1920 × 1080 / 100% com o bloco, Vida 100, Fluxo e 3 chevrons: nenhum elemento de tela no retângulo central de 60% × 70%, margem de 48 px, as duas placas ≥ 92% e sem sobreposição entre bloco e grupo; repetido com Vida 150 (barra de 480 px): o bloco não se move nem sobrepõe; repetido a 1280 × 720 / 150%: os dois cabem na tela.
+
 - **AC-HD-37 [L] Validação — faixa do `HudTuning`.** Um `HudTuning` com `margem_segura_px` 70 gera o erro HU14; com `vinheta_opacidade_max` 0,50, HU7; com `vida_por_segmento` 4, HU1; o dado de fábrica não gera nenhum HU; cada um dos 14 campos fora da faixa gera só o código do seu campo (HU1 a HU14).
 
 ## Open Questions
@@ -397,4 +574,6 @@ Tipos: [L] lógica (unitário, fontes falsas), [I] integração, [V] visual (scr
 | 7 | Tela final e tela de início (resumo da Run) | UX / Run OQ 4 | `/ux-design` |
 | 9 | A vinheta de Vida baixa fica na camada de pós da Cena (z 50); o plano de contingência "abaixo de telégrafos e personagens" é possível sem criar 12ª camada? | Cena 3/4 | `/review-all-gdds` |
 | 10 | Ancoragem em ultrawide (R2, regra provisória): confirmar bordas do viewport e quadro central de 1920 × 1080 (AC-HD-34) | Cena / art-director | `/ux-design` do HUD |
+| 11 | **(emenda Pactos, 2026-11-15)** Silhuetas de HUD das 4 espécies (72 e 56 px), desenho do anel e do setor, e se a troca de slots ganha animação de cruzar (R18) | art-director + ux-designer | `/ux-design` do HUD |
+| 12 | **(emenda Pactos, 2026-11-15)** Contratos: Maldições expõe `estado_pacto()`, `troca_disponivel` e `troca_feita(manual\|automatica)` (R19); Conteúdo registra HU15–HU17 | Maldições, Conteúdo | aprovação da emenda |
 | 8 | Contratos: Câmaras (tirar "número da câmara"), Selo (tirar "número de Fluxo" ou pedir opção à Art Bible), Combate (fio e prompt são do HUD), Art Bible §7.8 (exceção do retângulo central a 125%/150%) | Câmaras, Selo, Combate, art-director | `/review-all-gdds` |

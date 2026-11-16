@@ -1,8 +1,8 @@
 # Modificadores e atributos
 
-> **Status**: Approved (2026-11-09: nota da exceção de `cura_ao_abater` com o jogador morto, R13, e piso 1 na Vida da recusa de morte, R13, alinhado ao Combate núcleo R13/F10 com aval do usuário; re-review 2026-11-08, lean: APPROVED, 0 bloqueantes — confirmou os warnings da 1ª e da 2ª passada do `/review-all-gdds` de 2026-11-06 aplicados aqui: C-W1, C-W5, C-I1, OQ6 fechada, dependentes Câmaras e ondas e Chefes, Cross-References; esta re-review não tem entrada no `reviews/modificadores-e-atributos-review-log.md`, por escolha do usuário)
+> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — histórico anterior: Approved (2026-11-09: nota da exceção de `cura_ao_abater` com o jogador morto, R13, e piso 1 na Vida da recusa de morte, R13, alinhado ao Combate núcleo R13/F10 com aval do usuário; re-review 2026-11-08, lean: APPROVED, 0 bloqueantes — confirmou os warnings da 1ª e da 2ª passada do `/review-all-gdds` de 2026-11-06 aplicados aqui: C-W1, C-W5, C-I1, OQ6 fechada, dependentes Câmaras e ondas e Chefes, Cross-References; esta re-review não tem entrada no `reviews/modificadores-e-atributos-review-log.md`, por escolha do usuário)
 > **Author**: usuário + Claude (design-system)
-> **Last Updated**: 2026-11-06 (tokens de forma em PT na R12, AC-29 com arma de fábrica, V11 e `ModifiersTuning` citados do Conteúdo; 2ª passada do cross-review: Câmaras e ondas e Chefes como dependentes, Cross-References)
+> **Last Updated**: 2026-11-16 (alinhamento da emenda Pactos: R14 criação do portador no meio da run, States, AC-40); 2026-11-15 (emenda Pactos: Overview, R2, `ModifiersTuning`, R3, R12, R14, F6, States, Interactions, Edge Cases, Dependencies, AC-33–AC-39, OQ7); antes, 2026-11-06 (tokens de forma em PT na R12, AC-29 com arma de fábrica, V11 e `ModifiersTuning` citados do Conteúdo; 2ª passada do cross-review: Câmaras e ondas e Chefes como dependentes, Cross-References)
 > **Last Verified**: 2026-11-08
 > **Implements Pillar**: P1 *Toda bênção é uma filosofia* (bênçãos como dado; só os 8 gatilhos têm executor próprio); P2 *A Beira cobra* (preços visíveis)
 > **Creative Director Review (CD-GDD-ALIGN)**: pulada (modo Lean)
@@ -27,6 +27,10 @@ registrados aqui e executados pelos sistemas donos.
 da Oficina, status e regras de elite mudam números de combate. Todo
 **portador** (jogador, inimigos, elites, chefes e, no Alpha, a criatura do pacto)
 tem **atributos**:
+
+> (emenda Pactos, 2026-11-15) A criatura do pacto entra **no MVP**: as
+> **Maldições** (`maldicoes.md` R1) são portadores desde o MVP, um por Maldição
+> da dupla. Regras na R14 e na F6.
 
 - Vida máxima;
 - velocidade;
@@ -89,6 +93,15 @@ reescreveriam os mesmos números de jeitos diferentes.
 | `raio` | `EnemyDef` | > 0 | Combate (colisão) |
 | `fator_empurrao` | 1 (multiplica o empurrão recebido) | 0 – 1 | Combate |
 
+(emenda Pactos, 2026-11-15) **Portador da Maldição:** usa `vida_max` (base
+`CurseDef.vida_max`, piso `piso_vida_maldicao`), `velocidade` (base
+`CurseDef.velocidade`), `dano_todo` (acumulador; sem slot, como inimigo),
+`reducao_dano` (base 0; a passiva da espécie entra como fonte, R14) e `raio`
+(base `CurseDef.raio_px`). Não usa `dano_ataque`, `dano_especial`, `dano_selo`,
+`cargas_esquiva`, `escudo_sala`, `trocas_oferta`, `recusas_morte` nem
+`fator_empurrao` (a Maldição não recebe empurrão, Combate R19). Nenhum atributo
+novo foi criado.
+
 Os pisos e tetos ficam no `ModifiersTuning`. Um atributo novo entra nesta tabela
 antes de ser usado. Os atributos de dano não passam pela F1: somar os grupos e
 multiplicá-los, como (1 + todo) × (1 + slot), daria ~18% acima do cânone. São
@@ -108,6 +121,9 @@ grupo do **Ataque** (R12), como no cânone, e o Traço Único também os aumenta
 | `teto_reducao_dano` | 0,6 | 0 – 0,9 | teto de `reducao_dano` (F3) |
 | `teto_multiplicador_dano` | 4,0 (provisório) | 2–8 | teto do M efetivo da F2 (`min(M, teto)`); M 14,08 → 4,0; DPS máx. de Armas F1 ≈ 66,47 × 4 = 265,9; `/balance-check` confirma antes da fatia vertical |
 | `fator_empurrao_chefe` | 0,12 | 0 – 1 | multiplicador de `fator_empurrao` da fonte `chefe` (R10) |
+| `piso_vida_maldicao` (emenda Pactos, 2026-11-15) | 20 | 1 – 100 | piso de `vida_max` do portador da Maldição (F1); igual ao limite do ML2 de `maldicoes.md` |
+| `tipos_propagados_maldicao` (emenda Pactos, 2026-11-15) | [`dano_todo_pct`, `velocidade_pct`] **[a confirmar]** | subconjunto de {`dano_todo_pct`, `velocidade_pct`} | tipos de efeito do jogador que viram espelho nos portadores das Maldições (R14, F6) |
+| `fator_propagacao_maldicao` (emenda Pactos, 2026-11-15) | 1,0 | 0 – 1 | fração do valor do jogador copiada para o espelho (F6); alavanca de balanço da Doutrina de Pactos |
 
 **R3. Modificador.** Um modificador tem:
 
@@ -115,6 +131,8 @@ grupo do **Ataque** (R12), como no cânone, e o Traço Único também os aumenta
 - **operação**: `plano`, `percentual` ou `multiplicador`;
 - **valor**: já escalado pela raridade (Conteúdo R1);
 - **fonte**: id da bênção, melhoria, status, elite, chefe ou profundidade;
+  (emenda Pactos, 2026-11-15) e, no portador da Maldição, `vinculo`, `especie`
+  e `espelho` (R14);
 - **duração**: permanente na run, ou um número **inteiro de passos** de física
   (o dado em segundos é convertido pelo F7 do Conteúdo);
 - **condição**, opcional (R4). Só modificadores de `dano_todo` podem ter
@@ -263,6 +281,8 @@ de percentual usa, quando M (F2) é avaliado e quais condicionais valem:
 | Explosão ao abater | — (sem M) | — | — | — | — |
 | Refletir dano | — (sem M) | — | — | — | — |
 | Inimigo / chefe | `dano_todo` (elite, Abalo) | golpe direto: no impacto; projétil: **no disparo** | — | — | — |
+| Maldição (ataque básico, Efeitos de Saída e Entrada, ~~Chamado~~) (emenda Pactos, 2026-11-15) | `dano_todo` do portador da Maldição (sem slot) | no impacto (Combate R20) | não | não | não (não conta acerto) |
+| Pouso do Chamado (emenda Pactos, 2026-11-15; Combate R3.1) | grupo Especial do jogador (`M_chamado`) | **no disparo** (congelado) | — | — | não (não conta acerto) |
 
 Regra única para **golpe de arma** (corpo a corpo, área, investida, projétil):
 P_todo, P_slot, `vida_abaixo` e `apos_esquiva` entram em M **no disparo**; só
@@ -304,6 +324,76 @@ do mapa de ids do Conteúdo (R2). O dado só guarda esses tokens.
 - **`selo_abala`:** inimigos dentro do Selo recebem a fonte única de Abalo
   (R5) com `duracao_s`, renovada a cada passo dentro do Selo.
 
+**R14. Portador da Maldição** (emenda Pactos, 2026-11-15; `maldicoes.md` R1, R3,
+R6, R8, OQ3).
+
+- **Quando:** cada Maldição da dupla tem o seu portador, criado no começo da run
+  com a base do `CurseDef` (R2) e limpo no fim da run. Ele **não** some na
+  Exaustão nem na reserva: Vida máxima, fontes e durações continuam. As durações
+  só descontam em passo vivo (R6), na reserva também.
+- **Criação no meio da run** (emenda Pactos, 2026-11-15; `maldicoes.md`
+  R17–R24, em especial R24, e `vinculo-e-pactos.md` V15): com dupla de 1, um
+  pacto feito no encontro da run põe a nova Maldição na **reserva** (`Pronta`).
+  O portador dela nasce **no passo do pacto**, com a mesma montagem do começo
+  da run: base do `CurseDef` (R2) + fonte `vinculo:<curse_id>` (nível do
+  pacto recém-feito) + fonte `especie:<curse_id>` + um espelho de **cada**
+  modificador do jogador ativo nesse passo cujo tipo está em
+  `tipos_propagados_maldicao` (F6), com a **duração restante** da fonte
+  original. Daí em diante segue as regras deste item como qualquer portador da
+  dupla e é limpo no fim da run. Com a dupla cheia (2), nenhum portador novo
+  nasce na run. O pacto com o chefe não cria portador na run (a espécie não
+  entra na dupla desta run, `vinculo-e-pactos.md` V18).
+- **Recursos:** a Vida atual da Maldição é recurso das Maldições (escrita pelo
+  Combate só no dano, Combate R21). Começo da run: Vida = `vida_max` (R9).
+  Portador criado no meio da run: Vida = `min(Vida_acuada, vida_max)`, escrita
+  pelas Maldições (`maldicoes.md` R24), não pela regra do começo da run.
+- **Três fontes novas, só neste portador:**
+  - **`vinculo`** (id `vinculo:<curse_id>`): contrato genérico para o GDD de
+    Vínculo e pactos. Aplicada no começo da run, permanente na run, escala 1
+    (sem raridade de bênção). Pode citar qualquer atributo da lista do portador
+    da Maldição (R2, emenda) com qualquer operação. Os valores e a curva são do
+    GDD de Vínculo; este GDD não os define. Sem o GDD de Vínculo, a fonte não
+    existe e nada muda;
+  - **`especie`** (id `especie:<curse_id>`): passivas permanentes da espécie,
+    aplicadas no começo da run. Ex.: *Carapaça Ancorada* = `reducao_dano` plano
+    0,15. Passivas condicionais em atributo que não é `dano_todo` (ex.: *Faro do
+    Vínculo*, `velocidade` +15% ao perseguir a marca) não usam condição (R3):
+    as Maldições aplicam e removem por código uma fonte `especie:<curse_id>:<passiva>`
+    quando o estado muda (R6, R7);
+  - **`espelho`** (id `espelho:<fonte_original>`): a propagação do jogador
+    (abaixo).
+- **Propagação do jogador (resposta à OQ3 de `maldicoes.md`)** **[a
+  confirmar]**: todo modificador do portador do jogador cujo **tipo de efeito**
+  está em `tipos_propagados_maldicao` ganha um espelho em **cada** portador de
+  Maldição da dupla, com o valor da F6, a mesma operação e a mesma duração. O
+  espelho nasce e some junto com a fonte original (aplicar, remover, expirar,
+  substituir). Vale para qualquer origem (bênção ou Oficina).
+  - **`dano_todo_pct` propaga** (hipótese de `maldicoes.md` confirmada): a
+    Maldição faz ~40% do dano da Doutrina (`maldicoes.md` F6). Sem propagar, o
+    "+% em todo dano" das Tradições subiria só os ~60% da Besta, e o TTK de
+    Pactos se afastaria da Lâmina e da Ressonância ao longo da run (paridade de
+    Armas AV2, `maldicoes.md` ML8).
+  - **`velocidade_pct` propaga** (escolha deste GDD): a Maldição segue o
+    jogador pelo fio (`maldicoes.md` R5, F1). Um jogador +24% mais rápido
+    (382,5 → 474,3 px/s) deixaria o *Baluarte* (360 px/s) estourando o fio a
+    cada recuo. Propagar mantém a razão de velocidades em que a F1 foi provada.
+  - **Não propagam:** `dano_ataque_pct`, `dano_especial_pct`, `dano_selo_pct`
+    (a Maldição não tem slot); `dano_vida_baixa_pct`, `dano_enesimo_acerto`,
+    `dano_apos_esquiva` (as condições leem a Vida, o contador e a janela do
+    jogador, que não existem na Maldição); `vida_max_plano` e `reducao_dano`
+    (a resistência da Maldição é calibrada na `maldicoes.md` F7 e o Preço com
+    Nome não deve tirar Vida dela); `cargas_esquiva`, `escudo_sala`,
+    `trocas_oferta`, `recusas_morte` (atributos que ela não usa); e **nenhum
+    gatilho**. `cura_ao_abater` e `explosao_ao_abater` já valem para os abates
+    dela porque o abate é do dono (Combate R14); `golpe_*` exigem golpe de arma;
+    `refletir_dano`, `corte_da_esquiva` e `selo_abala` são do jogador.
+- **Status:** no MVP a Maldição não recebe status (`maldicoes.md` R8), então
+  nenhuma fonte de status entra neste portador. O Abalo do **inimigo** reduz o
+  dano que ele causa à Maldição pelo M dele (F2, F3).
+- **Consulta:** `valor`, `multiplicador_de_dano` (sem slot, como inimigo: só
+  `P_todo` e os multiplicadores, F2) e `gatilhos` (sempre vazio no MVP), como
+  qualquer portador (R11).
+
 ### States and Transitions
 
 | Estado do modificador | Entra quando | Sai para |
@@ -313,6 +403,11 @@ do mapa de ids do Conteúdo (R2). O dado só guarda esses tokens.
 
 O portador do jogador nasce no começo da run (base da arma + Oficina) e é limpo
 no fim. O portador de inimigo nasce no spawn e some na morte.
+(emenda Pactos, 2026-11-15) O portador da Maldição nasce no começo da run (base
+do `CurseDef` + `vinculo` + `especie` + espelhos do que o jogador já tem) e é
+limpo no fim; Exaustão, reserva e troca de câmara não o mexem (R14). Com dupla
+de 1, o portador da Maldição pactuada no encontro nasce no passo do pacto, com
+a mesma montagem e os espelhos ativos nesse passo (R14, criação no meio da run).
 
 ### Interactions with Other Systems
 
@@ -327,6 +422,8 @@ no fim. O portador de inimigo nasce no spawn e some na morte.
 | Selo e Fluxo | `dano_selo`, gatilho `selo_abala` | — | este GDD |
 | IA / Câmaras e ondas | — | fontes `elite` e `profundidade` | este GDD |
 | Tela de bênção / HUD | lista de fontes por atributo ("de onde vem") | — | UI |
+| Maldições (emenda Pactos, 2026-11-15) | portadores da dupla (`valor(vida_max)`, `valor(velocidade)`, `valor(reducao_dano)`, `valor(raio)`, M sem slot) | aplica/remove a fonte `especie` (passivas condicionais por código) | este GDD |
+| Vínculo e pactos (emenda Pactos, 2026-11-15) | — | fonte `vinculo:<curse_id>` no começo da run | este GDD (contrato), Vínculo (valores) |
 
 ## Formulas
 
@@ -480,6 +577,41 @@ The rarity_scaled_value formula is defined as:
 Fantasma 10; Matéria Residual 12; Fardo Repartido 3) entram no `valor` do dado,
 como o GDD de Conteúdo já define. Gravar 1 no lugar de 0,5 dobraria o efeito.
 
+### F6. Valor espelhado no portador da Maldição (emenda Pactos, 2026-11-15)
+
+The curse_mirrored_value formula is defined as:
+
+`valor_espelho = (tipo ∈ tipos_propagados_maldicao) ? valor_fonte × fator_propagacao_maldicao : —` ;
+depois, no portador da Maldição, `M_maldicao = min(max(0, 1 + P_todo_m) × Π mult_m, teto_multiplicador_dano)` (F2 sem slot) e
+`velocidade_m = valor(velocidade)` (F1)
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `valor_fonte` | float | qualquer sinal (já escalado pela F5) | calculated | valor do modificador no portador do jogador |
+| `fator_propagacao_maldicao` | float | `0–1` (MVP `1,0`) | data file (`ModifiersTuning`) | fração copiada; `0` desliga a propagação sem mexer na lista |
+| `tipos_propagados_maldicao` | lista | subconjunto de {`dano_todo_pct`, `velocidade_pct`} | data file (`ModifiersTuning`) | tipos que propagam (R14) |
+| `valor_espelho` | float | `[min(0, valor_fonte), max(0, valor_fonte)]` | calculated | valor do espelho, mesma operação da fonte |
+| `P_todo_m` | float | `≥ −1` | calculated | Σ % de `dano_todo` do portador da Maldição (espelhos + `vinculo` + `especie`) |
+| `Π mult_m` | float | `≥ 0` | calculated | multiplicadores de `dano_todo` da Maldição (nenhum no MVP sem Vínculo) |
+| `M_maldicao` | float | `0–4,0` | calculated | M dos golpes da Maldição (Combate R20) |
+
+**Output Range:** `valor_espelho` fica entre 0 e `valor_fonte` (nunca maior que o
+do jogador). `M_maldicao` em `[0; 4,0]` pelo `max(0, …)` e pelo teto da F2. Uma
+fonte negativa de `dano_todo_pct` (nenhuma no MVP) também propagaria e reduziria
+o M da Maldição, com piso 0.
+
+**Example:**
+
+- Preço com Nome Comum (+0,20 `dano_todo`) e Ímpeto nível 3 (+0,15 `dano_todo`)
+  no jogador: o *Vulto Mudo* recebe os dois espelhos, `P_todo_m = 0,35`,
+  `M_maldicao = 1,35`, e o *Gume de Penumbra* tira `10 × 1,35 = 13,5`. O Traço
+  Único (+25% Ataque) e o Fundo do Poço (+40% com Vida baixa) do mesmo exemplo
+  da F2 não propagam.
+- Fio Invisível Épico (+0,24 `velocidade`): *Baluarte* `360 × 1,24 = 446,4 px/s`;
+  jogador `382,5 × 1,24 = 474,3 px/s`; a razão `0,94` é a mesma da base.
+- Com `fator_propagacao_maldicao = 0,5`: Preço com Nome dá `+0,10` à Maldição.
+
 ### Divergências deliberadas do cânone
 
 | Ponto | Cânone | Este GDD | Por quê |
@@ -554,6 +686,29 @@ como o GDD de Conteúdo já define. Gravar 1 no lugar de 0,5 dobraria o efeito.
   Vida acompanha o novo máximo (F4), e o jogador perde 10 de Vida atual, nunca
   morre.
 
+**Maldições** (emenda Pactos, 2026-11-15)
+
+- **Se o jogador pegar uma bênção de `dano_todo_pct` com uma Maldição Exausta na
+  reserva:** o espelho entra nos dois portadores da dupla na hora, inclusive no
+  da Exausta (R14).
+- **Se a bênção espelhada for trocada ou removida:** o espelho sai junto
+  (`espelho:<fonte>` segue a fonte; R6 idempotente).
+- **Se a mesma fonte do jogador for reaplicada:** o espelho é substituído, sem
+  somar (como a fonte, Edge Cases de Fontes).
+- **Se o Preço com Nome tirar 10 de `vida_max` do jogador:** a Maldição não perde
+  nada (`vida_max_plano` não propaga).
+- **Se o GDD de Vínculo citar um atributo fora da lista do portador da Maldição**
+  (ex.: `cargas_esquiva`): a validação do Conteúdo recusa (como a R2: atributo
+  novo entra na tabela antes de ser usado).
+- **Se a Maldição ficar Exausta com uma passiva condicional ativa** (*Faro do
+  Vínculo*): as Maldições removem a fonte ao sair de campo; se não removerem, a
+  passiva vale em campo de novo sem efeito na reserva, que não anda.
+- **Se o jogador tiver só 1 Maldição pactuada:** existe um só portador de
+  Maldição; com 0, nenhum, e a propagação não faz nada.
+- **Se `fator_propagacao_maldicao` = 0:** nenhum espelho tem efeito; a lista de
+  fontes por atributo mostra o espelho com valor 0 (ou o UI o esconde; dono:
+  HUD).
+
 ## Dependencies
 
 **Depende de (upstream)**
@@ -577,6 +732,8 @@ como o GDD de Conteúdo já define. Gravar 1 no lugar de 0,5 dobraria o efeito.
 | Câmaras e ondas | Suave | fonte `profundidade` (R10); a fórmula do ganho é da IA |
 | Chefes (fatia vertical) | Suave | fonte `chefe` (R10, `fator_empurrao_chefe`) |
 | Tela de bênção / HUD | Suave | lista de fontes por atributo ("de onde vem") |
+| Maldições (emenda Pactos, 2026-11-15) | Forte | portador da Maldição (R14), F1, F2 sem slot, F3, fonte `especie`, espelhos (F6) |
+| Vínculo e pactos (emenda Pactos, 2026-11-15) | Suave | contrato da fonte `vinculo:<curse_id>` (R14) |
 
 **Bidirecionalidade:** Movimento, Combate, Armas, Selo, Status, Bênçãos e
 Oficina já citam "Modificadores e atributos" no índice. IA de inimigos e elites
@@ -584,6 +741,10 @@ passa a citá-lo (decisão do usuário, 2026-11-05). Câmaras e ondas e Chefes
 passam a citá-lo no índice (2ª passada do cross-review, 2026-11-06). Nenhum desses GDDs existe;
 cada um, ao ser escrito, deve listar "Modificadores e atributos" em
 Dependencies.
+(emenda Pactos, 2026-11-15) `maldicoes.md` já lista "Modificadores e atributos
+(Forte)" em Depends On. O GDD de Vínculo e pactos, ao ser escrito, deve listar
+este GDD pela fonte `vinculo`. O Combate núcleo (R16, R20, R21) passa a ler os
+portadores das Maldições.
 
 ## Visual/Audio Requirements
 
@@ -780,8 +941,48 @@ escolha na hora.
   - **Falha:** a mensagem nomeia a Tradição ou melhoria, a raridade ou nível e
     o campo.
 
+**Portador da Maldição (emenda Pactos, 2026-11-15)**
+
+- **AC-33 [L] R14** GIVEN o `CurseDef` do *Baluarte* (`vida_max` 135,
+  `velocidade` 360, `raio_px` 30) e a passiva *Carapaça Ancorada*, WHEN o
+  portador é criado, THEN `valor(vida_max)` 135 (int), `valor(velocidade)` 360,
+  `valor(raio)` 30, `valor(reducao_dano)` 0,15 com fonte `especie:baluarte_de_cinza`,
+  `multiplicador_de_dano` 1,0 sem slot e `gatilhos` vazio.
+- **AC-34 [L] R14/F6** GIVEN o jogador com Preço com Nome Comum (+0,20
+  `dano_todo`, −10 `vida_max`) e Ímpeto nível 3 (+0,15), WHEN o *Vulto Mudo*
+  recebe os espelhos, THEN M 1,35, `vida_max` 110 (não muda) e as fontes
+  `espelho:<preço>` e `espelho:<ímpeto>` na lista; remover o Preço com Nome do
+  jogador → M 1,15 na consulta seguinte.
+- **AC-35 [L] R14** GIVEN o jogador com Traço Único (+25% Ataque), Fundo do Poço
+  (Vida 40/100), Linha Contada e Penumbra com o contexto verdadeiro, WHEN se
+  consulta o M da Maldição, THEN 1,0 (nada disso propaga); `cura_ao_abater` e
+  `refletir_dano` não aparecem em `gatilhos` da Maldição.
+- **AC-36 [L] F6** GIVEN Fio Invisível Épico no jogador, WHEN se consulta a
+  velocidade, THEN *Baluarte* 446,4 e jogador 474,3; com
+  `fator_propagacao_maldicao` 0,5, *Baluarte* 403,2; com
+  `tipos_propagados_maldicao` = [`dano_todo_pct`], 360.
+- **AC-37 [L] F6/F2** GIVEN espelhos que somariam `P_todo_m` 4,5, WHEN se
+  consulta o M, THEN 4,0 (teto); com `P_todo_m` −1,5, 0.
+- **AC-38 [L] R14** GIVEN uma fonte `vinculo:vulto_mudo` de +10 `vida_max`
+  plano, WHEN o portador nasce, THEN `vida_max` 120 e Vida 120; uma fonte
+  `vinculo` com `cargas_esquiva` → recusada pela validação; `vida_max` base 15 →
+  piso 20.
+- **AC-39 [L] R14/R6** GIVEN um portador de Maldição com um espelho de 120
+  passos, WHEN ela fica Exausta e vai à reserva e correm 60 passos vivos e 30 de
+  hitstop, THEN o espelho segue com 60 restantes (o portador não foi recriado e
+  o hitstop não desconta).
+- **AC-40 [L] R14 (criação no meio da run, emenda Pactos, 2026-11-15)** GIVEN
+  dupla de 1 e o jogador com Preço com Nome Comum (+0,20 `dano_todo_pct`,
+  permanente) e uma fonte de `velocidade_pct` com 120 passos restantes, WHEN um
+  pacto com o *Baluarte* (Vida da acuada 50) é feito no passo `n`, THEN no passo
+  `n` existe um portador novo com `vida_max` 135, Vida 50, a fonte `especie`
+  (`reducao_dano` 0,15), a fonte `vinculo`, um espelho de `dano_todo_pct` e um
+  de `velocidade_pct` com 120 restantes; com a dupla cheia, o mesmo pacto não
+  cria portador.
+
 Cobertura: R1–R13 e F1–F5 têm pelo menos um critério cada (o consumo da janela
-pós-esquiva fica no GDD de Combate).
+pós-esquiva fica no GDD de Combate). (emenda Pactos, 2026-11-15) R14 AC-33–AC-35,
+AC-38, AC-39, AC-40; F6 AC-34, AC-36, AC-37.
 
 ## Open Questions
 
@@ -793,3 +994,4 @@ pós-esquiva fica no GDD de Combate).
 | 4 | A guarda do Guardião (× 0,5) deve virar modificador temporário em vez de regra do Combate? Hoje é regra do Combate (F3) | game-designer | GDD de Armas das Doutrinas (fatia vertical) |
 | 5 | Script `tools/canon-parity/` que gera `tests/fixtures/modifiers/paridade_canon.gd` (AC-32) | tools-programmer | Antes da primeira story deste sistema |
 | 6 | ~~Pedidos ao GDD de Conteúdo: incluir `ModifiersTuning` na R1 e a checagem nova de params divergentes entre fontes do mesmo tipo~~ **Resolvida em 2026-11-06:** o Conteúdo lista o `ModifiersTuning` (pisos, tetos, `fator_empurrao_chefe`) na tabela de `*Tuning` da R1, em Interactions e em Dependencies, e criou a **V11** (params iguais entre todos os `EffectDef` do mesmo tipo de efeito, de bênçãos ou de melhorias), coberta pela AC-50 do Conteúdo. A referência "R8", os nomes finais, o empurrão em px/s e o campo `reducao_dano_causado` do Abalo já tinham sido acertados lá | — | ✅ |
+| 7 | (emenda Pactos, 2026-11-15) Confirmar a resposta à OQ3 de `maldicoes.md`: propagam `dano_todo_pct` (hipótese deles) e `velocidade_pct` (escolha deste GDD), com `fator_propagacao_maldicao` 1,0; nenhum gatilho propaga. Risco a medir no `/balance-check`: Tradições de slot (Traço Único) sobem só a Besta (~60% do dano), então a Doutrina de Pactos ganha menos com elas que a Lâmina | usuário + systems-designer | aprovação da emenda; `/balance-check` antes da fatia de Pactos |

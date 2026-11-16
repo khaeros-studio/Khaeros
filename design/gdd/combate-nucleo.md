@@ -1,8 +1,8 @@
 # Combate núcleo
 
-> **Status**: Approved (2026-11-11, Efeitos de status: o número de dano de status é o agregado da R8 deles; 2026-11-10, Selo e Fluxo: a Transição também apaga os Selos (R1, item 3); o dano do Selo usa o caminho silencioso da R8 e sai da lista de origens do `acerto` na R17, decisão do usuário; 2026-11-10, correções de contrato do `/review-all-gdds` 3ª passada, mantido Approved por decisão do usuário: C-B2, durações visuais no `CombatTuning` e nos eventos; S-B1, estado Transição no orquestrador; S-B2, câmara limpa só com hitstop 0; S-W5, hitstop parado fora de Jogo. 2026-11-10: exemplos do Pulso alinhados ao empurrão 540 do GDD de Armas, com aval do usuário, sem mudar regra; `/design-review` 2026-11-09, lean, por subagentes: NEEDS REVISION — 3 bloqueantes nas regras e 8 nos critérios, revisados; re-review 2026-11-09: regras APPROVED, critérios com 2 correções de uma linha aplicadas, e as recomendadas das duas re-reviews aplicadas na mesma data; aprovado pelo usuário)
+> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — histórico anterior: Approved (2026-11-11, Efeitos de status: o número de dano de status é o agregado da R8 deles; 2026-11-10, Selo e Fluxo: a Transição também apaga os Selos (R1, item 3); o dano do Selo usa o caminho silencioso da R8 e sai da lista de origens do `acerto` na R17, decisão do usuário; 2026-11-10, correções de contrato do `/review-all-gdds` 3ª passada, mantido Approved por decisão do usuário: C-B2, durações visuais no `CombatTuning` e nos eventos; S-B1, estado Transição no orquestrador; S-B2, câmara limpa só com hitstop 0; S-W5, hitstop parado fora de Jogo. 2026-11-10: exemplos do Pulso alinhados ao empurrão 540 do GDD de Armas, com aval do usuário, sem mudar regra; `/design-review` 2026-11-09, lean, por subagentes: NEEDS REVISION — 3 bloqueantes nas regras e 8 nos critérios, revisados; re-review 2026-11-09: regras APPROVED, critérios com 2 correções de uma linha aplicadas, e as recomendadas das duas re-reviews aplicadas na mesma data; aprovado pelo usuário)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-10 (cross-review: R1, R10, R15, R17, V1, V6, V10–V12, CV22, AC-10, AC-78, AC-95–AC-97, OQ11)
+> **Last Updated**: 2026-11-15 (emenda Pactos, encontro de pacto: R25 `ferir_acuada`, F13, R1, R7, R10, States, Interactions, Edge Cases "Acuada", Dependencies, AC-113–AC-119, OQ15; contrato V44 de `vinculo-e-pactos.md`); 2026-11-15 (emenda Pactos: R1 item 6.1, R3.1 forma `chamado`, AC-112, R7, R8, R10, R14, R16, R17, R19–R24, F12, States, Interactions, Edge Cases, Dependencies, AC-98–AC-111, OQ12–OQ14); antes, 2026-11-10 (cross-review: R1, R10, R15, R17, V1, V6, V10–V12, CV22, AC-10, AC-78, AC-95–AC-97, OQ11)
 > **Last Verified**: 2026-11-09
 > **Implements Pillar**: P3 *Reflexo que se lê* (hitstop, buffer, cancelamento; baseline §55)
 
@@ -13,6 +13,22 @@
 > **Nota (2026-11-11, Telemetria local):** pendente: `jogador_atingido` com `atacante_tipo` e `ataque_id` e a causa no `jogador_morreu` (a Telemetria grava `causa: null` sem eles).
 
 > **Nota (2026-11-11, revisão cruzada):** duração da inversão no passo da recusa e relógio de `area` **decididos em 2026-11-13** (V1, V10; Feedback R12 e tabela R3). (Resolvidos em 2026-11-12: V14 remetente único, linhas de `jogador_morreu` e `acerto_de_arma` na R17, Dependencies.)
+
+> **Nota (2026-11-15, emenda Pactos):** este GDD recebe as Maldições
+> (`maldicoes.md` R1, R6–R10, R13–R15) como combatentes da facção do jogador e o
+> estado `Subjugado` do chefe (`chefes.md` R8, R9, F6). Regras novas: R19–R24 e
+> F12, e a forma `chamado` do Especial da Besta (R3.1, pedido de Armas); ajustes
+> marcados "(emenda Pactos, 2026-11-15)" na R1, R7, R8, R10, R14, R16 e R17.
+> Nada do texto aprovado foi removido. Pontos **[a confirmar]** pelo usuário:
+> lugar das Maldições na ordem do passo (R1 item 6.1, R23), Exaustão síncrona
+> (R21), `peso_visual` do golpe da Maldição (R17), M do Chamado e Chamado sem
+> recuperação (R3.1), abate e `cura_ao_abater` do chefe só no Exorcizar (R24).
+>
+> **(emenda Pactos, 2026-11-15) Encontro de pacto:** a Maldição **acuada**
+> (`vinculo-e-pactos.md` V7, V8, V12, contrato V44) entra pela R25 e pela F13:
+> `ferir_acuada`, sem fogo amigo, sem hitstop, sem número de dano, e a falha do
+> encontro avisada ao Vínculo no mesmo ponto do passo. **[a confirmar]**: a
+> assinatura com `m_atacante` (R25) e o nome `falhar_encontro()` (R25.6).
 
 ## Summary
 
@@ -89,6 +105,10 @@ Sem este sistema, não existe luta: só movimento.
 4. Movimento (Movimento R3).
 5. **Combate, golpe do jogador** (R3): investida em curso e disparo.
 6. Selo (GDD de Selo e Fluxo).
+   6.1. **Maldições** (emenda Pactos, 2026-11-15; dono: `maldicoes.md`): troca,
+   técnica, salto do Chamado, movimento e ataque das Maldições, e contadores da
+   reserva. Os golpes delas entram no impacto pela R20. Ordem e motivo: R23
+   **[a confirmar]**.
 7. Inimigos, um por vez, na ordem estável da lista: Status (dano por passo),
    **Combate, impacto** (R12), IA (comportamento).
 8. **Combate, projéteis** (R7).
@@ -97,6 +117,14 @@ Sem este sistema, não existe luta: só movimento.
 
 Os itens 3, 5, 7, 8 e 9 são deste GDD. A ordem dos outros é dos donos; este GDD
 só exige que o 3 venha antes do Movimento e o 5 depois dele.
+(emenda Pactos, 2026-11-15) O item 6.1 é das Maldições. Este GDD exige só que
+ele venha depois do 5 e antes do 7 (R23).
+(emenda Pactos, 2026-11-15; encontro de pacto) A acuada não ganha item próprio:
+ela não anda nem ataca (Vínculo V7). O dano nela entra pela R25 nos itens 7
+(golpe de inimigo) e 8 (projétil inimigo). A falha (Vida ≤ 0) é avisada ao
+Vínculo ali mesmo, **antes** da varredura (9) e das Câmaras (10). Por isso, se a
+acuada e o último inimigo caem no mesmo passo, a câmara limpa já sem encontro
+(Vínculo, Edge Cases; Câmaras, Edge Cases).
 
 **Estados de jogo do orquestrador** (cross-review 2026-11-10, S-B1 e S-W5). O
 orquestrador só executa a R1 no estado **Jogo**. Fora dele (pausa, Bênção,
@@ -179,6 +207,33 @@ Ao disparar, no mesmo passo e nesta ordem:
    recuperação" = recuperação > 0 (Movimento R4). A esquiva a cancela.
 8. **Forma** (R4–R6), que testa os alvos e aplica o impacto (R8).
 
+**R3.1. Forma `chamado`** (emenda Pactos, 2026-11-15; pedido de
+`armas-das-doutrinas.md`, emenda da Besta do Vínculo; `maldicoes.md` R13, F4).
+Forma do Especial da Besta (*Chamado do Pacto*). Params do `AttackDef`: `dano`,
+`recarga_s`. A geometria do salto e do pouso é do `MaldicoesTuning`.
+
+- **Recusa antes do disparo:** quando o Especial passaria no teste de disparo da
+  R3 e a forma é `chamado`, o Combate consulta as Maldições. Sem Maldição em
+  campo, ou com ela `Saltando`, o Especial **não dispara**: a recarga não é
+  gasta, o combo e a janela `apos_esquiva` não mudam, o toque sai do buffer e o
+  evento `chamado_indisponivel` sai uma vez por toque novo (segurar não repete o
+  evento, como `esquiva_sem_carga`). O teste do Ataque segue no mesmo passo,
+  porque a recusa não é disparo.
+- **No disparo**, os itens 1–4 da R3 valem (sem combo; a recarga passa a
+  `passos(recarga_s)`). A forma **não gera hitbox do jogador** e não testa alvos
+  no item 5. Ela pede às Maldições o salto até o ponto mirado
+  (`pedir_chamado(player_id, ponto_mirado, dano_golpe, M_chamado)`), que corre no
+  item 6.1 (R23) e aplica o golpe do pouso pela R20.
+- **M do Chamado:** `M_chamado` = o `M_sem` do jogador no grupo **Especial**,
+  congelado no disparo (R3.2), sem 4º acerto (não conta acerto)
+  **[a confirmar]**: assim as bênçãos de Especial valem para o Chamado.
+- **Sem recuperação** (item 7) e sem guarda: o jogador não golpeia
+  **[a confirmar]**. Sem finalizador (sem combo).
+- **Hitstop:** nenhum no disparo nem no pouso (R10, linha do golpe de Maldição).
+- Evento `chamado` (posição do jogador, ponto mirado) no disparo. A forma
+  `chamado` só é válida no slot Especial (contrato pedido ao Conteúdo: validação
+  de forma por slot).
+
 **R4. Forma `arco` (corpo a corpo).** Params: `alcance_px`, `meio_angulo_graus`
 (Conteúdo F5).
 
@@ -260,6 +315,16 @@ do jogador ao inimigo. Evento `area`; hitstop como no arco. Sem passo de apoio.
   velocidade_pxs, raio_px, vida_s, dano_base, M_disparo, atravessa)`, que emite
   `disparo` com dono "inimigo". Se o jogador está invulnerável, o projétil **atravessa e continua**
   (cânone).
+- **De inimigo, com alvo** (emenda Pactos, 2026-11-15): o projétil de inimigo
+  guarda o **alvo** do disparo (jogador por padrão, ou a Maldição que o atraiu)
+  e só testa esse alvo. Contra a Maldição: `distância ≤ raio_px + raio_maldicao`
+  chama `ferir_maldicao` (R21). Regras completas na R22.
+- **De inimigo, com alvo `acuada`** (emenda Pactos, 2026-11-15; Vínculo V8): o
+  campo `alvo` ganha o valor `acuada`. Só testa a acuada:
+  `distância ≤ raio_px + raio_acuada` com `acuada_atingivel()` verdadeira chama
+  `ferir_acuada` (R25) e o projétil some (ou continua, se `atravessa`, sem
+  atingir a acuada de novo). Com a acuada fora do estado `Acuada` (`Fugiu`), o
+  projétil voa até sumir sem ferir ninguém e não troca de alvo.
 
 **R8. Impacto em inimigo** (`ferir_inimigo`). Usado pelas formas, pelo Corte da
 esquiva, pela parede, pela explosão e pelo reflexo. Entrada: alvo, dano ou
@@ -293,6 +358,12 @@ esquiva, pela parede, pela explosão e pelo reflexo. Entrada: alvo, dano ou
 O dano por passo do Status e do Selo (Selo e Fluxo R3) chama o impacto com `de_status`: só os itens 1 e 3
 (atingível e Vida), sem evento `acerto`, sem empurrão, sem cambaleio e sem
 hitstop (cânone).
+
+(emenda Pactos, 2026-11-15) O golpe de Maldição entra na R8 pelo pedido
+`aplicar_golpe_maldicao` (R20), com `de_arma` falso e o `pesado` do ataque. O
+item 2 não roda. Os itens 3 a 8 rodam como em qualquer impacto sem arma. A
+entrada ganha o campo `autor_player_id` (o dono da Maldição), usado na
+varredura (R14). A R8 nunca fere uma Maldição: o dano nela é a R21.
 
 **R9. Atingível.** Um inimigo é atingível se não está surgindo (a duração é da
 IA) e tem Vida > 0. É a mesma lista que o Movimento recebe para o Corte e o
@@ -335,6 +406,10 @@ Input usa na mira (consulta de alvos da IA).
 | Jogador atingido | `hitstop_atingido_s` (6) | `HITSTOP_HURT` |
 | Recusa de morte | `hitstop_recusa_s` (18; vale o maior sobre o de atingido) | — (divergência: o cânone usava 6) |
 | Corte da esquiva, refletir, dano do Selo, dano de status, explosão | nenhum (o abate, se houver, cobre) | — |
+| Golpe de Maldição (ataque básico, Efeitos de Saída e Entrada, pouso do Chamado) (emenda Pactos, 2026-11-15) | nenhum (o abate, se houver, cobre) | — |
+| Maldição atingida; Maldição Exausta (emenda Pactos, 2026-11-15) | nenhum | — |
+| Abate feito por Maldição (emenda Pactos, 2026-11-15) | o do abate (comum, elite ou chefe), como do jogador | — |
+| Acuada atingida; acuada cai (falha do encontro) (emenda Pactos, 2026-11-15; R25) | nenhum | — |
 
 **R11. Impacto na parede** (item 7 da R1, dentro do impacto do inimigo):
 
@@ -407,6 +482,22 @@ ser a mesma forma (P3).
 - **Se o jogador morreu neste passo:** o resto do passo roda (hitstop, explosões,
   eventos), sem cura; o orquestrador para os passos vivos a partir do seguinte
   (o Input sai de Jogo).
+- **Autor do abate** (emenda Pactos, 2026-11-15): `inimigo_morreu` leva
+  `autor_player_id`, o jogador cujo dano levou a Vida a ≤ 0. Dano de Maldição
+  tem como autor o **dono** dela (`maldicoes.md` R6). Por isso o abate feito por
+  Maldição conta como do jogador: contagem + 1, hitstop de abate, `cura_ao_abater`
+  e `explosao_ao_abater` do portador do dono, sem exceção.
+- **Lacaios do chefe** (emenda Pactos, 2026-11-15; contrato pedido por
+  `chefes.md` R8, revisão B2): um inimigo com a marca `invocado_pelo_chefe` cuja
+  Vida foi zerada pela queda do chefe (o item "se o morto é chefe" acima, ou a
+  subjugação da R24) sai da lista **sem** contagem de abate, **sem**
+  `cura_ao_abater`, **sem** `explosao_ao_abater` e sem hitstop próprio. Ele ainda
+  emite `inimigo_morreu` com `limpo_pelo_chefe = verdadeiro`, para o VFX. Um lacaio
+  morto por dano do jogador ou da Maldição durante a luta conta e dispara
+  `ao_abater` normalmente.
+- **Chefe com Doutrina de Pactos** (emenda Pactos, 2026-11-15): o chefe marcado
+  `subjugavel` (R24) com Vida ≤ 0 **não sai da lista**. A varredura o processa uma
+  vez só, pela R24, e nos passes e passos seguintes o ignora.
 
 **R15. `CombatTuning`** (dado; Conteúdo R1). Valores em segundos, convertidos
 pelo F7 do Conteúdo; px e px/s pela F2/F4. As faixas serão conferidas no
@@ -463,6 +554,11 @@ estado da IA (surgindo, em preparação, em execução) e comportamento (elite,
 chefe), a geometria da câmara e a consulta "em combate" das Câmaras (R13.1), o
 `CombatTuning` e os `AttackDef` da arma. Os
 testes montam tudo em memória.
+(emenda Pactos, 2026-11-15) Também por injeção: os portadores das Maldições da
+dupla (Modificadores R14), a interface das Maldições (consulta
+`maldicao_atingivel(curse_id)`, posição e raio da Maldição em campo, a Vida dela
+e o pedido síncrono `exaurir(curse_id)`), o alvo de cada inimigo (IA: jogador ou
+`curse_id`) e o pedido `subjugar(id)` à IA (R24).
 
 **R17. Eventos e recursos do jogador.** `peso_visual` do `acerto` é resolvido
 pelo Combate:
@@ -499,6 +595,18 @@ testes os montam pela fixture. Campos dos eventos:
 | `explosao` | posição, `raio_px` |
 | `acerto_de_arma` | alvo, slot, `enesimo_acerto`, pesado (o Selo soma Fluxo; o Status aplica `golpe_*`; só golpes de arma) |
 | `jogador_morreu` | `causa` (pedido pela Telemetria: `atacante_tipo` e `ataque_id` do último `jogador_atingido`; `null` se faltarem) |
+| `maldicao_atingida` (emenda Pactos, 2026-11-15) | `player_id` do dono, `curse_id`, dano, Vida nova, direção do atacante à Maldição (projétil: voo), `atacante_id`, `ataque_id` |
+| `maldicao_exausta` (emenda Pactos, 2026-11-15) | `player_id` do dono, `curse_id`, posição, `atacante_id`, `ataque_id` |
+| `chamado` (emenda Pactos, 2026-11-15) | `player_id`, posição do jogador, ponto mirado (R3.1) |
+| `chamado_indisponivel` (emenda Pactos, 2026-11-15) | `player_id`, motivo (`sem_maldicao` / `saltando`) (R3.1) |
+| `chefe_vencido` (emenda Pactos, 2026-11-15) | alvo, posição, `subjugado` (verdadeiro em Pactos), `autor_player_id`, `impact_passos` = passos(`impact_chefe_s`) |
+
+(emenda Pactos, 2026-11-15) Campos novos nos eventos existentes: `acerto` sem
+arma ganha a origem `maldicao` (slot "nenhum", forma `maldicao`); `inimigo_morreu`
+ganha `autor_player_id` (R14) e `limpo_pelo_chefe` (lacaio zerado pela queda do
+chefe). O `peso_visual` do `acerto` de origem `maldicao` é **pesado** se o
+impacto é pesado pela R8.4 e **leve** nos outros casos **[a confirmar]** (o
+Baluarte e o Pulso de Soberania, com empurrão 900, ficam pesados).
 
 **R18. Pedidos do Movimento** (contrato da OQ2 do Movimento), síncronos:
 
@@ -514,6 +622,179 @@ testes os montam pela fixture. Campos dos eventos:
   `apos_esquiva` passa a `passos(janela_s)` (o param é único por tipo, V11 do
   Conteúdo). Uma esquiva nova reinicia a janela inteira (cânone `empowerTicks`).
   Sem o gatilho, nada. A janela desconta na R2 e fecha no disparo (R3).
+
+**R19. Facção do jogador: Maldições** (emenda Pactos, 2026-11-15; `maldicoes.md`
+R1). A Maldição é um combatente da facção do jogador, ligado ao `player_id` do
+dono, e é um portador (Modificadores R14).
+
+- Ela **não** entra na lista de inimigos nem na de atingíveis (R9). Nenhuma
+  forma, projétil, Corte, parede, explosão, reflexo, Selo ou status do jogador a
+  testa: **sem fogo amigo**.
+- Ela não conta na "câmara limpa" (a lista de inimigos é a mesma de antes).
+- O Combate só a toca por três caminhos: o golpe dela (R20), o dano nela (R21) e
+  o alvo dos golpes de inimigo (R22).
+- **Atingível** para inimigos: a consulta `maldicao_atingivel(curse_id)` das
+  Maldições é verdadeira só com a Maldição em campo, Vida > 0 e fora do estado
+  `Saltando` (`maldicoes.md` Edge Cases: imune no salto). Na reserva ela nunca é
+  atingível (`maldicoes.md` R10).
+
+**R20. Golpe da Maldição** (`aplicar_golpe_maldicao`; emenda Pactos, 2026-11-15;
+`maldicoes.md` R6, R12, R13). Pedido síncrono das Maldições, no item 6.1.
+Entrada: `player_id` do dono, `curse_id`, alvo, `dano_golpe`, `M_maldicao`,
+direção, empurrão, status, `pesado`, `ataque_id`.
+
+1. A geometria (arco, círculo, avanço, pouso do Chamado) é das Maldições e usa a
+   `GeometriaDeAcerto` (ADR-0010 §9) contra a lista de atingíveis da R9.
+2. Para cada alvo atingido, chama a R8 com dano `dano_golpe × M_maldicao`,
+   `de_arma` falso, o `pesado` do ataque e `autor_player_id` = dono.
+3. Por isso: o contador de acertos não sobe, não há `acerto_de_arma` (sem Fluxo,
+   sem `golpe_*`) e o 4º acerto não se aplica.
+4. **Não pede hitstop** (R10). O abate que ele causar pede o hitstop de abate na
+   varredura.
+5. Empurrão, cambaleio, "Quebrou!" (R8.4, R8.7, com a armadura de elite e chefe)
+   e status do ataque valem como em qualquer impacto.
+6. `M_maldicao` é a F2 do Modificadores no portador da Maldição, sem slot, com o
+   teto `teto_multiplicador_dano`. É calculado no impacto (golpe direto).
+   Exceção: o pouso do Chamado usa o `M_chamado` do jogador, congelado no
+   disparo (R3.1) **[a confirmar]**.
+7. Evento `acerto` com slot "nenhum" e forma `maldicao` (R17).
+
+**R21. Dano na Maldição** (`ferir_maldicao(curse_id, dano_base, m_atacante,
+atacante_id, ataque_id)`; emenda Pactos, 2026-11-15; `maldicoes.md` R8, R9).
+Chamado pela IA, pelos Telégrafos, pelos Chefes (`chefes.md` R12) e pelos
+projéteis (R22).
+
+1. Nada acontece se `maldicao_atingivel(curse_id)` é falsa ou se o jogador dono
+   está fora de combate (a mesma consulta da R13.1).
+2. `dano` pela F12 (F3 do Modificadores, sem guarda e sem escudo).
+3. Vida da Maldição −= `dano`. A Vida é inteira. O Combate só escreve a Vida da
+   Maldição aqui; regeneração e retorno são das Maldições (`maldicoes.md` F2).
+4. **Sem invulnerabilidade pós-dano** e **sem hitstop de atingido**: dois golpes
+   no mesmo passo ferem os dois.
+5. Sem reflexo, sem recusa de morte, sem escudo e sem guarda: esses gatilhos e
+   recursos são do jogador.
+6. Evento `maldicao_atingida`.
+7. **Exaustão:** com Vida ≤ 0, a Vida fica 0, o Combate chama `exaurir(curse_id)`
+   nas Maldições **no mesmo ponto do passo** e emite `maldicao_exausta`. Não é
+   morte do jogador: nada de `jogador_morreu`, nenhum estado de jogo muda. A
+   troca automática e o fim das atrações são das Maldições (`maldicoes.md` R9).
+   A chamada é síncrona para a troca automática sair no mesmo passo (AC-ML-13)
+   **[a confirmar]**.
+8. Golpes seguintes do mesmo passo que miravam a Maldição Exausta caem no item 1:
+   nada.
+
+**R22. Alvo dos golpes de inimigo** (emenda Pactos, 2026-11-15; `maldicoes.md`
+R7).
+
+- Todo inimigo tem um **alvo**: o jogador, por padrão, ou a Maldição em campo
+  enquanto está atraído. A IA é dona do alvo e o expõe por consulta.
+- **Um golpe de inimigo só testa o seu alvo.** O telégrafo mirado no jogador
+  chama só `ferir_jogador`; o mirado na Maldição chama só `ferir_maldicao`. Quem
+  testa a forma (IA, Telégrafos, Chefes) aplica a regra; o Combate a exige.
+- **Projétil:** `disparar_projetil` ganha o campo `alvo` (jogador ou `curse_id`),
+  lido no disparo. O projétil só testa esse alvo (R7):
+  - alvo jogador: a regra antiga da R7, inalterada;
+  - alvo Maldição: `distância ≤ raio_px + raio_maldicao` com
+    `maldicao_atingivel` verdadeira → `ferir_maldicao(curse_id, dano_base,
+    M_disparo, -1, ataque_id)` e o projétil some (ou continua, se `atravessa`,
+    sem atingir a mesma Maldição de novo);
+  - Maldição não atingível (Saltando): o projétil **atravessa e continua**, como
+    no jogador invulnerável;
+  - a Maldição saiu de campo: o projétil segue voando até sumir, sem ferir
+    ninguém. Ele não troca de alvo.
+- O projétil de inimigo nunca fere a Maldição sem ter sido disparado contra ela,
+  mesmo que passe pelo corpo dela.
+- (emenda Pactos, 2026-11-15; encontro de pacto) O alvo pode ser também a
+  **acuada** (IA R22; Vínculo V8). O telégrafo mirado nela chama só
+  `ferir_acuada` (R25); o projétil segue a R7 (alvo `acuada`).
+
+**R23. Lugar das Maldições no passo** (emenda Pactos, 2026-11-15) **[a
+confirmar]**. As Maldições rodam no **item 6.1**: depois do Selo e antes dos
+inimigos. Motivo, pela coerência com o ADR-0010:
+
+- **§6 (empurrão):** acertos do item 5 movem o alvo no mesmo passo, porque o
+  movimento é no item 7. Um golpe da Maldição no 6.1 também move no mesmo passo,
+  com a mesma sensação do golpe do jogador. Depois dos inimigos, ele só moveria
+  no passo seguinte, como os projéteis.
+- **§8 (status):** o status aplicado nos itens 5 e 6 fere no mesmo passo. O
+  Abalo de *Rastro Cortante* e de *Cratera de Cinza* segue a mesma regra.
+- **Leitura da IA:** atração e imobilização do Chamado e da técnica valem já
+  para a IA do item 7 do mesmo passo, e a posição da Maldição que a IA mira é a
+  deste passo, como a do jogador (item 4).
+- **Exaustão:** o dano nela vem dos itens 7 e 8, depois do 6.1, e por isso a R21
+  chama `exaurir` na hora. A Maldição que entra pela troca automática só age no
+  6.1 do passo seguinte.
+
+A alternativa (depois dos inimigos, como item 7.1) deixaria o golpe da Maldição
+um passo atrasado no empurrão e no status e faria a IA ler a atração com um
+passo de atraso. Nada roda no 6.1 em passo congelado ou fora de Jogo
+(`maldicoes.md` R15).
+
+**R24. Chefe vencido: `Morto` ou `Subjugado`** (emenda Pactos, 2026-11-15;
+`chefes.md` R8, R9, F6).
+
+- **Marca `subjugavel`:** o módulo de Chefes marca o chefe no spawn quando a
+  Doutrina da run é `pactos`. O Combate lê a marca no estado do inimigo e não
+  consulta a Doutrina.
+- **Nos dois desfechos**, no passo `s` em que a Vida do chefe chega a ≤ 0, a
+  varredura: pede `hitstop_abate_chefe_s` (36); zera a Vida dos outros inimigos
+  (os lacaios seguem a regra de lacaios da R14); **remove todos os projéteis
+  inimigos** (alinha com `chefes.md` R9.1); e emite `chefe_vencido` com
+  `subjugado` falso ou verdadeiro.
+- **Sem a marca** (Lâmina, Ressonância): o resto da R14 como antes (sai da lista,
+  contagem, `inimigo_morreu`, cura, explosão).
+- **Com a marca** (Pactos), no passo `s`:
+  - o chefe **não sai da lista**. O Combate pede `subjugar(id)` à IA: Vida 0, não
+    atingível (R9), sem impacto (R12), sem IA, sem colisão ofensiva;
+  - **não** há contagem de abate, `inimigo_morreu`, `cura_ao_abater` nem
+    `explosao_ao_abater` nesse passo;
+  - o chefe fica assim até a escolha de `chefes.md` R9. Na fase `Subjugado` a
+    consulta "em combate" das Câmaras é falsa (`chefes.md` R9), e por isso
+    `ferir_jogador` e `ferir_maldicao` não fazem nada (R13.1, R21.1).
+- **Resolução** (pedido `resolver_subjugado(id, escolha)` dos Chefes):
+  - **Exorcizar:** o chefe sai da lista como um abate: contagem + 1,
+    `inimigo_morreu` (chefe, `autor_player_id`, `impact_passos` 0, porque o
+    *impact frame* já saiu em `s`) e `cura_ao_abater` do autor. Sem hitstop novo e
+    sem `explosao_ao_abater` (não há atingível e a câmara está fora de combate).
+    O `cura_ao_abater` do chefe só vale aqui **[a confirmar]**;
+  - **Pactuar:** o chefe sai da lista **sem** contagem, sem `inimigo_morreu`, sem
+    cura e sem explosão. A dissolução em Osso é dos Chefes (CH-V4)
+    **[a confirmar]**.
+- A "câmara limpa" da câmara do chefe em Pactos sai da escolha
+  (`camara_limpa(4, chefe)`, `chefes.md` R9), não da lista vazia. É contrato de
+  Chefes com Câmaras; o Combate não muda a R10.
+
+**R25. Dano na acuada** (`ferir_acuada(dano_base, m_atacante, atacante_id,
+ataque_id)`; emenda Pactos, 2026-11-15; `vinculo-e-pactos.md` V7, V8, V12,
+contrato V44). A acuada é a Maldição ferida do encontro de pacto. A entidade e
+o estado dela são do Vínculo; o Combate só escreve a Vida dela, aqui. Chamado
+pela IA e pelos Telégrafos (golpe travado na acuada, IA R22) e pelos projéteis
+(R7). O V44 pede `ferir_acuada(dano)` com dano inteiro; a assinatura ganha os
+campos do atacante, como `ferir_maldicao` (R21), para a F13 aplicar o M do
+elite e do Abalo no mesmo lugar **[a confirmar]**.
+
+1. Nada acontece se `acuada_atingivel()` do Vínculo é falsa (só é verdadeira com
+   a acuada no estado `Acuada`; `Aguardando` e `Fugiu` não são atingíveis) ou se
+   a câmara está fora de combate (a mesma consulta da R13.1).
+2. `dano_a` pela F13: inteiro, sem redução, sem passiva, sem Efeitos (V7).
+3. Vida da acuada −= `dano_a`, com piso 0. A Vida é inteira.
+4. **Sem invulnerabilidade pós-dano** e **sem hitstop** (R10): dois golpes no
+   mesmo passo ferem os dois.
+5. **Sem número de dano** e sem evento `acerto`. Emite `acuada_atingida`
+   (`dano_a`, Vida nova, `atacante_id`, `ataque_id`) para a barra da acuada e o
+   som `pacto_acuada_ferida` (Vínculo VP-V2, VP-A1). Sem reflexo, escudo, guarda,
+   recusa de morte ou status: são do jogador ou da Maldição em campo.
+6. **Falha do encontro:** com Vida ≤ 0, a Vida fica 0 e o Combate chama
+   `falhar_encontro()` no Vínculo **no mesmo ponto do passo**, síncrono, como o
+   `exaurir` da R21.7 **[a confirmar]** (nome). O Vínculo passa a acuada a
+   `Fugiu` (V12). Golpes e projéteis seguintes do mesmo passo caem no item 1. Não
+   é morte de inimigo nem do jogador: sem `inimigo_morreu`, sem contagem, sem
+   hitstop, sem `jogador_morreu`; a lista de inimigos não muda.
+7. **Sem fogo amigo:** a acuada não está na lista de inimigos nem na de
+   atingíveis (R9). Nenhuma forma, projétil, Corte, parede, explosão, reflexo,
+   Selo ou status do jogador a testa, e o golpe da Maldição em campo (R20)
+   também não, porque usa a lista da R9 (Vínculo V7; Maldições R1).
+8. **Não conta na câmara limpa** (Câmaras R9-P): a lista de inimigos é a mesma.
 
 ### States and Transitions
 
@@ -537,6 +818,25 @@ testes os montam pela fixture. Campos dos eventos:
 | Cambaleando (sobreposto) | impacto com empurrão > 0, sem armadura | Atingível, quando o contador acaba |
 | Empurrado (sobreposto) | `vel_empurrao` ≠ 0 | parado, quando zera ou bate na parede |
 | Morto | Vida ≤ 0 | Removido, na varredura (R14) |
+| Subjugado (emenda Pactos, 2026-11-15; só chefe com `subjugavel`) | Vida ≤ 0, na varredura (R24) | Removido, no `resolver_subjugado` (Exorcizar ou Pactuar) |
+
+**Maldição (lado do Combate)** (emenda Pactos, 2026-11-15). Os estados dela são
+de `maldicoes.md` (States). O Combate só vê:
+
+| Estado | Entra quando | Sai quando |
+|---|---|---|
+| Atingível por inimigos | em campo, Vida > 0, fora de `Saltando` | sai de campo, salta ou chega a Vida ≤ 0 |
+| Não atingível | `Saltando`, reserva, Exausta | volta a campo fora do salto |
+| Exausta (evento) | Vida ≤ 0 em `ferir_maldicao` (R21.7) | dono: Maldições |
+
+**Acuada (lado do Combate)** (emenda Pactos, 2026-11-15). Os estados são do
+Vínculo (`vinculo-e-pactos.md` States). O Combate só vê:
+
+| Estado | Entra quando | Sai quando |
+|---|---|---|
+| Atingível por inimigos | a acuada nasce (`Acuada`, V7) | Vida ≤ 0 (R25.6) ou câmara limpa (`Aguardando`, V9) |
+| Não atingível | `Aguardando` ou `Fugiu` | não volta (o encontro é único na câmara) |
+| Falha (evento) | Vida ≤ 0 em `ferir_acuada` (R25.6) | dono: Vínculo |
 
 **Mundo:** Vivo ↔ Congelado (hitstop > 0). Todos os contadores acima param em
 Congelado. Fora do estado de jogo Jogo (pausa, Bênção, menus, Morte, Transição;
@@ -560,6 +860,11 @@ R1) a R1 não roda e nada desconta, nem o hitstop.
 | Cena 3/4 e câmera | eventos para chute, tremor e zoom | — | Cena (impulsos), este GDD (eventos) |
 | HUD / Feedback de combate (VFX) / Áudio | eventos `golpe`, `area`, `disparo`, `investida`, `acerto`, `parede`, `quebrou`, `jogador_atingido`, `recusou_morte`, `inimigo_morreu`, `explosao` | — | apresentação |
 | Pipeline visual | eventos com as durações visuais (R15, R17); estado de jogo e "câmara nova" no quadro da metade do wipe (R1) | progresso do wipe (`progresso_wipe`, Pipeline R7) | este GDD (durações, ordem), Pipeline (como desenha) |
+| Maldições (emenda Pactos, 2026-11-15) | lista de atingíveis (R9), `exaurir(curse_id)` síncrono, eventos `acerto`, `maldicao_atingida`, `maldicao_exausta`, `inimigo_morreu` com `autor_player_id` | `aplicar_golpe_maldicao` (R20), `maldicao_atingivel`, posição, raio e Vida da Maldição, portadores da dupla | este GDD (impacto, dano, abate), Maldições (comportamento); **provisório** |
+| IA de inimigos e elites, alvo (emenda Pactos, 2026-11-15) | pedido `subjugar(id)` (R24) | alvo de cada inimigo (jogador ou `curse_id`, R22); chamadas de `ferir_maldicao` | IA; **provisório** |
+| Chefes (emenda Pactos, 2026-11-15) | `chefe_vencido`, chefe em Subjugado na lista (R24) | marca `subjugavel`, `resolver_subjugado(id, escolha)`, chamadas de `ferir_jogador`, `ferir_maldicao`, `disparar_projetil` | este GDD (varredura), Chefes (desfecho) |
+| Vínculo e pactos (emenda Pactos, 2026-11-15; contrato V44) | Vida da acuada (escrita só na R25), `falhar_encontro()` síncrono, evento `acuada_atingida` | `acuada_atingivel()`, posição, raio e Vida da acuada | este GDD (dano), Vínculo (acuada e desfecho); **provisório** |
+| IA de inimigos e elites, alvo `acuada` (emenda Pactos, 2026-11-15) | — | chamadas de `ferir_acuada`; campo `alvo = acuada` em `disparar_projetil` (IA R22) | IA; **provisório** |
 
 ## Formulas
 
@@ -835,7 +1140,7 @@ The player_damage_resolution formula is defined as:
 `dano` e `vida_perdida`: **F3 do Modificadores** (não reescrita) ; se
 invulnerável ou fora de combate: nada ; senão
 `inv' = passos(invuln_atingido_s)` ;
-`refletido = vida_perdida × valor(refletir_dano)` se o atacante é corpo a corpo e
+`refletido = vida_perdida × gatilhos(refletir_dano).total` se o atacante é corpo a corpo e
 `vida_perdida > 0` ; se Vida ≤ 0 e recusas ≥ 1:
 `Vida = max(1, round(vida_max × vida_ao_voltar))`, `inv = passos(invuln_s)` ;
 teto de dano = `dano` a cada `passos(invuln_atingido_s)` passos vivos (global: a invulnerabilidade é única)
@@ -845,7 +1150,7 @@ teto de dano = `dano` a cada `passos(invuln_atingido_s)` passos vivos (global: a
 |---|---|---|---|---|
 | dano, vida_perdida | int | ≥ 1 / ≥ 0 | calculated | F3 do Modificadores |
 | invuln_atingido_s | float | 0,25–1,5 (0,6667) | data file | `CombatTuning` |
-| valor(refletir_dano) | float | > 0 | calculated | já inclui o × 3 do cânone |
+| gatilhos(refletir_dano).total | float | > 0 | calculated | já inclui o × 3 do cânone |
 | vida_ao_voltar | float | 0–1 (0,4) | data file | param de `recusas_morte` |
 | invuln_s | float | > 0 (2,0) | data file | param de `recusas_morte` |
 
@@ -889,6 +1194,75 @@ todo golpe e o finalizador nunca sai (CV5).
 Leitura: em tempo real, o Pulso (de longe) quase empata com o Corte (de perto),
 porque o hitstop "cobra" ~20% da Lâmina. Chefe (700) sem esquivas: Lâmina
 13,2 s, Pulso 13,6 s.
+
+### F12. Dano na Maldição (emenda Pactos, 2026-11-15)
+
+The curse_damage_taken formula is defined as:
+
+`dano_m = max(1, round(dano_base × M_atacante × (1 − min(teto_red, max(0, reducao_m)))))` ;
+`Vida_m' = max(0, Vida_m − dano_m)` ; `exausta = (Vida_m' == 0)`
+
+É a F3 do Modificadores com `guarda = 1` e `escudo = 0`, sem reescrever a
+fórmula (ADR-0010 §3: `FormulasDeModificadores.dano_recebido`). Sem
+invulnerabilidade: não há teto de dano por janela.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `dano_base` | float | `> 0` (`9–18` no Limiar; `18` é o pior golpe do chefe, `chefes.md` CH5) | data file (`EnemyDef` / padrão do chefe) | dano do golpe ou projétil inimigo |
+| `M_atacante` | float | `0–4,0` (`0,7` Abalado, `1,25` elite) | calculated | F2 do Modificadores no portador do inimigo; projétil: do disparo |
+| `reducao_m` | float | `0–0,6` (`0,15` no *Baluarte*, `0` nas demais) | calculated | `valor(reducao_dano)` do portador da Maldição |
+| `teto_red` | float | `0,6` | data file (`ModifiersTuning.teto_reducao_dano`) | teto da redução |
+| `Vida_m` | int | `0–valor(vida_max)` (`95–135` no MVP) | runtime | Vida atual da Maldição em campo |
+| `dano_m` | int | `≥ 1` | calculated | dano inteiro aplicado |
+| `exausta` | bool | — | calculated | dispara `exaurir(curse_id)` (R21.7) |
+
+**Output Range:** `dano_m ≥ 1` (piso), sem teto próprio: o máximo é
+`round(dano_base_max × 4,0)` com o teto do M do atacante. No Limiar: mínimo `5`
+(Eco Abalado contra o *Baluarte*: `9 × 0,7 × 0,85 = 5,355 → 5`; sem Abalo, `7–16`
+como em `maldicoes.md` F7), máximo `18` (golpe do chefe, M 1, redução 0). `Vida_m'` fica em
+`[0, Vida_m − 1]`; o `max(0, …)` impede Vida negativa guardada.
+
+**Example:**
+
+- Eco (`9`, M 1) no *Baluarte* (`0,15`): `9 × 0,85 = 7,65 → 8`; Vida 135 → 127
+  (= `maldicoes.md` F7).
+- Eco Abalado (M 0,7) no *Baluarte*: `5,355 → 5`.
+- Fenda elite (`13`, M 1,25) no *Espreitador* (`0`): `16,25 → 16`.
+- Dois Ecos no mesmo passo no *Baluarte* com Vida 10: `10 − 8 = 2`, depois
+  `max(0, 2 − 8) = 0` → `exausta`, `exaurir` chamado no 2º golpe.
+
+### F13. Dano na acuada (emenda Pactos, 2026-11-15)
+
+The cornered_curse_damage formula is defined as:
+
+`dano_a = max(1, round(dano_base × M_atacante))` ;
+`Vida_a' = max(0, Vida_a − dano_a)` ; `falha = (Vida_a' == 0)`
+
+É a F12 com `reducao_m = 0`: a acuada não usa `reducao_dano`, passivas nem
+Efeitos (Vínculo V7). Bate com o `dano_in` da F2 do Vínculo
+(`max(1, round(dano_inimigo × (elite ? 1,25 : 1)))`); a F13 também aplica o
+Abalo (M 0,7), que a F2 do Vínculo não modela.
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| `dano_base` | float | `> 0` (`9–13` nos comuns do Limiar) | data file (`EnemyDef`) | dano do golpe ou projétil inimigo |
+| `M_atacante` | float | `0–4,0` (`0,7` Abalado, `1,25` elite) | calculated | F2 do Modificadores no portador do inimigo; projétil: do disparo |
+| `Vida_a` | int | `0–vida_acuada` (`114–162`, Vínculo F2) | runtime | Vida atual da acuada |
+| `dano_a` | int | `≥ 1` | calculated | dano inteiro aplicado |
+| `falha` | bool | — | calculated | dispara `falhar_encontro()` (R25.6) |
+
+**Output Range:** `dano_a ≥ 1`. No MVP o encontro cai nos índices 1 e 2 (p 1 e
+2, sem elite; Vínculo Edge Cases): `6` (Eco Abalado, `9 × 0,7 = 6,3`) a `13`.
+`Vida_a'` em `[0, Vida_a − 1]`.
+
+**Example:**
+
+- Eco (`9`, M 1) no *Espreitador* acuado (`114`): `9` → Vida 105.
+- Eco Abalado (M 0,7): `6,3 → 6`.
+- Acuada com Vida 5 e um Eco (`9`): `max(0, 5 − 9) = 0` → `falha` (= Vínculo
+  AC-VP-11).
 
 ### Faixas do `CombatTuning`
 
@@ -1043,6 +1417,63 @@ O CV12, o CV14, o CV16, o CV17 e o CV18 dependem de dados de outros sistemas
   seguinte; o hitstop continua 36, porque o deles (4) é menor. Se o chefe
   morrer no 4º passe, vale o caso geral acima (R14): os outros ficam para o
   próximo passo vivo, depois dos 36 congelados.
+  (emenda Pactos, 2026-11-15; contrato `chefes.md` R8/R9, revisão B2) Os zerados
+  com a marca `invocado_pelo_chefe` morrem **sem** contar abate e **sem**
+  `cura_ao_abater` nem `explosao_ao_abater` (R14, lacaios), nem hitstop próprio.
+  Os projéteis inimigos somem no passo da queda (R24). Com a Doutrina de Pactos o
+  chefe **não sai da lista**: fica `Subjugado` (Vida 0, não atingível, fora de
+  combate) até a escolha Pactuar/Exorcizar de `chefes.md` R9. O `cura_ao_abater`
+  do próprio chefe só vale no Exorcizar **[a confirmar]** (R24).
+
+**Maldições** (emenda Pactos, 2026-11-15)
+
+- **Se um golpe do jogador (Virote, Selo, explosão, reflexo, status) passar pela
+  Maldição:** nada acontece com ela; ela não está na lista de atingíveis (R19).
+- **Se a Maldição abater um inimigo com o jogador já morto no mesmo passo:** o
+  abate conta, mas sem cura (R14, morto não cura). A morte vence a câmara limpa
+  (`maldicoes.md` Edge Cases).
+- **Se dois inimigos atraídos acertarem a Maldição no mesmo passo:** os dois
+  ferem (sem invulnerabilidade, R21.4). Se o 1º a exaurir, o 2º não faz nada
+  (R21.8).
+- **Se a Maldição for exaurida no item 7 e a reserva entrar na troca
+  automática:** a que entra não é alvo de ninguém nesse passo (não está
+  atraída) e só age no 6.1 do passo seguinte (R23).
+- **Se um projétil mirado na Maldição a encontrar `Saltando`:** atravessa e
+  continua; pode ferir depois do pouso se ainda estiver no corpo dela (R22).
+- **Se a Maldição sair de campo com projéteis mirados nela em voo:** eles voam
+  até sumir sem ferir ninguém, nem o jogador (R22).
+- **Se um golpe da Maldição matar um lacaio do chefe durante a luta:** conta
+  como abate do dono e dispara `ao_abater` (R14).
+- **Se a Maldição der o golpe que zera o chefe em Pactos:** o chefe vai a
+  `Subjugado` como se o jogador o tivesse zerado; o `autor_player_id` é o dono
+  (R14, R24).
+- **Se `ferir_maldicao` chegar com a câmara fora de combate** (câmara limpa,
+  fase `Subjugado`): nada acontece (R21.1).
+- **Se o golpe da Maldição for pesado num inimigo em preparação:** "Quebrou!"
+  como em qualquer impacto pesado (R8.7); elite e chefe têm armadura.
+- **Se o golpe pesado da Maldição não pedir hitstop:** é a regra (R20.4). Um abate
+  causado por ele pede o hitstop de abate na varredura.
+
+**Acuada** (emenda Pactos, 2026-11-15; Vínculo V7–V12)
+
+- **Se um golpe do jogador ou da Maldição em campo passar pela acuada:** nada
+  acontece com ela; ela não está na lista de atingíveis (R25.7).
+- **Se um golpe de inimigo travado no jogador passar pela acuada (ou o
+  inverso):** só o alvo travado é testado (R22; IA R22).
+- **Se dois inimigos acertarem a acuada no mesmo passo:** os dois ferem (R25.4).
+  Se o 1º a derruba, o Vínculo já a passou a `Fugiu` e o 2º não faz nada (R25.1).
+- **Se a acuada e o último inimigo caírem no mesmo passo:** a falha é avisada no
+  item 7 ou 8, antes da varredura (9) e das Câmaras (10); a câmara limpa sem
+  encontro (R1; Vínculo, Edge Cases).
+- **Se o jogador morrer e a acuada cair no mesmo passo:** o Combate avisa as duas
+  coisas na ordem em que acontecem; a morte vence a run (Run R5) e o desfecho do
+  encontro é do Vínculo (Vínculo, Edge Cases).
+- **Se a acuada cair com projéteis mirados nela em voo:** eles voam até sumir sem
+  ferir ninguém (R7).
+- **Se `ferir_acuada` chegar com a câmara limpa** (acuada em `Aguardando`): nada
+  acontece (R25.1). Na prática não chega: a câmara só limpa sem inimigos.
+- **Se a acuada for atingida por um Eco com Vida 1 a mais que o golpe:** fica com
+  Vida 1 e segue `Acuada`; o piso é 0, não 1 (sem recusa de morte, R25.5).
 
 **Dano no jogador**
 
@@ -1086,6 +1517,9 @@ O CV12, o CV14, o CV16, o CV17 e o CV18 dependem de dados de outros sistemas
 o da R6 do Input; os pisos de dano e a F3 são do Modificadores; o contrato com o
 Movimento (pedidos, `deslocar(v)`, desconto da invulnerabilidade, "em esquiva")
 é honrado como está.
+(emenda Pactos, 2026-11-15) Um ponto a alinhar: `chefes.md` R9.1 remove os
+projéteis inimigos na queda do chefe; a R14 aprovada não fazia isso. A R24 passa
+a fazer, nos dois desfechos.
 
 ## Dependencies
 
@@ -1099,6 +1533,9 @@ Movimento (pedidos, `deslocar(v)`, desconto da invulnerabilidade, "em esquiva")
 | Input e controle | Forte | Ataque e Especial (toque, segurado, buffer), mira unitária (Input R2, R5, R6) | não há comando |
 | IA de inimigos e elites | Forte, **por contrato** | lista de inimigos (posição, raio, ordem estável), estado (surgindo, em preparação, em execução), elite e chefe; executa o pedido de "Quebrou!" e chama `ferir_jogador` e `disparar_projetil` | não há em quem bater |
 | Câmaras e ondas | Suave, **por contrato** | retângulo jogável e obstáculos (parede, projéteis), pedido de troca de câmara (Transição, R1), consulta "em combate" (R13.1) | câmara padrão de 1920×1080 sem obstáculos (a mesma regra da Cena), sempre "em combate" |
+| Maldições (emenda Pactos, 2026-11-15) | Suave, **por contrato** | `aplicar_golpe_maldicao` (R20), `maldicao_atingivel`, posição, raio e Vida da Maldição, `exaurir` (R21), portadores da dupla | sem Maldição: as R19–R23 não têm efeito, o resto não muda |
+| Chefes (emenda Pactos, 2026-11-15) | Suave, **por contrato** | marca `subjugavel` e `resolver_subjugado` (R24), marca `invocado_pelo_chefe` dos lacaios (R14) | o chefe morre sempre pela R14 antiga |
+| Vínculo e pactos (emenda Pactos, 2026-11-15; contrato V44) | Suave, **por contrato** | a acuada (`acuada_atingivel()`, posição, raio, Vida), `falhar_encontro()` (R25) | sem encontro: a R25 e a F13 não têm efeito, o resto não muda |
 
 **Ciclos resolvidos por contrato**
 
@@ -1125,7 +1562,9 @@ Movimento (pedidos, `deslocar(v)`, desconto da invulnerabilidade, "em esquiva")
 | Câmaras e ondas | Suave | abates, `jogador_morreu` (ignorar "câmara limpa" depois dela); "câmara limpa" só com hitstop 0 (R10) |
 | Pipeline visual | Suave | durações visuais nos eventos (R15, R17); estado de jogo e "câmara nova" (R1) |
 | Run e regiões | Suave | `jogador_morreu` |
-| Chefes (fatia vertical) | Forte | armadura, `hitstop_abate_chefe`, morte do chefe zera os outros (R14) |
+| Chefes (fatia vertical) | Forte | armadura, `hitstop_abate_chefe`, morte do chefe zera os outros (R14); (emenda Pactos, 2026-11-15) `ferir_maldicao`, estado `Subjugado`, `chefe_vencido`, lacaios sem abate (R14, R24) |
+| Maldições (emenda Pactos, 2026-11-15) | Forte | impacto R8 sem arma, abate com autor = dono (R14), `ferir_maldicao` (R21), Exaustão síncrona, alvo dos projéteis (R22) |
+| Vínculo e pactos (emenda Pactos, 2026-11-15) | ~~Suave~~ **Forte, por contrato (V44)** (emenda Pactos, 2026-11-15; encontro de pacto) | `chefe_vencido` (lido por Chefes, que fala com Vínculo); abates com `autor_player_id`; `ferir_acuada` e a falha do encontro no item 7/8, antes da câmara limpa (R1, R25) |
 | Cena 3/4 e câmera | Suave | eventos para chute, tremor e zoom (Cena F5) |
 | HUD | Suave | Vida, escudo, recusas, eventos `jogador_atingido` e `recusou_morte` |
 | Feedback de combate (VFX) / Áudio | Suave | todos os eventos da R1–R14 |
@@ -1144,6 +1583,19 @@ Movimento (pedidos, `deslocar(v)`, desconto da invulnerabilidade, "em esquiva")
 - **Ajuste no índice:** a linha 8 do Combate lista Movimento, Modificadores,
   Conteúdo e Input; falta "IA de inimigos e elites (por contrato)" e "Câmaras e
   ondas (suave)".
+- (emenda Pactos, 2026-11-15) `maldicoes.md` (Dependencies, Upstream) e
+  `chefes.md` (Dependencies, Upstream) já listam o Combate e os pedidos
+  `ferir_maldicao` e `aplicar`/`ferir_inimigo` com `de_arma` falso; o ciclo
+  Combate ↔ Maldições se resolve como o Combate ↔ IA: o Combate define a
+  interface (R19–R22), as Maldições a implementam e chamam por injeção. O
+  índice deve ganhar Maldições e Chefes nas linhas do Combate (a sessão
+  principal edita o índice).
+- (emenda Pactos, 2026-11-15; encontro de pacto) `vinculo-e-pactos.md`
+  (Dependencies, l. 851) já lista o Combate (`Forte, por contrato (V44)`:
+  `ferir_acuada`, ordem dos itens do passo). Este GDD passa a listar o Vínculo
+  como upstream por contrato (R25) e mantém a linha downstream. O ciclo se
+  resolve como o Combate ↔ Maldições: o Combate define `ferir_acuada` e o
+  Vínculo expõe `acuada_atingivel()` e `falhar_encontro()`, por injeção.
 
 ## Visual/Audio Requirements
 
@@ -2801,6 +3253,133 @@ morte de inimigo ≤ 30 passos (§5.8); "Reduzir flashes" (§7.9 nº 4); letreir
 - **AC-83 [M] nenhuma morte sem telégrafo.** Sessão de 30 minutos: em 0 acertos no jogador falta um
   telégrafo visível antes, no log.
 
+**R. Maldições e chefe Subjugado (emenda Pactos, 2026-11-15)**
+
+Fixture: FP mais uma Maldição dublê (interface das Maldições em memória, com
+espião em `exaurir`), portador da Maldição pela fábrica do Modificadores.
+Provisórios até as Maldições e a IA implementarem os contratos.
+
+- **AC-98 [L] R19 — sem fogo amigo.** GIVEN a Maldição em (600; 540), Vida 110,
+  e um Eco em (640; 540), WHEN o jogador acerta um arco que cobre os dois, um
+  projétil que passa pelos dois, uma explosão ao abater de raio 120 e um Selo
+  sobre a área, THEN o Eco recebe o dano de cada fonte, a Maldição continua com
+  Vida 110, nenhum `maldicao_atingida` é emitido e o n.º de alvos dos eventos
+  `golpe` e `area` é 1.
+- **AC-99 [L] R20 — golpe da Maldição sem arma.** GIVEN um Eco (30) e o
+  portador da Maldição com M 1, WHEN `aplicar_golpe_maldicao(dano 10, empurrão
+  360, pesado falso)`, THEN o Eco fica com 20, há 1 `acerto` (slot "nenhum",
+  forma `maldicao`, `peso_visual` leve), 0 `acerto_de_arma`, o contador de
+  acertos do jogador não muda, 0 pedidos de hitstop e cambaleio = 8.
+- **AC-100 [L] R20/R8.7 — pesado da Maldição quebra o preparo.** GIVEN um Eco no
+  passo 10 do preparo, WHEN `aplicar_golpe_maldicao(dano 14, empurrão 900,
+  pesado verdadeiro)`, THEN Vida 16, `quebrou` emitido, pedido à IA de 24
+  passos de recuperação, `peso_visual` pesado e 0 pedidos de hitstop; com um
+  Eco elite no lugar: sem `quebrou` e sem cambaleio.
+- **AC-101 [L] R20/F2 — M da Maldição.** GIVEN o portador da Maldição com
+  `dano_todo` +0,25 (propagado, Modificadores R14), WHEN golpe de dano 10,
+  THEN o alvo perde 12,5; com M calculado 5,0, perde 40 (teto 4,0).
+- **AC-102 [L] R14 — abate da Maldição é do dono.** GIVEN um Eco com 8, o
+  jogador com Vida 70/90 e `cura_ao_abater` 4, WHEN golpe da Maldição de dano
+  10 no passo 0, THEN na varredura: `inimigo_morreu` com `autor_player_id` = 0
+  (o dono), contagem de abates +1, jogador 74/90 e 1 pedido de hitstop 4; com
+  `explosao_ao_abater` (12, raio 120) e outro Eco a 60 px: ele perde 12.
+- **AC-103 [L] R21/F12 — dano na Maldição.** GIVEN o *Baluarte* (Vida 135,
+  `reducao_dano` 0,15), "em combate" verdadeiro, WHEN `ferir_maldicao(9, M 1)`
+  duas vezes no mesmo passo, THEN Vida 135 → 127 → 119, 2 `maldicao_atingida`,
+  0 pedidos de hitstop e a Maldição segue atingível. Com M 0,7: perde 5. Com
+  "em combate" falso ou `maldicao_atingivel` falsa: nada (Vida e eventos
+  intactos). O jogador não perde Vida em nenhuma linha.
+- **AC-104 [L] R21.5 — sem gatilhos do jogador.** GIVEN o portador do jogador
+  com `refletir_dano` 3,0, escudo 10, guarda ativa e 1 recusa, WHEN um Eco corpo
+  a corpo chama `ferir_maldicao(9)` no *Vulto* (110), THEN o *Vulto* fica com
+  101, o Eco não recebe dano, o escudo segue 10 e a recusa segue 1.
+- **AC-105 [L] R21.7 — Exaustão síncrona.** GIVEN o *Baluarte* com Vida 5, WHEN
+  `ferir_maldicao(9)`, THEN Vida 0, 1 chamada `exaurir(baluarte_de_cinza)` antes
+  do retorno de `ferir_maldicao`, 1 `maldicao_exausta`, 0 `jogador_morreu` e o
+  estado de jogo continua Jogo; uma 2ª `ferir_maldicao` no mesmo passo não faz
+  nada (a dublê devolve `maldicao_atingivel` falsa).
+- **AC-106 [L] R22 — projétil só testa o seu alvo.** GIVEN o jogador em
+  (960; 540) e a Maldição em (900; 540), WHEN um projétil de inimigo com alvo
+  jogador cruza o corpo da Maldição antes de chegar ao jogador, THEN a Maldição
+  não perde Vida e o jogador é ferido pela R13; e com alvo Maldição cruzando o
+  jogador antes, THEN o jogador não perde Vida e a Maldição recebe
+  `ferir_maldicao` com M do disparo e `atacante_id` −1.
+- **AC-107 [L] R22 — Saltando e saída de campo.** GIVEN um projétil com alvo
+  Maldição e a dublê em `Saltando` nos passos 0–11, WHEN o projétil está no
+  corpo dela no passo 5, THEN atravessa (continua em voo, sem dano); e se a
+  Maldição sai de campo no passo 3, o projétil voa até sumir sem ferir ninguém.
+- **AC-108 [I] R1/R23 — ordem do 6.1.** GIVEN o espião do orquestrador, WHEN
+  roda um passo vivo, THEN a ordem é 5 → 6 → 6.1 → 7; um golpe da Maldição no
+  6.1 com empurrão 360 move o Eco já no item 7 do mesmo passo (posição muda em
+  `360 / 60 = 6` px); em passo congelado o 6.1 não é chamado.
+- **AC-109 [L] R14/R24 — lacaios na queda do chefe.** GIVEN o chefe com Vida 5,
+  2 lacaios `invocado_pelo_chefe` vivos, um projétil inimigo em voo, o jogador
+  com `cura_ao_abater` 4 e `explosao_ao_abater` 12 (Vida 70/90), WHEN um golpe
+  zera o chefe sem a marca `subjugavel`, THEN os lacaios saem com
+  `limpo_pelo_chefe` verdadeiro, sem contagem e sem cura por eles nem explosão
+  deles; o projétil some no mesmo passo; há 1 pedido de hitstop 36 e
+  `chefe_vencido(subjugado = falso)`; a contagem sobe só 1 (o chefe) e o jogador
+  cura 4 uma vez (74/90).
+- **AC-110 [L] R24 — chefe Subjugado em Pactos.** GIVEN o chefe com a marca
+  `subjugavel` e Vida 5, o jogador com `cura_ao_abater` 4 (Vida 70/90), WHEN o
+  golpe da Maldição o zera no passo `s`, THEN o chefe segue na lista com Vida 0,
+  `atingivel` falso, 1 pedido `subjugar(id)`, 1 hitstop 36,
+  `chefe_vencido(subjugado = verdadeiro, autor_player_id = 0)`, 0
+  `inimigo_morreu` do chefe, contagem sem mudança e Vida do jogador 70; nos
+  passos seguintes a varredura não o reprocessa.
+- **AC-112 [L] R3.1 — forma `chamado`.** GIVEN a Besta com Especial `chamado`
+  (`dano` 17, `recarga_s` 2,0) e recarga 0, WHEN o Especial é tocado (a) sem
+  Maldição em campo, (b) com a Maldição `Saltando` e (c) com a Maldição em campo
+  parada, THEN em (a) e (b): nenhum disparo, recarga 0, 1 `chamado_indisponivel`
+  por toque (0 a mais segurando por 10 passos) e o Ataque tocado no mesmo passo
+  dispara; em (c): recarga 120, 1 `pedir_chamado` com `dano_golpe` 17 e o
+  `M_sem` do Especial, 1 evento `chamado`, nenhum alvo testado no item 5,
+  recuperação 0 e 0 pedidos de hitstop.
+- **AC-111 [L] R24 — resolução.** GIVEN o chefe em `Subjugado` da AC-110, WHEN
+  `resolver_subjugado(id, exorcizar)`, THEN ele sai da lista, contagem +1,
+  `inimigo_morreu` (chefe, `impact_passos` 0), jogador 74/90, 0 pedidos de
+  hitstop e 0 `explosao`; com `pactuar`: sai da lista, contagem sem mudança, 0
+  `inimigo_morreu` e Vida 70.
+
+**S. Acuada do encontro de pacto (emenda Pactos, 2026-11-15)**
+
+Fixture: FP mais um Vínculo dublê (acuada `espreitador_da_fenda` em (960; 540),
+raio 22,5 px, Vida 114, estado `Acuada`; espião em `falhar_encontro()`, que passa
+o dublê a `Fugiu` e torna `acuada_atingivel()` falsa). Provisórios até o Vínculo
+e a IA implementarem o contrato V44.
+
+- **AC-113 [L] R25/F13 — dano na acuada.** GIVEN "em combate" verdadeiro, WHEN
+  `ferir_acuada(9, 1,0)` duas vezes no mesmo passo, THEN Vida 114 → 105 → 96, 2
+  `acuada_atingida`, 0 `acerto`, 0 pedidos de hitstop e o jogador não perde
+  Vida. Com M 0,7: perde 6. Com "em combate" falso ou `acuada_atingivel()` falsa:
+  nada (Vida e eventos intactos).
+- **AC-114 [L] R25.6 — falha síncrona.** GIVEN a acuada com Vida 5, WHEN
+  `ferir_acuada(9, 1,0)`, THEN Vida 0, 1 chamada `falhar_encontro()` antes do
+  retorno, 0 `inimigo_morreu`, 0 `jogador_morreu`, 0 hitstop e a lista de
+  inimigos não muda; uma 2ª `ferir_acuada` no mesmo passo não faz nada.
+- **AC-115 [L] R25.7 — sem fogo amigo.** GIVEN um Eco encostado na acuada, WHEN
+  o jogador acerta um arco que cobre os dois, um Virote que passa pelos dois, uma
+  explosão ao abater de raio 120, um Selo sobre a área e um
+  `aplicar_golpe_maldicao` em círculo sobre os dois, THEN o Eco recebe o dano de
+  cada fonte, a acuada continua com Vida 114 e nenhum `acuada_atingida` é
+  emitido.
+- **AC-116 [L] R7 — projétil com alvo `acuada`.** GIVEN o jogador em (960; 700) e
+  a acuada em (960; 540), WHEN um projétil de inimigo com alvo jogador cruza o
+  corpo da acuada, THEN a acuada não perde Vida; e com alvo `acuada` cruzando o
+  jogador antes, THEN o jogador não perde Vida e a acuada recebe `ferir_acuada`
+  com o M do disparo e `atacante_id` −1. Se a acuada vai a `Fugiu` com o projétil
+  em voo, ele voa até sumir sem ferir ninguém.
+- **AC-117 [I] R1/R25 — mesmo passo que a câmara limpa.** GIVEN a acuada com
+  Vida 5 e um único Eco com Vida 1, WHEN no item 7 o Eco fere a acuada (9) e, no
+  mesmo passo, um projétil do jogador do item 8 mata o Eco, THEN
+  `falhar_encontro()` é chamada no item 7, antes da varredura (9) e do item 10
+  das Câmaras; a câmara limpa com a acuada em `Fugiu`.
+- **AC-118 [L] R10 — sem hitstop.** GIVEN o espião de hitstop, WHEN a acuada
+  recebe 3 golpes e cai, THEN 0 pedidos de hitstop vêm da acuada.
+- **AC-119 [L] Edge — sem encontro.** Run sem acuada (Vínculo dublê sem
+  encontro): `ferir_acuada` nunca é chamada e os AC-98 a AC-112 passam sem
+  mudança.
+
 Cobertura (versão 2): cada regra, fórmula e validação tem ao menos um
 critério.
 - **Regras:** R1 AC-05; R2 AC-09, AC-22, AC-58; R3 AC-12–AC-22; R4 AC-23–AC-25,
@@ -2815,6 +3394,10 @@ critério.
 - **Validação:** CV1, CV2 e CV21 AC-60; CV3–CV5 AC-61; CV6–CV8 AC-62; CV9–CV11,
   CV13 e CV15 AC-63; CV12, CV14 e CV16–CV20 AC-64; CV22 AC-60, AC-97; destino
   AC-65. As faixas dos 30 campos do `CombatTuning` estão na AC-03.
+- **Emenda Pactos (2026-11-15):** R3.1 AC-112; R19 AC-98; R20 AC-99–AC-101; R21 AC-103–AC-105;
+  R22 AC-106, AC-107; R23 AC-108; R24 AC-109–AC-111; R14 (autor, lacaios)
+  AC-102, AC-109; F12 AC-103. (encontro de pacto) R25 AC-113–AC-115, AC-118,
+  AC-119; R7 (alvo `acuada`) AC-116; R1 AC-117; F13 AC-113, AC-114.
 
 Lacunas assumidas:
 - **VFX:** agregação de números em 300 ms, teto de 6 números, limitador de 3
@@ -2852,3 +3435,7 @@ Esclarecimentos decididos em 2026-11-09 (o texto das regras foi alinhado):
 | 9 | Letreiro "Quebrou!": desenhado por idioma ou fonte com estilo de letreiramento | art-director + localization-lead | fatia vertical |
 | 11 | ~~Troca de câmara com investida ativa ou recuperação~~ **Resolvida em 2026-11-10** (cross-review, S-B1 e S-W2): investida e recuperação zeram na câmara nova; os outros contadores passam como estão (R10) | — | ✅ |
 | 10 | Números propostos nos critérios: latência da AC-92 e ΔL* ≥ 20 da AC-79; a API de fim de quadro do 4.7 citada na AC-92 não foi conferida | qa-lead + art-director + godot-specialist | antes da story de VFX do combate |
+| 12 | (emenda Pactos, 2026-11-15) Confirmar: Maldições no item 6.1 (R23); Exaustão síncrona (R21.7); `peso_visual` do golpe da Maldição pela R8.4 (R17); abate e `cura_ao_abater` do chefe só no Exorcizar, nada no Pactuar (R24) | usuário | aprovação da emenda |
+| 13 | (emenda Pactos, 2026-11-15) Contratos novos: IA (alvo por inimigo, `subjugar(id)`, `ferir_maldicao` no golpe atraído), Telégrafos (golpe testa só o alvo), Chefes (marca `subjugavel`, `resolver_subjugado`), Câmaras ("em combate" falso em `Subjugado`; câmara limpa do chefe pela escolha), ADR-0010 (item 6.1, `aplicar_golpe_maldicao`, `ferir_maldicao`, campo `alvo` em `disparar_projetil`, `EvMaldicaoAtingida`, `EvMaldicaoExausta`, `EvChefeVencido`) | donos de cada GDD + technical-director | antes das stories de Pactos |
+| 14 | (emenda Pactos, 2026-11-15) Co-op: `autor_player_id` de dano de Maldição de um jogador num inimigo também ferido por outro segue a regra pendente do ADR-0009 | technical-director | pós-MVP (co-op) |
+| 15 | (emenda Pactos, 2026-11-15; encontro de pacto) Confirmar: `ferir_acuada` com `m_atacante` em vez do `ferir_acuada(dano)` do V44 (R25); nome `falhar_encontro()` e chamada síncrona (R25.6); evento `acuada_atingida` (R25.5). Contratos: Vínculo (`acuada_atingivel()`, `falhar_encontro()`), Telégrafos (alvo travado `acuada` no teste de acerto), ADR-0010 (`ferir_acuada`, `alvo = acuada` em `disparar_projetil`, `EvAcuadaAtingida`) | usuário + donos + technical-director | aprovação da emenda |

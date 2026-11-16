@@ -1,8 +1,9 @@
 # Efeitos de status
 
-> **Status**: Approved (2026-11-11; revisão única por subagente, 4 bloqueantes de texto corrigidos sem re-review; sem entrada no review log)
+> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16)
+> **Status anterior**: Approved (2026-11-11; revisão única por subagente, 4 bloqueantes de texto corrigidos sem re-review; sem entrada no review log)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-10
+> **Last Updated**: 2026-11-16 (alinhamento: Eco de Muralha 1,5 s na R3a, Edge Cases, AC-ST-27, OQ8 fechada); 2026-11-15 (emenda Pactos: Maldições como 5ª fonte de Abalo — R3a, R1a; ver `maldicoes.md`)
 > **Last Verified**: 2026-11-10
 > **Implements Pillar**: P3 *Reflexo que se lê* (o estado do inimigo é visível)
 
@@ -66,6 +67,14 @@ dano direto.
 Um estado está **ativo** se `restante` > 0. Os três coexistem e não se limpam
 entre si. O jogador não tem status no MVP.
 
+**R1a. Maldições não carregam status (emenda Pactos, 2026-11-15).** As
+Maldições aliadas (`maldicoes.md` R1, R8) também não têm status no MVP, como o
+jogador. Elas não estão na lista de inimigos atingíveis, então a R2 nunca as
+encontra como alvo, e não guardam os campos da R1. Nenhuma fonte do jogador
+(golpe, `golpe_*`, Corte da esquiva, Selo) as atinge: não há fogo amigo
+(`maldicoes.md` R1). Inimigos do MVP também não aplicam status (nenhum
+`AttackDef` inimigo tem `status`), então não há caminho de status para elas.
+
 **R2. Aplicar** (`aplicar_status(alvo, id, n)`, síncrono, chamado pelo Combate no
 impacto e pelo Selo). Se o alvo não é atingível (Combate R9: surgindo ou
 Vida ≤ 0), ou `n` ≤ 0, nada acontece.
@@ -93,6 +102,36 @@ resultado. As fontes:
 - o Selo: `selo_abala`, renovado a cada passo dentro do círculo (Selo e Fluxo R3).
 
 Dano de status, explosão e reflexo **não** aplicam status.
+
+**R3a. Quinta fonte: as Maldições (emenda Pactos, 2026-11-15).** Além das quatro
+fontes acima, golpes de Maldição aplicam **Abalo** (`n` irrelevante: o Abalo não
+acumula). No MVP há três golpes com Abalo (`maldicoes.md` §Catálogo):
+
+| Espécie | Golpe | Quando |
+|---|---|---|
+| Espreitador da Fenda | Efeito de Saída *Rastro Cortante* | Troca manual (Técnica Combinada, `maldicoes.md` R12) |
+| Baluarte de Cinza | Efeito de Saída *Cratera de Cinza* | Troca manual |
+| Baluarte de Cinza | Efeito no Chamado *Eco de Muralha* | pouso do Chamado do Pacto (`maldicoes.md` R13.5) |
+
+- O impacto do Combate (R8) chama a R2 por alvo atingido, como faz com o `status`
+  do `AttackDef`. A regra de passo da R4 vale igual (item em que o impacto resolve).
+- **Duração:** usa `duracao_abalo_s` (4 s = 240 passos), como as "outras fontes"
+  da R2; o "4,0 s" do catálogo é esse campo, não um valor próprio. O `CurseDef`
+  diz só *qual* status aplica **[a confirmar]**.
+- **Exceção: *Eco de Muralha*** (alinhamento 2026-11-16, fecha a OQ8) **[a
+  confirmar]**: o efeito no Chamado traz a própria `duracao_abalo_s` no `CurseDef`
+  (**1,5 s = 90 passos**, `maldicoes.md` §Catálogo) e a passa à R2, como o Selo
+  passa a dele. Com o Chamado a cada 120 passos, o alvo fica abalado no máximo
+  90/120 = 75% do tempo pelo Eco, chefe incluído (sem imunidade). O ML1 de
+  `maldicoes.md` recusa duração ≥ recarga do Chamado.
+- **Gatilhos de bênção não disparam:** o golpe da Maldição tem `de_arma` falso
+  (`maldicoes.md` R6), e a R3 só chama `golpe_sangramento` e `golpe_queimadura`
+  por golpe de arma. Uma Maldição não aplica Sangramento nem Queimadura no MVP.
+- **Sinergia:** o Abalo da Saída é lido pela Entrada no mesmo passo (`maldicoes.md`
+  R12, F5: `bonus_sinergia_pct` contra alvo "preso/atraído/Abalado"). A consulta
+  `abalado(inimigo)` (R6) já serve: a Saída aplica antes, a Entrada lê depois.
+- O Abalo reduz em 30% o dano que o inimigo causa a **qualquer** alvo, inclusive
+  à Maldição atraída (Modificadores R5; o multiplicador é do atacante, não do alvo).
 
 **R4. Dano por passo** (item 7 da R1 do Combate, por inimigo, na ordem estável da
 lista; **antes** do impacto e da IA). Para cada inimigo atingível:
@@ -177,6 +216,7 @@ parados.
 | Câmaras e ondas | — | "câmara nova" (limpa os status) | Câmaras; **provisório** |
 | Armas das Doutrinas | — | `status` dos `AttackDef` (Estocada, Leque, Gota, Transmutar) | Armas |
 | HUD / VFX / Pipeline visual / Áudio | `estado(inimigo)`, número agregado (R8) | — | apresentação |
+| Maldições (emenda Pactos, 2026-11-15) | `abalado(inimigo)` (sinergia F5 da Maldição) | Abalo por golpe de Maldição (R3a), via impacto do Combate | Maldições (quais golpes), este GDD (duração e consulta) |
 
 ## Formulas
 
@@ -347,7 +387,7 @@ exibe "26". Só 1 Sangramento: S = 1,2, exibe "1".
 | `duracao_queimadura_s` | 3 (180) | 2–4 (120–240) | < 2: cauda no teto 57,6; > 4: 115, mais que o Eco elite (72) |
 | `dano_queimadura_s` | 4,8/s | 3,6–6,0 | > 5,54: DPS máx > 50% da arma (ST5); < 3,6: mata o Eco no teto só em > 1,4 s |
 | `max_acumulos_queimadura` | 6 | 4–8 | > 8: 38,4/s (58%); < 4: o teto some (< 19,2/s); < 1: erro |
-| `duracao_abalo_s` | 4 (240) | 2–6 | sem consumidor no MVP (só o Selo aplica, com `selo_abala`); < 2 não cobre a leitura |
+| `duracao_abalo_s` | 4 (240) | 2–6 | ~~sem consumidor no MVP (só o Selo aplica, com `selo_abala`)~~ aplicado pelo Selo (`selo_abala`) e pela Maldição (R3a: *Cratera de Cinza*, *Rastro Cortante*, *Eco de Muralha*; emenda Pactos, 2026-11-15); < 2 não cobre a leitura |
 | `reducao_dano_causado` | 0,3 | 0,15–0,45 (aceita 0) | ≥ 0,5: inimigo quase inofensivo; < 0,15: o Abalo some; ≥ 1: erro |
 | `intervalo_numero_s` | 0,5 (30) | 0,25–1,0 (15–60) | < 0,25: número por passo; > 1: o dano parece preso |
 
@@ -392,6 +432,15 @@ roda o MV1 do Movimento (Movimento OQ3).
 - **Se o inimigo estiver dentro do Selo:** o Abalo é renovado a cada passo (R3).
 - **Se um golpe de área atingir vários alvos:** cada alvo recebe o status por conta própria; os estados não se misturam entre inimigos.
 
+**Maldições (emenda Pactos, 2026-11-15)**
+
+- **Se a Saída do Baluarte abalar um inimigo já abalado pelo Selo (`restante` 20):** o Abalo vai a 240 (`max`, R2); sair do Selo depois não encurta.
+- **Se a Saída e a Entrada da mesma Troca atingirem o mesmo inimigo:** a Saída aplica o Abalo antes; a Entrada lê `abalado` verdadeiro no mesmo passo e ganha o bônus de sinergia (`maldicoes.md` F5).
+- **Se o Selo ou um golpe do jogador cobrir a Maldição:** nada acontece com ela; ela não é alvo de status (R1a).
+- **Se o Eco de Muralha atingir elite ou chefe:** aplica o Abalo normalmente (90 passos, R3a); não há imunidade (cânone).
+- **Se o Eco de Muralha (90) atingir um alvo já abalado por uma Saída (`restante` 200):** fica 200 (`max`, R2); o Eco não encurta Abalo mais longo.
+- **Se a Maldição abater com o golpe que aplica Abalo:** o alvo já tem Vida ≤ 0 e a R2 recusa o Abalo; o abate é do dono (`maldicoes.md` R6).
+
 **Dano e morte**
 
 - **Se Sangramento e Queimadura estiverem ativos no mesmo passo:** o Sangramento fere primeiro; se ele mata, a Queimadura não fere (alvo não atingível, R4).
@@ -435,6 +484,7 @@ roda o MV1 do Movimento (Movimento OQ3).
 | Armas das Doutrinas | Suave | `status` dos `AttackDef` (nenhum nas armas do MVP) | só as bênçãos aplicam status |
 | IA de inimigos e elites | Forte, **por contrato** | lista de inimigos (atingível, ordem estável) | não há alvo |
 | Câmaras e ondas | Suave, **por contrato** | "câmara nova" limpa os status | os status somem com os inimigos |
+| Maldições (emenda Pactos, 2026-11-15) | Suave | Abalo dos golpes *Rastro Cortante*, *Cratera de Cinza* e *Eco de Muralha* (R3a) | o Abalo fica só com o Selo e as bênçãos |
 
 **É dependência de (downstream)**
 
@@ -445,6 +495,11 @@ roda o MV1 do Movimento (Movimento OQ3).
 | Bênçãos (Tradições) | Suave | os status como efeito (Sombra Viva, Molde Vivo, Forma Fixa) |
 | HUD / Feedback de combate (VFX) / Pipeline visual / Áudio | Suave | `estado(inimigo)`, número agregado |
 | Telemetria local | Suave | dano por status por run |
+| Maldições (emenda Pactos, 2026-11-15) | Suave | `abalado(inimigo)` para o bônus de sinergia da Entrada (`maldicoes.md` F5) |
+
+- **Bidirecionalidade da emenda:** `maldicoes.md` cita o Abalo no catálogo e na
+  F5, mas não lista "Efeitos de status" em Dependencies — **contrato pedido a
+  `maldicoes.md`**: acrescentar a linha.
 
 **Bidirecionalidade:**
 
@@ -553,6 +608,13 @@ quando o critério diz.
 - **AC-ST-17 [L] R3 — golpes e bênçãos.** Com `golpe_sangramento` 1 e um golpe de arma em 3 alvos: cada alvo A = 1. O Corte da esquiva aplica 1 de Sangramento por alvo; o Selo aplica o Abalo.
 - **AC-ST-18 [L] R3 — ordem.** `golpe_*` e o `status` do `AttackDef` no mesmo golpe: os dois aplicam, e a ordem não muda A nem `restante`.
 
+**Maldições (emenda Pactos, 2026-11-15)**
+
+- **AC-ST-27 [L] R3a — Abalo da Saída.** Dublê de Combate entrega o impacto de *Cratera de Cinza* (Baluarte) no Saco no ~~item 5~~ item 6.1 (Combate R1/R23; emenda Pactos, 2026-11-15) do passo 0: `abalado` verdadeiro nos passos 0–239 e falso a partir do 240; `restante` 240 antes do item 7 do passo 0. O mesmo com *Rastro Cortante*. Com o *Eco de Muralha* (alinhamento 2026-11-16 **[a confirmar]**): `abalado` verdadeiro nos passos 0–89 e falso a partir do 90; `restante` 90 antes do item 7 do passo 0; num chefe, igual.
+- **AC-ST-28 [L] R3a — sem gatilho de bênção.** Com `golpe_sangramento` 1 e `golpe_queimadura` 1 ativos, um golpe de Maldição (`de_arma` falso) acerta o Saco: A_s = 0, A_q = 0; um *Rastro Cortante* no mesmo cenário: só o Abalo fica ativo.
+- **AC-ST-29 [L] R1a — sem fogo amigo.** Uma Maldição dentro de um Selo ativo e no arco de um golpe do jogador com `golpe_sangramento` 1: nenhuma chamada da R2 a tem como alvo e `estado()` não existe para ela.
+- **AC-ST-30 [L] R3a/R6 — ordem Saída → Entrada.** Troca manual Baluarte → Espreitador sobre o mesmo Saco no passo 0: `abalado` já é verdadeiro quando a Entrada (*Salto de Emboscada*) consulta, no mesmo passo.
+
 **Número agregado**
 
 - **AC-ST-19 [L] R8/F5 — número.** A_s = 10 e A_q = 6 durante 30 passos: exibe "26" no 30º passo vivo depois da primeira aplicação (com 6 passos de hitstop no meio, no 36º passo real); só Sangramento 1 por 30 passos vivos: "1" e resto 0,2 acumulado; com o toggle de números desligado: nenhum número e o dano não muda.
@@ -572,7 +634,8 @@ quando o critério diz.
 | # | Pergunta | Dono | Resolver até |
 |---|---|---|---|
 | 1 | Teto de Sangramento 10 diverge do cânone (sem teto); conferir a sensação no playtest | game-designer | primeiro playtest |
-| 2 | `duracao_abalo_s` (4 s) não tem consumidor no MVP; fica no dado para bênçãos e chefes | Bênçãos / Chefes | GDDs de Bênçãos e Chefes |
+| 2 | `duracao_abalo_s` (4 s) não tem consumidor no MVP; fica no dado para bênçãos e chefes. **Emenda Pactos (2026-11-15): resolvida — as Maldições a usam (R3a).** | Bênçãos / Chefes | GDDs de Bênçãos e Chefes |
+| 8 | (emenda Pactos) Abalo quase permanente: o *Eco de Muralha* do Baluarte vem no Chamado (recarga 2,0 s, `maldicoes.md` §Constantes) e dura 4 s, então um alvo dentro de 135 px do pouso fica abalado 100% do tempo, chefe incluído; a dupla Espreitador + Baluarte também cobre 100% só com Trocas (recarga 4 s, uma Saída com Abalo por Troca). Conferir no playtest se −30% constante no chefe é saudável; alavancas: duração própria no `CurseDef` ou Abalo do Chamado só em comuns. **Fechada (alinhamento 2026-11-16) [a confirmar]:** o *Eco de Muralha* tem duração própria de 1,5 s (90 passos) no `CurseDef` (R3a; `maldicoes.md` §Catálogo, ML1, OQ9): teto de 75% pelo Chamado, sem imunidade de chefe. A cobertura por Trocas (Saídas de 4 s a cada 4 s) fica aceita como execução manual; conferir no playtest | game-designer / `/balance-check` | primeiro playtest com Pactos |
 | 3 | Escala de raridade de `golpe_sangramento` e `golpe_queimadura` (o cânone mostra n = 1 base) e o dano plano de status sem M perde peso com bênçãos de Ataque | Bênçãos / `/balance-check` | GDD de Bênçãos |
 | 4 | Cadência de esquivas por segundo (placeholder 0,5/s) usada nas fontes de Sangramento | Movimento | `/balance-check` |
 | 5 | IA lê `estado(inimigo)` para reações (por exemplo, fugir ao queimar)? | IA de inimigos | GDD de IA |

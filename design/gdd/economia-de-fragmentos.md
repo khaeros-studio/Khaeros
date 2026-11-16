@@ -1,10 +1,18 @@
 # Economia de Fragmentos
 
-> **Status**: Approved (2026-11-11; revisão única por subagente: 4 bloqueantes e recomendadas, corrigidos sem re-review; sem entrada no review log)
+> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — antes: Approved (2026-11-11; revisão única por subagente: 4 bloqueantes e recomendadas, corrigidos sem re-review; sem entrada no review log)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-11
+> **Last Updated**: 2026-11-15 (emenda Pactos)
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P2 *A Beira cobra*; P4
+
+> **Emenda Pactos (2026-11-15).** A fonte `chefe` deixa de ser reservada: entra no MVP
+> com o *Soberano do Limiar* (`chefes.md` R9, F6). Abate ou Exorcizar: +6. Pactuar: 0
+> do chefe. Vitória: +15 (sem mudança). O texto antigo fica; o novo leva a marca
+> "(emenda Pactos, 2026-11-15)". Conferência das taxas: F3-P. ~~Conflito registrado
+> **[a confirmar]**: a faixa de portas depende de o índice 5 dar recompensa (Run R3-P)
+> ou não (Chefes F6).~~ Conflito resolvido: Chefes F6 foi emendado e usa o índice 5
+> recompensado (Run R3-P), com 10/25/31.
 
 ## Summary
 
@@ -13,7 +21,10 @@ run paga (porta e vitória), guarda o saldo entre as runs e o mostra ao jogador.
 **só conta e mostra**; o gasto (Oficina de Reforja) é da fatia vertical, mas a
 interface `gastar` já existe aqui.
 
-> **Quick reference** — Layer: `Feature` · Priority: `MVP` · Key deps: `Run e regiões, Portas e recompensas, Conteúdo orientado a dados`
+**(emenda Pactos, 2026-11-15)** No MVP a run paga em três fontes: porta, **chefe**
+(+6 no abate ou Exorcizar; 0 ao Pactuar) e vitória.
+
+> **Quick reference** — Layer: `Feature` · Priority: `MVP` · Key deps: `Run e regiões, Portas e recompensas, Conteúdo orientado a dados` · **(emenda Pactos, 2026-11-15)** + `Chefes (por contrato)`
 
 ## Overview
 
@@ -70,6 +81,19 @@ taxas das fontes que já têm dono; ela só **credita** o que recebe:
 "resolução por contrato" do índice (a Economia dona de todas as taxas): a Run e as
 Portas já são donas das suas e duplicar o número criaria dois donos.
 
+**R2-P (emenda Pactos, 2026-11-15).** A linha `chefe` passa a valer no MVP:
+
+| Origem | Quantidade | Dono da taxa | Quem chama | MVP |
+|---|---|---|---|---|
+| `chefe` | `RegionDef.fragmentos_chefe` (6; cânone `bossFragments`, Run R4) | `RegionDef` | **Chefes** (R9, F6) | **sim** |
+
+- Lâmina e Ressonância: Chefes chama `creditar(chefe, 6)` quando o chefe fica `Morto`.
+- Pactos, **Exorcizar**: Chefes chama `creditar(chefe, 6)`.
+- Pactos, **Pactuar**: Chefes **não chama** `creditar`. O "0 Fragmentos" de Chefes F6
+  é a ausência da chamada: `creditar(chefe, 0)` seria recusado com `EC1` (R3).
+  Contrato pedido a Chefes: deixar isso explícito na F6.
+- A Economia continua sem guardar a taxa do chefe.
+
 **R3. Creditar.** `creditar(origem, quantidade) → efetivo`: `quantidade` do tipo `int` (um `float`, mesmo `2.0`, é recusado) e ≥ 1 e `origem`
 na tabela da R2, senão **recusa** (erro `EC1`, saldo intacto, sem evento). Sucesso:
 soma ao `saldo` e a `coletados_run` e emite `saldo_mudou(saldo, delta, origem)`. Não
@@ -82,6 +106,14 @@ devolvido, F1); o resumo guarda `coletados`, `bonus` e `total = coletados + bonu
 (Run R7/F2). `coletados_run()` significa sempre "tudo que a run creditou", vitória
 incluída. **Morte vence a limpeza:** se `jogador_morreu` e `camara_limpa` caem no mesmo
 passo, as Portas **não** creditam (Run R5; Portas R2 recebe a mesma nota).
+
+**R4-P (emenda Pactos, 2026-11-15).** Ordem na câmara do chefe: crédito do chefe (se
+houver) → `camara_limpa(4, chefe)` → `fim_da_run` → a Run lê `coletados_run()` (já com
+os 6 do chefe) → `creditar(vitoria, 15)` → `run_encerrada`. O crédito do chefe sai no
+1º passo vivo após o hitstop de chefe (36 passos; Chefes R9) ou na escolha Exorcizar.
+**Morte vence:** jogador morto no passo do abate do chefe → sem crédito do chefe
+(Chefes, Edge Cases; Run R5-P). O resumo não separa o chefe: ele está em `coletados`;
+o desfecho vem em `desfecho_chefe` (Run R7-P).
 
 **R5. Gastar.** `gastar(custo, motivo)`: `custo` inteiro ≥ 1. Se `saldo < custo`:
 recusa com `saldo_insuficiente`, saldo intacto. Senão subtrai e emite
@@ -118,6 +150,7 @@ jogo (a Run decide quando chamar). A única transição é `nova_run()` (R6).
 | HUD, tela final, Telemetria | `saldo()`, `coletados_run()`, `saldo_mudou` | — | Economia |
 | Oficina de Reforja (fatia vertical) | `gastar(custo, motivo)` | — | Economia |
 | Save e perfil (fatia vertical) | `exportar()`/`importar(int)` | — | Economia |
+| **(emenda Pactos, 2026-11-15)** Chefes | `saldo_mudou` (opcional) | `creditar(chefe, 6)` no abate ou Exorcizar; nada ao Pactuar | Economia |
 
 ## Formulas
 
@@ -147,6 +180,40 @@ vitória, ~17 runs para os 350. A faixa mínima de 15 só vale se o pool de bên
 esgotar (bênção sem pool vira Fragmentos, Portas R3: só soma). A calibração fina fica
 para o balance-check da Oficina (OQ 2).
 
+**F3-P. Renda de uma run no Limiar com chefe (emenda Pactos, 2026-11-15).**
+`renda = portas + frag_chefe + vitoria`. `frag_chefe ∈ {0, 6}` (Chefes F6); `vitoria ∈
+{0, 15}`.
+
+**Conferência das taxas:**
+- `chefe` 6 = `RegionDef.fragmentos_chefe` (R2) = cânone `bossFragments` (Run R4) =
+  Chefes F6. **Bate.**
+- `vitoria` 15 = `RunTuning.fragmentos_vitoria` (Run knobs) = Chefes F6. **Bate.**
+- ~~**Portas: conflito [a confirmar].** A F3 acima diz que o índice 5 não dá recompensa
+  (máx. 7), e Chefes F6 repete "até 7 de portas". A emenda da Run (R3-P) faz do
+  índice 5 uma câmara comum, com Fragmentos `2 + floor(4/3) = 3` (máx. 10). A F3
+  antiga fica até o usuário decidir.~~
+- **Portas: resolvido.** Chefes F6 foi emendado: índice 5 recompensado (Run R3-P),
+  máx. 10 de portas, totais 10/25/31. **Bate** com a coluna "Índice 5 recompensado"
+  abaixo; a outra coluna fica como registro.
+
+| Caso | Índice 5 recompensado (Run R3-P) | Índice 5 sem recompensa (F3 / Chefes F6) |
+|---|---|---|
+| Máx., vence por abate ou Exorcizar | 10 + 6 + 15 = **31** | 7 + 6 + 15 = **28** |
+| Máx., Pactos pactua | 10 + 0 + 15 = **25** | 7 + 0 + 15 = **22** |
+| Mín., vence por abate ou Exorcizar | 0 + 6 + 15 = **21** | **21** |
+| Mín., Pactos pactua | **15** | **15** |
+| Máx., morre no chefe | **10** | **7** |
+| Mín., morte | **0** | **0** |
+
+**Renda esperada** de quem sempre pega Fragmentos (P = 0,8133 por escolha, Portas F2) e
+vence por abate: ≈ 10 × 0,81 + 21 ≈ **29** (ou 7 × 0,81 + 21 ≈ 27). Para os 350 da
+Oficina: ≈ 12 a 13 vitórias (antes ≈ 17). Ao Pactuar: ≈ 23 (ou 21) por vitória.
+
+**Leitura (P2, *A Beira cobra*):** Pactuar custa 6, ≈ 20–25% de uma vitória. Pactos
+nunca ganha mais que Lâmina e Ressonância: no máximo empata (Exorcizar). Não há laço de
+renda infinito: o chefe paga 1 vez por run e não há Fragmento por abate. A renda maior
+só aproxima a Oficina; a calibração é a OQ 2.
+
 ## Tuning Knobs
 
 | Knob | Padrão | Faixa | Categoria | Efeito e racional |
@@ -156,6 +223,12 @@ para o balance-check da Oficina (OQ 2).
 
 As taxas de porta, vitória e chefe **não** são knobs daqui (R2): ficam na
 `RewardTable`, no `RunTuning` e na `RegionDef`.
+
+**(emenda Pactos, 2026-11-15)** O racional de `saldo_max` passa a "renda ≤ 31 por
+run" (F3-P); o padrão não muda. Faixa segura sugerida para `RegionDef.fragmentos_chefe`
+(dono: Conteúdo/Chefes): **0–10 [a confirmar]**. Acima de 10, Pactuar passa a custar
+mais que metade da vitória (15) e empurra o jogador a Exorcizar sempre; em 0, Pactuar
+deixa de ter preço (P2).
 
 ## Edge Cases
 
@@ -184,6 +257,20 @@ As taxas de porta, vitória e chefe **não** são knobs daqui (R2): ficam na
 - **`creditar` durante Transição ou pausa:** aceito; a Economia não tem estado (a Run
   e as Portas só chamam em momentos válidos).
 
+**(emenda Pactos, 2026-11-15)**
+- **"Origem desconhecida" acima:** `chefe` deixa de ser reservada; agora Chefes a chama.
+- **Pactuar:** nenhuma chamada; se vier `creditar(chefe, 0)`, recusa `EC1`, sem evento
+  (R2-P).
+- **Dois créditos de chefe na mesma run** (ex.: abate e Exorcizar duplicados por erro):
+  a Economia aceita os dois (não tem estado); garantir 1 crédito é de Chefes (F6).
+  O teste de integração AC-EF-33 pega a duplicação.
+- **Morte no passo do abate do chefe:** sem crédito do chefe (R4-P).
+- **Fechar o jogo em `Subjugado`:** nenhum crédito do chefe; o saldo se perde de
+  qualquer modo (R7).
+- **Vínculo já no máximo e o jogador Pactua:** 0 Fragmentos sem ganho; Pactuar fica
+  dominado por Exorcizar. Não é falha da Economia; registrado para Vínculo e pactos
+  (OQ 7).
+
 ## Dependencies
 
 | Sistema | Direção | Natureza | Interface |
@@ -197,6 +284,7 @@ As taxas de porta, vitória e chefe **não** são knobs daqui (R2): ficam na
 | Oficina de Reforja (fatia vertical) | sai | por contrato | `gastar(custo, motivo)` |
 | Save e perfil (fatia vertical) | sai | por contrato | `exportar()` / `importar(int)` |
 | Chefes (fatia vertical) | entra | reservada | `creditar(chefe, n)` com `RegionDef.fragmentos_chefe` |
+| **(emenda Pactos, 2026-11-15)** Chefes (**MVP**) | entra | por contrato | `creditar(chefe, 6)` no abate ou Exorcizar; nada ao Pactuar (Chefes R9, F6). Bidirecional: Chefes, Depended On By |
 
 Nenhum sistema depende da Economia para **rodar** a run: sem ela, os créditos viram
 chamadas perdidas e o jogo continua (a Run e as Portas aceitam a interface ausente).
@@ -271,6 +359,23 @@ Tipos: [L] lógica (unitário), [I] integração, [V] visual (screenshot).
 - **AC-EF-29 [L] R8 — teto avisa.** O `saldo_no_teto` do AC-EF-08 e do AC-EF-09 chega ao ouvinte (dublê de HUD).
 - **AC-EF-30 [L] R2/R9 — sem taxas de porta.** A conta monta em memória só com `EconomyRates` (`fragmentos_provacao`, `saldo_max`), sem cena; `fragmentos_base` não existe nela e `creditar(chefe, 6)` funciona sem dado de taxa.
 
+**(emenda Pactos, 2026-11-15)** Com o chefe no MVP, AC-EF-22 e AC-EF-25 valem só com
+`camaras_jogaveis = 6`; AC-EF-31 a 34 cobrem o Limiar com chefe.
+
+- **AC-EF-31 [I] R2-P/R4-P — abate.** GIVEN saldo 11 (coletados 5), WHEN o dublê de
+  Chefes abate com Lâmina, THEN `saldo_mudou(17, +6, chefe)` sai antes de
+  `camara_limpa`; a Run lê coletados 11 e credita 15; saldo 32; resumo total 26.
+- **AC-EF-32 [I] R2-P — Pactuar.** GIVEN Pactos com o chefe `Subjugado` e saldo 11,
+  WHEN a escolha é `pactuar`, THEN nenhum `saldo_mudou` com origem `chefe`; após a
+  vitória, saldo 26.
+- **AC-EF-33 [I] R2-P — Exorcizar, 1 crédito.** GIVEN Pactos e saldo 11, WHEN a
+  escolha é `exorcizar`, THEN exatamente 1 `saldo_mudou(17, +6, chefe)`; após a
+  vitória, saldo 32.
+- **AC-EF-34 [I] R4-P — morte no abate.** `jogador_morreu` no passo em que o chefe
+  zera a Vida: nenhum crédito `chefe` nem `vitoria`; saldo intacto.
+- **AC-EF-35 [I] F3-P — extremos (depende da OQ 8).** Com o índice 5 recompensado: 4
+  portas de Fragmentos + abate + vitória = 31; + Pactuar = 25. Sem: 28 e 22.
+
 ## Open Questions
 
 | # | Pergunta | Dono | Resolver até |
@@ -279,4 +384,7 @@ Tipos: [L] lógica (unitário), [I] integração, [V] visual (screenshot).
 | 2 | Calibração do custo da Oficina contra a renda de 15–22 por run (350 no total) | Oficina de Reforja + balance-check | fatia vertical |
 | 3 | Cor, som e rótulo definitivos de "Fragmentos de Eco" | art-director, audio-director, localização | HUD |
 | 4 | Fragmentos do chefe (6) e da Provação (3): origem e momento do crédito | Chefes / Câmaras | fatia vertical |
+| 6 | **(emenda Pactos, 2026-11-15)** OQ 4 resolvida para o chefe (Chefes R9, F6); a Provação segue aberta. Com pactos e vínculo salvos entre sessões (save mínimo do MVP), o saldo deve entrar no mesmo save? Hoje R7 e ADR-0013 dizem que não **[a confirmar]** | usuário; Save mínimo | GDD de Save mínimo |
+| 7 | **(emenda Pactos)** ~~Pactuar com vínculo no máximo fica dominado por Exorcizar (0 vs. 6 sem ganho)~~ **Fechada:** Vínculo V18.5 ("o fardo repartido"): com o *Soberano* no nível 5, os 10 pontos de Pactuar vão inteiros para cada espécie da dupla (ou para a pactuada de menor nível fora dela). Pactuar segue com ganho | Vínculo e pactos | ~~GDD de Vínculo e pactos~~ resolvida |
+| 8 | **(emenda Pactos)** ~~Índice 5 recompensado (Run R3-P, máx. 10 de portas) ou não (F3, Chefes F6, máx. 7)~~ **Fechada:** Chefes F6 emendado com índice 5 recompensado (10/25/31) | usuário; Portas; Chefes | ~~antes de aprovar a emenda~~ resolvida |
 | 5 | **Edições pendentes por dono único:** Conteúdo (linha 96 `EconomyRates` só com Provação e `saldo_max`; linhas 390 e 787; campo `RegionDef.fragmentos_chefe`; `EC1`/`EC2` como códigos V*), Run (linha 155; R4/F2 com `efetivo` e `bonus`), Portas (R2: morte vence a limpeza), índice (linha 21) | Conteúdo, Run, Portas | `/review-all-gdds` |

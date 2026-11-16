@@ -2,7 +2,7 @@
 
 > **Status**: Approved (enumeração, dependências e prioridades aprovadas pelo CD em 2026-11-05)
 > **Created**: 2026-11-05
-> **Last Updated**: 2026-11-11 (Telemetria local Approved (22/22 MVP); antes, Feedback de combate Approved; antes, Tela de bênção e carta Approved; antes, HUD Approved; antes, Economia de Fragmentos Approved; antes, Bênçãos (Tradições) Approved; antes, Run e regiões Approved; antes, Portas e recompensas Approved; antes, Câmaras e ondas Approved; antes, IA de inimigos e elites Approved; antes, Telégrafos Approved; antes, Efeitos de status Approved; antes, 2026-11-10: Selo e Fluxo Approved; antes, Armas das Doutrinas Approved; antes, Pipeline visual Approved. Antes, 2026-11-09: Combate núcleo Approved; ciclos Movimento ↔ Combate e Combate ↔ IA em Circular Dependencies. Antes, 2026-11-08: Movimento e esquiva Approved: `/design-review` NEEDS REVISION → revisado → re-review APPROVED. Antes, 2026-11-06: 2ª passada do `/review-all-gdds`: CONCERNS, 0 bloqueantes; Next Steps atualizado. Antes: warnings da 1ª passada aplicados em Cena 3/4 e Modificadores, os dois voltam a In Review; C-W6 na Foundation Layer)
+> **Last Updated**: 2026-11-15 (Chefes Approved (24/26 MVP); antes, Maldições Approved (23/26 MVP); antes, 2026-11-11: Telemetria local Approved (22/22 MVP original); antes, Feedback de combate Approved; antes, Tela de bênção e carta Approved; antes, HUD Approved; antes, Economia de Fragmentos Approved; antes, Bênçãos (Tradições) Approved; antes, Run e regiões Approved; antes, Portas e recompensas Approved; antes, Câmaras e ondas Approved; antes, IA de inimigos e elites Approved; antes, Telégrafos Approved; antes, Efeitos de status Approved; antes, 2026-11-10: Selo e Fluxo Approved; antes, Armas das Doutrinas Approved; antes, Pipeline visual Approved. Antes, 2026-11-09: Combate núcleo Approved; ciclos Movimento ↔ Combate e Combate ↔ IA em Circular Dependencies. Antes, 2026-11-08: Movimento e esquiva Approved: `/design-review` NEEDS REVISION → revisado → re-review APPROVED. Antes, 2026-11-06: 2ª passada do `/review-all-gdds`: CONCERNS, 0 bloqueantes; Next Steps atualizado. Antes: warnings da 1ª passada aplicados em Cena 3/4 e Modificadores, os dois voltam a In Review; C-W6 na Foundation Layer)
 > **Source Concept**: design/gdd/game-concept.md (v1.0)
 > **Art Bible**: design/art/art-bible.md (aprovado)
 > **Revisões de diretor**: TD-SYSTEM-BOUNDARY, PR-SCOPE e CD-SYSTEMS puladas — modo lean (`modes.rigor: standard`)
@@ -30,7 +30,7 @@ Bible exige: 11 camadas de render (9 de arte), y-sort, grading regional por shad
 cancelamento) e o **combate núcleo** (hitbox, dano, Vida, hitstop, empurrão,
 cambaleio, "Quebrou!", impacto na parede — tudo herdado do baseline §55) são o
 coração do jogo e o maior gargalo. Sobre eles ficam as **armas das 6
-Doutrinas** (MVP: Lâmina e Ressonância), o **Selo** com seu recurso **Fluxo**, os
+Doutrinas** (MVP: Lâmina, Ressonância e Pactos, com as **Maldições** como aliados), o **Selo** com seu recurso **Fluxo**, os
 **status**, os **telégrafos** no chão e a **IA** de Ecos e Anomalias, com elites.
 
 **A run (P2).** **Câmaras e ondas** fecham a porta e soltam inimigos;
@@ -62,49 +62,52 @@ sistema de jogo (Art Bible §8.8).
 
 | # | System Name | Category | Priority | Status | Design Doc | Depends On |
 |---|-------------|----------|----------|--------|------------|------------|
-| 1 | Conteúdo orientado a dados (inferred) | Core | MVP | Approved | [conteudo-orientado-a-dados.md](conteudo-orientado-a-dados.md) | — |
-| 2 | Modificadores e atributos (inferred) | Core | MVP | Approved | [modificadores-e-atributos.md](modificadores-e-atributos.md) | Conteúdo orientado a dados |
-| 3 | RNG com seed (inferred) | Core | MVP | Approved | [rng-com-seed.md](rng-com-seed.md) | Conteúdo orientado a dados (suave) |
-| 4 | Input e controle (inferred) | Core | MVP | Approved | [input-e-controle.md](input-e-controle.md) | Conteúdo orientado a dados (suave), Cena 3/4 e câmera (forte, mira do mouse) |
+| 1 | Conteúdo orientado a dados (inferred) | Core | MVP | Approved (emenda Pactos, 2026-11-16) | [conteudo-orientado-a-dados.md](conteudo-orientado-a-dados.md) | — |
+| 2 | Modificadores e atributos (inferred) | Core | MVP | Approved (emenda Pactos, 2026-11-16) | [modificadores-e-atributos.md](modificadores-e-atributos.md) | Conteúdo orientado a dados |
+| 3 | RNG com seed (inferred) | Core | MVP | Approved (emenda Pactos, 2026-11-16) | [rng-com-seed.md](rng-com-seed.md) | Conteúdo orientado a dados (suave) |
+| 4 | Input e controle (inferred) | Core | MVP | Approved (emenda Pactos, 2026-11-16) | [input-e-controle.md](input-e-controle.md) | Conteúdo orientado a dados (suave), Cena 3/4 e câmera (forte, mira do mouse) |
 | 5 | Cena 3/4 e câmera | Core | MVP | Approved | [cena-3-4-e-camera.md](cena-3-4-e-camera.md) | Conteúdo orientado a dados (suave), Input e controle (suave, lookahead; ciclo por contrato) |
-| 6 | Pipeline visual | Core | MVP | Approved | [pipeline-visual.md](pipeline-visual.md) | Cena 3/4 e câmera, Conteúdo orientado a dados, Combate núcleo (suave, por contrato), Movimento e esquiva (suave), Run e regiões (suave, por contrato), Câmaras e ondas (suave, por contrato) |
+| 6 | Pipeline visual | Core | MVP | Approved (emenda Pactos, 2026-11-16) | [pipeline-visual.md](pipeline-visual.md) | Cena 3/4 e câmera, Conteúdo orientado a dados, Combate núcleo (suave, por contrato), Movimento e esquiva (suave), Run e regiões (suave, por contrato), Câmaras e ondas (suave, por contrato) |
 | 7 | Movimento e esquiva | Gameplay | MVP | Approved | [movimento-e-esquiva.md](movimento-e-esquiva.md) | Input e controle, Cena 3/4 e câmera, Modificadores e atributos, Conteúdo orientado a dados |
-| 8 | Combate núcleo | Gameplay | MVP | Approved | [combate-nucleo.md](combate-nucleo.md) | Movimento e esquiva, Modificadores e atributos, Conteúdo orientado a dados, Input e controle, IA de inimigos e elites (por contrato), Câmaras e ondas (suave, por contrato) |
-| 9 | Armas das Doutrinas | Gameplay | MVP | Approved | [armas-das-doutrinas.md](armas-das-doutrinas.md) | Combate núcleo, Modificadores e atributos, Conteúdo orientado a dados, Input e controle, Tela de bênção e componente de carta (suave, por contrato) |
-| 10 | Selo e Fluxo | Gameplay | MVP | Approved | [selo-e-fluxo.md](selo-e-fluxo.md) | Combate núcleo, Modificadores e atributos, Conteúdo orientado a dados, Input e controle, Movimento e esquiva (suave), Armas das Doutrinas (suave), IA de inimigos e elites (por contrato), Câmaras e ondas (suave, por contrato), Run e regiões (suave, por contrato) |
-| 11 | Efeitos de status (inferred) | Gameplay | MVP | Approved | [efeitos-de-status.md](efeitos-de-status.md) | Combate núcleo, Modificadores e atributos, Conteúdo orientado a dados, Selo e Fluxo (suave), Armas das Doutrinas (suave), IA de inimigos e elites (por contrato), Câmaras e ondas (suave, por contrato) |
-| 12 | Criatura do pacto | Gameplay | Alpha | Not Started | — | Armas das Doutrinas, IA de inimigos e elites |
-| 13 | Telégrafos | Gameplay | MVP | Approved | [telegrafos.md](telegrafos.md) | Pipeline visual, Combate núcleo, Conteúdo orientado a dados, IA de inimigos e elites (por contrato), Câmaras e ondas (suave, por contrato) |
-| 14 | IA de inimigos e elites | Gameplay | MVP | Approved | [ia-de-inimigos-e-elites.md](ia-de-inimigos-e-elites.md) | Combate núcleo, Telégrafos, RNG com seed, Conteúdo orientado a dados, Modificadores e atributos, Selo e Fluxo (suave), Efeitos de status (suave), Câmaras e ondas (por contrato), Movimento e esquiva (suave) |
-| 15 | Chefes | Gameplay | Vertical Slice | Not Started | — | IA de inimigos e elites, Telégrafos, Modificadores e atributos |
-| 16 | Câmaras e ondas | Gameplay | MVP | Approved | [camaras-e-ondas.md](camaras-e-ondas.md) | IA de inimigos e elites, RNG com seed, Conteúdo orientado a dados, Cena 3/4 e câmera, Modificadores e atributos, Combate núcleo (por contrato), Portas e recompensas (por contrato), Run e regiões (por contrato) |
-| 17 | Portas e recompensas | Gameplay | MVP | Approved | [portas-e-recompensas.md](portas-e-recompensas.md) | Câmaras e ondas, RNG com seed, Conteúdo orientado a dados, Run e regiões (por contrato), Bênçãos (Tradições) (por contrato), Economia de Fragmentos (suave, por contrato) |
-| 18 | Run e regiões | Gameplay | MVP | Approved | [run-e-regioes.md](run-e-regioes.md) | Câmaras e ondas, Portas e recompensas, Chefes (a partir da fatia vertical, reservado), Conteúdo orientado a dados, RNG com seed, Combate núcleo (suave), Bênçãos (Tradições) (por contrato), Economia de Fragmentos (por contrato) |
-| 19 | Bênçãos (Tradições) | Gameplay | MVP | Approved | [bencaos-tradicoes.md](bencaos-tradicoes.md) | Modificadores e atributos, RNG com seed, Armas das Doutrinas (suave), Conteúdo orientado a dados, Portas e recompensas, Run e regiões (suave) |
+| 8 | Combate núcleo | Gameplay | MVP | Approved (emenda Pactos, 2026-11-16) | [combate-nucleo.md](combate-nucleo.md) | Movimento e esquiva, Modificadores e atributos, Conteúdo orientado a dados, Input e controle, IA de inimigos e elites (por contrato), Câmaras e ondas (suave, por contrato) |
+| 9 | Armas das Doutrinas | Gameplay | MVP | Approved (emenda Pactos, 2026-11-16) | [armas-das-doutrinas.md](armas-das-doutrinas.md) | Combate núcleo, Modificadores e atributos, Conteúdo orientado a dados, Input e controle, Tela de bênção e componente de carta (suave, por contrato) |
+| 10 | Selo e Fluxo | Gameplay | MVP | Approved (emenda Pactos, 2026-11-16) | [selo-e-fluxo.md](selo-e-fluxo.md) | Combate núcleo, Modificadores e atributos, Conteúdo orientado a dados, Input e controle, Movimento e esquiva (suave), Armas das Doutrinas (suave), IA de inimigos e elites (por contrato), Câmaras e ondas (suave, por contrato), Run e regiões (suave, por contrato) |
+| 11 | Efeitos de status (inferred) | Gameplay | MVP | Approved (emenda Pactos, 2026-11-16) | [efeitos-de-status.md](efeitos-de-status.md) | Combate núcleo, Modificadores e atributos, Conteúdo orientado a dados, Selo e Fluxo (suave), Armas das Doutrinas (suave), IA de inimigos e elites (por contrato), Câmaras e ondas (suave, por contrato) |
+| 12 | Maldições (aliados do pacto; antes "Criatura do pacto") | Gameplay | MVP | Approved (emenda Pactos, 2026-11-16) | [maldicoes.md](maldicoes.md) | Combate núcleo, IA de inimigos e elites, Armas das Doutrinas, Movimento e esquiva (suave), Modificadores e atributos, Telégrafos (suave), Conteúdo orientado a dados, Vínculo e pactos (por contrato) |
+| 13 | Telégrafos | Gameplay | MVP | Approved (emenda Pactos, 2026-11-16) | [telegrafos.md](telegrafos.md) | Pipeline visual, Combate núcleo, Conteúdo orientado a dados, IA de inimigos e elites (por contrato), Câmaras e ondas (suave, por contrato) |
+| 14 | IA de inimigos e elites | Gameplay | MVP | Approved (emenda Pactos, 2026-11-16) | [ia-de-inimigos-e-elites.md](ia-de-inimigos-e-elites.md) | Combate núcleo, Telégrafos, RNG com seed, Conteúdo orientado a dados, Modificadores e atributos, Selo e Fluxo (suave), Efeitos de status (suave), Câmaras e ondas (por contrato), Movimento e esquiva (suave) |
+| 15 | Chefes (MVP: a Maldição-chefe do Limiar, decisão do usuário 2026-11-15) | Gameplay | MVP | Approved (emenda Pactos, 2026-11-16) | [chefes.md](chefes.md) | IA de inimigos e elites, Telégrafos, Modificadores e atributos, Combate núcleo, Câmaras e ondas, Conteúdo orientado a dados, Maldições (suave), Vínculo e pactos (por contrato) |
+| 16 | Câmaras e ondas | Gameplay | MVP | Approved (emenda Pactos, 2026-11-16) | [camaras-e-ondas.md](camaras-e-ondas.md) | IA de inimigos e elites, RNG com seed, Conteúdo orientado a dados, Cena 3/4 e câmera, Modificadores e atributos, Combate núcleo (por contrato), Portas e recompensas (por contrato), Run e regiões (por contrato) |
+| 17 | Portas e recompensas | Gameplay | MVP | Approved (emenda Pactos, 2026-11-16) | [portas-e-recompensas.md](portas-e-recompensas.md) | Câmaras e ondas, RNG com seed, Conteúdo orientado a dados, Run e regiões (por contrato), Bênçãos (Tradições) (por contrato), Economia de Fragmentos (suave, por contrato) |
+| 18 | Run e regiões | Gameplay | MVP | Approved (emenda Pactos, 2026-11-16) | [run-e-regioes.md](run-e-regioes.md) | Câmaras e ondas, Portas e recompensas, Chefes (a partir da fatia vertical, reservado), Conteúdo orientado a dados, RNG com seed, Combate núcleo (suave), Bênçãos (Tradições) (por contrato), Economia de Fragmentos (por contrato) |
+| 19 | Bênçãos (Tradições) | Gameplay | MVP | Approved (emenda Pactos, 2026-11-16) | [bencaos-tradicoes.md](bencaos-tradicoes.md) | Modificadores e atributos, RNG com seed, Armas das Doutrinas (suave), Conteúdo orientado a dados, Portas e recompensas, Run e regiões (suave) |
 | 20 | Mestres ofertantes | Narrative | Vertical Slice | Not Started | — | Bênçãos (Tradições), Diálogo e lore |
-| 21 | Economia de Fragmentos | Economy | MVP | Approved | [economia-de-fragmentos.md](economia-de-fragmentos.md) | Run e regiões (por contrato), Portas e recompensas (por contrato), Conteúdo orientado a dados |
+| 21 | Economia de Fragmentos | Economy | MVP | Approved (emenda Pactos, 2026-11-16) | [economia-de-fragmentos.md](economia-de-fragmentos.md) | Run e regiões (por contrato), Portas e recompensas (por contrato), Conteúdo orientado a dados |
 | 22 | Oficina de Reforja | Progression | Vertical Slice | Not Started | — | Economia de Fragmentos, Modificadores e atributos, Save e perfil, Conteúdo orientado a dados |
 | 23 | Desbloqueio de armas | Progression | Alpha | Not Started | — | Economia de Fragmentos, Armas das Doutrinas, Save e perfil |
 | 24 | Rito de Iniciação e criação do Iniciado | Progression | Vertical Slice | Not Started | — | Armas das Doutrinas, Save e perfil, Diálogo e lore |
 | 25 | Campus (hub) | Meta | Vertical Slice | Not Started | — | Oficina de Reforja, Desbloqueio de armas, Rito de Iniciação e criação do Iniciado, Mestres ofertantes |
 | 26 | Diálogo e lore (inferred) | Narrative | Vertical Slice | Not Started | — | Conteúdo orientado a dados, Localização |
-| 27 | Save e perfil (inferred) | Persistence | Vertical Slice | Not Started | — | Conteúdo orientado a dados |
-| 28 | HUD | UI | MVP | Approved | [hud.md](hud.md) | Combate núcleo, Selo e Fluxo, Movimento e esquiva, Economia de Fragmentos, Chefes (barra de chefe, fatia vertical) |
-| 29 | Tela de bênção e componente de carta | UI | MVP | Approved | [tela-de-bencao-e-carta.md](tela-de-bencao-e-carta.md) | Bênçãos (Tradições), Mestres ofertantes (retrato, fatia vertical), Input e controle |
+| 27 | Save e perfil (inferred; MVP mínimo: pactos e vínculo, 2026-11-15) | Persistence | MVP | Approved | [save-e-perfil.md](save-e-perfil.md) | Conteúdo orientado a dados |
+| 28 | HUD | UI | MVP | Approved (emenda Pactos, 2026-11-16) | [hud.md](hud.md) | Combate núcleo, Selo e Fluxo, Movimento e esquiva, Economia de Fragmentos, Chefes (barra de chefe, fatia vertical) |
+| 29 | Tela de bênção e componente de carta | UI | MVP | Approved (emenda Pactos, 2026-11-16) | [tela-de-bencao-e-carta.md](tela-de-bencao-e-carta.md) | Bênçãos (Tradições), Mestres ofertantes (retrato, fatia vertical), Input e controle |
 | 30 | Menus (inferred) | UI | Vertical Slice | Not Started | — | Save e perfil, Input e controle |
-| 31 | Feedback de combate (VFX) | UI | MVP | Approved | [feedback-de-combate.md](feedback-de-combate.md) | Combate núcleo, Pipeline visual, Telégrafos, Cena 3/4 e câmera |
+| 31 | Feedback de combate (VFX) | UI | MVP | Approved (emenda Pactos, 2026-11-16) | [feedback-de-combate.md](feedback-de-combate.md) | Combate núcleo, Pipeline visual, Telégrafos, Cena 3/4 e câmera |
 | 32 | Áudio (inferred) | Audio | Vertical Slice | Not Started | — | Combate núcleo, Telégrafos, Run e regiões |
 | 33 | Acessibilidade e opções | Meta | Vertical Slice | Not Started | — | HUD, Tela de bênção e componente de carta, Menus, Feedback de combate (VFX), Input e controle |
 | 34 | Localização (inferred) | Meta | Vertical Slice | Not Started | — | — |
-| 35 | Telemetria local | Meta | MVP | Approved | [telemetria-local.md](telemetria-local.md) | Run e regiões, Bênçãos (Tradições), RNG com seed |
+| 35 | Telemetria local | Meta | MVP | Approved (emenda Pactos, 2026-11-16) | [telemetria-local.md](telemetria-local.md) | Run e regiões, Bênçãos (Tradições), RNG com seed |
 | 36 | Co-op online (1 a 4 jogadores; decisão do usuário em 2026-11-13, pós-MVP solo) | Gameplay | Alpha | Not Started | — | Netcode e sincronização, Run e regiões, Câmaras e ondas, RNG com seed, Input e controle, Cena 3/4 e câmera, Combate núcleo, IA de inimigos e elites, Armas das Doutrinas, Bênçãos (Tradições), Portas e recompensas, Economia de Fragmentos, HUD, Save e perfil, Rito de Iniciação e criação do Iniciado (um Iniciado por jogador), Menus (lobby). Exige também netcode e sincronização, que ainda não são um sistema do índice (pergunta aberta: sistema próprio ou parte deste). Ganchos listados em [co-op-ganchos.md](co-op-ganchos.md) |
 | 37 | Netcode e sincronização (co-op online) | Core | Alpha | Not Started | — | Co-op online, RNG com seed, Input e controle, Cena 3/4 e câmera, Combate núcleo, Run e regiões, Conteúdo orientado a dados (impressão do catálogo no lobby). Cobre modelo (host autoritativo ou outro), latência tolerada, desconexão e lobby; decisão de arquitetura (ADR) antes do GDD |
+| 38 | Vínculo e pactos (decisão do usuário, 2026-11-15) | Progression | MVP | Approved | [vinculo-e-pactos.md](vinculo-e-pactos.md) | Maldições, Save e perfil, Conteúdo orientado a dados, Modificadores e atributos, Câmaras e ondas (encontro de pacto, por contrato), Portas e recompensas (por contrato), Chefes (pacto ou derrota, por contrato), RNG com seed |
 
 **Escopo de conteúdo por nível** (o sistema é um só; o conteúdo cresce):
-- **Armas das Doutrinas:** MVP = Lâmina e Ressonância (decisão do CD); fatia
-  vertical = + Guardião e Véu; Alpha = + Transmutação e Pactos (com a Criatura do
-  pacto).
-- **Run e regiões:** MVP = Limiar da Beira sem chefe; fatia vertical = Limiar
+- **Armas das Doutrinas:** MVP = Lâmina, Ressonância e Pactos (Besta do Vínculo
+  com 3 Maldições, das quais o jogador leva 2; decisão do usuário, 2026-11-15);
+  fatia vertical = + Guardião e Véu; Alpha = + Transmutação.
+- **Maldições:** raridade por espécie na escala do cânone (Comum, Refinado, Raro,
+  Épico, Primordial); só quem jurou Pactos escolhe entre pacto e derrota.
+- **Run e regiões:** MVP = Limiar da Beira com a Maldição-chefe (2026-11-15); fatia vertical = Limiar
   completo com a Anomalia Maior; Alpha = + Veio Instável e Guardião do Rito.
 - **Economia de Fragmentos:** MVP = só contar e mostrar; fatia vertical = gastar
   na Oficina.
@@ -116,8 +119,8 @@ sistema de jogo (Art Bible §8.8).
 | Category | Description | Neste jogo |
 |----------|-------------|------------|
 | **Core** | Fundação de que tudo depende | dados, modificadores, RNG, input, cena 3/4, pipeline visual |
-| **Gameplay** | O que torna o jogo divertido | movimento, combate, armas, Selo, status, telégrafos, IA, chefes, câmaras, portas, run, bênçãos, criatura do pacto |
-| **Progression** | Crescimento entre runs | Oficina de Reforja, desbloqueio de armas, Rito de Iniciação |
+| **Gameplay** | O que torna o jogo divertido | movimento, combate, armas, Selo, status, telégrafos, IA, chefes, câmaras, portas, run, bênçãos, Maldições |
+| **Progression** | Crescimento entre runs | Oficina de Reforja, desbloqueio de armas, Rito de Iniciação, vínculo e pactos |
 | **Economy** | Criação e gasto de recurso | Fragmentos de Eco da Beira |
 | **Persistence** | Continuidade | save e perfil |
 | **UI** | Informação na tela | HUD, cartas, menus, feedback de combate |
@@ -143,8 +146,9 @@ sistema de jogo (Art Bible §8.8).
 - **Fatia vertical (11):** a experiência completa de uma região — o ritual de
   voltar ao Campus, melhorar e descer de novo (P4), a voz dos Mestres (P1) e o
   primeiro chefe.
-- **Alpha (4 + conteúdo):** o resto do jogo canônico — a segunda região e todas
-  as Doutrinas, incluindo Pactos com a criatura. O **Co-op online** (1 a 4
+- **Alpha (4 + conteúdo):** o resto do jogo canônico — a segunda região e as
+  Doutrinas restantes. Pactos, as Maldições, o 1º chefe e o save mínimo subiram
+  ao MVP (decisão do usuário, 2026-11-15). O **Co-op online** (1 a 4
   jogadores) entra aqui como pós-MVP solo: não muda o escopo do MVP.
 
 ---
@@ -174,7 +178,8 @@ sistema de jogo (Art Bible §8.8).
 3. Efeitos de status — depends on: Combate núcleo, Modificadores e atributos, Conteúdo orientado a dados
 4. Telégrafos — depends on: Pipeline visual, Combate núcleo
 5. IA de inimigos e elites — depends on: Combate núcleo, Telégrafos, RNG com seed, Conteúdo orientado a dados, Modificadores e atributos
-6. Criatura do pacto — depends on: Armas das Doutrinas, IA de inimigos e elites
+6. Maldições — depends on: Combate núcleo, IA de inimigos e elites, Armas das Doutrinas, Modificadores e atributos
+6b. Vínculo e pactos — depends on: Maldições, Save e perfil, Conteúdo orientado a dados
 7. Chefes — depends on: IA de inimigos e elites, Telégrafos, Modificadores e atributos (fonte `chefe`)
 8. Câmaras e ondas — depends on: IA de inimigos e elites, RNG com seed, Conteúdo orientado a dados, Cena 3/4 e câmera, Modificadores e atributos (fonte `profundidade`)
 9. Portas e recompensas — depends on: Câmaras e ondas, RNG com seed, Conteúdo orientado a dados
@@ -236,18 +241,23 @@ Campus, Menus.
 | 20 | Tela de bênção e componente de carta | MVP | Presentation | ux-designer, art-director | M |
 | 21 | Feedback de combate (VFX) | MVP | Presentation | technical-artist, art-director | M |
 | 22 | Telemetria local | MVP | Polish | analytics-engineer | S |
-| 23 | Chefes (Anomalia Maior) | Vertical Slice | Feature | game-designer, ai-programmer | L |
+| 22a | Maldições (aliados do pacto) | MVP | Feature | game-designer, ai-programmer, art-director | L |
+| 22b | Chefes (Maldição-chefe do Limiar) | MVP | Feature | game-designer, ai-programmer | L |
+| 22c | Armas das Doutrinas: emenda da Besta do Vínculo | MVP | Feature | game-designer, systems-designer | S |
+| 22d | Vínculo e pactos | MVP | Feature | game-designer, economy-designer, narrative-director | M |
+| 22e | Run e regiões: emenda do Limiar com chefe | MVP | Feature | game-designer | S |
+| 22f | Save e perfil (mínimo) | MVP | Core | systems-designer | S |
+| 23 | Chefes (Anomalia Maior; o 1º chefe sobe ao MVP como 22b) | Vertical Slice | Feature | game-designer, ai-programmer | L |
 | 24 | Localização | Vertical Slice | Foundation | localization-lead | S |
 | 25 | Diálogo e lore | Vertical Slice | Feature | narrative-director, writer | M |
 | 26 | Mestres ofertantes | Vertical Slice | Feature | narrative-director, game-designer | M |
-| 27 | Save e perfil | Vertical Slice | Core | systems-designer | M |
+| 27 | Save e perfil (resto além do mínimo do 22f) | Vertical Slice | Core | systems-designer | M |
 | 28 | Oficina de Reforja | Vertical Slice | Feature | economy-designer, systems-designer | M |
 | 29 | Rito de Iniciação e criação do Iniciado | Vertical Slice | Feature | game-designer, narrative-director, ux-designer | M |
 | 30 | Campus (hub) | Vertical Slice | Feature | level-designer, game-designer | L |
 | 31 | Menus | Vertical Slice | Presentation | ux-designer | M |
 | 32 | Áudio | Vertical Slice | Presentation | audio-director, sound-designer | M |
 | 33 | Acessibilidade e opções | Vertical Slice | Polish | accessibility-specialist, ux-designer | M |
-| 34 | Criatura do pacto | Alpha | Feature | game-designer, ai-programmer | L |
 | 35 | Desbloqueio de armas | Alpha | Feature | economy-designer | S |
 | 36 | Co-op online (1 a 4 jogadores) | Alpha | Feature | game-designer, network-programmer, systems-designer | XL |
 | 37 | Netcode e sincronização | Alpha | Foundation | network-programmer, technical-director | XL |
@@ -294,7 +304,7 @@ camada podem ser desenhados em paralelo.
 | Modificadores e atributos | Technical / Scope | Gargalo: bênçãos, Oficina e status escrevem nele; um modelo errado obriga a reescrever os três | Desenhar antes de qualquer bênção; ADR crítico na arquitetura; testes unitários das fórmulas |
 | Pipeline visual | Technical | Vários pontos do Godot 4.7 estão marcados NÃO VERIFICADO no Art Bible §8.6 (contagem de draw calls 2D, `TIME` no hitstop, global uniforms com sampler) | Medir no protótipo: captura no PIX/RenderDoc, A/B dos fundos |
 | Bênçãos (Tradições) | Design | Os 18 efeitos de `arenaContent.ts` são placeholders calibrados por piloto automático, não por pessoas | Playtest humano + telemetria de escolha; `/balance-check` antes da fatia vertical |
-| Criatura do pacto | Design / Technical | Aliado com IA própria precisa ser legível como aliado (Art Bible §3.3, §5.5) e não roubar o protagonismo | Protótipo isolado antes do Alpha; regras de leitura do Art Bible como critério de aceite |
+| Maldições (aliados do pacto) | Design / Technical / Scope | Aliado com IA própria precisa ser legível como aliado (Art Bible §3.3, §5.5) e não roubar o protagonismo; entrou no MVP com chefe e save (2026-11-15), o que aproxima o MVP da fatia vertical | Protótipo isolado antes da integração; regras de leitura do Art Bible como critério de aceite |
 | Animação por rig 2D com arte de IA (afeta Armas, IA, Chefes) | Technical / Scope | Risco de cara de "boneco recortado"; folhas de IA não mantêm consistência entre poses | Testar o rig com o Iniciado (Lâmina) no protótipo de combate; regra de pose alta (Art Bible §5.8) |
 
 ---
@@ -303,11 +313,11 @@ camada podem ser desenhados em paralelo.
 
 | Metric | Count |
 |--------|-------|
-| Total systems identified | 37 |
-| Design docs started | 22 |
-| Design docs reviewed | 22 |
-| Design docs approved | 22 |
-| MVP systems designed | 22/22 |
+| Total systems identified | 38 |
+| Design docs started | 26 |
+| Design docs reviewed | 26 (revisão cruzada do lote Pactos em 2026-11-16) |
+| Design docs approved | 26 (lote Pactos aprovado pelo usuário em 2026-11-16) |
+| MVP systems designed | 26/26 (Pactos no MVP aprovado em 2026-11-16) |
 | Vertical Slice systems designed | 0/11 |
 
 ---

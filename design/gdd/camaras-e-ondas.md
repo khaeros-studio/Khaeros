@@ -1,8 +1,9 @@
 # Câmaras e ondas
 
-> **Status**: Approved (2026-11-11; revisão única por subagente, 3 bloqueantes corrigidos sem re-review; sem entrada no review log)
+> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16)
+> **Status anterior**: Approved (2026-11-11; revisão única por subagente, 3 bloqueantes corrigidos sem re-review; sem entrada no review log)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-11
+> **Last Updated**: 2026-11-15 (emenda Pactos: R1-P a R20-P, F6, Edge Cases, Dependencies e AC-CO-28 a AC-CO-43)
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P3 *Reflexo que se lê* (arena legível); P2 *A Beira cobra*
 
@@ -69,6 +70,7 @@ fim de câmara.
 **R1. Tipos de câmara.** `combate`, `santuario` e `chefe` (reservado, Vertical
 Slice). A sequência de cada região (Limiar: combate, combate, combate,
 santuário, combate, combate, chefe) é da `RegionDef` (Run e regiões, Conteúdo).
+*(Ver R1-P: o chefe entra no MVP.)*
 
 **R2. A câmara.** Um retângulo de `tamanho_px` (**1920×1080 no MVP**, dentro dos
 limites de 1920×1080 a 2880×1620 da Cena R6), com origem em (0; 0). O
@@ -152,7 +154,8 @@ dano e os projéteis inimigos são removidos ao limpar.
 3. Portas e recompensas concede a recompensa da câmara (Bênção, Fragmentos ou
    cura; **a última câmara jogável, índice 5 no Limiar, não dá recompensa e não tem
    portas**, Run R4) e depois pede as portas; a Bênção só abre com a câmara limpa e sem
-   telégrafo vivo (Pipeline R2).
+   telégrafo vivo (Pipeline R2). *(Ver R11-P: a última jogável passa a ser o
+   chefe, índice 6; e Portas R2 passo 2b no encontro de pacto.)*
 
 **R12. Santuário.** Câmara sem combate: ao montar, cura `santuario_cura` (40%) da
 Vida máxima do jogador, a fase vai direto a **Limpa**, sai `camara_limpa(p, santuario)` (a cura já aplicada; Portas e recompensas não dá recompensa extra) e as portas abrem. Layout
@@ -172,10 +175,13 @@ Quantas portas há e qual recompensa cada uma mostra é de Portas e recompensas.
 Depois da câmara de índice 4 há **1 porta forçada** `ultima` (sem ícone de recompensa;
 decisão do usuário, 2026-11-12: a câmara de índice 5 não dá recompensa), em x = 960
 como toda porta única (a do santuário e a do chefe); depois da de índice 5 não há porta.
+*(Ver R13-P: com o chefe no MVP, a porta depois do índice 4 é escolha livre, a
+depois do índice 5 é a forçada `chefe` e a depois do índice 6 não existe.)*
 
 **R14. Chefe** (reservado). Layout fixo: 4 pedras de 51 px em (390; 300), (1530;
 300), (390; 750) e (1530; 750), uma onda só com o chefe, no ponto (960; 285) px.
-Os números do chefe são do GDD de Chefes.
+Os números do chefe são do GDD de Chefes. *(Ver R14-P e R18-P: deixa de ser
+reservado.)*
 
 **R15. `WaveRules` e `RoomTuning`** (Conteúdo R1). Durações em segundos (F7),
 distâncias em px (F4).
@@ -210,6 +216,133 @@ outros GDDs.
 a posição do jogador, a lista de inimigos, o hitstop do Combate e as chamadas de
 Portas e recompensas e da Run. Os testes montam tudo em memória.
 
+#### Regras da emenda Pactos (emenda Pactos, 2026-11-15)
+
+> Pedidas por `vinculo-e-pactos.md` (V4, V7, V8, V9, V41), `chefes.md` (R2, R8,
+> R9, F6), `combate-nucleo.md` (R14, R19, R24), `maldicoes.md` (R1, R14) e
+> `run-e-regioes.md` (R3-P, R4-P, F1-P). O texto antigo das R1–R16 fica; onde
+> ele diverge, vale a regra "-P" abaixo.
+
+**R1-P. Chefe no MVP.** O tipo `chefe` deixa de ser reservado. O Limiar tem **7
+câmaras jogáveis** (Run R3-P, F1-P): índices 0 a 6 = combate, combate, combate,
+santuário, combate, combate, **chefe**. A sequência continua da `RegionDef`.
+
+**R3-P. Profundidade do chefe.** A câmara do chefe (índice 6) usa `p = 4`, o p
+da última câmara de combate anterior, como a R3 já dizia para santuário e chefe
+(Chefes R2). `p_max` continua **4** (Run F1-P): o chefe não é câmara de combate.
+A chave do RNG da câmara do chefe é o índice 6, mas ela não pede nenhum fluxo
+(R14-P).
+
+**R4-P. Montagem com Maldição e com encontro.** A R4 ganha dois passos:
+1. o jogador fica na entrada (960; 930) px (R4.1, sem mudança);
+1b. **Maldição em campo** (se a run tem uma em campo): as Câmaras calculam
+   `pos_entrada_maldicao` (F6) e pedem `reposicionar_maldicao(pos)` às Maldições,
+   que fazem o resto da Maldições R14 (atração, imobilização e marca terminam;
+   Vida, estado e recargas ficam). É o ponto a `distancia_seguir_px` **atrás** do
+   jogador, isto é, abaixo dele, do lado oposto às portas **[a confirmar]**
+   (Maldições, Edge Cases: "atrás do jogador na entrada"). Não consome RNG e não
+   muda nenhum sorteio;
+2. o layout é gerado (R5; fixo no santuário e no chefe) e as ondas são compostas
+   (R6);
+2b. **câmara do encontro de pacto:** as Câmaras perguntam a Vínculo e pactos
+   `encontro_na_camara(indice)`. Se a resposta é uma espécie, as Câmaras passam a
+   lista de pedras já postas e Vínculo e pactos faz nascer a **acuada** no
+   primeiro ponto livre de `pontos_acuada` (V7). A posição é regra de Vínculo e
+   pactos; as Câmaras só guardam `pos_acuada` para a R7-P. Não consome RNG;
+3. a câmara vai à fase Combate e a primeira onda nasce (R7, R7-P), no mesmo
+   quadro.
+
+**R7-P. Ordem de nascimento e distância da acuada.** A R7 ganha dois itens:
+- **ordem:** cada inimigo recebe o seu índice `ordem` na onda (0, 1, 2…, a ordem
+  da composição da R6) e as Câmaras o passam à IA junto com a posição. Na câmara
+  do encontro, a IA usa a paridade de `ordem` para o alvo padrão (Vínculo V8,
+  contrato V44 com a IA): par mira a acuada, ímpar mira o jogador. Fora do
+  encontro, `ordem` não muda nada;
+- **distância da acuada [a confirmar]:** na câmara do encontro, enquanto a acuada
+  está no estado `Acuada`, um candidato de nascimento também precisa estar a
+  **mais de** `spawn_dist_acuada_px` (240) de `pos_acuada` (F3-P). Motivo: um
+  inimigo que nasce colado na acuada a fere antes que o jogador leia a onda; com
+  240 px e o `Surgindo` de 50 passos, o jogador tem tempo de chegar com o Chamado.
+  Os 14 candidatos continuam sendo sorteados **sempre** (RNG R4b); muda só qual
+  deles é escolhido, como já acontece com a posição do jogador. Se nenhum serve,
+  vale o último (R7).
+
+**R8-P. Fase `Subjugado`.** Só existe na câmara do chefe numa run de Pactos
+(Chefes R9). A câmara entra em `Subjugado` ao receber `chefe_subjugado(id)` dos
+Chefes, no 1º passo vivo depois do hitstop do chefe (`s + 37`, Chefes F6). Sai
+para **Limpa** quando os Chefes resolvem a escolha (R18-P).
+
+**R9-P. Câmara limpa: quem conta.** A avaliação da R9 olha só a lista de
+inimigos do Combate (R9, Combate R9). **Não contam:** a Maldição em campo e a da
+reserva (Maldições R1, Combate R19) e a acuada (Vínculo V7). Na fase
+`Subjugado`, a R9 **não é avaliada**: o chefe subjugado continua na lista com
+`Vida = 0` (Chefes R9, Combate R24), e a câmara só fica limpa pela R18-P, nunca
+pela lista vazia.
+
+**R10-P. "Em combate" em `Subjugado`.** A consulta da R10 é **falsa** na fase
+`Subjugado` (contrato pedido por Chefes R9 e Combate R24). Por isso
+`ferir_jogador` e `ferir_maldicao` não fazem nada (Combate R13.1, R21.1). Entre o
+passo `s` do golpe final e `s + 37` a fase ainda é Combate, mas o mundo está
+congelado pelo hitstop e os projéteis já foram removidos (Combate R24).
+
+**R11-P. Última câmara jogável e encontro.** Substitui o parêntese da R11.3:
+- a **última câmara jogável** do Limiar passa a ser o **chefe (índice 6)**: não dá
+  recompensa de Portas e não tem portas (Portas R2 1b, Run R4-P);
+- o **índice 5** vira câmara de combate comum **[a confirmar, Run R3-P e OQ 10 da
+  Run]**: dá a recompensa da porta escolhida depois do índice 4 e abre a porta
+  forçada `chefe`;
+- na **câmara do encontro**, as Portas concedem a recompensa e depois esperam
+  `pacto_resolvido` antes de pedir as portas (Portas R2 passo 2b). A câmara fica
+  na fase **Limpa** nesse tempo ("em combate" falso), com as portas **fechadas**.
+
+**R13-P. Portas no Limiar com chefe.** Substitui o último parágrafo da R13:
+- depois do índice 4: **escolha livre** de 2 ou 3 portas (Portas R6), nas posições
+  da R13;
+- depois do índice 5: **1 porta forçada `chefe`**, em x = 960 (porta única);
+- depois do índice 6: **nenhuma** porta (Run `fim_da_run`).
+A porta `ultima` não aparece mais no Limiar. Fica válida para uma região cuja
+última câmara jogável não seja chefe (Portas R6-P).
+
+**R14-P. Câmara do chefe sem sorteio.** A R14 vale no MVP (Chefes R2). Na
+montagem do índice 6:
+- layout fixo: 4 pedras de 51 px em (390; 300), (1530; 300), (390; 750) e
+  (1530; 750); **não** pede o fluxo `layout`;
+- uma onda só com o chefe, em (960; 285), estado `Surgindo` (IA R3); **não** pede
+  os fluxos `ondas` e `spawn`;
+- **não** chama `sortear_elite` e **não** consome o fluxo `elites` (Chefes R2,
+  R8). `ja_ha_elite` fica falso;
+- os lacaios do chefe (Chefes R8) entram na lista de inimigos pelo módulo de
+  Chefes, sem passar pela R7, sem fluxo `elites` e sem fluxo `spawn`. O teto de
+  `max_inimigos_onda` (9) vale para chefe + lacaios (Chefes CH6: `1 + 3 = 4`);
+- não há encontro de pacto (Vínculo VP3 proíbe o último índice);
+- a Maldição em campo entra pela R4-P 1b, como em qualquer câmara.
+
+**R18-P. Fim da câmara do chefe.**
+- **Fora de Pactos** (Lâmina, Ressonância): o chefe sai da lista no passo `s`
+  (Combate R24, sem a marca); no 1º passo vivo depois do hitstop (`s + 37`), a R9
+  vê a lista vazia e a câmara fica limpa (R11-P): `camara_limpa(4, chefe)`. A
+  Economia já creditou os 6 pelos Chefes (Chefes R9).
+- **Com Pactos:** em `s + 37` a câmara vai a `Subjugado` (R8-P). A câmara só fica
+  limpa quando os Chefes pedem `limpar_camara_chefe()`, depois de
+  `resolver_subjugado(id, escolha)` (Pactuar ou Exorcizar; Chefes R9, Combate
+  R24). Nesse passo as Câmaras rodam a R11 (projéteis já removidos, telégrafos já
+  cancelados) e emitem `camara_limpa(4, chefe)` **uma vez**. As Câmaras não leem
+  a escolha.
+- Nos dois casos, a Run recebe `camara_limpa(4, chefe)` com `i = 6` e encerra em
+  vitória (Run R4-P); as Portas não concedem nada e não abrem portas (Portas R2
+  1b).
+
+**R19-P. Encontro numa câmara comum.** O encontro (Vínculo V4) **não muda** o
+tipo da câmara, o layout (R5), a composição das ondas (R6), o sorteio de elite
+(R7) nem o consumo dos fluxos `layout`, `ondas`, `elites` e `spawn`. Muda só: a
+acuada a mais (R4-P 2b), a `ordem` usada pela IA (R7-P), a distância extra de
+nascimento (R7-P) e a espera de `pacto_resolvido` antes das portas (R11-P).
+
+**R20-P. Injeção.** A R16 ganha: a consulta `encontro_na_camara(indice)` e
+`pos_acuada` de Vínculo e pactos; `reposicionar_maldicao(pos)` e o raio da
+espécie em campo das Maldições; `chefe_subjugado(id)` e `limpar_camara_chefe()`
+dos Chefes; `distancia_seguir_px` do `MaldicoesTuning`.
+
 ### States and Transitions
 
 | Fase | Entra quando | Sai para |
@@ -222,6 +355,20 @@ Portas e recompensas e da Run. Os testes montam tudo em memória.
 **Portas:** fechada → aberta (R13). **Ondas:** onda i → onda i + 1 (no mesmo passo em
 que a lista fica vazia, com hitstop 0).
 **Mundo:** como no Combate. No hitstop e fora de Jogo, as ondas não avançam.
+
+**Emenda Pactos (2026-11-15):**
+
+| Fase | Entra quando | Sai para |
+|---|---|---|
+| Entrada | o jogador interage com uma porta (Transição) | Combate (câmara de combate e chefe, R14-P), Limpa (santuário) |
+| Combate (chefe) | a montagem do índice 6 (R14-P) | Limpa (fora de Pactos: lista vazia e hitstop 0, R18-P) ou `Subjugado` (Pactos: `chefe_subjugado`, R8-P) |
+| `Subjugado` | `chefe_subjugado(id)` (só chefe com Pactos) | Limpa (`limpar_camara_chefe()` dos Chefes, R18-P) |
+| Limpa (encontro) | R9 na câmara do encontro | portas fechadas até `pacto_resolvido` (Portas 2b), depois Saída |
+
+"Em combate" por fase: Combate **verdadeiro**; Entrada, Limpa, `Subjugado`,
+Saída e santuário **falso** (R10, R10-P). A tela de escolha do chefe e a tela de
+consentimento são estados fora de Jogo (Vínculo V9): a fase da câmara não muda
+enquanto elas estão abertas.
 
 ### Interactions with Other Systems
 
@@ -239,6 +386,9 @@ que a lista fica vazia, com hitstop 0).
 | Cena 3/4 e câmera | tamanho, retângulo e entrada; "câmara nova" | limites do `CameraTuning` | Cena (limites), este GDD (tamanho) |
 | Movimento, Selo, Telégrafos | retângulo jogável e obstáculos | — | cada um (consulta) |
 | HUD / Feedback de combate / Áudio | `camara_limpa`, portas abertas, onda nova | — | apresentação |
+| Vínculo e pactos *(emenda Pactos)* | índice da câmara, lista de pedras, `ordem` de nascimento, `camara_limpa` | `encontro_na_camara(indice)`, `pos_acuada`, `pacto_resolvido` (via Portas) | Vínculo e pactos (V41); este GDD (quando) |
+| Maldições *(emenda Pactos)* | `reposicionar_maldicao(pos)` na montagem, "em combate" | raio da espécie em campo, `distancia_seguir_px` | Maldições (R14); este GDD (o ponto, F6) |
+| Chefes *(emenda Pactos)* | arena fixa (R14-P), "em combate" (falso em `Subjugado`) | `chefe_subjugado(id)`, `limpar_camara_chefe()`, lacaios na lista | Chefes (desfecho); este GDD (fase e `camara_limpa`) |
 
 ## Formulas
 
@@ -358,6 +508,50 @@ The room_duration formula is defined as:
 **Output Range:** ordem de grandeza, jogador perfeito: uma estimativa, não regra.
 **Example:** p 0 (3 Ecos, Vida 90): 0,83 + 3,41 + 1,35 = 5,6 s. p 4 (2 ondas de 6 Ecos, Vida 36 cada, 216): 0,83 + 3,41 + 3,25 = 7,5 s por onda, ≈ 15 s. Com a Ressonância (66,96) o resultado é igual.
 
+### F3-P. Candidatos de nascimento no encontro (emenda Pactos, 2026-11-15)
+
+The spawn_pick_encounter formula is defined as:
+
+`válido_P(C) = válido(C) ∧ (¬acuada_presente ∨ |C − pos_acuada| > d_acuada)` ;
+escolhe o primeiro `C_i` com `válido_P`; se nenhum, `C_K` (como na F3)
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| válido(C) | bool | — | F3 | regra antiga (jogador e pedras) |
+| acuada_presente | bool | — | Vínculo e pactos | câmara do encontro com a acuada no estado `Acuada` |
+| pos_acuada | Vector2 | um dos 5 `pontos_acuada` | Vínculo V7 | posição fixa da acuada |
+| d_acuada | float | 0–390 (240) | data file | `spawn_dist_acuada_px` (`RoomTuning`) **[a confirmar]**; 0 desliga |
+
+**Output Range:** um ponto da câmara. Consumo do fluxo `spawn` igual ao da F3 (2K
+reais por inimigo). Com a acuada em (960; 540) e o jogador na entrada, o
+disco de 240 px tira ≈ 13% da área de nascimento; a chance de nenhum dos 14
+servir fica ≈ 0,55¹⁴ ≈ 2·10⁻⁴.
+**Example:** acuada em (960; 540), jogador em (960; 930), Eco (raio 24). C₁ =
+(1100; 480): a 471 px do jogador (ok), a 152 px da acuada (< 240): recusado.
+C₂ = (1200; 400): a 582 px do jogador e a 278 px da acuada: escolhido.
+
+### F6. Ponto da Maldição na entrada (emenda Pactos, 2026-11-15)
+
+The curse_entry_point formula is defined as:
+
+`pos_entrada_maldicao = (entrada.x ; min(entrada.y + distancia_seguir_px, A − raio_especie))`
+
+**Variables:**
+| Variable | Type | Range | Source | Description |
+|---|---|---|---|---|
+| entrada | Vector2 | (960; 930) | `RoomTuning.entrada_px` | ponto do jogador (R4) |
+| distancia_seguir_px | float | 75–150 (105) | `MaldicoesTuning` (Maldições F1) | distância de repouso |
+| raio_especie | float | 22,5–30 | `CurseDef` (Maldições, catálogo) | raio da Maldição em campo |
+| A | float | 1080 | `RoomTuning` | altura da câmara |
+
+**Output Range:** y entre 1005 e `A − raio_especie`; x = 960. Fica dentro do
+retângulo jogável e abaixo de toda pedra (y máximo de pedra sorteada 844,5, F4;
+pedras fixas do chefe e do santuário em y ≤ 750 e ≤ 495).
+**Example:** *Baluarte de Cinza* (raio 30), `distancia_seguir_px` 105: (960;
+1035), borda em 1065 ≤ 1080. Com `distancia_seguir_px` 150: min(1080; 1050) =
+(960; 1050).
+
 ### Faixas do `WaveRules` e do `RoomTuning`
 
 | Campo | Inicial | Faixa | O que quebra fora dela |
@@ -380,6 +574,7 @@ The room_duration formula is defined as:
 | `portas_y_px` / `porta_raio_px` / `entrada_px` | 177 / 69 / (960; 930) | 150–260 / 50–90 / dentro da câmara, fora das pedras | porta fora da vista ou sob a parede; entrada sobre uma pedra (WV3) |
 | `interagir_folga_px` | 15 | 0–45 | > 45: interage de longe |
 | `santuario_cura` | 0,4 | 0,2–0,6 | > 0,6: o santuário vira vitória |
+| `spawn_dist_acuada_px` *(emenda Pactos)* | 240 **[a confirmar]** | 0–390 | 0: inimigo nasce colado na acuada e a fere antes da leitura; > 390: poucos pontos válidos com o jogador na entrada (WV10) |
 
 Faixas inclusivas, comparadas em passos (F7 do Conteúdo).
 
@@ -398,6 +593,8 @@ Somam-se às faixas do V2 do Conteúdo. **Erros** vão para a tela de erros do c
 | WV7 | aviso | cobertura máxima de pedras (4 × π × r_max²) > 15% da câmara | câmara entupida (hoje 3,8%) |
 | WV8 | aviso, cruzada com Armas | `ArmasTuning.p_max` ≠ `p_max` derivado da `RegionDef` | validação de armas usa uma profundidade que não existe |
 | WV9 | aviso | campo fora da faixa de design | as contas deste GDD deixam de valer |
+| WV10 *(emenda Pactos)* | aviso | `spawn_dist_acuada_px` > `spawn_dist_jogador_px` | o fallback (último candidato) passa a sair com frequência no encontro |
+| WV11 *(emenda Pactos)* | erro, cruzada com Run | a `RegionDef` tem câmara `chefe` fora do último índice jogável, ou mais de uma | a R18-P encerraria a run no meio |
 
 **Saída do validador:** uma entrada por regra e por objeto; o erro suspende o aviso da mesma regra. WV2–WV5 e WV8 dependem de dados de outros sistemas e rodam na 2ª passada do validador do Conteúdo, como o MV1 do Movimento (decidido 2026-11-13).
 
@@ -441,7 +638,28 @@ Somam-se às faixas do V2 do Conteúdo. **Erros** vão para a tela de erros do c
 - **Se a câmara tiver tamanho fora de 1920×1080–2880×1620:** erro WV2; a run não começa.
 - **Se o layout, as ondas ou os pontos dependerem de outro estado do jogo:** não podem; só o ponto escolhido depende da posição do jogador (RNG R4b).
 
-**Conflitos com outros GDDs:** nenhum nas partes aprovadas. Divergências do cânone, declaradas: p só de combate (R3), chão = retângulo inteiro (R2) e sorteios com consumo fixo (R5, R7).
+**Encontro de pacto (emenda Pactos, 2026-11-15)**
+
+- **Se a acuada e o último inimigo caírem no mesmo passo:** o golpe resolve no item do Combate, antes do item 10; a acuada vai a `Fugiu` e a câmara limpa **sem** espera de `pacto_resolvido` (Vínculo, Edge Cases; Portas 2b não espera).
+- **Se a acuada fugir no meio da câmara:** as ondas seguem iguais; a distância extra da R7-P deixa de valer a partir da onda seguinte (`acuada_presente` falso); o consumo do fluxo `spawn` não muda.
+- **Se a câmara limpar com a acuada viva e a recompensa for bênção:** a Bênção abre primeiro e para o mundo; depois a câmara fica em Limpa com as portas fechadas até `pacto_resolvido` (R11-P, Portas 2b).
+- **Se o jogador morrer na câmara do encontro:** morte vence (Combate R14, Run R5); nada de portas; o estado do encontro é de Vínculo e pactos.
+- **Se o jogador tentar sair sem resolver o encontro:** não há porta aberta para interagir (R11-P); o único caminho é Interagir com a acuada.
+- **Se a acuada estiver a ≤ 111 px de uma porta:** não acontece; os `pontos_acuada` têm y ≥ 360 e as portas ficam em y = 177 (distância ≥ 183 px). E as portas estão fechadas enquanto ela aguarda.
+- **Se o encontro cair numa câmara de 1 onda (p 1) ou 2 ondas (p 2):** a regra é a mesma; a acuada passa as ondas no mesmo lugar.
+- **Se a câmara do encontro não sortear nenhuma pedra:** a acuada nasce no 1º ponto, (960; 540).
+
+**Chefe (emenda Pactos, 2026-11-15)**
+
+- **Se o jogador morrer no passo em que o chefe zera a Vida:** morte vence; sem `Subjugado` e sem `camara_limpa` (Chefes, Edge Cases; Run R5-P).
+- **Se `jogador_morreu` chegar na fase `Subjugado`:** não deveria (em combate falso, R10-P); se chegar (status residual), vale a morte e a câmara não limpa.
+- **Se houver lacaios vivos quando o chefe cai:** os Chefes os removem no passo `s` (Chefes R9); a R9 não espera por eles.
+- **Se a Maldição em campo estiver em `Preparo`, `Execução` ou `Saltando` quando a fase vira `Subjugado`:** a lista de atingíveis está vazia (o chefe não é atingível); ela termina sem efeito e passa a `Seguindo` (Maldições, Edge Cases).
+- **Se os Chefes pedirem `limpar_camara_chefe()` duas vezes:** a segunda é ignorada; `camara_limpa(4, chefe)` sai uma vez só.
+- **Se `limpar_camara_chefe()` chegar fora da fase `Subjugado`:** é ignorado e registrado como erro de integração.
+- **Se a run de Pactos chegar ao chefe sem Maldição em campo (todas Exaustas):** a R4-P 1b não reposiciona ninguém; o resto é igual.
+
+**Conflitos com outros GDDs:** nenhum nas partes aprovadas. Divergências do cânone, declaradas: p só de combate (R3), chão = retângulo inteiro (R2) e sorteios com consumo fixo (R5, R7). *(Emenda Pactos: o índice 5 comum depende da OQ 10 da Run, que ainda conflita com Chefes F6 — ver OQ 11.)*
 
 ## Dependencies
 
@@ -457,6 +675,9 @@ Somam-se às faixas do V2 do Conteúdo. **Erros** vão para a tela de erros do c
 | Modificadores e atributos | Suave | fontes `profundidade` e `elite` | sem escala por p |
 | Portas e recompensas | Forte, **por contrato** | recompensa da câmara, quantas e quais portas | sem recompensa |
 | Run e regiões | Forte, **por contrato** | sequência da região, próxima câmara, região atual | sem fluxo de câmaras |
+| Vínculo e pactos *(emenda Pactos)* | Forte, **por contrato** (V41) | `encontro_na_camara(indice)`, nascimento e `pos_acuada` | sem acuada no encontro |
+| Chefes *(emenda Pactos)* | Forte, **por contrato** | `chefe_subjugado(id)`, `limpar_camara_chefe()`, lacaios | a câmara do chefe não termina |
+| Maldições *(emenda Pactos)* | Suave | `reposicionar_maldicao(pos)`, raio da espécie, `distancia_seguir_px` | a Maldição fica na câmara anterior |
 
 **É dependência de (downstream)**
 
@@ -471,8 +692,16 @@ Somam-se às faixas do V2 do Conteúdo. **Erros** vão para a tela de erros do c
 | Cena 3/4 e câmera | Suave | tamanho, retângulo e entrada da câmara |
 | HUD / Feedback de combate (VFX) / Áudio | Suave | `camara_limpa`, onda nova, portas abertas |
 | Telemetria local | Suave | duração e dano recebido por câmara |
+| Vínculo e pactos *(emenda Pactos)* | Forte | índice da câmara, pedras, `ordem` de nascimento, `camara_limpa` (fim da fase Combate do encontro) |
+| Chefes *(emenda Pactos)* | Forte | arena fixa (R14-P), fase `Subjugado`, "em combate" falso nela |
+| Maldições *(emenda Pactos)* | Forte | ponto de entrada (F6), "em combate", retângulo e obstáculos |
+| IA de inimigos e elites *(emenda Pactos)* | Forte | `ordem` de cada inimigo na onda (R7-P), para o alvo padrão do encontro (V44) |
 
 **Bidirecionalidade:**
+
+- *(emenda Pactos, 2026-11-15)* Vínculo e pactos (Dependencies e V41), Chefes
+  (R2, R9, Dependencies) e Maldições (R1, R14) já citam Câmaras e ondas. A IA
+  precisa citar o campo `ordem` quando aplicar o contrato V44.
 
 - Combate, Cena, RNG, IA, Conteúdo, Movimento, Selo, Telégrafos e Efeitos de status
   já citam as Câmaras. O Armas e o Pipeline ainda dizem que a Run informa p (OQ 3).
@@ -539,6 +768,11 @@ Somam-se às faixas do V2 do Conteúdo. **Erros** vão para a tela de erros do c
 | `design/gdd/pipeline-visual.md` | R3 | escurecimento por p |
 | `design/gdd/gdd-cross-review-2026-11-10.md` | C-W4, D-W14 | dono de p, alvo de dano |
 | Khaeros `packages/action-core/src/engine.ts` | `:246–416`, `:467–533`, `:1290–1305` | câmara, ondas, portas |
+| `design/gdd/vinculo-e-pactos.md` *(emenda Pactos)* | V4, V7, V8, V9, V12, V41, VP3, Edge Cases | encontro, acuada, alvo por `ordem`, espera das portas |
+| `design/gdd/chefes.md` *(emenda Pactos)* | R2, R8, R9, F6, CH6 | arena, lacaios, `Subjugado`, desfecho |
+| `design/gdd/combate-nucleo.md` *(emenda Pactos)* | R13.1, R14, R19, R21, R24 | em combate, varredura do chefe, Maldição fora da lista |
+| `design/gdd/maldicoes.md` *(emenda Pactos)* | R1, R14, F1, Edge Cases | não conta na limpeza, reposicionamento |
+| `design/gdd/run-e-regioes.md` *(emenda Pactos)* | R3-P, R4-P, R5-P, F1-P, OQ 10 | 7 câmaras, índice 5 comum, vitória no chefe |
 | Khaeros `packages/combat-rules/src/arenaContent.ts` | `:86–116` | região, pool, custos |
 
 ## Acceptance Criteria
@@ -599,6 +833,28 @@ valores que o critério diz; comparações de distância com tolerância de 1e-9
 - **AC-CO-26 [V] Visual/Audio — portas.** Captura da câmara limpa com 2 e 3 portas abertas: a moldura dourada e as rachaduras magenta se leem por forma e valor.
 - **AC-CO-27 [M] Game Feel — duração.** Registro com testador, build e contagem: a câmara 0 dura entre 10 e 25 s e a 4 entre 25 e 60 s com o jogador médio (proposta).
 
+**Emenda Pactos (2026-11-15)** — Fixture CO-P: a Fixture CO mais dublês de
+Vínculo e pactos, Maldições e Chefes; `MaldicoesTuning.distancia_seguir_px` 105;
+`spawn_dist_acuada_px` 240. Os AC-CO-18 e AC-CO-21 antigos valem só onde não
+contrariam os abaixo (portas do Limiar e chefe reservado foram substituídos).
+
+- **AC-CO-28 [L] R1-P/R3-P — sequência com chefe.** GIVEN a `RegionDef` do Limiar, WHEN as 7 câmaras são listadas, THEN os índices 0–6 são combate, combate, combate, santuário, combate, combate, chefe; a câmara 6 usa p = 4 e `p_max` continua 4.
+- **AC-CO-29 [L] R14-P — chefe sem sorteio.** GIVEN a montagem do índice 6, WHEN a câmara monta, THEN há 4 pedras de 51 px em (390; 300), (1530; 300), (390; 750), (1530; 750), o chefe nasce em (960; 285) em `Surgindo`, e os fluxos `layout`, `ondas`, `spawn` e `elites` têm o mesmo estado de antes da montagem (0 reais consumidos); `sortear_elite` não é chamado.
+- **AC-CO-30 [L] R18-P — chefe fora de Pactos.** GIVEN Lâmina e o golpe final no passo 640, WHEN o hitstop de 36 passos acaba, THEN no passo 677 a fase vira Limpa e `camara_limpa(4, chefe)` sai uma vez; nenhuma porta abre.
+- **AC-CO-31 [L] R8-P/R10-P — `Subjugado`.** GIVEN Pactos e o golpe final no passo 640, WHEN chega `chefe_subjugado` no passo 677, THEN a fase é `Subjugado`, "em combate" é falso, a R9 não roda (o chefe com Vida 0 segue na lista) e `camara_limpa` não sai.
+- **AC-CO-32 [L] R18-P — fim por escolha.** GIVEN a fase `Subjugado`, WHEN os Chefes pedem `limpar_camara_chefe()` depois de `resolver_subjugado(id, pactuar)` (ou `exorcizar`), THEN a fase vira Limpa e `camara_limpa(4, chefe)` sai uma vez no mesmo passo; um segundo pedido é ignorado.
+- **AC-CO-33 [L] R18-P — pedido fora de hora.** GIVEN a câmara do chefe na fase Combate, WHEN chega `limpar_camara_chefe()`, THEN nada muda e um erro de integração é registrado.
+- **AC-CO-34 [L] R9-P — quem conta.** GIVEN a última onda morta, a Maldição em campo viva e a acuada viva, WHEN o hitstop é 0, THEN a câmara fica limpa no mesmo passo.
+- **AC-CO-35 [L] R4-P 1b/F6 — Maldição na entrada.** GIVEN a *Baluarte de Cinza* (raio 30) em campo a (400; 300) na câmara anterior, WHEN a câmara nova monta, THEN o jogador fica em (960; 930) e as Câmaras pedem `reposicionar_maldicao((960; 1035))`; com `distancia_seguir_px` 150, o ponto é (960; 1050). Sem Maldição em campo, o pedido não sai.
+- **AC-CO-36 [L] R4-P 2b — acuada.** GIVEN `encontro_na_camara(1)` = `espreitador_da_fenda`, WHEN o índice 1 monta, THEN a consulta acontece depois do layout e da composição e antes da 1ª onda, Vínculo e pactos recebe a lista de pedras, e o estado dos fluxos `layout`, `ondas`, `elites` e `spawn` depois da câmara é igual ao da mesma seed sem encontro **se** nenhum candidato escolhido mudou de índice (o consumo é o mesmo).
+- **AC-CO-37 [L] R7-P — `ordem`.** GIVEN uma onda de 3 Ecos na câmara do encontro, WHEN nascem, THEN a IA recebe `ordem` 0, 1 e 2 na ordem da composição; fora do encontro a IA recebe os mesmos índices.
+- **AC-CO-38 [L] R7-P/F3-P — distância da acuada.** GIVEN a acuada em (960; 540) no estado `Acuada`, jogador em (960; 930) e um Eco, WHEN o 1º candidato é (1100; 480) e o 2º (1200; 400), THEN o 1º é recusado e o 2º escolhido; um candidato a exatos 240,0 px da acuada é recusado e um a 240,1 px é aceito; com a acuada em `Fugiu`, o (1100; 480) é aceito.
+- **AC-CO-39 [L] R11-P — encontro segura as portas.** GIVEN a câmara do encontro limpa com a acuada em `Aguardando` e recompensa `fragmentos`, WHEN `camara_limpa` sai, THEN a fase é Limpa, "em combate" é falso, as portas continuam fechadas até as Portas pedirem a abertura (depois de `pacto_resolvido`).
+- **AC-CO-40 [L] R13-P — portas do Limiar.** GIVEN o Limiar, WHEN as câmaras 4, 5 e 6 ficam limpas, THEN depois do índice 4 abrem 2 ou 3 portas livres (x = 735/1185 ou 510/960/1410), depois do índice 5 abre 1 porta `chefe` em x = 960, e depois do índice 6 nenhuma; a porta `ultima` não aparece.
+- **AC-CO-41 [L] R19-P — encontro não mexe no resto.** GIVEN a mesma seed com e sem encontro no índice 2, WHEN a câmara monta, THEN o layout, a composição das ondas e as decisões de elite são idênticas.
+- **AC-CO-42 [L] WV10/WV11 — validação.** `spawn_dist_acuada_px` 400: aviso WV10; uma `RegionDef` com `chefe` no índice 4: erro WV11 e a run não começa; o catálogo de fábrica não gera WV10 nem WV11.
+- **AC-CO-43 [M] Game Feel — encontro legível.** Registro com testador, build e contagem: em ≥ 80% das câmaras de encontro, nenhum inimigo fere a acuada nos primeiros 2 s depois de nascer (proposta; alavanca `spawn_dist_acuada_px`).
+
 ## Open Questions
 
 | # | Pergunta | Dono | Resolver até |
@@ -613,3 +869,8 @@ valores que o critério diz; comparações de distância com tolerância de 1e-9
 | 8 | ~~Ordem entre `camara_limpa`, a Bênção e a abertura das portas~~ **Resolvida:** Portas R2 (`camara_limpa` → Bênção → portas) | Portas e recompensas | — |
 | 9 | Índice: linha 16 com Combate, Portas e Run em Depends On | usuário / producer | próxima edição do índice |
 | 10 | O alvo de dano recebido por câmara (IA R12, 0,25 da Vida) e `invuln_atingido_s` (Combate, 40 passos) só se verificam em jogo; a alavanca é a composição por orçamento (F1) (D-W14) | Telemetria / `/balance-check` | primeiro playtest |
+| 11 *(emenda Pactos)* | ~~Índice 5 comum com recompensa (Run R3-P) vs. Chefes F6 ("até 7 de portas"): a R11-P e a R13-P seguem a Run; se o usuário escolher "índice 5 sem recompensa", a porta depois do 4 volta a ser forçada (sem ícone)~~ **Resolvida:** Chefes F6 foi emendado com o índice 5 recompensado (10/25/31); a R11-P e a R13-P ficam como estão | usuário; Run; Chefes | ~~antes de aprovar a emenda~~ — |
+| 12 *(emenda Pactos)* | `spawn_dist_acuada_px` 240 e a regra em si (R7-P) **[a confirmar]** | usuário / level-designer | primeiro playtest do encontro |
+| 13 *(emenda Pactos)* | Maldição "atrás" = abaixo do jogador na entrada (F6) **[a confirmar]** | usuário / Maldições | revisão da emenda |
+| 14 *(emenda Pactos)* | ~~Nome da chamada `limpar_camara_chefe()` e quem emite `camara_limpa(4, chefe)` (Chefes R9 diz "as Câmaras emitem" num ramo e "emite" no outro): contrato pedido a Chefes~~ **Resolvida:** Chefes R9b fecha o contrato: só as Câmaras emitem `camara_limpa(4, chefe)`; com Pactos, os Chefes chamam `limpar_camara_chefe()` depois de `resolver_subjugado(id, escolha)`; fora de Pactos, sai pela lista vazia | Chefes | ~~próxima edição de Chefes~~ — |
+| 15 *(emenda Pactos)* | Campo `ordem` no nascimento: contrato pedido à IA (V44) | IA de inimigos e elites | emenda da IA |
