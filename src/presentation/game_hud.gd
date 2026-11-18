@@ -45,7 +45,7 @@ func _nome_doutrina() -> String:
 		&"ressonancia":
 			return "Ressonância de Sangue"
 		&"pactos":
-			return "Besta do Vínculo (Pactos)"
+			return "Domador de Pactos"
 		_:
 			return "Lâmina do Juramento"
 

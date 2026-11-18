@@ -277,7 +277,7 @@ px, o Corte acerta até 142,5 px do centro.
 
 **R8. Nomes canônicos** (Conteúdo V5). Armas: "Lâmina do Juramento", "Foco
 Ressonante", "Escudo-Bastião", "Adagas do Véu", "Cálice da Transmutação",
-"Besta do Vínculo". Ataque / Especial: "Corte" / "Investida"; "Pulso" / "Onda de
+"Domador de Pactos". Ataque / Especial: "Corte" / "Investida"; "Pulso" / "Onda de
 Ressonância"; "Golpe de Escudo" / "Muralha"; "Estocada" / "Leque de Lâminas";
 "Gota Corrosiva" / "Transmutar"; "Virote" / "Chamado do Pacto" (aprovados no
 game-concept §6, 2026-11-05).

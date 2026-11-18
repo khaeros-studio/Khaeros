@@ -17,6 +17,7 @@ var hitstop := 0
 var kills := 0
 var denied_dash_count := 0
 var damage_multiplier := 1.0
+var weapon_id: StringName = &"lamina"
 var presentation_time := 0.0
 var live_steps := 0
 var seed_value := 1
@@ -173,7 +174,7 @@ func step(sample: Dictionary) -> Array[String]:
 		player.lunge_remaining -= 1
 	elif player.dash_remaining == 0:
 		if wants.get("especial",false) and player.special_cd == 0:
-			_start_lunge()
+			_special()
 			consumed.append("especial")
 		elif wants.get("ataque",false) and player.attack_cd == 0:
 			_attack()
@@ -206,6 +207,12 @@ func _start_dash(move: Vector2) -> void:
 	_effect("dash",player.pos,player.dash_dir,float(data.esquiva.duracao_s))
 
 func _attack() -> void:
+	if weapon_id == &"ressonancia":
+		_attack_ressonancia()
+		return
+	if weapon_id == &"pactos":
+		_attack_pactos()
+		return
 	var combo: Array = data.corte.combo
 	var multiplier: float = combo[int(player.combo) % combo.size()]
 	player.combo = (int(player.combo)+1) % combo.size()
@@ -225,6 +232,83 @@ func _attack() -> void:
 		var touching: bool = delta.length() < player.radius+enemy.radius+float(data.combate.folga_encostado_px)
 		if touching or player.aim.dot(delta.normalized()) >= cos(deg_to_rad(float(data.corte.meio_angulo_graus))):
 			_hurt_enemy(enemy,float(data.corte.dano)*multiplier*damage_multiplier,player.aim,push,heavy,true)
+
+func _attack_ressonancia() -> void:
+	player.attack_cd = Movement.ticks(0.233)
+	player.recovery = mini(Movement.ticks(data.combate.recuperacao_max_s),roundi(player.attack_cd*float(data.combate.fator_recuperacao_golpe)))
+	var spawn_pos: Vector2 = player.pos + player.aim * 28.0
+	projectiles.append({
+		"owner": "player",
+		"kind": "magic_orb",
+		"pos": spawn_pos,
+		"prev": spawn_pos,
+		"velocity": player.aim * 990.0,
+		"radius": 15.0,
+		"damage": 12.0 * damage_multiplier,
+		"push": 540.0,
+		"remaining": Movement.ticks(0.833)
+	})
+	_effect("magic_cast", spawn_pos, player.aim, 0.14)
+
+func _attack_pactos() -> void:
+	player.attack_cd = Movement.ticks(0.25)
+	player.recovery = mini(Movement.ticks(data.combate.recuperacao_max_s),roundi(player.attack_cd*float(data.combate.fator_recuperacao_golpe)))
+	var spawn_pos: Vector2 = player.pos + player.aim * 28.0
+	projectiles.append({
+		"owner": "player",
+		"kind": "bolt",
+		"pos": spawn_pos,
+		"prev": spawn_pos,
+		"velocity": player.aim * 1170.0,
+		"radius": 12.0,
+		"damage": 10.0 * damage_multiplier,
+		"push": 360.0,
+		"remaining": Movement.ticks(0.75)
+	})
+	_effect("bolt_shot", spawn_pos, player.aim, 0.12)
+
+func _special() -> void:
+	if weapon_id == &"ressonancia":
+		_special_ressonancia()
+	elif weapon_id == &"pactos":
+		_special_pactos()
+	else:
+		_start_lunge()
+
+func _special_ressonancia() -> void:
+	player.special_cd = Movement.ticks(1.5)
+	var pulse_radius := 195.0
+	var pulse := _effect("magic_pulse", player.pos, player.aim, 0.35)
+	pulse["radius"] = pulse_radius
+	for enemy: Dictionary in enemies:
+		if not _hittable(enemy): continue
+		var delta: Vector2 = enemy.pos - player.pos
+		if delta.length() <= pulse_radius + enemy.radius:
+			var dir: Vector2 = delta.normalized() if delta != Vector2.ZERO else player.aim
+			_hurt_enemy(enemy, 30.0 * damage_multiplier, dir, 1260.0, true, true)
+
+func _special_pactos() -> void:
+	player.special_cd = Movement.ticks(2.0)
+	var max_range := 600.0
+	var best_enemy: Dictionary = {}
+	var best_dist := max_range
+	for enemy: Dictionary in enemies:
+		if not _hittable(enemy): continue
+		var dist: float = player.pos.distance_to(enemy.pos)
+		if dist <= best_dist:
+			best_dist = dist
+			best_enemy = enemy
+	if not best_enemy.is_empty():
+		var impact_pos: Vector2 = best_enemy.pos
+		var delta: Vector2 = impact_pos - player.pos
+		var dir: Vector2 = delta.normalized() if delta != Vector2.ZERO else player.aim
+		_hurt_enemy(best_enemy, 17.0 * damage_multiplier, dir, 480.0, true, true)
+		var fx := _effect("pact_call", impact_pos, dir, 0.3)
+		fx["target_pos"] = impact_pos
+	else:
+		var fallback_pos: Vector2 = Movement.resolve(player.pos + player.aim * 220.0, player.radius, data.arena)
+		var fx := _effect("pact_call", fallback_pos, player.aim, 0.3)
+		fx["target_pos"] = fallback_pos
 
 func _start_lunge() -> void:
 	player.special_cd = Movement.ticks(data.investida.recarga_s)
@@ -354,9 +438,19 @@ func _projectile_step() -> void:
 		for obstacle: Dictionary in data.arena.pilares:
 			if position.distance_to(Vector2(obstacle.x,obstacle.y)) <= float(obstacle.r)+projectile.radius: destroyed = true
 		if destroyed: continue
-		if position.distance_to(player.pos) <= projectile.radius+player.radius:
-			_hurt_player(projectile.damage,projectile.prev)
-			destroyed = true
+		if projectile.get("owner", "enemy") == "player":
+			for enemy: Dictionary in enemies:
+				if not _hittable(enemy): continue
+				if position.distance_to(enemy.pos) <= projectile.radius+enemy.radius:
+					var vel: Vector2 = projectile.get("velocity", Vector2.ZERO)
+					var dir: Vector2 = vel.normalized() if vel != Vector2.ZERO else player.aim
+					_hurt_enemy(enemy,float(projectile.damage),dir,float(projectile.get("push", 0.0)),false,true)
+					destroyed = true
+					break
+		else:
+			if position.distance_to(player.pos) <= projectile.radius+player.radius:
+				_hurt_player(projectile.damage,projectile.prev)
+				destroyed = true
 		if not destroyed: survivors.append(projectile)
 	projectiles = survivors
 

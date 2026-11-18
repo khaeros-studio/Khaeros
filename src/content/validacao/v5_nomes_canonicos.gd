@@ -48,7 +48,7 @@ const ARMAS_CANONICAS: Dictionary = {
 	},
 	&"pactos": {
 		"doutrina": &"pactos",
-		"nome": "Besta do Vínculo",
+		"nome": "Domador de Pactos",
 		"ataque": "Virote",
 		"especial": "Chamado do Pacto",
 	},

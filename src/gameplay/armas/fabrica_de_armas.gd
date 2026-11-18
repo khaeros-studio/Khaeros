@@ -25,7 +25,7 @@ const NOMES_CANONICOS: Dictionary = {
 	&"WEAPON_GUARDIAO_NAME": "Escudo-Bastião",
 	&"WEAPON_VEU_NAME": "Adagas do Véu",
 	&"WEAPON_TRANSMUTACAO_NAME": "Cálice da Transmutação",
-	&"WEAPON_PACTOS_NAME": "Besta do Vínculo",
+	&"WEAPON_PACTOS_NAME": "Domador de Pactos",
 	&"WEAPON_LAMINA_ATK": "Corte",
 	&"WEAPON_LAMINA_ESP": "Investida",
 	&"WEAPON_RESSONANCIA_ATK": "Pulso",

@@ -246,7 +246,9 @@ func activate(index: int) -> void:
 				session.choose_blessing(index)
 		"morte", "vitoria":
 			if index == 0:
+				_aplicar_arma_na_sessao()
 				session.start()
+				_reiniciar_aliado_mvp()
 				observed_wave = -1
 				camera.cut(session.player.pos)
 			else:
@@ -372,6 +374,7 @@ func _tocar_sfx(s_id: StringName) -> void:
 
 
 func _aplicar_arma_na_sessao() -> void:
+	session.weapon_id = selected_weapon
 	if catalogo_real == null:
 		return
 	var w_def := catalogo_real.obter(&"weapon", selected_weapon, &"main") as WeaponDef
@@ -419,10 +422,15 @@ func _tocar_sfx_dos_efeitos() -> void:
 		for i: int in range(_prev_effects_count, n):
 			var ef: Dictionary = session.effects[i]
 			match String(ef.get("kind", "")):
-				"attack":
+				"attack", "magic_cast", "bolt_shot":
 					_tocar_sfx(&"sfx_acerto_leve")
-				"hit", "special":
+				"hit", "special", "magic_pulse":
 					_tocar_sfx(&"sfx_acerto_pesado")
+				"pact_call":
+					_tocar_sfx(&"sfx_acerto_pesado")
+					var target_pos: Vector2 = ef.get("target_pos", ef.get("pos", companion_pos))
+					companion_prev = companion_pos
+					companion_pos = target_pos
 				"hurt":
 					_tocar_sfx(&"sfx_jogador_atingido")
 	_prev_effects_count = n

@@ -131,9 +131,28 @@ func _draw() -> void:
 			_telegraph(enemy, false)
 	for projectile in session.projectiles:
 		var pos: Vector2 = projectile.get("prev", projectile.pos).lerp(projectile.pos, interpolation)
-		draw_circle(pos, projectile.radius + 5, INK)
-		draw_circle(pos, projectile.radius, MAGENTA)
-		draw_circle(pos - Vector2(3, 3), projectile.radius * 0.35, BONE)
+		var p_kind := String(projectile.get("kind", "enemy"))
+		var vel: Vector2 = projectile.get("velocity", Vector2.RIGHT)
+		var dir: Vector2 = vel.normalized() if vel != Vector2.ZERO else Vector2.RIGHT
+		if p_kind == "magic_orb":
+			var cyan := Color("7dd3fc")
+			draw_line(pos - dir * (projectile.radius * 2.4), pos, Color(cyan, 0.45), projectile.radius * 0.9, true)
+			draw_circle(pos, projectile.radius + 7, Color(cyan, 0.28))
+			draw_circle(pos, projectile.radius + 3, INK)
+			draw_circle(pos, projectile.radius, cyan)
+			draw_circle(pos, projectile.radius * 0.55, GOLD)
+			draw_circle(pos - Vector2(3, 3), projectile.radius * 0.28, BONE)
+		elif p_kind == "bolt":
+			var r_bolt: float = float(projectile.radius)
+			var tail: Vector2 = pos - dir * (r_bolt * 1.8)
+			var tip: Vector2 = pos + dir * (r_bolt * 1.5)
+			draw_line(tail, tip, INK, 10.0, true)
+			draw_line(tail, pos + dir * (r_bolt * 0.6), BONE, 5.0, true)
+			draw_line(pos + dir * (r_bolt * 0.4), tip, GOLD, 5.0, true)
+		else:
+			draw_circle(pos, projectile.radius + 5, INK)
+			draw_circle(pos, projectile.radius, MAGENTA)
+			draw_circle(pos - Vector2(3, 3), projectile.radius * 0.35, BONE)
 	for effect in session.effects:
 		_effect(effect)
 
@@ -461,6 +480,31 @@ func _effect(effect: Dictionary) -> void:
 				draw_line(pos + ray * (8 + 30 * (1 - alpha)), pos + ray * (19 + 40 * (1 - alpha)), Color(tint, alpha), 3, true)
 		"special":
 			draw_line(pos - direction * 45, pos + direction * 45, Color(BONE, alpha * .6), 8, true)
+		"magic_cast":
+			var cyan := Color("7dd3fc")
+			draw_circle(pos, 14.0 * (1.0 - progress * 0.4), Color(cyan, alpha * 0.35))
+			draw_arc(pos, 10.0 + 18.0 * progress, 0, TAU, 24, Color(cyan, alpha), 3.0, true)
+			draw_arc(pos, 6.0 + 10.0 * progress, direction.angle() - 0.9, direction.angle() + 0.9, 16, Color(GOLD, alpha), 3.0, true)
+		"magic_pulse":
+			var max_r: float = float(effect.get("radius", 195.0))
+			var cur_r := maxf(18.0, max_r * (0.25 + 0.75 * progress))
+			var cyan := Color("7dd3fc")
+			draw_circle(pos, cur_r, Color(cyan, alpha * 0.14))
+			draw_arc(pos, cur_r, 0, TAU, 48, Color(cyan, alpha), 5.0, true)
+			draw_arc(pos, cur_r * 0.82, 0, TAU, 40, Color(GOLD, alpha * 0.85), 3.0, true)
+			for i in range(6):
+				var a := i * TAU / 6.0 + progress * 0.8
+				draw_arc(pos, cur_r * 0.91, a - 0.18, a + 0.18, 8, Color(GOLD, alpha), 4.0, true)
+		"bolt_shot":
+			var perp := direction.orthogonal()
+			draw_line(pos, pos + direction * (26.0 * (0.4 + 0.6 * progress)), Color(GOLD, alpha), 4.0, true)
+			draw_line(pos + perp * 8.0, pos + direction * 18.0 + perp * 14.0 * progress, Color(BONE, alpha), 2.5, true)
+			draw_line(pos - perp * 8.0, pos + direction * 18.0 - perp * 14.0 * progress, Color(BONE, alpha), 2.5, true)
+		"pact_call":
+			var shock_r := 20.0 + 75.0 * progress
+			draw_circle(pos, shock_r, Color(INK, alpha * 0.45))
+			draw_arc(pos, shock_r, 0, TAU, 32, Color(INK, alpha), 7.0, true)
+			draw_arc(pos, shock_r * 0.88, 0, TAU, 32, Color(BONE, alpha), 3.5, true)
 		"enemy_attack":
 			draw_arc(pos, float(effect.get("radius", 90)), direction.angle() - 1.2, direction.angle() + 1.2, 24, Color(MAGENTA, alpha), 5, true)
 
