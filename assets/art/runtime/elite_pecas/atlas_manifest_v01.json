@@ -1,0 +1,49 @@
+{
+	"status": "runtime_ready",
+	"canvas": [400, 400],
+	"pivot": [200, 320],
+	"animations": {
+		"coroa_eco_perdido": {
+			"scale": 0.135,
+			"offset": [2.0, -84.0],
+			"frames": 1,
+			"loop": false,
+			"fps": 12
+		},
+		"coroa_anomalia_menor": {
+			"scale": 0.165,
+			"offset": [-2.0, -52.0],
+			"frames": 1,
+			"loop": false,
+			"fps": 12
+		},
+		"coroa_fenda_errante": {
+			"scale": 0.160,
+			"offset": [4.0, -54.0],
+			"frames": 1,
+			"loop": false,
+			"fps": 12
+		},
+		"placas_eco_perdido": {
+			"scale": 0.165,
+			"offset": [2.0, -48.0],
+			"frames": 1,
+			"loop": false,
+			"fps": 12
+		},
+		"placas_anomalia_menor": {
+			"scale": 0.250,
+			"offset": [-3.0, -14.0],
+			"frames": 1,
+			"loop": false,
+			"fps": 12
+		},
+		"placas_fenda_errante": {
+			"scale": 0.250,
+			"offset": [2.0, -20.0],
+			"frames": 1,
+			"loop": false,
+			"fps": 12
+		}
+	}
+}

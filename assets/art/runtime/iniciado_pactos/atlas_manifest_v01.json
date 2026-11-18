@@ -1,0 +1,16 @@
+{
+	"status": "runtime_ready",
+	"canvas": [400, 400],
+	"pivot": [200, 320],
+	"logical_size": 94.0,
+	"animations": {
+		"idle_frente34": { "scale": 0.4087, "frames": 6, "loop": true, "fps": 12 },
+		"virote_frente34": { "scale": 0.4087, "frames": 6, "loop": false, "fps": 12 },
+		"idle_costas34": { "scale": 0.4087, "frames": 6, "loop": true, "fps": 12 },
+		"virote_costas34": { "scale": 0.4087, "frames": 6, "loop": false, "fps": 12 },
+		"chamado_frente34": { "scale": 0.4087, "frames": 6, "loop": false, "fps": 12 },
+		"troca_frente34": { "scale": 0.4087, "frames": 4, "loop": false, "fps": 12 },
+		"chamado_costas34": { "scale": 0.4087, "frames": 6, "loop": false, "fps": 12 },
+		"troca_costas34": { "scale": 0.4087, "frames": 4, "loop": false, "fps": 12 }
+	}
+}

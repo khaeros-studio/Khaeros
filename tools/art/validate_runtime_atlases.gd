@@ -5,6 +5,13 @@ const ACTORS := {
 	"eco_perdido": {"frames": 44, "animations": 16},
 	"fenda_errante": {"frames": 44, "animations": 16},
 	"iniciado_lamina": {"frames": 108, "animations": 18},
+	"elite_pecas": {"frames": 6, "animations": 6},
+	"vulto_mudo": {"frames": 44, "animations": 16},
+	"espreitador_da_fenda": {"frames": 44, "animations": 16},
+	"baluarte_de_cinza": {"frames": 44, "animations": 16},
+	"soberano_do_limiar": {"frames": 44, "animations": 16},
+	"chefe_soberano_limiar": {"frames": 48, "animations": 26},
+	"iniciado_pactos": {"frames": 44, "animations": 8},
 }
 
 func _fail(msg: String) -> void:
