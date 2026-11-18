@@ -17,6 +17,9 @@ var hitstop := 0
 var kills := 0
 var denied_dash_count := 0
 var damage_multiplier := 1.0
+var oficina_damage_mult := 1.0
+var oficina_reach_mult := 1.0
+var include_boss_in_final_wave := false
 var weapon_id: StringName = &"lamina"
 var presentation_time := 0.0
 var live_steps := 0
@@ -58,7 +61,7 @@ func start() -> void:
 	transition_progress = 0.0
 	_transition_cut = false
 	presentation_time = 0.0
-	damage_multiplier = 1.0
+	damage_multiplier = oficina_damage_mult
 	blessing_counts.clear()
 	projectiles.clear()
 	effects.clear()
@@ -213,6 +216,12 @@ func _attack() -> void:
 	if weapon_id == &"pactos":
 		_attack_pactos()
 		return
+	if weapon_id == &"guardiao":
+		_attack_guardiao()
+		return
+	if weapon_id == &"veu":
+		_attack_veu()
+		return
 	var combo: Array = data.corte.combo
 	var multiplier: float = combo[int(player.combo) % combo.size()]
 	player.combo = (int(player.combo)+1) % combo.size()
@@ -221,17 +230,59 @@ func _attack() -> void:
 	player.recovery = mini(Movement.ticks(data.combate.recuperacao_max_s),roundi(player.attack_cd*float(data.combate.fator_recuperacao_golpe)))
 	var heavy := multiplier > float(data.combate.limiar_finalizador)
 	var push: float = maxf(float(data.corte.empurrao)*multiplier,float(data.combate.empurrao_pesado)) if heavy else float(data.corte.empurrao)
+	var reach: float = float(data.corte.alcance_px) * oficina_reach_mult
 	var effect := _effect("attack",player.pos,player.aim,float(data.combate.flash_acerto_s)*2.0)
-	effect["radius"] = float(data.corte.alcance_px)
+	effect["radius"] = reach
 	effect["angle"] = deg_to_rad(float(data.corte.meio_angulo_graus))
 	effect["heavy"] = heavy
 	for enemy: Dictionary in enemies:
 		if not _hittable(enemy): continue
 		var delta: Vector2 = enemy.pos-player.pos
-		if delta.length() > float(data.corte.alcance_px)+enemy.radius: continue
+		if delta.length() > reach+enemy.radius: continue
 		var touching: bool = delta.length() < player.radius+enemy.radius+float(data.combate.folga_encostado_px)
 		if touching or player.aim.dot(delta.normalized()) >= cos(deg_to_rad(float(data.corte.meio_angulo_graus))):
 			_hurt_enemy(enemy,float(data.corte.dano)*multiplier*damage_multiplier,player.aim,push,heavy,true)
+
+func _attack_guardiao() -> void:
+	player.combo = (int(player.combo) + 1) % 2
+	player.combo_window = Movement.ticks(data.combate.janela_combo_s)
+	player.attack_cd = Movement.ticks(0.45)
+	player.recovery = mini(Movement.ticks(data.combate.recuperacao_max_s), roundi(player.attack_cd * float(data.combate.fator_recuperacao_golpe)))
+	var reach := 155.0 * oficina_reach_mult
+	var half_angle := deg_to_rad(105.0)
+	var effect := _effect("attack", player.pos, player.aim, 0.20)
+	effect["radius"] = reach
+	effect["angle"] = half_angle
+	effect["heavy"] = true
+	effect["weapon"] = "guardiao"
+	for enemy: Dictionary in enemies:
+		if not _hittable(enemy): continue
+		var delta: Vector2 = enemy.pos - player.pos
+		if delta.length() > reach + enemy.radius: continue
+		var touching: bool = delta.length() < player.radius + enemy.radius + float(data.combate.folga_encostado_px)
+		if touching or player.aim.dot(delta.normalized()) >= cos(half_angle):
+			_hurt_enemy(enemy, 22.0 * damage_multiplier, player.aim, 960.0, true, true)
+
+func _attack_veu() -> void:
+	player.combo = (int(player.combo) + 1) % 3
+	player.combo_window = Movement.ticks(data.combate.janela_combo_s)
+	player.attack_cd = Movement.ticks(0.16)
+	player.recovery = mini(Movement.ticks(data.combate.recuperacao_max_s), roundi(player.attack_cd * float(data.combate.fator_recuperacao_golpe)))
+	var reach := 115.0 * oficina_reach_mult
+	var half_angle := deg_to_rad(50.0)
+	var heavy := int(player.combo) == 0
+	var effect := _effect("attack", player.pos, player.aim, 0.12)
+	effect["radius"] = reach
+	effect["angle"] = half_angle
+	effect["heavy"] = heavy
+	effect["weapon"] = "veu"
+	for enemy: Dictionary in enemies:
+		if not _hittable(enemy): continue
+		var delta: Vector2 = enemy.pos - player.pos
+		if delta.length() > reach + enemy.radius: continue
+		var touching: bool = delta.length() < player.radius + enemy.radius + float(data.combate.folga_encostado_px)
+		if touching or player.aim.dot(delta.normalized()) >= cos(half_angle):
+			_hurt_enemy(enemy, (15.0 if heavy else 10.5) * damage_multiplier, player.aim, 420.0 if heavy else 260.0, heavy, true)
 
 func _attack_ressonancia() -> void:
 	player.attack_cd = Movement.ticks(0.233)
@@ -272,12 +323,16 @@ func _special() -> void:
 		_special_ressonancia()
 	elif weapon_id == &"pactos":
 		_special_pactos()
+	elif weapon_id == &"guardiao":
+		_special_guardiao()
+	elif weapon_id == &"veu":
+		_special_veu()
 	else:
 		_start_lunge()
 
 func _special_ressonancia() -> void:
 	player.special_cd = Movement.ticks(1.5)
-	var pulse_radius := 195.0
+	var pulse_radius := 195.0 * oficina_reach_mult
 	var pulse := _effect("magic_pulse", player.pos, player.aim, 0.35)
 	pulse["radius"] = pulse_radius
 	for enemy: Dictionary in enemies:
@@ -289,7 +344,7 @@ func _special_ressonancia() -> void:
 
 func _special_pactos() -> void:
 	player.special_cd = Movement.ticks(2.0)
-	var max_range := 600.0
+	var max_range := 600.0 * oficina_reach_mult
 	var best_enemy: Dictionary = {}
 	var best_dist := max_range
 	for enemy: Dictionary in enemies:
@@ -310,6 +365,28 @@ func _special_pactos() -> void:
 		var fx := _effect("pact_call", fallback_pos, player.aim, 0.3)
 		fx["target_pos"] = fallback_pos
 
+func _special_guardiao() -> void:
+	player.special_cd = Movement.ticks(1.8)
+	player.inv = maxi(player.inv, Movement.ticks(0.65))
+	var shock_radius := 180.0 * oficina_reach_mult
+	var fx := _effect("guardiao_bastion", player.pos, player.aim, 0.35)
+	fx["radius"] = shock_radius
+	for enemy: Dictionary in enemies:
+		if not _hittable(enemy): continue
+		var delta: Vector2 = enemy.pos - player.pos
+		if delta.length() <= shock_radius + enemy.radius:
+			var dir: Vector2 = delta.normalized() if delta != Vector2.ZERO else player.aim
+			_hurt_enemy(enemy, 22.0 * damage_multiplier, dir, 1350.0, true, true)
+
+func _special_veu() -> void:
+	player.special_cd = Movement.ticks(1.0)
+	player.lunge_remaining = Movement.ticks(0.15)
+	player.lunge_dir = player.aim
+	player.lunge_hits.clear()
+	player.inv = maxi(player.inv, player.lunge_remaining + Movement.ticks(0.08))
+	_effect("veu_blink", player.pos, player.aim, 0.24)
+	_lunge_hits()
+
 func _start_lunge() -> void:
 	player.special_cd = Movement.ticks(data.investida.recarga_s)
 	player.lunge_remaining = Movement.ticks(data.investida.duracao_s)
@@ -320,11 +397,15 @@ func _start_lunge() -> void:
 	_lunge_hits()
 
 func _lunge_hits() -> void:
+	var is_veu := weapon_id == &"veu"
+	var lunge_radius := (78.0 if is_veu else float(data.investida.raio_px)) * oficina_reach_mult
+	var lunge_dmg := (22.0 if is_veu else float(data.investida.dano)) * damage_multiplier
+	var lunge_push := 640.0 if is_veu else float(data.investida.empurrao)
 	for enemy: Dictionary in enemies:
 		if not _hittable(enemy) or player.lunge_hits.has(enemy.id): continue
-		if player.pos.distance_to(enemy.pos) <= float(data.investida.raio_px)+enemy.radius:
+		if player.pos.distance_to(enemy.pos) <= lunge_radius+enemy.radius:
 			player.lunge_hits[enemy.id] = true
-			_hurt_enemy(enemy,float(data.investida.dano)*damage_multiplier,player.lunge_dir,float(data.investida.empurrao),true,true)
+			_hurt_enemy(enemy,lunge_dmg,player.lunge_dir,lunge_push,true,true)
 
 func _dash_cut() -> void:
 	if not blessing_counts.has("corte_esquiva"): return
@@ -362,13 +443,42 @@ func _hurt_player(damage: float, origin: Vector2) -> void:
 	_pending_hitstop = maxi(_pending_hitstop,Movement.ticks(data.combate.hitstop_atingido_s))
 	_effect("hurt",player.pos,(player.pos-origin).normalized(),float(data.combate.flash_acerto_s)*2.0)
 
+func _enemy_def(kind: String) -> Dictionary:
+	if data.inimigos.has(kind):
+		return data.inimigos[kind]
+	if kind == "anomalia_maior":
+		return {
+			"nome": "Anomalia Maior",
+			"comportamento": "melee",
+			"vida": 240.0,
+			"velocidade": 108.0,
+			"raio": 52.0,
+			"dano": 16.0,
+			"preparo_s": 0.6667,
+			"recarga_s": 1.0,
+			"execucao_passos": 10,
+			"inicio_preparo_px": 140.0,
+			"tele_raio_px": 165.0,
+			"tele_meio_angulo_graus": 85.0,
+		}
+	return {}
+
 func _spawn_wave() -> void:
 	enemies.clear()
-	for spawn: Dictionary in data.ondas[wave_index]:
-		var definition: Dictionary = data.inimigos[spawn.id]
+	var spawns: Array = data.ondas[wave_index].duplicate()
+	if include_boss_in_final_wave and wave_index >= data.ondas.size() - 1:
+		var has_boss := false
+		for s: Dictionary in spawns:
+			if String(s.get("id", "")) == "anomalia_maior":
+				has_boss = true
+				break
+		if not has_boss:
+			spawns.append({"id": "anomalia_maior", "x": float(data.arena.largura) * 0.5, "y": 220.0})
+	for spawn: Dictionary in spawns:
+		var definition: Dictionary = _enemy_def(String(spawn.id))
 		var elite: bool = spawn.get("elite",false)
-		var hp: float = definition.vida
-		var radius: float = definition.raio
+		var hp: float = float(definition.vida)
+		var radius: float = float(definition.raio)
 		if elite:
 			hp = roundf(hp*float(data.elite.vida_x)*(1.0+float(data.elite.vida_por_profundidade)*float(data.profundidade)))
 			radius *= float(data.elite.raio_x)
@@ -377,7 +487,7 @@ func _spawn_wave() -> void:
 		enemies.append({"id":_next_id,"kind":String(spawn.id),"pos":position,"prev":position,"hp":hp,"max_hp":hp,"radius":radius,"elite":elite,"phase":"spawn","timer":Movement.ticks(data.ia.surgimento_s),"aim":Vector2.DOWN,"knockback":Vector2.ZERO,"flash":0,"wait":int(data.ia.espera_inicial_base)+_integer(int(data.ia.espera_inicial_extra)+1)})
 
 func _enemy_step(enemy: Dictionary) -> void:
-	var definition: Dictionary = data.inimigos[enemy.kind]
+	var definition: Dictionary = _enemy_def(enemy.kind)
 	enemy.flash = maxi(0,int(enemy.flash)-1)
 	if enemy.phase == "spawn":
 		enemy.timer -= 1

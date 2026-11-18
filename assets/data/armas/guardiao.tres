@@ -1,0 +1,51 @@
+[gd_resource type="Resource" script_class="WeaponDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/weapon_def.gd" id="1_w"]
+[ext_resource type="Script" path="res://src/content/attack_def.gd" id="2_a"]
+
+[sub_resource type="Resource" id="AttackDef_atk"]
+script = ExtResource("2_a")
+chave_nome = &"WEAPON_GUARDIAO_ATK"
+forma = &"arco"
+params = {
+&"alcance_px": 135.0,
+&"meio_angulo_graus": 75.0
+}
+leque = PackedFloat64Array()
+atravessa = false
+dano = 16.0
+recarga_s = 0.35
+preparo_s = 0.0
+empurrao = 680.0
+status = &""
+multiplicadores_combo = PackedFloat64Array(1, 1.2, 1.8)
+guarda_s = 0.0
+
+[sub_resource type="Resource" id="AttackDef_esp"]
+script = ExtResource("2_a")
+chave_nome = &"WEAPON_GUARDIAO_ESP"
+forma = &"circulo"
+params = {
+&"deslocamento_px": 0.0,
+&"raio_px": 180.0
+}
+leque = PackedFloat64Array()
+atravessa = false
+dano = 22.0
+recarga_s = 1.6
+preparo_s = 0.0
+empurrao = 1350.0
+status = &""
+multiplicadores_combo = PackedFloat64Array()
+guarda_s = 0.5
+
+[resource]
+script = ExtResource("1_w")
+id = &"guardiao"
+obsoleto = false
+doutrina = &"guardiao"
+chave_nome = &"WEAPON_GUARDIAO_NAME"
+vida_max = 120
+velocidade = 345.0
+ataque = SubResource("AttackDef_atk")
+especial = SubResource("AttackDef_esp")

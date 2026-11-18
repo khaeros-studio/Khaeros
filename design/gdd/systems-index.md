@@ -2,7 +2,7 @@
 
 > **Status**: Approved (enumeração, dependências e prioridades aprovadas pelo CD em 2026-11-05)
 > **Created**: 2026-11-05
-> **Last Updated**: 2026-11-18 (26/26 GDDs do MVP Approved e consolidados sem pendências provisórias; 7 pendências de QA de 2026-11-16 resolvidas; Next Steps do MVP concluídos; antes, 2026-11-16: lote Pactos aprovado pelo usuário — Vínculo e pactos, Save e perfil, Maldições, Chefes e emendas nos 20 GDDs do MVP; antes, 2026-11-15: Chefes e Maldições Approved; antes, 2026-11-11: Telemetria local Approved (22/22 MVP original))
+> **Last Updated**: 2026-11-18 (Vertical Slice iniciada: GDDs 20 Mestres ofertantes, 22 Oficina de Reforja e 25 Campus (hub) criados em estado Designed; antes: 26/26 GDDs do MVP Approved e consolidados sem pendências provisórias; 7 pendências de QA de 2026-11-16 resolvidas; Next Steps do MVP concluídos; antes, 2026-11-16: lote Pactos aprovado pelo usuário — Vínculo e pactos, Save e perfil, Maldições, Chefes e emendas nos 20 GDDs do MVP; antes, 2026-11-15: Chefes e Maldições Approved; antes, 2026-11-11: Telemetria local Approved (22/22 MVP original))
 > **Source Concept**: design/gdd/game-concept.md (v1.0)
 > **Art Bible**: design/art/art-bible.md (aprovado)
 > **Revisões de diretor**: TD-SYSTEM-BOUNDARY, PR-SCOPE e CD-SYSTEMS puladas — modo lean (`modes.rigor: standard`)
@@ -81,12 +81,12 @@ sistema de jogo (Art Bible §8.8).
 | 17 | Portas e recompensas | Gameplay | MVP | Approved (emenda Pactos, 2026-11-16) | [portas-e-recompensas.md](portas-e-recompensas.md) | Câmaras e ondas, RNG com seed, Conteúdo orientado a dados, Run e regiões (por contrato), Bênçãos (Tradições) (por contrato), Economia de Fragmentos (suave, por contrato) |
 | 18 | Run e regiões | Gameplay | MVP | Approved (emenda Pactos, 2026-11-16) | [run-e-regioes.md](run-e-regioes.md) | Câmaras e ondas, Portas e recompensas, Chefes (a partir da fatia vertical, reservado), Conteúdo orientado a dados, RNG com seed, Combate núcleo (suave), Bênçãos (Tradições) (por contrato), Economia de Fragmentos (por contrato) |
 | 19 | Bênçãos (Tradições) | Gameplay | MVP | Approved (emenda Pactos, 2026-11-16) | [bencaos-tradicoes.md](bencaos-tradicoes.md) | Modificadores e atributos, RNG com seed, Armas das Doutrinas (suave), Conteúdo orientado a dados, Portas e recompensas, Run e regiões (suave) |
-| 20 | Mestres ofertantes | Narrative | Vertical Slice | Not Started | — | Bênçãos (Tradições), Diálogo e lore |
+| 20 | Mestres ofertantes | Narrative | Vertical Slice | Designed | [mestres-ofertantes.md](mestres-ofertantes.md) | Bênçãos (Tradições), Diálogo e lore |
 | 21 | Economia de Fragmentos | Economy | MVP | Approved (emenda Pactos, 2026-11-16) | [economia-de-fragmentos.md](economia-de-fragmentos.md) | Run e regiões (por contrato), Portas e recompensas (por contrato), Conteúdo orientado a dados |
-| 22 | Oficina de Reforja | Progression | Vertical Slice | Not Started | — | Economia de Fragmentos, Modificadores e atributos, Save e perfil, Conteúdo orientado a dados |
+| 22 | Oficina de Reforja | Progression | Vertical Slice | Designed | [oficina-de-reforja.md](oficina-de-reforja.md) | Economia de Fragmentos, Modificadores e atributos, Save e perfil, Conteúdo orientado a dados |
 | 23 | Desbloqueio de armas | Progression | Alpha | Not Started | — | Economia de Fragmentos, Armas das Doutrinas, Save e perfil |
 | 24 | Rito de Iniciação e criação do Iniciado | Progression | Vertical Slice | Not Started | — | Armas das Doutrinas, Save e perfil, Diálogo e lore |
-| 25 | Campus (hub) | Meta | Vertical Slice | Not Started | — | Oficina de Reforja, Desbloqueio de armas, Rito de Iniciação e criação do Iniciado, Mestres ofertantes |
+| 25 | Campus (hub) | Meta | Vertical Slice | Designed | [campus-hub.md](campus-hub.md) | Oficina de Reforja, Desbloqueio de armas, Rito de Iniciação e criação do Iniciado, Mestres ofertantes |
 | 26 | Diálogo e lore (inferred) | Narrative | Vertical Slice | Not Started | — | Conteúdo orientado a dados, Localização |
 | 27 | Save e perfil (inferred; MVP mínimo: pactos e vínculo, 2026-11-15) | Persistence | MVP | Approved | [save-e-perfil.md](save-e-perfil.md) | Conteúdo orientado a dados |
 | 28 | HUD | UI | MVP | Approved (emenda Pactos, 2026-11-16) | [hud.md](hud.md) | Combate núcleo, Selo e Fluxo, Movimento e esquiva, Economia de Fragmentos, Chefes (barra de chefe, fatia vertical) |

@@ -1,3 +1,5 @@
 id,doctrine,name_pt,maxHp,moveSpeed,attack_name_pt,attack_shape,attack_damage,attack_cooldownTicks,attack_knockback,attack_range,attack_dot,attack_projectileSpeed,attack_radius,attack_rangeTicks,special_name_pt,special_shape,special_damage,special_cooldownTicks,special_knockback,special_distance,special_durationTicks,special_radius
 BLADE,BLADE,Lâmina do Juramento,100,4.3,Corte,arc,14,16,5,95,0.35,0,0,0,Investida,lunge,26,70,12,220,10,46
 RESONANCE,RESONANCE,Foco Ressonante,80,4.2,Pulso,projectile,12,14,6,0,0,11,10,50,Onda de Ressonância,circle,30,90,14,0,0,130
+GUARDIAN,GUARDIAN,Égide do Guardião,120,3.833333,Golpe de Escudo,arc,16,21,7.555556,90,0.258819,0,0,0,Muralha,circle,22,96,15,0,0,120
+VEIL,VEIL,Lâminas do Véu,85,4.666667,Estocada,arc,11,11,3.111111,80,0.573576,0,0,0,Leque de Lâminas,lunge,24,60,6.666667,260,8,42.666667

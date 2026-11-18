@@ -30,7 +30,9 @@ func test_ac01_ac20_ac53_manifesto_real_carrega_pronto_com_zero_erros() -> void:
 
 	var cat := carregador.catalogo()
 	assert_object(cat).is_not_null()
-	assert_int(cat.listar(&"weapon").size()).is_equal(3)
+	assert_int(cat.listar(&"weapon").size()).is_equal(5)
+	assert_bool(cat.existe(&"weapon", &"guardiao")).is_true()
+	assert_bool(cat.existe(&"weapon", &"veu")).is_true()
 	assert_int(cat.listar(&"enemy").size()).is_equal(5)
 	assert_int(cat.listar(&"boon").size()).is_equal(18)
 	assert_int(cat.listar(&"curse").size()).is_equal(4)

@@ -54,13 +54,13 @@ const ARMAS_CANONICAS: Dictionary = {
 	},
 	&"guardiao": {
 		"doutrina": &"guardiao",
-		"nome": "Escudo-Bastião",
+		"nome": "Égide do Guardião",
 		"ataque": "Golpe de Escudo",
 		"especial": "Muralha",
 	},
 	&"veu": {
 		"doutrina": &"veu",
-		"nome": "Adagas do Véu",
+		"nome": "Lâminas do Véu",
 		"ataque": "Estocada",
 		"especial": "Leque de Lâminas",
 	},

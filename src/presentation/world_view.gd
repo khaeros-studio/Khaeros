@@ -247,11 +247,26 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 		if not _frames_by_actor[player_actor].has_animation(anim_name):
 			anim_name = "idle_" + dir_suffix
 		var modulate := Color(0.84, 0.94, 1.05, 1.0) if w_id == &"ressonancia" else Color.WHITE
+		if w_id == &"guardiao":
+			modulate = Color(1.08, 0.98, 0.80, 1.0)
+		elif w_id == &"veu":
+			modulate = Color(0.76, 0.64, 0.96, 1.0)
 		if int(player.get("flash", 0)) > 0:
 			modulate = BONE
 		_draw_actor_sprite(player_actor, anim_name, pos, flip_x, 1.0, session.presentation_time, progress, modulate)
 		if w_id == &"ressonancia":
 			_draw_cetro_magico(pos, aim, session.presentation_time, int(player.get("attack_cd", 0)) > 0)
+		elif w_id == &"guardiao":
+			var shield_pos := pos + Vector2(0, -34) + aim * 26.0
+			var perp := aim.orthogonal()
+			draw_line(shield_pos - perp * 16.0, shield_pos + perp * 16.0, INK, 11.0, true)
+			draw_line(shield_pos - perp * 14.0, shield_pos + perp * 14.0, Color("8a8272"), 6.5, true)
+			draw_line(shield_pos - perp * 10.0, shield_pos + perp * 10.0, GOLD, 2.5, true)
+			draw_arc(pos, 40.0, 0, TAU, 36, Color(GOLD, 0.35), 2.5, true)
+		elif w_id == &"veu":
+			var shadow_col := Color("5b2d8a")
+			draw_circle(pos + Vector2(0, -28), 26.0, Color(shadow_col, 0.22))
+			draw_arc(pos, 38.0, 0, TAU, 36, Color(shadow_col, 0.45), 2.0, true)
 		draw_arc(pos, 34, 0, TAU, 40, Color(BONE, 0.35), 1.5, true)
 		if int(player.get("inv", 0)) > 0 and not dash:
 			draw_arc(pos, 39, -PI * 0.8, -PI * 0.2, 15, Color(BONE, 0.65), 2, true)
@@ -288,7 +303,15 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 	var tint := GOLD if is_elite else MAGENTA
 	if spawning:
 		draw_arc(pos, radius + 18, 0, TAU, 30, Color(tint, 0.55), 2, true)
-	if _frames_by_actor.has(kind):
+	var sprite_kind := kind
+	var boss_scale := 1.0
+	if kind == "anomalia_maior":
+		boss_scale = 1.55
+		if _frames_by_actor.has("chefe_soberano_limiar"):
+			sprite_kind = "chefe_soberano_limiar"
+		elif _frames_by_actor.has("anomalia_menor"):
+			sprite_kind = "anomalia_menor"
+	if _frames_by_actor.has(sprite_kind):
 		var def: Dictionary = data.inimigos.get(kind, {})
 		var move_delta: Vector2 = enemy.pos - enemy.get("prev", enemy.pos)
 		var look_vec: Vector2 = enemy.get("aim", Vector2.DOWN)
@@ -326,14 +349,28 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 		elif move_delta.length_squared() > 0.04:
 			action = "run"
 		var anim_name := action + "_" + dir_suffix
-		var elite_scale := 1.15 if is_elite else 1.0
-		var modulate := Color.WHITE
+		if not _frames_by_actor[sprite_kind].has_animation(anim_name):
+			anim_name = "idle_" + dir_suffix
+		var elite_scale := (1.15 if is_elite else 1.0) * boss_scale
+		var modulate := Color(1.05, 0.78, 1.0, 1.0) if kind == "anomalia_maior" else Color.WHITE
 		if spawning:
 			modulate.a = 0.65
 		if int(enemy.get("flash", 0)) > 0:
 			modulate = Color(1.6, 1.55, 1.42, modulate.a)
 		var phase_time: float = session.presentation_time + float(int(enemy.get("id", 0))) * 0.19
-		_draw_actor_sprite(kind, anim_name, pos, flip_x, elite_scale, phase_time, progress, modulate)
+		_draw_actor_sprite(sprite_kind, anim_name, pos, flip_x, elite_scale, phase_time, progress, modulate)
+		if kind == "anomalia_maior":
+			draw_arc(pos, radius + 14.0, 0, TAU, 48, Color(MAGENTA, 0.45), 3.0, true)
+			var crown_y := -112.0
+			var crown := PackedVector2Array([
+				pos + Vector2(-28, crown_y),
+				pos + Vector2(-22, crown_y - 20),
+				pos + Vector2(0, crown_y - 8),
+				pos + Vector2(22, crown_y - 20),
+				pos + Vector2(28, crown_y)
+			])
+			draw_polyline(crown, INK, 7.0, true)
+			draw_polyline(crown, MAGENTA_BRIGHT, 3.5, true)
 		if is_elite:
 			_draw_elite_part(kind, "placas_", pos, flip_x, dir_suffix, elite_scale, action, progress, modulate)
 		# Art Bible §3.2 & Lote 02 §3: Anomalia Menor has Magenta emitter ring & dorsal crystal accents
@@ -345,9 +382,10 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 		if is_elite:
 			_draw_elite_part(kind, "coroa_", pos, flip_x, dir_suffix, elite_scale, action, progress, modulate)
 		if enemy.hp < enemy.max_hp:
-			var bar_y := (-108.0 if kind == "eco_perdido" else -82.0) - (10.0 if is_elite else 0.0)
-			draw_rect(Rect2(pos + Vector2(-28, bar_y), Vector2(56, 5)), INK)
-			draw_rect(Rect2(pos + Vector2(-28, bar_y), Vector2(56 * maxf(0, enemy.hp / enemy.max_hp), 5)), tint)
+			var bar_y := (-128.0 if kind == "anomalia_maior" else (-108.0 if kind == "eco_perdido" else -82.0)) - (10.0 if is_elite else 0.0)
+			var bar_w := 96.0 if kind == "anomalia_maior" else 56.0
+			draw_rect(Rect2(pos + Vector2(-bar_w * 0.5, bar_y), Vector2(bar_w, 6 if kind == "anomalia_maior" else 5)), INK)
+			draw_rect(Rect2(pos + Vector2(-bar_w * 0.5, bar_y), Vector2(bar_w * maxf(0, enemy.hp / enemy.max_hp), 6 if kind == "anomalia_maior" else 5)), tint)
 		return
 	# Procedural fallback
 	var flesh := Color("6a596e") if kind == "eco_perdido" else Color("5c4b65")
@@ -451,23 +489,23 @@ func _draw_elite_part(kind: String, part_prefix: String, pos: Vector2, flip_x: f
 func _telegraph(enemy: Dictionary, fill: bool) -> void:
 	var pos: Vector2 = enemy.pos
 	var direction: Vector2 = enemy.aim
-	var data: Dictionary = app.catalog.data.inimigos[enemy.kind]
+	var data: Dictionary = app.catalog.data.inimigos.get(enemy.kind, {})
 	var color := Color(MAGENTA, 0.13) if fill else Color(MAGENTA, 0.95)
 	if enemy.kind == "anomalia_menor":
-		var side := direction.orthogonal() * float(data.tele_largura_px) / 2
-		var end := pos + direction * float(data.tele_comprimento_max_px)
+		var side := direction.orthogonal() * float(data.get("tele_largura_px", 81.0)) / 2
+		var end := pos + direction * float(data.get("tele_comprimento_max_px", 1728.0))
 		var poly := PackedVector2Array([pos + side, end + side, end - side, pos - side])
 		if fill: draw_colored_polygon(poly, color)
 		else:
 			draw_line(pos + side, end + side, color, 2, true)
 			draw_line(pos - side, end - side, color, 2, true)
 	else:
-		var angle := deg_to_rad(float(data.tele_meio_angulo_graus))
-		var poly := _sector(pos, direction.angle(), angle, float(data.tele_raio_px))
+		var angle := deg_to_rad(float(data.get("tele_meio_angulo_graus", 85.0)))
+		var poly := _sector(pos, direction.angle(), angle, float(data.get("tele_raio_px", 165.0)))
 		if fill: draw_colored_polygon(poly, color)
 		else: draw_polyline(_closed(poly), color, 3, true)
 	if not fill:
-		var progress := 1.0 - float(enemy.timer) / maxf(1, roundf(float(data.preparo_s) * 60))
+		var progress := 1.0 - float(enemy.timer) / maxf(1, roundf(float(data.get("preparo_s", 0.5)) * 60))
 		draw_arc(pos, enemy.radius + 10, -PI / 2, -PI / 2 + TAU * clampf(progress, 0.01, 1), 30, MAGENTA, 4, true)
 
 func _effect(effect: Dictionary) -> void:
@@ -480,8 +518,23 @@ func _effect(effect: Dictionary) -> void:
 		"attack":
 			var radius: float = effect.get("radius", 142.5)
 			var angle: float = effect.get("angle", 1.21)
-			draw_arc(pos, radius, direction.angle() - angle, direction.angle() + angle, 32, Color(BONE, alpha), 6, true)
-			draw_arc(pos, radius - 12, direction.angle() - angle * .8, direction.angle() + angle * .8, 24, Color(BONE, alpha * .35), 3, true)
+			var atk_col := BONE
+			if String(effect.get("weapon", "")) == "guardiao":
+				atk_col = GOLD
+			elif String(effect.get("weapon", "")) == "veu":
+				atk_col = Color("9d6bff")
+			draw_arc(pos, radius, direction.angle() - angle, direction.angle() + angle, 32, Color(atk_col, alpha), 7 if String(effect.get("weapon", "")) == "guardiao" else 6, true)
+			draw_arc(pos, radius - 12, direction.angle() - angle * .8, direction.angle() + angle * .8, 24, Color(atk_col, alpha * .35), 3, true)
+		"guardiao_bastion":
+			var max_r: float = float(effect.get("radius", 180.0))
+			var cur_r := maxf(24.0, max_r * (0.3 + 0.7 * progress))
+			draw_circle(pos, cur_r, Color(GOLD, alpha * 0.16))
+			draw_arc(pos, cur_r, 0, TAU, 48, Color(GOLD, alpha), 6.0, true)
+			draw_arc(pos, cur_r * 0.85, 0, TAU, 40, Color(BONE, alpha * 0.8), 3.0, true)
+		"veu_blink":
+			var shadow_col := Color("6e39b3")
+			draw_circle(pos, 22.0 + 36.0 * progress, Color(shadow_col, alpha * 0.35))
+			draw_line(pos - direction * 55, pos + direction * 65, Color(shadow_col, alpha * 0.85), 10, true)
 		"death":
 			var actor_kind := String(effect.get("actor_kind", ""))
 			if _frames_by_actor.has(actor_kind):

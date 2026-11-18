@@ -17,14 +17,18 @@ WEAPON_PACTOS_ATK,Virote
 WEAPON_PACTOS_ATK_DESC,Virote rápido que marca o alvo prioritário da Maldição.
 WEAPON_PACTOS_ESP,Chamado do Pacto
 WEAPON_PACTOS_ESP_DESC,Ordena que a Maldição em campo salte, segure e atraia.
-WEAPON_GUARDIAO_NAME,Escudo-Bastião
+WEAPON_GUARDIAO_NAME,Égide do Guardião
 WEAPON_GUARDIAO_NAME_DESC,Defesa ancorada e contra-ataque pesado.
 WEAPON_GUARDIAO_ATK,Golpe de Escudo
+WEAPON_GUARDIAO_ATK_DESC,Arco amplo em três golpes com empurrão crescente.
 WEAPON_GUARDIAO_ESP,Muralha
-WEAPON_VEU_NAME,Adagas do Véu
+WEAPON_GUARDIAO_ESP_DESC,Onda circular defensiva com guarda e forte impacto.
+WEAPON_VEU_NAME,Lâminas do Véu
 WEAPON_VEU_NAME_DESC,Velocidade furtiva entre as fendas.
 WEAPON_VEU_ATK,Estocada
+WEAPON_VEU_ATK_DESC,Arco ágil em três golpes rápidos de curto alcance.
 WEAPON_VEU_ESP,Leque de Lâminas
+WEAPON_VEU_ESP_DESC,Avanço veloz que atravessa inimigos na linha.
 WEAPON_TRANSMUTACAO_NAME,Cálice da Transmutação
 WEAPON_TRANSMUTACAO_NAME_DESC,Alquimia de Fluxo e matéria instável.
 WEAPON_TRANSMUTACAO_ATK,Gota Corrosiva

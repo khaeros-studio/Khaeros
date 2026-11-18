@@ -46,6 +46,10 @@ func _nome_doutrina() -> String:
 			return "Ressonância de Sangue"
 		&"pactos":
 			return "Domador de Pactos"
+		&"guardiao":
+			return "Égide do Guardião"
+		&"veu":
+			return "Lâminas do Véu"
 		_:
 			return "Lâmina do Juramento"
 
@@ -61,7 +65,12 @@ func action_rects() -> Array[Rect2]:
 				Rect2(center-240,560,480,72),
 				Rect2(center-240,648,480,62),
 				Rect2(center-240,726,480,62),
+				Rect2(center-240,804,480,62),
 			]
+		"oficina":
+			for i in range(5):
+				result.append(Rect2(center-340, 305 + i * 86, 680, 72))
+			result.append(Rect2(center-220, 765, 440, 62))
 		"pausa":
 			result = [Rect2(center-240,470,480,74),Rect2(center-240,570,480,64),Rect2(center-240,660,480,64)]
 		"morte", "vitoria":
@@ -90,8 +99,8 @@ func _draw() -> void:
 		var progress: float = app.session.get("transition_progress")
 		var opacity := 1.0-absf(progress*2-1)
 		draw_rect(Rect2(0,0,width,1080),Color(PANEL,opacity))
-	elif state in ["menu","pausa","bencao","morte","vitoria"]:
-		draw_rect(Rect2(0,0,width,1080),Color(0.025,0.03,0.05,0.91 if state=="menu" else 0.85))
+	elif state in ["menu","pausa","bencao","morte","vitoria","oficina"]:
+		draw_rect(Rect2(0,0,width,1080),Color(0.025,0.03,0.05,0.91 if state in ["menu","oficina"] else 0.85))
 		var center := width/2
 		match state:
 			"menu":
@@ -100,12 +109,34 @@ func _draw() -> void:
 				_center("O LIMIAR",368,22,GOLD,width)
 				_center(_nome_doutrina(),445,30,BONE,width)
 				_center("Atravesse as câmaras do Limiar. Escolha arma, bênçãos e pactos.",490,22,MUTED,width)
+				var frag_saldo: int = app.saldo_fragmentos() if app.has_method("saldo_fragmentos") else 0
 				_button(action_rects()[0],"Entrar no Limiar",0)
 				_button(action_rects()[1],"Redução de movimento: "+("ligada" if app.reduced_motion else "desligada"),1,true)
 				_button(action_rects()[2],"Doutrina: "+_nome_doutrina(),2,true)
+				_button(action_rects()[3],"Oficina de Reforja (%d Frag.)" % frag_saldo,3,true)
 				var cat_ok := app.get("catalogo_real") != null
-				_center("MVP KHAEROS • CATÁLOGO .TRES %s • 11 ATORES • ÁUDIO P0" % ["ATIVO" if cat_ok else "FALLBACK"],900,18,MUTED,width)
+				_center("MVP KHAEROS • CATÁLOGO .TRES %s • 11 ATORES • ÁUDIO P0" % ["ATIVO" if cat_ok else "FALLBACK"],915,18,MUTED,width)
 				_controls(width)
+			"oficina":
+				_center("OFICINA DE REFORJA", 160, 48, BONE, width)
+				_rule(center, 195, 280)
+				var frag_saldo: int = app.saldo_fragmentos() if app.has_method("saldo_fragmentos") else 0
+				_center("Fragmentos disponíveis: %d" % frag_saldo, 245, 26, GOLD, width)
+				var boxes := action_rects()
+				var ids := OficinaDeReforja.ids_melhorias()
+				var ofi: OficinaDeReforja = app.get("oficina") as OficinaDeReforja
+				for i in range(ids.size()):
+					var id_m: StringName = ids[i]
+					var info: Dictionary = OficinaDeReforja.info_melhoria(id_m)
+					var nv := ofi.nivel(id_m) if ofi != null else 0
+					var max_nv := int(info.get("nivel_max", 1))
+					var custo := ofi.custo_proximo(id_m) if ofi != null else 0
+					var custo_txt := "MÁXIMO" if nv >= max_nv else ("%d Frag." % custo)
+					var rotulo := "%s [%d/%d] — %s (%s)" % [
+						String(info.get("nome", "")), nv, max_nv, String(info.get("descricao", "")), custo_txt
+					]
+					_button(boxes[i], rotulo, i, true)
+				_button(boxes[ids.size()], "Voltar ao início", ids.size(), true)
 			"pausa":
 				_center("UMA PAUSA NA BEIRA",335,46,BONE,width)
 				_center("O mundo espera por você.",390,24,MUTED,width)

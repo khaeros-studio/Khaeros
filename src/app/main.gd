@@ -36,7 +36,17 @@ var ready_to_play := false
 var data_error := ""
 var observed_wave := -1
 var selected_weapon: StringName = &"lamina"
-var weapon_order: Array[StringName] = [&"lamina", &"ressonancia", &"pactos"]
+var weapon_order: Array[StringName] = [&"lamina", &"ressonancia", &"pactos", &"guardiao", &"veu"]
+var oficina := OficinaDeReforja.new()
+var conta_meta: ContaFragmentos = null
+var _prev_kills: int = 0
+var _prev_state_for_meta: String = "menu"
+var _base_vida_max: float = 100.0
+var _base_velocidade: float = 387.0
+var _base_corte_dano: float = 14.0
+var _base_corte_alcance: float = 142.5
+var _base_corte_recarga: float = 0.2833
+var _base_cargas_esquiva: int = 1
 var companion_species: StringName = &"vulto_mudo"
 var companion_pos: Vector2 = Vector2(960, 620)
 var companion_prev: Vector2 = Vector2(960, 620)
@@ -113,6 +123,9 @@ func _ready() -> void:
 	get_window().size_changed.connect(_on_resize)
 	compor_apresentacao(world)
 	_carregar_catalogo_real()
+	_registrar_dados_base_e_chefe()
+	_inicializar_meta()
+	session.include_boss_in_final_wave = true
 	_preparar_audio_p0()
 	_compor_passo()
 	ready_to_play = true
@@ -140,6 +153,7 @@ func _physics_process(_delta: float) -> void:
 	else:
 		_atualizar_aliado_mvp()
 		_tocar_sfx_dos_efeitos()
+		_atualizar_fragmentos_meta(estado_antes)
 	_espelhar_estado()
 	sync_context()
 
@@ -234,6 +248,19 @@ func activate(index: int) -> void:
 				var pos_idx: int = weapon_order.find(selected_weapon)
 				selected_weapon = weapon_order[(pos_idx + 1) % weapon_order.size()]
 				_tocar_sfx(&"sfx_carta_foco")
+			elif index == 3:
+				session.state = "oficina"
+				_tocar_sfx(&"sfx_carta_foco")
+		"oficina":
+			var ids := OficinaDeReforja.ids_melhorias()
+			if index >= 0 and index < ids.size():
+				if oficina.comprar(ids[index], conta_meta):
+					_tocar_sfx(&"sfx_carta_confirmar")
+				else:
+					_tocar_sfx(&"sfx_jogador_atingido")
+			elif index == ids.size():
+				session.state = "menu"
+				_tocar_sfx(&"sfx_carta_foco")
 		"pausa":
 			if index == 0:
 				session.resume()
@@ -288,6 +315,11 @@ func _handle_ui(sample: Dictionary) -> void:
 				return
 	if pressed.get("ui_aceitar", false):
 		activate(selected)
+	elif session.state == "oficina" and (pressed.get("ui_voltar", false) or pressed.get("pausar", false)):
+		session.state = "menu"
+		_tocar_sfx(&"sfx_carta_foco")
+		_espelhar_estado()
+		sync_context()
 	elif pressed.get("ui_voltar", false) and session.state == "pausa":
 		# B does not close the pause root; Esc/Start use pausar above.
 		selected = old_selected
@@ -375,18 +407,37 @@ func _tocar_sfx(s_id: StringName) -> void:
 
 func _aplicar_arma_na_sessao() -> void:
 	session.weapon_id = selected_weapon
-	if catalogo_real == null:
-		return
-	var w_def := catalogo_real.obter(&"weapon", selected_weapon, &"main") as WeaponDef
-	if w_def == null:
-		return
-	catalog.data.jogador.vida_max = w_def.vida_max
-	catalog.data.jogador.velocidade = w_def.velocidade
-	var atk: AttackDef = w_def.ataque
-	if atk != null:
-		catalog.data.corte.dano = atk.dano
-		catalog.data.corte.alcance_px = float(atk.params.get(&"alcance_px", catalog.data.corte.alcance_px))
-		catalog.data.corte.recarga_s = atk.recarga_s
+	_prev_kills = 0
+	_prev_effects_count = 0
+	if conta_meta != null:
+		conta_meta.nova_run()
+	catalog.data.jogador.vida_max = _base_vida_max
+	catalog.data.jogador.velocidade = _base_velocidade
+	catalog.data.corte.dano = _base_corte_dano
+	catalog.data.corte.alcance_px = _base_corte_alcance
+	catalog.data.corte.recarga_s = _base_corte_recarga
+	catalog.data.esquiva.cargas_base = _base_cargas_esquiva
+	if selected_weapon == &"guardiao":
+		catalog.data.jogador.vida_max = 130.0
+		catalog.data.jogador.velocidade = 345.0
+	elif selected_weapon == &"veu":
+		catalog.data.jogador.vida_max = 85.0
+		catalog.data.jogador.velocidade = 425.0
+	if catalogo_real != null:
+		var w_def := catalogo_real.obter(&"weapon", selected_weapon, &"main") as WeaponDef
+		if w_def != null:
+			catalog.data.jogador.vida_max = w_def.vida_max
+			catalog.data.jogador.velocidade = w_def.velocidade
+			var atk: AttackDef = w_def.ataque
+			if atk != null:
+				catalog.data.corte.dano = atk.dano
+				catalog.data.corte.alcance_px = float(atk.params.get(&"alcance_px", catalog.data.corte.alcance_px))
+				catalog.data.corte.recarga_s = atk.recarga_s
+	catalog.data.jogador.vida_max = float(catalog.data.jogador.vida_max) + oficina.bonus_vida_plana()
+	catalog.data.jogador.velocidade = float(catalog.data.jogador.velocidade) * oficina.multiplicador_velocidade()
+	catalog.data.esquiva.cargas_base = _base_cargas_esquiva + oficina.bonus_cargas_esquiva()
+	session.oficina_damage_mult = oficina.multiplicador_dano()
+	session.oficina_reach_mult = oficina.multiplicador_alcance()
 
 
 func _reiniciar_aliado_mvp() -> void:
@@ -424,7 +475,7 @@ func _tocar_sfx_dos_efeitos() -> void:
 			match String(ef.get("kind", "")):
 				"attack", "magic_cast", "bolt_shot":
 					_tocar_sfx(&"sfx_acerto_leve")
-				"hit", "special", "magic_pulse":
+				"hit", "special", "magic_pulse", "guardiao_bastion", "veu_blink":
 					_tocar_sfx(&"sfx_acerto_pesado")
 				"pact_call":
 					_tocar_sfx(&"sfx_acerto_pesado")
@@ -434,3 +485,66 @@ func _tocar_sfx_dos_efeitos() -> void:
 				"hurt":
 					_tocar_sfx(&"sfx_jogador_atingido")
 	_prev_effects_count = n
+
+
+func saldo_fragmentos() -> int:
+	return conta_meta.saldo() if conta_meta != null else 0
+
+
+func _registrar_dados_base_e_chefe() -> void:
+	_base_vida_max = float(catalog.data.jogador.vida_max)
+	_base_velocidade = float(catalog.data.jogador.velocidade)
+	_base_corte_dano = float(catalog.data.corte.dano)
+	_base_corte_alcance = float(catalog.data.corte.alcance_px)
+	_base_corte_recarga = float(catalog.data.corte.recarga_s)
+	_base_cargas_esquiva = int(catalog.data.esquiva.cargas_base)
+	if not catalog.data.inimigos.has("anomalia_maior"):
+		var chefe_dict := {
+			"nome": "Anomalia Maior",
+			"comportamento": "melee",
+			"vida": 240.0,
+			"velocidade": 108.0,
+			"raio": 52.0,
+			"dano": 16.0,
+			"preparo_s": 0.6667,
+			"recarga_s": 1.0,
+			"execucao_passos": 10,
+			"inicio_preparo_px": 140.0,
+			"tele_raio_px": 165.0,
+			"tele_meio_angulo_graus": 85.0,
+		}
+		if catalogo_real != null:
+			var e_def := catalogo_real.obter(&"enemy", &"anomalia_maior", &"main") as EnemyDef
+			if e_def != null:
+				chefe_dict["velocidade"] = e_def.velocidade
+				chefe_dict["raio"] = e_def.raio_px
+				chefe_dict["dano"] = e_def.dano
+				chefe_dict["preparo_s"] = e_def.preparo_s
+				chefe_dict["recarga_s"] = e_def.recarga_s
+				chefe_dict["tele_raio_px"] = e_def.alcance_px
+		catalog.data.inimigos["anomalia_maior"] = chefe_dict
+
+
+func _inicializar_meta() -> void:
+	var rates := EconomyRates.new()
+	rates.id = &"economy_rates"
+	rates.saldo_max = 999999
+	rates.fragmentos_provacao = 3
+	if catalogo_real != null:
+		var cat_rates := catalogo_real.obter(&"economy_rates", &"economy_rates", &"main") as EconomyRates
+		if cat_rates != null:
+			rates = cat_rates
+	conta_meta = ContaFragmentos.new(rates, eventos, RelatorDaEconomiaPadrao.new())
+
+
+func _atualizar_fragmentos_meta(estado_antes: String) -> void:
+	if conta_meta == null:
+		return
+	if int(session.kills) > _prev_kills:
+		var novos_abates: int = int(session.kills) - _prev_kills
+		conta_meta.creditar(ContaFragmentos.PORTA, novos_abates * 2)
+		_prev_kills = int(session.kills)
+	if estado_antes == "jogo" and session.state == "bencao":
+		conta_meta.creditar(ContaFragmentos.PORTA, 10)
+	elif estado_antes == "jogo" and session.state == "vitoria":
+		conta_meta.creditar(ContaFragmentos.VITORIA, 25)
