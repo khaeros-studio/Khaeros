@@ -1,8 +1,8 @@
 # IA de inimigos e elites
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — antes: Approved (2026-11-11; revisão única por subagente, 2 bloqueantes corrigidos sem re-review; sem entrada no review log)
-> **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-15 (emenda Pactos, encontro de pacto: alvo `acuada` por `ordem` — R22, R15, R16, R19, F6, States, Edge Cases, Dependencies, AC-IA-50–57, OQ15; contrato V44 de `vinculo-e-pactos.md` e R7-P de `camaras-e-ondas.md`); 2026-11-15 (emenda Pactos: alvo por inimigo, `atrair`, `imobilizado`, consulta de alvos, Maldição no espaço, `chefe` ativo — R16–R21, F6; alinhado depois a Chefes R3 "só o alvo" e Maldições R17/F4b: atração sem renovação, respiro, `atrair(id, passos, passos_respiro)`)
+> **Status**: Approved
+> **Author**: usuário + Claude (design-system, modo Lean; emenda Pactos aprovada pelo usuário em 2026-11-16)
+> **Last Updated**: 2026-11-18 (R18b e AC-IA-58 para `puxar` / `TR-ia-019`; consolidação de decisões aprovadas em 2026-11-16); 2026-11-15 (emenda Pactos, encontro de pacto: alvo `acuada` por `ordem` — R22, R15, R16, R19, F6, States, Edge Cases, Dependencies, AC-IA-50–57, OQ15; contrato V44 de `vinculo-e-pactos.md` e R7-P de `camaras-e-ondas.md`); 2026-11-15 (emenda Pactos: alvo por inimigo, `atrair`, `imobilizado`, consulta de alvos, Maldição no espaço, `chefe` ativo — R16–R21, F6; alinhado depois a Chefes R3 "só o alvo" e Maldições R17/F4b: atração sem renovação, respiro, `atrair(id, passos, passos_respiro)`)
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P3 *Reflexo que se lê* (inimigos previsíveis); P2 *A Beira cobra*
 
@@ -317,6 +317,22 @@ inimigo no nascimento (Câmaras R7-P) e a chamada `ferir_acuada` do Combate (R25
   (Maldições F5). A "marca" que *Paredes de Sombra* põe em elites e chefes é
   estado das Maldições, não da IA.
 
+**R18b. Pedido `puxar(id, centro, distancia_px, parar_a_px)`** (emenda Pactos,
+2026-11-15; `TR-ia-019`, ADR-0018 §5; `maldicoes.md` R12.2 / R16.1,
+*Convergência*).
+
+- **Aceita em inimigos comuns e elites atingíveis** (fora do surgimento, Vida > 0),
+  incluindo lacaios invocados. **O chefe recusa** (armadura contra deslocamento
+  forçado, como `imobilizar`, `chefes.md` R1): devolve falso e nada muda.
+  Inimigo inexistente, em surgimento, com Vida ≤ 0 ou com `distancia_px ≤ 0` /
+  `d ≤ parar_a_px` também recusa.
+- **Efeito:** desloca o inimigo em `min(distancia_px, max(0, d − parar_a_px))`
+  na direção de `centro` (com `d = |centro − pos_inimigo|`), e em seguida aplica
+  a função de conter da R9 (obstáculos e retângulo da câmara, com o raio do
+  inimigo). Devolve verdadeiro quando aceito.
+- É síncrono no item 6.1, então o item 7 do mesmo passo parte da posição nova.
+  Não é golpe e não muda fase nem alvo.
+
 **R19. Consulta de alvos** (emenda Pactos, 2026-11-15; responde ao Input OQ 5 e
 ao Movimento OQ 4).
 
@@ -324,7 +340,7 @@ ao Movimento OQ 4).
   **ordem estável de spawn**, cada um com `id`, posição, raio, `elite` e
   `chefe`.
 - **`id`:** inteiro crescente na ordem de spawn, único na run e nunca reusado.
-  Assim "menor id" e "primeiro da lista" são o mesmo critério. **[a confirmar]**
+  Assim "menor id" e "primeiro da lista" são o mesmo critério.
 - `mais_perto(ponto, raio_max)`: o inimigo de menor (distância, `id`) entre os
   atingíveis com distância ≤ `raio_max` (inclusivo). Sem nenhum, devolve vazio.
 - **Usos:** Maldições R4.2 e F1 (ponto = jogador, `raio_max` = `alcance_fio_px`,
@@ -374,7 +390,7 @@ Substitui o "reservado" da R1, R4 e R13.
 - A F5 desta IA continua sendo só de comuns e elites. O dano do chefe tem a F5 e
   o CH5 do Chefes. O IV5 não vale para o chefe (o CH7 cobre).
 - A separação da R9 vale para o chefe e os lacaios com a regra do cânone
-  (metade da sobreposição para cada). **[a confirmar]**
+  (metade da sobreposição para cada).
 
 **R22. Alvo `acuada` no encontro de pacto** (emenda Pactos, 2026-11-15;
 `vinculo-e-pactos.md` V7, V8, V12, contrato V44; `camaras-e-ondas.md` R7-P).
@@ -966,6 +982,7 @@ Fixture extra: dublê do Vínculo com a acuada `espreitador_da_fenda` em (960; 5
 - **AC-IA-55 [L] R16/R22 — atração e respiro.** Eco de ordem 0 recebe `atrair(eco, 90, 30)` no passo `s`: de `s` a `s + 89` anda para a Maldição em campo; de `s + 90` a `s + 119` (respiro) anda para a acuada, não para o jogador; com a acuada em `Fugiu` no respiro, anda para o jogador. Eco de ordem 1 no mesmo caso: respiro para o jogador.
 - **AC-IA-56 [L] R22/R19 — espaço e lista.** Eco sobreposto 20 px à acuada: a separação não move nenhum dos dois. `atingiveis()` e `mais_perto(jogador, 1350)` nunca devolvem a acuada.
 - **AC-IA-57 [L] R22 — projétil e ranged.** Anomalia de ordem 0 a 300 px da acuada e 800 px do jogador recua da acuada a 1,95 px/passo; ao disparar, `disparar_projetil` sai com `alvo = acuada`.
+- **AC-IA-58 [L] R18b / TR-ia-019 — `puxar` na direção do centro com limites da câmara.** Eco comum e Eco elite atingíveis a 180 px de `centro = (960; 540)` recebem `puxar(id, centro, 60, 36)`: ambos devolvem verdadeiro e avançam 60 px na direção de `centro` (ficam a 120 px), sem mudar fase nem alvo; se estiverem a 70 px, avançam `min(60, 70 − 36) = 34` px e param a 36 px; se uma pedra ou a borda do retângulo da câmara interceptar o trajeto, a função de conter da R9 prende o inimigo ao limite válido com o seu raio no mesmo passo. O chefe, um inimigo em `Surgindo` ou morto (`Vida ≤ 0`) recebem `puxar` e devolvem falso sem mover.
 
 ## Open Questions
 
@@ -985,4 +1002,4 @@ Fixture extra: dublê do Vínculo com a acuada `espreitador_da_fenda` em (960; 5
 | 12 | **(emenda Pactos)** ~~Atração renovada por `max` (R17)~~ — atração resolvida por Maldições R17/F4b (sem renovação, respiro de 30). Fica aberto só para a imobilização (`max`, R18): conferir se uma renovação curta deveria somar | game-designer | primeiro playtest de Pactos |
 | 13 | **(emenda Pactos)** Separação entre o chefe (45 px) e os lacaios na regra do cânone (metade para cada): o chefe é empurrado por Ecos. Manter ou tornar o chefe imóvel na separação? | game-designer + Chefes | primeiro playtest do chefe |
 | 14 | **(emenda Pactos)** Co-op: o alvo hoje é "jogador ou Maldição em campo"; com 1–4 jogadores, o alvo por inimigo precisa de uma lista de candidatos (co-op-ganchos) | ai-programmer | pós-MVP |
-| 15 | **(emenda Pactos, 2026-11-15; encontro de pacto)** Confirmar: (a) no respiro o inimigo volta ao **alvo padrão** (a acuada, nos de ordem par), não ao jogador — segue Vínculo V8 e AC-VP-10 e muda a R16 só dentro do encontro **[a confirmar]**; (b) o `ranged` recua e contorna em relação à acuada como faria com o jogador **[a confirmar]**; (c) contrato pedido a Telégrafos: o alvo travado pode ser `acuada` no teste de acerto (R2a, R6a); (d) leitura visual de "este inimigo mira a acuada" (Vínculo VP) | usuário + game-designer + Telégrafos | aprovação da emenda / primeiro playtest do encontro |
+| 15 | **(emenda Pactos, 2026-11-15; encontro de pacto)** Confirmado em 2026-11-16: (a) no respiro o inimigo volta ao **alvo padrão** (a acuada, nos de ordem par), não ao jogador — segue Vínculo V8 e AC-VP-10 e muda a R16 só dentro do encontro; (b) o `ranged` recua e contorna em relação à acuada como faria com o jogador; (c) contrato pedido a Telégrafos: o alvo travado pode ser `acuada` no teste de acerto (R2a, R6a); (d) leitura visual de "este inimigo mira a acuada" (Vínculo VP) | — | resolvida (2026-11-16) |

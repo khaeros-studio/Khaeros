@@ -1,9 +1,9 @@
 # Portas e recompensas
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16)
-> **Status anterior**: Approved (2026-11-11; revisão única por subagente, 3 bloqueantes corrigidos sem re-review; sem entrada no review log)
+> **Status**: Approved
+> **Status anterior**: Approved (2026-11-11; emenda Pactos aprovada pelo usuário em 2026-11-16)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-15 (emenda Pactos: R1-P, R2-P passo 2b, R6-P, R9-P, R12-P, F1-P, F3-P, Edge Cases, Dependencies e AC-PR-26 a AC-PR-37)
+> **Last Updated**: 2026-11-18 (consolidação de decisões aprovadas em 2026-11-16); 2026-11-15 (emenda Pactos: R1-P, R2-P passo 2b, R6-P, R9-P, R12-P, F1-P, F3-P, Edge Cases, Dependencies e AC-PR-26 a AC-PR-37)
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P2 *A Beira cobra* (escolher uma porta custa as outras); P4
 
@@ -169,8 +169,8 @@ testes montam tudo em memória.
 
 **R1-P. Última câmara jogável = chefe.** No Limiar com 7 câmaras (Run R3-P), a
 **última câmara jogável é o chefe (índice 6)**. A exceção da R1 ("não dá
-recompensa") passa a valer para ele. O **índice 5 vira câmara de combate comum
-[a confirmar, Run R3-P / OQ 10 da Run]**: tem a recompensa da porta escolhida
+recompensa") passa a valer para ele. O **índice 5 vira câmara de combate comum**
+(Run R3-P / OQ 10 da Run): tem a recompensa da porta escolhida
 depois do índice 4. A primeira câmara continua `bencao`. Os Fragmentos do chefe
 (`creditar(chefe, 6)`, ou 0 se pactuado) são dos Chefes (F6), **não** destas
 Portas.
@@ -211,14 +211,14 @@ Forçadas: depois do 2 (`santuario`) e do 5 (`chefe`).
 **R9-P. Porta `chefe`.** Não carrega recompensa de porta (R9). A recompensa do
 chefe é o desfecho dos Chefes (F6: 6 Fragmentos no abate e no Exorcizar, 0 no
 Pactuar) mais a vitória da Run (+15). A porta mostra o símbolo do chefe e
-nenhuma quantidade **[a confirmar]**: o preço do Pactuar (perder os 6) é mostrado
+nenhuma quantidade: o preço do Pactuar (perder os 6) é mostrado
 na tela da escolha (Vínculo V18), não na porta.
 
 **R12-P. Encontro não muda a porta.** A câmara do encontro (índice 1 ou 2) recebe
 a recompensa da porta como qualquer câmara de combate (Vínculo V4). O encontro
 **não** consome o fluxo `portas`, não muda os pesos e não muda o número de portas
 depois dela. Quem vê a câmara do encontro na porta não sabe que há encontro: a
-porta mostra só a recompensa **[a confirmar]**.
+porta mostra só a recompensa.
 
 **R11-P. Injeção.** A R11 ganha: a consulta `encontro_aguardando()` e o evento
 `pacto_resolvido` de Vínculo e pactos.
@@ -630,6 +630,6 @@ Limiar).
 | 7 | Índice: linha 17 com Run, Bênçãos e Economia em Depends On | usuário / producer | próxima edição do índice |
 | 8 | Ordem da Tela de bênção e das portas na pausa e na perda de foco | Tela de bênção / Input | GDD de Tela de bênção |
 | 9 *(emenda Pactos)* | ~~Índice 5 recompensado (Run R3-P, F2-P: 10 de portas, totais 25/31) vs. Chefes F6 ("até 7 de portas", 22/28). Esta emenda segue a Run; se o usuário escolher "sem recompensa", voltam a porta `ultima` depois do 4, `k` = 3 e o máximo de 7~~ **Resolvida:** Chefes F6 emendado com o índice 5 recompensado (10/25/31) | usuário; Run; Chefes | ~~antes de aprovar a emenda~~ — |
-| 10 *(emenda Pactos)* | A porta `chefe` sem quantidade (R9-P) e a porta da câmara do encontro sem aviso (R12-P) **[a confirmar]** | usuário / UX | revisão da emenda |
+| 10 *(emenda Pactos)* | ~~A porta `chefe` sem quantidade (R9-P) e a porta da câmara do encontro sem aviso (R12-P)~~ **Resolvida (2026-11-16):** sim, sem quantidade e sem aviso | — | — |
 | 11 *(emenda Pactos)* | Pool de bênçãos comporta 5 por run (F3-P, PV8)? | Bênçãos | próxima edição de Bênçãos |
 | 12 *(emenda Pactos)* | ~~Nome da consulta `encontro_aguardando()` (contrato pedido a Vínculo e pactos, V41)~~ **Resolvida:** o Vínculo e pactos passa a definir `encontro_aguardando()` (V41) | Vínculo e pactos | ~~próxima edição~~ — |

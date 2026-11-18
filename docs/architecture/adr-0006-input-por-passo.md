@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed · 2026-11-14
+Accepted · 2026-11-16 (aprovado pelo usuário; Proposed em 2026-11-14)
 
 ## Date
 
@@ -10,7 +10,7 @@ Proposed · 2026-11-14
 
 ## Last Verified
 
-2026-11-14 — conferência do GDD aprovado e da referência local da engine. Evidência executável e limites na seção Validation Criteria.
+2026-11-16 (emenda Pactos: ação `troca` e `ponto_mira` do Chamado). Antes: 2026-11-14 — conferência do GDD aprovado e da referência local da engine. Evidência executável e limites na seção Validation Criteria.
 
 ## Decision Makers
 
@@ -95,6 +95,8 @@ Estado global e contexto de input são diferentes: opções e Texto podem estar 
 | Transição / passe de morte | Nenhuma ação, inclusive pausa e confirmação |
 | Sem foco | Nenhuma entrada ativa; estado lógico dos botões solto |
 | Remapeando | Captura restrita ao dispositivo escolhido; regras de cancelamento da R8 |
+
+**Metadados por época do buffer (TR-movimento-006, adotado do ADR-0008).** Cada entrada do buffer guarda `{acao, passo_do_toque, epoca, durante_congelamento}`; o consumidor só aceita entrada com a época corrente. A esquiva sai do buffer; um toque de esquiva sem carga feito no congelamento (hitstop) é registrado e o Movimento emite `esquiva_sem_carga` no **1º passo vivo** seguinte, uma vez por toque.
 
 A troca de contexto incrementa a época, invalida a capacidade corrente, esvazia buffer/bordas/escolha e bloqueia as **entradas físicas** seguradas até a soltura. O toque do mesmo passo também é descartado, mesmo se a soltura já chegou. Isso cobre Espaço/A/clique compartilhados por ações diferentes. O desbloqueio de uma entrada não desbloqueia outra ainda segurada. Entrada durante Transição ou passe de morte não acumula comandos para depois.
 
@@ -182,6 +184,7 @@ Toques rápidos e comandos durante hitstop têm dono e prazo explícitos. O bloq
 | Regras | Contrato |
 |---|---|
 | R1–R3, R13; AC-01–03, 13–14, 20–21 | Mapa fechado, lote entre passos, snapshot e injeção |
+| Movimento R5, Input R6 (TR-movimento-006) | Buffer com metadados por época: toque sem carga durante congelamento emite `esquiva_sem_carga` no 1º passo vivo |
 | R4–R5, F1–F2/F4–F5; AC-06–12, 37 | Movimento, seleção de dispositivo, consulta de alvos/cursor |
 | R6–R7, F3; AC-15–19 | Contador compartilhado, hitstop, consulta e consumo |
 | R10–R11; AC-22–24, 35–36, 40 | Época, barreira física, contextos, foco e morte |
@@ -198,3 +201,20 @@ Antes da integração, a suíte deve cobrir todos os AC do GDD, em especial: amo
 ## Migration Plan
 
 Não migrar o protótipo de combate nem copiar automaticamente o experimento. Após aceite e revisão consolidada, implementar a fronteira e provedor com as interfaces propostas. A API 4 da arquitetura passa a separar amostra e consumo; ADR-0001 deve incorporar explicitamente Input/UI fora de Jogo e a invalidação ao trocar estado antes da implementação.
+
+## Emenda (2026-11-16): Doutrina de Pactos
+
+Conferido contra `input-e-controle.md` (emenda Pactos: R1a, R1b, F3, Interactions, Edge Cases):
+
+- **Ação `troca`** (contexto Jogo, botão): teclado **R** (primário) e **Tab** (secundário); gamepad **LT** (primário), gatilho analógico tratado como botão pelo mesmo limiar dos outros gatilhos. Os binds estão **[a confirmar]** no GDD; ficam como padrão no `InputTuning`, remapeáveis pela decisão 6. Existe em toda run e toda Doutrina; sem Pactos ou sem Maldição entra no buffer e expira sem efeito.
+- **Buffer:** o conjunto passa a `{ataque, especial, esquiva, selo, troca}`, com o **contador único** (F3): um toque de Troca renova o prazo de todos; no hitstop o prazo congela. Ordem de consumo no passo segue a ordem dos itens: Movimento, Combate, Selo, **Maldições** (R1a, R6, F3); a Troca não ocupa o corpo do jogador e pode sair no mesmo passo de outra ação. Segurar conta só o primeiro passo. Quem consome é o `ModuloDeMaldicoes` no item 6.1 (ADR-0017), por `ComandosDoPasso`; condição e recusa (recarga, reserva Exausta) são dele.
+- **Técnica combinada** não é ação nova: nasce da Troca (efeito de saída/entrada) e é decidida no ADR-0017.
+- **Chamado do Pacto** é o Especial da Besta: usa a ação `especial` existente e o campo novo **`ponto_mira`** na `AmostraDeEntrada` (vec2 de mundo ou vazio), que passa a **9 campos** (R1b, R2). O Input só entrega o ponto (mouse: cursor convertido pela câmera do ADR-0007; gamepad: `pos_jogador + mirar × alcance`, com o alcance vindo do consumidor); não conhece `alcance_chamado_px`. Cursor sobre o personagem (vetor zero) segue o Edge Case do GDD.
+- Remapeamento: as listas de binds proibidos/reservados ganham R, Tab e LT conforme o GDD; **Decisão (OQ 13 do GDD):** um `input_binds.cfg` antigo sem a ação `troca` não é erro nem reset: a ação nasce com o bind padrão se ele estiver livre no arquivo do usuário, ou com o **primeiro bind livre** da lista do GDD (Input, Edge Cases) se o padrão já estiver ocupado — e sem bind só se nenhum da lista estiver livre (alinhado ao GDD em 2026-11-16 pela implementação de input story-008) —, e o relator registra o aviso `INPUT_ACAO_NOVA` uma vez; o arquivo só é regravado quando o jogador salvar os binds. Chaves desconhecidas continuam preservadas (ADR-0013).
+
+## Ajuste de interface (2026-11-15)
+
+Pedido da revisão cruzada (ADR-0012 e ADR-0013); não muda regra de jogo:
+
+- **Comandos de tela:** o provedor entrega à UI um `ComandosDeTela` por passo com, além da navegação e da confirmação, `mouse_moveu: bool` (houve movimento desde a amostra anterior, para o hover/foco do ADR-0012) e o clique como borda com `posicao_janela: Vector2` do instante do aperto (§2). Continua valendo uma confirmação por passo e a barreira de contexto (§3, §5).
+- **Persistência dos binds:** a leitura e a gravação de `user://input_binds.cfg` passam pela porta `RepositorioDeBinds` do ADR-0013 (sobre o `ArmazemDeArquivos`, com gravação atômica e `.bak`). Formato, validação e transação continuam aqui (§6); o Input não chama `FileAccess`/`ConfigFile` direto.

@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed · 2026-11-14
+Accepted · 2026-11-16 (aprovado pelo usuário; Proposed em 2026-11-14)
 
 ## Date
 
@@ -10,7 +10,7 @@ Proposed · 2026-11-14
 
 ## Last Verified
 
-2026-11-14 — regras, fórmulas, casos extremos e critérios do GDD de Movimento; contratos de Input, Cena, Conteúdo e Combate. Evidência executável na seção Validation Criteria.
+2026-11-16 (emenda Pactos e aresta para ADR-0009). Antes: 2026-11-14 — regras, fórmulas, casos extremos e critérios do GDD de Movimento; contratos de Input, Cena, Conteúdo e Combate. Evidência executável na seção Validation Criteria.
 
 ## Decision Makers
 
@@ -36,7 +36,7 @@ Movimento será um módulo puro que possui a posição do jogador, executa camin
 
 | Field | Value |
 |---|---|
-| **Depends On** | [ADR-0001](adr-0001-orquestrador-do-passo.md): passos; [ADR-0002](adr-0002-canal-de-eventos.md): notificações; [ADR-0003](adr-0003-entidades-e-portadores.md): identidade/estado; [ADR-0004](adr-0004-catalogo-de-dados.md): tuning/validação; [ADR-0006](adr-0006-input-por-passo.md): comandos; [ADR-0007](adr-0007-cena-viewport-e-camera.md): apresentação das posições |
+| **Depends On** | [ADR-0001](adr-0001-orquestrador-do-passo.md): passos; [ADR-0002](adr-0002-canal-de-eventos.md): notificações; [ADR-0003](adr-0003-entidades-e-portadores.md): identidade/estado; [ADR-0004](adr-0004-catalogo-de-dados.md): tuning/validação; [ADR-0006](adr-0006-input-por-passo.md): comandos; [ADR-0007](adr-0007-cena-viewport-e-camera.md): apresentação das posições; [ADR-0009](adr-0009-atributos-e-modificadores.md): `valor`/`multiplicador_de_dano` consumidos no Corte (aresta acrescentada em 2026-11-16) |
 | **Enables** | ADR-0009 Atributos e modificadores; ADR-0010 Resolução de combate, que implementam os contratos injetados aqui |
 | **Blocks** | Stories de Movimento dependentes destes contratos até aceite e resolução das lacunas de integração |
 | **Ordering Note** | A proposta pode ser testada com dublês antes dos ADRs 0009/0010; a implementação integrada exige contratos aceitos dos respectivos donos |
@@ -201,3 +201,14 @@ Na integração: rodar dois Movimentos com roteiro fixo de 1000 passos, comparar
 ## Migration Plan
 
 Sem mover código do protótipo para produção. Após aceite e alinhamento das lacunas, implementar função de geometria e módulo puro com dublês, depois integrar Input/Combate/Cena e executar critérios reais. Próxima proposta na sequência: ADR-0009, Atributos e modificadores.
+
+## Emenda (2026-11-16): Doutrina de Pactos
+
+- **Depends On + ADR-0009** (pendência da revisão de 2026-11-15): o Corte já consome `valor`/`multiplicador_de_dano` do Portador. Sem ciclo: o ADR-0009 só "Enables" este.
+- **Maldições usam a mesma geometria**: corpo em círculo de `raio` (`valor(raio)` do portador; 22,5–30 px no MVP), as mesmas funções puras de colisão/separação e os mesmos limites da arena da decisão 6, sem física da engine. Quem escreve a posição da Maldição é o `ModuloDeMaldicoes` (ADR-0017) no item 6.1 — este módulo não ganha escritor novo, só expõe a geometria como funções puras reutilizáveis. O salto do Chamado (`duracao_salto_s`) é movimento da Maldição, não esquiva do jogador; não ganha invulnerabilidade daqui.
+- **Deslocamento forçado do chefe** (puxão da Convergência e pulso da Fúria; `chefes.md` R7/F4, `raio_puxao_px`, `empurrao_pulso_furia_px`): aplicado ao jogador e à Maldição com a mesma resolução contra pilares e paredes do empurrão já existente (deslocamento discreto, sem atravessar obstáculo). No jogador, entra pela chamada externa da decisão 2; na Maldição, pelo ADR-0017 com as mesmas funções.
+- O jogador continua sendo o único corpo cuja posição o Movimento escreve.
+
+## Ajuste de interface (2026-11-15)
+
+Pedido do ADR-0010 §6 (parede do empurrão), sem mudar a regra do Movimento: ao lado de `resolver_colisao(pos, raio, geometria) -> Vector2` existe a variante pura `resolver_colisao_informando(pos, raio, geometria) -> ResolucaoDeColisao` (`.pos: Vector2`, `.corrigida: bool`), com o mesmo algoritmo e a mesma ordem; `resolver_colisao` passa a devolver `resolver_colisao_informando(...).pos`. Testes garantem que as duas dão a mesma posição. A geometria de alcance (`alcance_do_raio`) fica no ADR-0010 §9, não aqui.

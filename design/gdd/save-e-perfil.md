@@ -1,8 +1,8 @@
 # Save e perfil (MVP mínimo)
 
-> **Status**: Approved (usuário, 2026-11-16)
-> **Author**: systems-designer (lote Pactos, brief `production/session-state/brief-pactos-gdds.md`)
-> **Last Updated**: 2026-11-16 (alinhamento: campos do Vínculo e `campos_de_ids()` conforme `vinculo-e-pactos.md` V30–V32, nome `pacto_registrado` fixado, Input e Conteúdo nas Dependencies); 2026-11-15
+> **Status**: Approved
+> **Author**: systems-designer (lote Pactos, brief `production/session-state/brief-pactos-gdds.md`; aprovado pelo usuário em 2026-11-16)
+> **Last Updated**: 2026-11-18 (consolidação de decisões aprovadas pelo usuário em 2026-11-16); 2026-11-16; 2026-11-15
 > **Last Verified**: 2026-11-15 contra ADR-0013 (Decision §1–§6 e Decisões do usuário 1–3), `maldicoes.md` (Summary, R2, Dependencies), `telemetria-local.md` (R2, R6, R8), `input-e-controle.md` (R8, Edge Cases › Remapeamento, Dependencies), `conteudo-orientado-a-dados.md` (R2, V9), `chefes.md` (R9) e `docs/engine-reference/godot/`
 > **Sistema**: #27 (entrega 22f) · Category: `Persistence` · Layer: `Foundation/Core` · Priority: `MVP` (mínimo)
 > **Implements Pillar**: P1 (escolha com identidade: os pactos do jogador são dele e atravessam runs)
@@ -49,7 +49,7 @@ sessão recomeçaria sem pactos e a Doutrina de Pactos perderia a sua progressã
 escolha de perfil. Os caminhos saem de `CaminhosDePersistencia.de(0)`
 (ADR-0013 §2), o que deixa a porta aberta para slots ou para um segundo jogador
 local (`user://perfis/<n>/`, ADR-0013 "Nota de preparação para co-op") sem
-mudar este GDD. **[a confirmar]** perfil único em vez de 3 slots: slots exigem
+mudar este GDD. Perfil único em vez de 3 slots: slots exigem
 tela de escolha (Menus é Vertical Slice) e não servem a nenhum teste do MVP.
 
 **R2. Arquivo e formato.** O perfil mora em **`user://perfil.cfg`**, no formato
@@ -125,7 +125,7 @@ segue. Carregar nunca trava nem derruba o jogo.
   gravar no mesmo instante.
   - **(emenda Pactos, 2026-11-15)** Confirmado: **Bênção** está na lista de
     estados onde se grava. O Vínculo V9 põe a tela de consentimento (e a do
-    chefe, V18) no estado Bênção do ADR-0001 **[a confirmar]**, então o pacto
+    chefe, V18) no estado Bênção do ADR-0001, então o pacto
     grava no fim do mesmo passo.
 - **R5.2 Só grava se mudou.** O Save monta o texto (`[meta]` + `escrever()`) e
   compara com o último texto gravado com sucesso. Igual: não grava e conta como
@@ -186,7 +186,7 @@ versão de schema). Regra:
 - Chave de primeiro nível desconhecida em `[vinculo]` e **seção desconhecida**
   (inclusive as reservadas de R2) → preservadas como texto e regravadas iguais.
   Isso estende o "chave desconhecida é ignorada" do ADR-0013 §3: ignorada na
-  leitura, **mantida** na escrita. **[a confirmar]**
+  leitura, **mantida** na escrita.
 
 **R10. Fechar o jogo no meio da run.** A run **não** é salva no MVP.
 
@@ -199,12 +199,12 @@ versão de schema). Regra:
   consolidar a run como abandono, com a mesma regra de uma derrota** (contrato
   pedido ao Vínculo). **Em queda do processo** (crash, matar o processo, falta
   de luz) vale o último arquivo gravado: o vínculo ganho desde o último gatilho
-  se perde. **[a confirmar]** Alternativa rejeitada: perder sempre o vínculo da
+  se perde. Alternativa rejeitada: perder sempre o vínculo da
   run ao fechar; ela pune quem precisa sair e não protege nada, porque o
   vínculo não tem custo a evitar.
 - **Falha ao gravar na saída:** em vez de fechar em silêncio, o jogo mostra
   `PERFIL_SAIR_SEM_SALVAR` com "Tentar de novo" e "Sair sem salvar". Uma nova
-  tentativa por clique, sem laço. **[a confirmar]** O mecanismo de interceptar o
+  tentativa por clique, sem laço. O mecanismo de interceptar o
   pedido de fechar a janela é do ADR (NOT SOURCEABLE na referência local).
 
 **R11. Reset de perfil.** Em Opções, fora de run (só no menu principal),
@@ -221,14 +221,14 @@ sua porta e o Save a chama. No MVP, a porta do Vínculo é `escrever()`
 (exportar) e `ler()` (importar). O `RepositorioDePerfil` expõe
 `exportar_texto() -> String` e `importar_texto(texto) -> Error` (o mesmo
 caminho de validação da carga, R4–R9), usados por testes e pela fatia vertical.
-**Não há tela de exportar/importar no MVP [a confirmar]**: o jogador que quiser
+**Não há tela de exportar/importar no MVP**: o jogador que quiser
 levar o perfil copia `perfil.cfg` com o jogo fechado, e a carga o valida. O MVP
 **não** chama `ContaFragmentos.exportar/importar` nem o estado do RNG
 (Economia R7, AC-EF-20; ADR-0013 §6).
 
 **R13. Build de playtest.** O build de playtest **lê e grava** o perfil
 normalmente, porque testar a progressão de pactos entre sessões é parte do que o
-playtest mede. **[a confirmar]** Isso é diferente da última arma, que o playtest
+playtest mede. Isso é diferente da última arma, que o playtest
 não lê (AC-AR-39). A composição pode injetar um `PerfilNulo` (não lê, não grava)
 em testes e em debug, sem `if` dentro do Save.
 
@@ -514,7 +514,7 @@ de verificação pelo ADR que tratar a saída do jogo.
    numa tela fora de Jogo? Se não, o pacto espera a próxima Transição, com uma
    janela pequena de perda em crash.~~ **Fechada (emenda Pactos, 2026-11-15):**
    sim. Vínculo V9 põe a tela de consentimento fora de Jogo, no estado Bênção
-   (ADR-0001) **[a confirmar]**; o pacto grava no mesmo instante (R5.1).
+   (ADR-0001); o pacto grava no mesmo instante (R5.1).
 4. **OQ4 — Playtest (R13):** o build de playtest lê o perfil (progressão entre
    sessões) ou começa sempre limpo, como a última arma (AC-AR-39)?
 5. **OQ5 — Exportar/importar pela UI (R12):** fica para a fatia vertical?

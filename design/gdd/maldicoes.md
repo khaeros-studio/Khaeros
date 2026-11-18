@@ -1,9 +1,9 @@
 # Maldições (aliados do pacto)
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16)
-> **Nota da emenda (2026-11-15):** aceita ou resolve os contratos pedidos hoje por Armas (OQ16, M do Chamado), Combate (R1 item 6.1, R3.1, R20–R23), IA (R16–R18), HUD (R17–R19), Feedback (R15), Modificadores (R14, F6), Vínculo e pactos (V15, V43, F4), Input (R1a) e Chefes (R3). Mudanças de número: atração do Chamado `3,0 → 1,5 s` com respiro `0,5 s` (R17); técnica entra na paridade e os danos do kit caem (R18, F6, Catálogo). O conteúdo aprovado fica; o novo está marcado "(emenda Pactos, 2026-11-15)". Volta a Approved só com o usuário.
+> **Status**: Approved
+> **Nota da emenda (2026-11-15, aprovada pelo usuário em 2026-11-16):** aceita ou resolve os contratos pedidos hoje por Armas (OQ16, M do Chamado), Combate (R1 item 6.1, R3.1, R20–R23), IA (R16–R18), HUD (R17–R19), Feedback (R15), Modificadores (R14, F6), Vínculo e pactos (V15, V43, F4), Input (R1a) e Chefes (R3). Mudanças de número: atração do Chamado `3,0 → 1,5 s` com respiro `0,5 s` (R17); técnica entra na paridade e os danos do kit caem (R18, F6, Catálogo). O conteúdo aprovado fica; o novo está marcado "(emenda Pactos, 2026-11-15)".
 > **Author**: usuário + Claude (aba de Design)
-> **Last Updated**: 2026-11-16 (alinhamento: Abalo do *Eco de Muralha* `4,0 → 1,5 s` [a confirmar], ML1, AC-ML-36, OQ9); 2026-11-15 (emenda Pactos: Summary, R7, R13, R17–R24, Interactions, F3–F7, Constantes, Catálogo, ML1, ML7, ML8, Edge Cases, Dependencies, Visual/Audio, UI, ACs, Open Questions)
+> **Last Updated**: 2026-11-18 (consolidação de decisões aprovadas em 2026-11-16); 2026-11-16 (alinhamento: Abalo do *Eco de Muralha* `4,0 → 1,5 s`, ML1, AC-ML-36, OQ9); 2026-11-15 (emenda Pactos: Summary, R7, R13, R17–R24, Interactions, F3–F7, Constantes, Catálogo, ML1, ML7, ML8, Edge Cases, Dependencies, Visual/Audio, UI, ACs, Open Questions)
 > **Last Verified**: 2026-11-15 (`/design-review` único por `qa-lead`: 2 bloqueantes formais e 4 recomendadas aplicados; **Approved** pelo usuário antes da emenda)
 > **Implements Pillar**: P3 (combate legível), P1 (escolha com identidade)
 
@@ -11,7 +11,7 @@
 
 **Maldições (aliados do pacto)** define as criaturas autônomas que lutam ao lado do Iniciado da Doutrina de Pactos (`Besta do Vínculo`). O jogador leva até **duas Maldições** por expedição entre as espécies pactuadas: uma age em campo ligada pelo fio de vínculo (`480 px`) e a outra permanece na reserva regenerando Vida (`5%/s`), entrando pela **Troca** manual (`4,0 s` de recarga, disparando a **Técnica Combinada**: `Efeito de Saída` + `Efeito de Entrada` no mesmo passo) ou por troca automática quando a de campo fica **Exausta** (`Vida ≤ 0`, recuperando na reserva em `10,0 s` com `50%` da Vida). O Especial da Besta (**Chamado do Pacto**) faz a Maldição saltar até o ponto mirado (`420 px` em `12` passos), causar dano em área, imobilizar o inimigo comum mais próximo (`1,5 s`) e atrair inimigos (`3,0 s`). No MVP entram 3 espécies regulares em escada de raridade (*Vulto Mudo* Comum, *Espreitador da Fenda* Refinado e *Baluarte de Cinza* Raro) e 1 Primordial (*Soberano do Limiar*, forma aliada da Maldição-chefe), calibradas na divisão **~60% Besta (`40,0 DPS`) + ~40% Maldição (`26,5–26,9 DPS`)**, mantendo o TTK combinado em `10,47–10,53 s` (dentro de `0,8%` da Lâmina e da Ressonância).
 
-> **(emenda Pactos, 2026-11-15)** A atração do Chamado passa a `1,5 s` (`90` passos) com respiro de `0,5 s` (`30` passos) sem renovar atração ativa: nenhum inimigo mira a Maldição mais de `1,5 s` seguidos nem mais de `75%` do tempo (R17, F4b). A técnica combinada entra na paridade (F6): o ataque básico cai para `18,0–18,36 DPS` e a técnica máxima para `14` de dano, e Pactos fica entre `−3,5%` (sem técnica, dupla de 1) e `+4,3%` (técnica a cada `4,0 s`, vínculo nível 5) da Lâmina e da Ressonância **[a confirmar]**.
+> **(emenda Pactos, 2026-11-15)** A atração do Chamado passa a `1,5 s` (`90` passos) com respiro de `0,5 s` (`30` passos) sem renovar atração ativa: nenhum inimigo mira a Maldição mais de `1,5 s` seguidos nem mais de `75%` do tempo (R17, F4b). A técnica combinada entra na paridade (F6): o ataque básico cai para `18,0–18,36 DPS` e a técnica máxima para `14` de dano, e Pactos fica entre `−3,5%` (sem técnica, dupla de 1) e `+4,3%` (técnica a cada `4,0 s`, vínculo nível 5) da Lâmina e da Ressonância.
 
 > **Quick reference** — Layer: `Feature` · Priority: `MVP` · Key deps: `Combate núcleo, IA de inimigos e elites, Armas das Doutrinas, Modificadores e atributos`
 
@@ -229,7 +229,7 @@ de chefe não passa para o aliado.
 
 #### Regras novas (emenda Pactos, 2026-11-15)
 
-**R17. Atração limitada** (resolve a OQ16 de Armas) **[a confirmar]**. A
+**R17. Atração limitada** (resolve a OQ16 de Armas). A
 atração antiga (`180` passos) passava da recarga do Chamado (`120`) e podia
 virar permanente. Agora:
 
@@ -245,7 +245,7 @@ virar permanente. Agora:
    para "**aplica** `1,0 s` (`60` passos) a quem está livre".
 5. Prova na F4b: no máximo `1,5 s` seguidos e `75%` do tempo mirando a Maldição.
 
-**R18. Técnica na paridade** **[a confirmar]**. A técnica combinada passa a
+**R18. Técnica na paridade.** A técnica combinada passa a
 contar na F6 com troca manual a cada `recarga_troca_s`. Para caber em `±5%` da
 Lâmina e da Ressonância, o ataque básico das 4 espécies cai `10%` e os Efeitos
 de Saída e Entrada caem para `5` e `6–7` de dano (Catálogo). A recarga da troca
@@ -319,7 +319,7 @@ fato, no passo em que acontece, nunca em passo congelado:
   *Presença do Limiar* não é atributo do portador: é o `fator_andar_atraido`.
   *Carapaça Ancorada* é fixa e vai na fonte `especie` do começo da run.
 
-**R23. Ordem dentro do item 6.1** (Combate R1 item 6.1, R23) **[a confirmar]**.
+**R23. Ordem dentro do item 6.1** (Combate R1 item 6.1, R23).
 Só em passo vivo:
 
 1. Fins de atração e imobilização do passo anterior (R20).
@@ -617,7 +617,7 @@ No ciclo do Especial da Besta do Vínculo (`R_esp = passos(recarga_chamado_s)` p
 | **Besta + Vulto / Baluarte / Soberano** | `40,00 DPS` (**60,2%**) | `26,50 DPS` (**39,8%**) | **66,50 DPS** | **10,53 s** | `0,73%` |
 | **Besta + Espreitador da Fenda** | `40,00 DPS` (**59,8%**) | `26,86 DPS` (**40,2%**) | **66,86 DPS** | **10,47 s** | `0,15%` |
 
-#### F6 com a técnica (emenda Pactos, 2026-11-15) **[a confirmar]**
+#### F6 com a técnica (emenda Pactos, 2026-11-15)
 
 A F6 antiga não contava a técnica. Com troca a cada `4,0 s`, Pactos ficava
 `11,1%` acima da Lâmina, e `12,49%` no vínculo nível 5 (Vínculo F4). Agora:
@@ -700,9 +700,9 @@ The curse_survivability_and_exhaustion formula is defined as:
 
 | Campo | Tipo | Valor MVP | V2 (erro de carga) | Faixa de design (aviso ML6) | Papel |
 |---|---|---|---|---|---|
-| `duracao_atracao_s` | float | ~~3,00 s~~ → **1,50 s** (`90` passos) **[a confirmar]** | `≥ 1` passo e ML1 | `0,75–1,50` (`45–90` passos) | Atração do Chamado e teto de toda fonte (R17, F4b) |
-| `respiro_atracao_s` (novo) | float | **0,50 s** (`30` passos) **[a confirmar]** | `≥ 1` passo | `0,25–1,00` (`15–60` passos) | Recusa de atração depois que ela acaba (R17) |
-| `meta_paridade_pactos` (novo) | float | **0,05** **[a confirmar]** | `> 0` | `0,03–0,15` | Meta de paridade com técnica (F6, ML8) |
+| `duracao_atracao_s` | float | ~~3,00 s~~ → **1,50 s** (`90` passos) | `≥ 1` passo e ML1 | `0,75–1,50` (`45–90` passos) | Atração do Chamado e teto de toda fonte (R17, F4b) |
+| `respiro_atracao_s` (novo) | float | **0,50 s** (`30` passos) | `≥ 1` passo | `0,25–1,00` (`15–60` passos) | Recusa de atração depois que ela acaba (R17) |
+| `meta_paridade_pactos` (novo) | float | **0,05** | `> 0` | `0,03–0,15` | Meta de paridade com técnica (F6, ML8) |
 
 - **Referência da Besta do Vínculo (`WeaponDef pactos`, emenda no GDD de Armas):** `vida_max = 90`, `velocidade = 382,5 px/s`; Ataque `Virote` (`projetil`, `dano = 10`, `recarga_s = 0,25` / `15` passos, `velocidade_pxs = 1170`, `raio_px = 12`, `vida_s = 0,75`, `empurrao = 360 px/s`, `40,00 DPS`); Especial `Chamado do Pacto` (`dano = 17`, `recarga_s = 2,00` / `120` passos).
 
@@ -721,7 +721,7 @@ The curse_survivability_and_exhaustion formula is defined as:
 | **Passiva 2 (Épico+)** | — | — | — | *Vínculo Inquebrável*: tempo de `Exausta` reduzido em `20%` (`8,0 s` = `480` passos) |
 | **Habilidade única (Primordial)** | — | — | — | *Pulso de Soberania*: a cada **3º ataque básico concluído**, emite um anel de `135 px` com **`3`** de dano extra (`pesado = true`, emp. `900 px/s`) e renova `1,0 s` de atração |
 
-**Catálogo — valores da emenda Pactos (2026-11-15), R17/R18 [a confirmar].** A tabela acima fica como registro do aprovado; valem estes:
+**Catálogo — valores da emenda Pactos (2026-11-15), R17/R18.** A tabela acima fica como registro do aprovado; valem estes:
 
 | Campo | *Vulto Mudo* | *Espreitador da Fenda* | *Baluarte de Cinza* | *Soberano do Limiar* |
 |---|---|---|---|---|
@@ -729,7 +729,7 @@ The curse_survivability_and_exhaustion formula is defined as:
 | Efeito de Saída: dano | ~~8~~ → **`5`** | ~~9~~ → **`5`** | ~~10~~ → **`5`** | ~~9~~ → **`5`** |
 | Efeito de Entrada: dano | *Passo Raso* ~~10~~ → **`7`** | *Salto de Emboscada* ~~12~~ → **`6`** (`9` com sinergia) | *Queda de Pilar* ~~11~~ → **`7`** (atrai `90` passos, R17) | *Irrupção Primordial* ~~11~~ → **`6`** (`9` com sinergia) |
 | Habilidade única | — | — | — | *Pulso de Soberania*: ~~renova~~ **aplica** `1,0 s` (`60` passos) de atração só a inimigo livre (R17); `+3` mantido |
-| Efeito no Chamado (alinhamento 2026-11-16) **[a confirmar]** | — | — | *Eco de Muralha*: Abalo ~~`4,0 s`~~ → **`1,5 s`** (`90` passos), campo `duracao_abalo_s` do efeito no `CurseDef`; vale também em elite e chefe | — |
+| Efeito no Chamado (alinhamento 2026-11-16) | — | — | *Eco de Muralha*: Abalo ~~`4,0 s`~~ → **`1,5 s`** (`90` passos), campo `duracao_abalo_s` do efeito no `CurseDef`; vale também em elite e chefe | — |
 
 Vida, velocidade, raio, ciclos, passivas, empurrões e efeitos de controle não mudam,
 salvo a duração do Abalo do *Eco de Muralha* acima.
@@ -756,7 +756,7 @@ constante). Com `1,0 s`: `0,50` e `15%`.
 - A cobertura por Trocas (Espreitador + Baluarte, uma Saída com Abalo de `4,0 s` a cada
   `recarga_troca_s` = `4,0 s`) **não muda**: ela pede uma Troca manual exata a cada
   `240` passos e o alvo dentro do círculo da Saída. Aceita como domínio de execução
-  **[a confirmar no playtest]**.
+  (a validar no playtest).
 
 #### 3. Validações de dados (`ML1`–`ML8` no Conteúdo orientado a dados)
 
@@ -793,7 +793,7 @@ constante). Com `1,0 s`: `0,50` e `15%`.
 **(emenda Pactos, 2026-11-15)**
 - **Se o Chamado cair a cada recarga sobre o mesmo grupo (R17, F4b):** cada inimigo fica `90` passos atraído e `30` em respiro, mirando o jogador. O jogador ganha `0,5 s` de pressão a cada ciclo; a Maldição nunca segura um grupo para sempre.
 - **Se uma atração chegar a um inimigo atraído ou em respiro (R17):** o pedido é recusado e não sai `atraido`. O dano e o empurrão da mesma fonte valem normalmente.
-- **Se a Maldição sair de campo com inimigos atraídos (R7, R21):** a IA zera a atração e abre o respiro no mesmo passo. A que entra (troca automática ou manual) não consegue atrair esses inimigos por `30` passos. A Entrada da técnica (*Queda de Pilar*) é recusada neles nesse passo; isso é aceito **[a confirmar]**.
+- **Se a Maldição sair de campo com inimigos atraídos (R7, R21):** a IA zera a atração e abre o respiro no mesmo passo. A que entra (troca automática ou manual) não consegue atrair esses inimigos por `30` passos. A Entrada da técnica (*Queda de Pilar*) é recusada neles nesse passo; isso é aceito.
 - **Se o chefe entrar em `TransicaoFase` (Chefes R7):** o zerar da atração abre o respiro; um Chamado depois do respiro atrai normalmente.
 - **Se o pacto do meio da run acontecer com a única Maldição Exausta (R24, Vínculo V15):** a nova entra na reserva Pronta e, como o campo está vazio, entra em campo no passo 3 do 6.1 seguinte, com `maldicao_entrou(retorno)` e sem técnica. A Exausta continua contando e volta para a reserva.
 - **Se a técnica acertar só com a Saída (F5, F6):** o dano real fica abaixo de `D_tecnica_max`; a F6 usa o teto e por isso é conservadora.
@@ -828,10 +828,10 @@ constante). Com `1,0 s`: `0,50` e `15%`.
 - **Modificadores e atributos:** aceita espelhos de `dano_todo_pct` e `velocidade_pct` e a fonte `especie:<curse_id>:<passiva>` por código (R22, R24). **Contrato pedido à R14:** o portador também nasce no meio da run, quando a dupla cresce (R24).
 - **Vínculo e pactos:** aceita V15 e V43 (R24). **Contrato pedido à F4:** refazer as tabelas com os valores novos (`DPS_autonomo 18,00–18,36`, `D_tecnica_max = 14`); o teto com técnica passa a `4,33%`.
 - **Armas das Doutrinas:** fecha a OQ16 pela R17 e a Edge Case da atração renovada. **Contrato pedido à F7 e ao AV2:** recalcular a parcela da Maldição (`24,70–25,85 DPS`) e citar a F6 com técnica.
-- **Input e controle:** aceita a Troca em R / Tab e LT (Input R1a) **[a confirmar]**.
+- **Input e controle:** aceita a Troca em R / Tab e LT (Input R1a).
 - **Chefes:** aceita "cada golpe testa só o alvo travado" (Chefes R3; R7 coerente) e a resposta à OQ2.
 - **Câmaras e ondas:** aceita `reposicionar_maldicao(pos)` com o ponto da F6 do Câmaras (R14 emenda).
-- **Efeitos de status (`Suave`, por contrato; pedido da emenda do Status):** as Maldições aplicam **Abalo** pelo sistema de Status com autor = dono: *Rastro Cortante* e *Cratera de Cinza* (Saída, `4,0 s` = `duracao_abalo_s` do Status) e *Eco de Muralha* (Chamado do *Baluarte*, `1,5 s` vindo do `CurseDef`, alinhamento 2026-11-16 **[a confirmar]**; contrato pedido ao Status R3a: o golpe pode passar a sua duração). O Abalo aplicado no 6.1 fere e conta já no mesmo passo (Combate R23 §8) e é lido pela sinergia da F5. A Maldição **não recebe** status no MVP (R8). Sem o Status, o Abalo não acontece e a sinergia só lê imobilizado e atraído.
+- **Efeitos de status (`Suave`, por contrato; pedido da emenda do Status):** as Maldições aplicam **Abalo** pelo sistema de Status com autor = dono: *Rastro Cortante* e *Cratera de Cinza* (Saída, `4,0 s` = `duracao_abalo_s` do Status) e *Eco de Muralha* (Chamado do *Baluarte*, `1,5 s` vindo do `CurseDef`, alinhamento 2026-11-16; contrato pedido ao Status R3a: o golpe pode passar a sua duração). O Abalo aplicado no 6.1 fere e conta já no mesmo passo (Combate R23 §8) e é lido pela sinergia da F5. A Maldição **não recebe** status no MVP (R8). Sem o Status, o Abalo não acontece e a sinergia só lê imobilizado e atraído.
 
 ## Visual/Audio Requirements
 
@@ -919,7 +919,7 @@ constante). Com `1,0 s`: `0,50` e `15%`.
 - **AC-ML-33 (R24 — Dupla cresce no meio da run):** **GIVEN** dupla de 1 (*Vulto* em campo) e o pacto do *Espreitador* com a acuada em `Vida = 40`, com o jogador tendo `dano_todo_pct +0,20`, **WHEN** `pacto` é resolvido, **THEN** o *Espreitador* entra na reserva `Pronta` com `Vida = 40/95`, `acum_regen = 0`, um portador novo com o espelho `+0,20` (M `1,20`), e a partir do passo seguinte `troca_disponivel` pode ficar verdadeiro.
 - **AC-ML-34 (R24 — Vínculo nas fórmulas):** **GIVEN** *Soberano* no vínculo nível 3 e *Vulto* no nível 4, **WHEN** o *Soberano* fica Exausto e o *Vulto* ataca, **THEN** `total_exausta = 432` e o golpe do *Vulto* causa `9 × 1,05 = 9,45`.
 - **AC-ML-35 (R14 emenda — `reposicionar_maldicao`):** **GIVEN** *Baluarte* (`raio 30`) em campo com marca, 2 inimigos atraídos e `estourou_fio` verdadeiro, **WHEN** o Câmaras chama `reposicionar_maldicao((960, 1035))` na troca de câmara, **THEN** a Maldição fica em `(960, 1035)` em `Seguindo`, `estourou_fio` falso, sai `marca_virote_mudou` vazio e 2 `atracao_fim`, e a reserva não muda; com um raio de teste `60`, o ponto pedido é `(960, 1020)`.
-- **AC-ML-36 (Catálogo, ML1 — Eco de Muralha sem Abalo permanente, alinhamento 2026-11-16) [a confirmar]:** **GIVEN** *Baluarte* em campo e o chefe parado no raio do pouso, com o Chamado usado a cada `120` passos e sem Trocas, **WHEN** correm `3600` passos vivos, **THEN** cada pouso deixa o chefe abalado por `90` passos, há `30` passos sem Abalo antes de cada pouso seguinte e a soma é `≤ 2700` passos (`75%`); um `CurseDef` de teste com `duracao_abalo_s = 2,0` (`120` passos) no *Eco de Muralha* é recusado com erro `ML1`.
+- **AC-ML-36 (Catálogo, ML1 — Eco de Muralha sem Abalo permanente, alinhamento 2026-11-16):** **GIVEN** *Baluarte* em campo e o chefe parado no raio do pouso, com o Chamado usado a cada `120` passos e sem Trocas, **WHEN** correm `3600` passos vivos, **THEN** cada pouso deixa o chefe abalado por `90` passos, há `30` passos sem Abalo antes de cada pouso seguinte e a soma é `≤ 2700` passos (`75%`); um `CurseDef` de teste com `duracao_abalo_s = 2,0` (`120` passos) no *Eco de Muralha* é recusado com erro `ML1`.
 
 - **AC-ML-23 (ML1, ML2, ML4 — Erros de validação do catálogo):** **GIVEN** três definições inválidas injetadas em teste (`distancia_seguir_px = 500 > alcance_fio_px = 480`; `CurseDef` com `preparo_s = 0`; `CurseDef primordial` com `chefe_origem_id` vazio), **WHEN** o validador do Conteúdo executa, **THEN** a carga é recusada reportando respectivamente os erros `ML1`, `ML2` e `ML4`.
 
@@ -929,12 +929,12 @@ constante). Com `1,0 s`: `0,50` e `15%`.
 2. **OQ2 — Forma de chefe da espécie Primordial (para o GDD `22b` de Chefes):** quais dos 4 padrões da Maldição-chefe do Limiar são espelhados visualmente em escala reduzida no *Soberano do Limiar* para ensinar a leitura do pacto?
 3. **OQ3 — Efeito das bênçãos nas Maldições (para revisão de Modificadores / Bênçãos):** quais chaves de `PlayerMods` (ex.: `dano_todo_pct`, `velocidade_pct`) propagam do portador do jogador para os portadores das Maldições além das bênçãos específicas de vínculo? *(Hipótese deste GDD: no MVP base das 18 Tradições, `dano_todo_pct` propaga ao portador da Maldição para que `M_maldicao` escale na run junto com o jogador).*
 4. **OQ4 — Comportamento em Co-op futuro (1 a 4 jogadores, sistema #36):** com mais de um jogador de Pactos na mesma sala, limitar a 1 Maldição em campo por jogador (máx. 4 na câmara) ou reduzir o tamanho visual em `15%` para preservar o orçamento de leitura da tela?
-> **(emenda Pactos, 2026-11-15)** **OQ1 resolvida** pelo Input R1a: Troca em **R / Tab** e **LT** (Q e LB colidiam com o `selo`) **[a confirmar no Input]**. **OQ2 resolvida** pelo Chefes: o *Soberano* aliado espelha 3 dos 4 padrões pelo nome e pela leitura (*Garra do Véu Rasgado* → ataque básico; *Pulso de Soberania* → habilidade única; *Convergência da Fenda* → efeito no Chamado), com a coroa de cristais selada por anéis de Osso e sem magenta (Chefes CH-V1). **OQ3 resolvida** pelo Modificadores R14/F6 (R24).
+> **(emenda Pactos, 2026-11-15)** **OQ1 resolvida** pelo Input R1a: Troca em **R / Tab** e **LT** (Q e LB colidiam com o `selo`). **OQ2 resolvida** pelo Chefes: o *Soberano* aliado espelha 3 dos 4 padrões pelo nome e pela leitura (*Garra do Véu Rasgado* → ataque básico; *Pulso de Soberania* → habilidade única; *Convergência da Fenda* → efeito no Chamado), com a coroa de cristais selada por anéis de Osso e sem magenta (Chefes CH-V1). **OQ3 resolvida** pelo Modificadores R14/F6 (R24).
 >
 > **Novas (emenda Pactos):**
 > - **OQ6 — Técnica mais forte com recarga maior?** Alternativa à R18: manter a técnica de `28` e subir `recarga_troca_s` para `~6,5 s`, com o ataque básico em `~17 DPS`. Escolhida a recarga de `4,0 s` (o HUD e o Input já citam `240` passos e a troca rápida é o centro da fantasia). Validar no 1º playtest de Pactos.
 > - **OQ7 — Danos fracionários** (`7,65`, `12,6`, `9,8`): o Combate arredonda o dano em inimigo? Se arredondar, ajustar para `7,5` / `12,5` / `10` e refazer a F6 (variação `< 0,3` ponto).
 > - **OQ8 — Respiro na Entrada da técnica:** a *Queda de Pilar* que entra logo após a saída de campo cai no respiro dos inimigos que a outra atraía. Aceito por simplicidade; reabrir se o playtest mostrar que a técnica parece falhar.
-> - **OQ9 — Duração do Abalo do Eco de Muralha (alinhamento 2026-11-16):** `1,5 s` (75% de cobertura no teto) ou `1,0 s` (50%)? A alternativa "não se aplica a chefe" foi descartada por criar imunidade que o cânone não tem. **[a confirmar]**
+> - ~~**OQ9 — Duração do Abalo do Eco de Muralha (alinhamento 2026-11-16):** `1,5 s` (75% de cobertura no teto) ou `1,0 s` (50%)? A alternativa "não se aplica a chefe" foi descartada por criar imunidade que o cânone não tem.~~ **Fechada (2026-11-16):** `1,5 s` (`90` passos, 75% de cobertura no teto).
 
 5. **OQ5 — Linha de cânone para o termo "Maldições":** registrar na emenda de `docs/NARRATIVE_Mestres_Bencaos_Modo_Acao.md` a distinção de Serel entre *Anomalia bruta* (hostil) e *Maldição* (resíduo que aceitou nome, amarra de osso e fardo partilhado).

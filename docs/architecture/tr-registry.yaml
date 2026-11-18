@@ -37,33 +37,3209 @@
 #   its fields sit two columns past the dash. Quote a value that holds ": ". A
 #   line in any other shape is reported as unsupported layout, with its number.
 
-version: 1
-last_updated: ""
+version: 2
+last_updated: "2026-11-17"
 
-requirements: []
-
-# --- EXAMPLE ENTRIES (remove when first real entries are added) ---
-#
-# - id: TR-combat-001
-#   system: combat
-#   gdd: design/gdd/combat-system.md
-#   requirement: "Player takes damage from enemies based on attack power minus defence"
-#   created: 2026-03-10
-#   revised: ""
-#   status: active
-#
-# - id: TR-combat-002
-#   system: combat
-#   gdd: design/gdd/combat-system.md
-#   requirement: "Combo window timing is 0.4 seconds between hits"
-#   created: 2026-03-10
-#   revised: "2026-04-01"
-#   status: active
-#
-# - id: TR-combat-003
-#   system: combat
-#   gdd: design/gdd/combat-system.md
-#   requirement: "Old damage formula using raw stats"
-#   created: 2026-03-10
-#   revised: ""
-#   status: "superseded-by: TR-combat-001"
+requirements:
+- id: TR-conteudo-001
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Tipos de definição como Resource, com formato, campos e unidades por tipo"
+  source: R1
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-conteudo-002
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Ids snake_case únicos por tipo, nunca renomeados nem reaproveitados (append-only)"
+  source: R2
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-conteudo-003
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Definição só de leitura em execução; cópia mutável por duplicate_deep"
+  source: R3
+  adrs: [ADR-0004, ADR-0003]
+  status: active
+  created: 2026-11-15
+- id: TR-conteudo-004
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Manifesto único explícito, sem varredura em execução; teste de órfãos em CI"
+  source: R4
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-conteudo-005
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Layout de assets/data/; cópia canônica em CSV excluída do export"
+  source: R5
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-conteudo-006
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Unidades do Godot; TICK_RATE 60 conferido na carga; F7 segundos para passos"
+  source: R6
+  adrs: [ADR-0004, ADR-0001]
+  status: active
+  created: 2026-11-15
+- id: TR-conteudo-007
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Definições guardam chaves de tradução, nunca texto; V6 confere a tabela"
+  source: R7
+  adrs: [ADR-0004, ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-conteudo-008
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Dado só aponta para chaves registradas pelos donos; registro ausente é erro V4"
+  source: R8
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-conteudo-009
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Carga síncrona antes do menu, coleta todos os erros e bloqueia a run igual em debug e release"
+  source: R9
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-conteudo-010
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Consulta por injeção (obter, existe, listar, filtrar) com relator de erros injetado"
+  source: R10
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-conteudo-011
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Impressão SHA-256 sobre serialização canônica na ordem do manifesto"
+  source: R12
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-conteudo-012
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Estados de carga e recarga só em debug e fora de run, com revogação e reinjeção"
+  source: R9
+  adrs: [ADR-0004, ADR-0001]
+  status: active
+  created: 2026-11-15
+- id: TR-conteudo-013
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Lista canônica copiada só de leitura do cânone"
+  source: R11
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-conteudo-014
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Script de importação F1-F6 em tools/content-import/ com teste de paridade"
+  source: F1-F6
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-conteudo-015
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Orçamento de carga: mediana até 250 ms e validação até 30 ms no PC de referência fixado (Ryzen 5 5600H, 16 GB RAM, SSD NVMe, RTX 3050 Laptop, Windows 11; medido 160,8 ms texto / 86,2 ms .pck)"
+  source: AC-38
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+  revised: 2026-11-17
+- id: TR-conteudo-016
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Tipos CurseDef, BossPatternDef em EnemyDef.padroes, MaldicoesTuning, VinculoTuning e ChefesTuning"
+  source: R1-P, OQ 9
+  adrs: [ADR-0004, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-conteudo-017
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Mesmo id em CurseDef e EnemyDef com unicidade por tipo; ids de espécie são chave do perfil e nunca mudam"
+  source: R2-P
+  adrs: [ADR-0004, ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-conteudo-018
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Validação ampliada V4, V5, V8 e códigos ML, VP e CH com ML7 e ML8 na 2ª passada"
+  source: R9-P
+  adrs: [ADR-0004, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-conteudo-019
+  system: conteudo
+  gdd: design/gdd/conteudo-orientado-a-dados.md
+  requirement: "Ordem estável do manifesto de CurseDef para o sorteio do Vínculo"
+  source: R10-P
+  adrs: [ADR-0004, ADR-0005]
+  status: active
+  created: 2026-11-16
+- id: TR-rng-001
+  system: rng
+  gdd: design/gdd/rng-com-seed.md
+  requirement: "Fonte única; APIs aleatórias da engine proibidas no código de jogo, com lint de CI"
+  source: R1
+  adrs: [ADR-0005]
+  status: active
+  created: 2026-11-15
+- id: TR-rng-002
+  system: rng
+  gdd: design/gdd/rng-com-seed.md
+  requirement: "Seed u32 sorteada ao criar a run; --seed só em debug; fixa durante a run"
+  source: R2
+  adrs: [ADR-0005]
+  status: active
+  created: 2026-11-15
+- id: TR-rng-003
+  system: rng
+  gdd: design/gdd/rng-com-seed.md
+  requirement: "Fluxos derivados por finalidade, região e profundidade; lista fechada de finalidades"
+  source: R3
+  adrs: [ADR-0005]
+  status: active
+  created: 2026-11-15
+- id: TR-rng-004
+  system: rng
+  gdd: design/gdd/rng-com-seed.md
+  requirement: "Sorteios iteram na ordem do manifesto, nunca Dictionary, hash ou árvore"
+  source: R4
+  adrs: [ADR-0005, ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-rng-005
+  system: rng
+  gdd: design/gdd/rng-com-seed.md
+  requirement: "Consumo fixo nas finalidades de estrutura, independente do combate"
+  source: R4b
+  adrs: [ADR-0005]
+  status: active
+  created: 2026-11-15
+- id: TR-rng-006
+  system: rng
+  gdd: design/gdd/rng-com-seed.md
+  requirement: "Operações com consumo definido; erros não consomem e vão ao relator"
+  source: R5
+  adrs: [ADR-0005]
+  status: active
+  created: 2026-11-15
+- id: TR-rng-007
+  system: rng
+  gdd: design/gdd/rng-com-seed.md
+  requirement: "Gerador próprio mulberry32, estável entre versões e SO, com paridade com o cânone"
+  source: R6
+  adrs: [ADR-0005]
+  status: active
+  created: 2026-11-15
+- id: TR-rng-008
+  system: rng
+  gdd: design/gdd/rng-com-seed.md
+  requirement: "Contrato de reprodução com seis elementos, incluindo a impressão do catálogo"
+  source: R7
+  adrs: [ADR-0005, ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-rng-009
+  system: rng
+  gdd: design/gdd/rng-com-seed.md
+  requirement: "Fonte de fluxos injetada, sem singleton global"
+  source: R9
+  adrs: [ADR-0005]
+  status: active
+  created: 2026-11-15
+- id: TR-rng-010
+  system: rng
+  gdd: design/gdd/rng-com-seed.md
+  requirement: "Máscara u32 na fronteira e na leitura de save; save no meio da run fora do MVP"
+  source: AC-10
+  adrs: [ADR-0005, ADR-0013]
+  status: active
+  created: 2026-11-15
+- id: TR-rng-011
+  system: rng
+  gdd: design/gdd/rng-com-seed.md
+  requirement: "RNG cosmético só em src/presentation/, sem acesso à fonte de fluxos"
+  source: R1
+  adrs: [ADR-0005]
+  status: active
+  created: 2026-11-15
+- id: TR-rng-012
+  system: rng
+  gdd: design/gdd/rng-com-seed.md
+  requirement: "Texto da seed na pausa, morte, vitória e debug, com copiar e campo de seed no debug"
+  source: R8
+  adrs: [ADR-0005, ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-rng-013
+  system: rng
+  gdd: design/gdd/rng-com-seed.md
+  requirement: "Finalidade 9 pactos com chave (pactos, região, 0) e consumo fixo de 4 reais, só em runs de Pactos"
+  source: R3-P
+  adrs: [ADR-0005, ADR-0015]
+  status: active
+  created: 2026-11-16
+- id: TR-rng-014
+  system: rng
+  gdd: design/gdd/rng-com-seed.md
+  requirement: "Com Pactos a seed nasce em dupla_confirmada; telas anteriores não pedem fluxo"
+  source: R2-P
+  adrs: [ADR-0005, ADR-0015]
+  status: active
+  created: 2026-11-16
+- id: TR-rng-015
+  system: rng
+  gdd: design/gdd/rng-com-seed.md
+  requirement: "Estado inicial ampliado com dupla e perfil de vínculo lido do perfil salvo"
+  source: R7-P
+  adrs: [ADR-0005, ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-input-001
+  system: input
+  gdd: design/gdd/input-e-controle.md
+  requirement: "Lista fechada de ações StringName; nenhuma tecla no código de jogo"
+  source: R1
+  adrs: [ADR-0006]
+  status: active
+  created: 2026-11-15
+- id: TR-input-002
+  system: input
+  gdd: design/gdd/input-e-controle.md
+  requirement: "Amostra única por passo de física, antes de qualquer sistema de jogo"
+  source: R2
+  adrs: [ADR-0006, ADR-0001]
+  status: active
+  created: 2026-11-15
+- id: TR-input-003
+  system: input
+  gdd: design/gdd/input-e-controle.md
+  requirement: "Dois dispositivos simultâneos; dispositivo ativo é o último com entrada significativa"
+  source: R3
+  adrs: [ADR-0006]
+  status: active
+  created: 2026-11-15
+- id: TR-input-004
+  system: input
+  gdd: design/gdd/input-e-controle.md
+  requirement: "Movimento em 8 direções normalizadas; zona morta radial e reescala"
+  source: R4
+  adrs: [ADR-0006]
+  status: active
+  created: 2026-11-15
+- id: TR-input-005
+  system: input
+  gdd: design/gdd/input-e-controle.md
+  requirement: "Mira do mouse via conversão tela para mundo da Cena; mira do analógico"
+  source: R5
+  adrs: [ADR-0006, ADR-0007]
+  status: active
+  created: 2026-11-15
+- id: TR-input-006
+  system: input
+  gdd: design/gdd/input-e-controle.md
+  requirement: "Remapeamento por dispositivo, persistido versionado e atômico"
+  source: R8
+  adrs: [ADR-0006, ADR-0013]
+  status: active
+  created: 2026-11-15
+- id: TR-input-007
+  system: input
+  gdd: design/gdd/input-e-controle.md
+  requirement: "Buffer de comandos em passos inteiros que atravessa o hitstop; segurar repete"
+  source: R6
+  adrs: [ADR-0006]
+  status: active
+  created: 2026-11-15
+- id: TR-input-008
+  system: input
+  gdd: design/gdd/input-e-controle.md
+  requirement: "Perda de foco da janela ou desconexão do gamepad pausa e solta os botões"
+  source: R11
+  adrs: [ADR-0001, ADR-0006, ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-input-009
+  system: input
+  gdd: design/gdd/input-e-controle.md
+  requirement: "Telas sem mouse com foco inicial e um único modelo de foco"
+  source: R9
+  adrs: [ADR-0006, ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-input-010
+  system: input
+  gdd: design/gdd/input-e-controle.md
+  requirement: "Contextos de entrada com roteamento e barreira de retorno"
+  source: R10
+  adrs: [ADR-0006, ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-input-011
+  system: input
+  gdd: design/gdd/input-e-controle.md
+  requirement: "Provedor de amostras injetado; testes roteirizados sem dispositivo"
+  source: R13
+  adrs: [ADR-0006]
+  status: active
+  created: 2026-11-15
+- id: TR-input-012
+  system: input
+  gdd: design/gdd/input-e-controle.md
+  requirement: "Valores de tuning vêm do catálogo validado (InputTuning)"
+  source: R12
+  adrs: [ADR-0004, ADR-0006]
+  status: active
+  created: 2026-11-15
+- id: TR-input-013
+  system: input
+  gdd: design/gdd/input-e-controle.md
+  requirement: "Ação troca no buffer com contador único; consumo Movimento, Combate, Selo, Maldições"
+  source: R1a, R6, F3
+  adrs: [ADR-0006, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-input-014
+  system: input
+  gdd: design/gdd/input-e-controle.md
+  requirement: "Campo ponto_mira (vec2 de mundo ou vazio) na amostra de 9 campos"
+  source: R1b, R2
+  adrs: [ADR-0006]
+  status: active
+  created: 2026-11-16
+- id: TR-input-015
+  system: input
+  gdd: design/gdd/input-e-controle.md
+  requirement: "Arquivo de binds antigo sem a ação nova recebe INPUT_ACAO_NOVA e bind livre"
+  source: Edge Cases, OQ 13
+  adrs: [ADR-0006, ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-cena-001
+  system: cena
+  gdd: design/gdd/cena-3-4-e-camera.md
+  requirement: "Viewport lógico 1920x1080, stretch canvas_items e keep_height, com pillarbox"
+  source: R1
+  adrs: [ADR-0007]
+  status: active
+  created: 2026-11-15
+- id: TR-cena-002
+  system: cena
+  gdd: design/gdd/cena-3-4-e-camera.md
+  requirement: "1 unidade = 1,5 px, convertida só na importação"
+  source: R2
+  adrs: [ADR-0007]
+  status: active
+  created: 2026-11-15
+- id: TR-cena-003
+  system: cena
+  gdd: design/gdd/cena-3-4-e-camera.md
+  requirement: "Plano de jogo = tela; pé e altura visual separados"
+  source: R3
+  adrs: [ADR-0007]
+  status: active
+  created: 2026-11-15
+- id: TR-cena-004
+  system: cena
+  gdd: design/gdd/cena-3-4-e-camera.md
+  requirement: "Lista canônica de camadas de render"
+  source: R4
+  adrs: [ADR-0007, ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-cena-005
+  system: cena
+  gdd: design/gdd/cena-3-4-e-camera.md
+  requirement: "Y-sort pelo y do pé com ordenação total e parallax manual"
+  source: R5
+  adrs: [ADR-0007]
+  status: active
+  created: 2026-11-15
+- id: TR-cena-006
+  system: cena
+  gdd: design/gdd/cena-3-4-e-camera.md
+  requirement: "Câmara de 1920x1080 a 2880x1620 e limites da câmera"
+  source: R6
+  adrs: [ADR-0007]
+  status: active
+  created: 2026-11-15
+- id: TR-cena-007
+  system: cena
+  gdd: design/gdd/cena-3-4-e-camera.md
+  requirement: "Câmera segue com lookahead e suavização, interpolada sobre o passo fixo"
+  source: R7
+  adrs: [ADR-0007]
+  status: active
+  created: 2026-11-15
+- id: TR-cena-008
+  system: cena
+  gdd: design/gdd/cena-3-4-e-camera.md
+  requirement: "Impulsos de câmera na apresentação, com remetente único e um por passo"
+  source: R8
+  adrs: [ADR-0007, ADR-0002]
+  status: active
+  created: 2026-11-15
+- id: TR-cena-009
+  system: cena
+  gdd: design/gdd/cena-3-4-e-camera.md
+  requirement: "Relógio da câmera é t_apres, injetado"
+  source: R12
+  adrs: [ADR-0001, ADR-0007]
+  status: active
+  created: 2026-11-15
+- id: TR-cena-010
+  system: cena
+  gdd: design/gdd/cena-3-4-e-camera.md
+  requirement: "Conversão tela para mundo pela câmera base, sem chute, tremor nem zoom"
+  source: R9
+  adrs: [ADR-0007, ADR-0006]
+  status: active
+  created: 2026-11-15
+- id: TR-cena-011
+  system: cena
+  gdd: design/gdd/cena-3-4-e-camera.md
+  requirement: "Corte da câmera no quadro da metade do wipe, na Transição"
+  source: R10
+  adrs: [ADR-0001, ADR-0007]
+  status: active
+  created: 2026-11-15
+- id: TR-cena-012
+  system: cena
+  gdd: design/gdd/cena-3-4-e-camera.md
+  requirement: "Valores de tuning vêm do catálogo validado (CameraTuning)"
+  source: R11
+  adrs: [ADR-0004, ADR-0007]
+  status: active
+  created: 2026-11-15
+- id: TR-cena-013
+  system: cena
+  gdd: design/gdd/cena-3-4-e-camera.md
+  requirement: "Câmera, impulsos e relógio injetados; testes com câmera falsa"
+  source: R12
+  adrs: [ADR-0007]
+  status: active
+  created: 2026-11-15
+- id: TR-modificadores-001
+  system: modificadores
+  gdd: design/gdd/modificadores-e-atributos.md
+  requirement: "Portador por combatente; atributos derivados separados dos recursos"
+  source: R1
+  adrs: [ADR-0009, ADR-0003]
+  status: active
+  created: 2026-11-15
+- id: TR-modificadores-002
+  system: modificadores
+  gdd: design/gdd/modificadores-e-atributos.md
+  requirement: "Lista fechada de atributos com piso e teto; estrutura do modificador"
+  source: R2
+  adrs: [ADR-0009]
+  status: active
+  created: 2026-11-15
+- id: TR-modificadores-003
+  system: modificadores
+  gdd: design/gdd/modificadores-e-atributos.md
+  requirement: "Estado de portador independente por instância; definição do catálogo intacta"
+  source: R11
+  adrs: [ADR-0003, ADR-0009]
+  status: active
+  created: 2026-11-15
+- id: TR-modificadores-004
+  system: modificadores
+  gdd: design/gdd/modificadores-e-atributos.md
+  requirement: "Condicionais avaliados no uso, com contexto passado por quem consulta"
+  source: R4
+  adrs: [ADR-0009]
+  status: active
+  created: 2026-11-15
+- id: TR-modificadores-005
+  system: modificadores
+  gdd: design/gdd/modificadores-e-atributos.md
+  requirement: "Tabela fechada das 21 chaves de tipo de efeito, entregue ao validador"
+  source: R5
+  adrs: [ADR-0009, ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-modificadores-006
+  system: modificadores
+  gdd: design/gdd/modificadores-e-atributos.md
+  requirement: "Remover uma fonte remove todos os seus modificadores e gatilhos"
+  source: R6
+  adrs: [ADR-0009]
+  status: active
+  created: 2026-11-15
+- id: TR-modificadores-007
+  system: modificadores
+  gdd: design/gdd/modificadores-e-atributos.md
+  requirement: "Recálculo imediato, sem esperar quadro"
+  source: R7
+  adrs: [ADR-0009]
+  status: active
+  created: 2026-11-15
+- id: TR-modificadores-008
+  system: modificadores
+  gdd: design/gdd/modificadores-e-atributos.md
+  requirement: "Ordem canônica, float até o fim e arredondamento determinístico"
+  source: F1
+  adrs: [ADR-0009]
+  status: active
+  created: 2026-11-15
+- id: TR-modificadores-009
+  system: modificadores
+  gdd: design/gdd/modificadores-e-atributos.md
+  requirement: "Atributo x recurso com notificação de valor antigo e novo"
+  source: R9
+  adrs: [ADR-0009]
+  status: active
+  created: 2026-11-15
+- id: TR-modificadores-010
+  system: modificadores
+  gdd: design/gdd/modificadores-e-atributos.md
+  requirement: "Elite e profundidade aplicadas como fontes no spawn"
+  source: R10
+  adrs: [ADR-0009]
+  status: active
+  created: 2026-11-15
+- id: TR-modificadores-011
+  system: modificadores
+  gdd: design/gdd/modificadores-e-atributos.md
+  requirement: "Semântica dos gatilhos com executor único"
+  source: R13
+  adrs: [ADR-0009]
+  status: active
+  created: 2026-11-15
+- id: TR-modificadores-012
+  system: modificadores
+  gdd: design/gdd/modificadores-e-atributos.md
+  requirement: "Paridade de tabela com o cânone"
+  source: AC-32
+  adrs: [ADR-0009]
+  status: active
+  created: 2026-11-15
+- id: TR-modificadores-013
+  system: modificadores
+  gdd: design/gdd/modificadores-e-atributos.md
+  requirement: "Valores de tuning vêm do catálogo validado; valor já escalado, params não escalam"
+  source: R8
+  adrs: [ADR-0004, ADR-0009]
+  status: active
+  created: 2026-11-15
+- id: TR-modificadores-014
+  system: modificadores
+  gdd: design/gdd/modificadores-e-atributos.md
+  requirement: "Um portador por Maldição da dupla (base, vinculo, especie, espelhos), persistente na Exaustão e na reserva, criável no passo de um pacto"
+  source: R14, AC-40
+  adrs: [ADR-0009, ADR-0003, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-modificadores-015
+  system: modificadores
+  gdd: design/gdd/modificadores-e-atributos.md
+  requirement: "Espelho por tipos_propagados_maldicao e fator_propagacao_maldicao, entra e sai com a fonte do jogador em todos os portadores"
+  source: R14, F6
+  adrs: [ADR-0009, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-modificadores-016
+  system: modificadores
+  gdd: design/gdd/modificadores-e-atributos.md
+  requirement: "Origens vinculo, especie e espelho e lista restrita de atributos do portador da Maldição"
+  source: R2, R3
+  adrs: [ADR-0009]
+  status: active
+  created: 2026-11-16
+- id: TR-pipeline-001
+  system: pipeline
+  gdd: design/gdd/pipeline-visual.md
+  requirement: "Três famílias de material por papel, lista fechada"
+  source: R1
+  adrs: [ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-pipeline-002
+  system: pipeline
+  gdd: design/gdd/pipeline-visual.md
+  requirement: "Grading regional por LUT global, com plano B"
+  source: R2
+  adrs: [ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-pipeline-003
+  system: pipeline
+  gdd: design/gdd/pipeline-visual.md
+  requirement: "Escurecimento por profundidade calculado na CPU, em linear"
+  source: R3
+  adrs: [ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-pipeline-004
+  system: pipeline
+  gdd: design/gdd/pipeline-visual.md
+  requirement: "t_vivo e t_apres globais escritos pelo orquestrador; sem TIME no mundo; zero no meio do wipe"
+  source: R8
+  adrs: [ADR-0001, ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-pipeline-005
+  system: pipeline
+  gdd: design/gdd/pipeline-visual.md
+  requirement: "Telégrafo em duas passadas, quad e malha de borda, 24 slots"
+  source: R5
+  adrs: [ADR-0011, ADR-0014]
+  status: active
+  created: 2026-11-15
+- id: TR-pipeline-006
+  system: pipeline
+  gdd: design/gdd/pipeline-visual.md
+  requirement: "Traço do jogador em CanvasGroup e imagens residuais"
+  source: R6
+  adrs: [ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-pipeline-007
+  system: pipeline
+  gdd: design/gdd/pipeline-visual.md
+  requirement: "Impact frame global, limitador F6, wipe e morte, modos de tela por prioridade"
+  source: R7
+  adrs: [ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-pipeline-008
+  system: pipeline
+  gdd: design/gdd/pipeline-visual.md
+  requirement: "Teto de 500 draw calls por grupo, overdraw, partículas e luz, medidos por captura"
+  source: R9
+  adrs: [ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-pipeline-009
+  system: pipeline
+  gdd: design/gdd/pipeline-visual.md
+  requirement: "Memória de textura 512 MiB com alerta em 448; tetos somam 504 MiB"
+  source: R9
+  adrs: [ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-pipeline-010
+  system: pipeline
+  gdd: design/gdd/pipeline-visual.md
+  requirement: "Chaves de project.godot, shader_globals e Shader Baker no preset de exportação"
+  source: R10
+  adrs: [ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-pipeline-011
+  system: pipeline
+  gdd: design/gdd/pipeline-visual.md
+  requirement: "Emissores e animações do relógio vivo congelam no hitstop, com fallback"
+  source: R8
+  adrs: [ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-pipeline-012
+  system: pipeline
+  gdd: design/gdd/pipeline-visual.md
+  requirement: "Acessibilidade de render: Reduzir flashes e Redução de movimento"
+  source: R11
+  adrs: [ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-pipeline-013
+  system: pipeline
+  gdd: design/gdd/pipeline-visual.md
+  requirement: "Valores de tuning vêm do catálogo validado (VisualTuning); estado e opções injetados"
+  source: R12
+  adrs: [ADR-0004, ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-pipeline-014
+  system: pipeline
+  gdd: design/gdd/pipeline-visual.md
+  requirement: "Contorno tracejado secundário com raio_secundario_px do BossPatternDef, z 5, some no disparo"
+  source: R5a
+  adrs: [ADR-0011, ADR-0014]
+  status: active
+  created: 2026-11-16
+- id: TR-pipeline-015
+  system: pipeline
+  gdd: design/gdd/pipeline-visual.md
+  requirement: "Fio de vínculo e marca do Virote como traco_sdf em z -5 com estados pela distância"
+  source: R5b
+  adrs: [ADR-0011]
+  status: active
+  created: 2026-11-16
+- id: TR-pipeline-016
+  system: pipeline
+  gdd: design/gdd/pipeline-visual.md
+  requirement: "Validador acusa nó tel_sdf com dono da facção do jogador"
+  source: R5b, AC-PV-88
+  adrs: [ADR-0011]
+  status: active
+  created: 2026-11-16
+- id: TR-feedback-001
+  system: feedback
+  gdd: design/gdd/feedback-de-combate.md
+  requirement: "Árbitro puro: lista de eventos e relógios entram, pedidos ordenados saem"
+  source: R14
+  adrs: [ADR-0002]
+  status: active
+  created: 2026-11-15
+- id: TR-feedback-002
+  system: feedback
+  gdd: design/gdd/feedback-de-combate.md
+  requirement: "Só lê eventos e nunca escreve em sistema de jogo"
+  source: R1
+  adrs: [ADR-0002, ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-feedback-003
+  system: feedback
+  gdd: design/gdd/feedback-de-combate.md
+  requirement: "Catálogo evento para resposta; remetente único de impulso de câmera, um por passo"
+  source: R3
+  adrs: [ADR-0002, ADR-0007]
+  status: active
+  created: 2026-11-15
+- id: TR-feedback-004
+  system: feedback
+  gdd: design/gdd/feedback-de-combate.md
+  requirement: "Prioridades P0-P4 e limitador F6; pedido negado é descartado e o evento segue"
+  source: R4
+  adrs: [ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-feedback-005
+  system: feedback
+  gdd: design/gdd/feedback-de-combate.md
+  requirement: "Degradação de VFX por uso medido, com histerese"
+  source: F3
+  adrs: [ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-feedback-006
+  system: feedback
+  gdd: design/gdd/feedback-de-combate.md
+  requirement: "Respostas vivas congelam no hitstop; respostas de apresentação correm"
+  source: R2
+  adrs: [ADR-0002, ADR-0001]
+  status: active
+  created: 2026-11-15
+- id: TR-feedback-007
+  system: feedback
+  gdd: design/gdd/feedback-de-combate.md
+  requirement: "Números de dano: faixas por alvo, agregação, teto e regra de saída"
+  source: R6
+  adrs: [ADR-0002, ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-feedback-008
+  system: feedback
+  gdd: design/gdd/feedback-de-combate.md
+  requirement: "Um som por gancho por passo; limite de vozes por gancho e total, por prioridade"
+  source: R9
+  adrs: [ADR-0016]
+  status: active
+  created: 2026-11-15
+- id: TR-feedback-009
+  system: feedback
+  gdd: design/gdd/feedback-de-combate.md
+  requirement: "Acerto marcado lido da flag do evento acerto, sem contagem própria"
+  source: R5
+  adrs: [ADR-0002, ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-feedback-010
+  system: feedback
+  gdd: design/gdd/feedback-de-combate.md
+  requirement: "Ordem de camadas; impact frame é shader global, não camada"
+  source: R11
+  adrs: [ADR-0011, ADR-0007]
+  status: active
+  created: 2026-11-15
+- id: TR-feedback-011
+  system: feedback
+  gdd: design/gdd/feedback-de-combate.md
+  requirement: "Preempção no mesmo passo entre chefe, recusa, passes e telégrafos"
+  source: R12
+  adrs: [ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-feedback-012
+  system: feedback
+  gdd: design/gdd/feedback-de-combate.md
+  requirement: "Opções de acessibilidade aplicadas pelos donos, sem resposta que as contorne"
+  source: R7
+  adrs: [ADR-0007, ADR-0011, ADR-0013]
+  status: active
+  created: 2026-11-15
+- id: TR-feedback-013
+  system: feedback
+  gdd: design/gdd/feedback-de-combate.md
+  requirement: "Na Transição, descartar fila e respostas vivas; relógios zeram no meio do wipe"
+  source: R13
+  adrs: [ADR-0001, ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-feedback-014
+  system: feedback
+  gdd: design/gdd/feedback-de-combate.md
+  requirement: "Valores de tuning vêm do catálogo validado (FeedbackTuning)"
+  source: Tuning Knobs
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-feedback-015
+  system: feedback
+  gdd: design/gdd/feedback-de-combate.md
+  requirement: "Catálogo de 13 eventos das Maldições, golpe sem hitstop nem câmera, número agregado jogador e Maldição no mesmo alvo"
+  source: R15, R16, R17
+  adrs: [ADR-0002, ADR-0011]
+  status: active
+  created: 2026-11-16
+- id: TR-feedback-016
+  system: feedback
+  gdd: design/gdd/feedback-de-combate.md
+  requirement: "Ganchos de áudio sfx_maldicao_*"
+  source: R18
+  adrs: [ADR-0016]
+  status: active
+  created: 2026-11-16
+- id: TR-combate-nucleo-001
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Ordem fixa dos 10 itens do passo vivo, só no estado Jogo"
+  source: R1
+  adrs: [ADR-0001, ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-combate-nucleo-002
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Hitstop como contador de passos (vale o maior), congela do passo seguinte; nunca Engine.time_scale"
+  source: R10
+  adrs: [ADR-0001, ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-combate-nucleo-003
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Lista de inimigos em ordem estável, estado vivo fora do SceneTree, lógica testável sem cena"
+  source: R16, AC-02
+  adrs: [ADR-0003]
+  status: active
+  created: 2026-11-15
+- id: TR-combate-nucleo-004
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Descontos do item 3 antes do Movimento; disparo do item 5 com Especial primeiro, combo por slot, um golpe por passo"
+  source: R2, R3
+  adrs: [ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-combate-nucleo-005
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Geometria de acerto única (arco, círculo, leque) reusada pelos telégrafos (forma = teste, P3)"
+  source: R4, R5, F4
+  adrs: [ADR-0010, ADR-0014]
+  status: active
+  created: 2026-11-15
+- id: TR-combate-nucleo-006
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Projéteis em lista própria com ordem fixa de teste por passo e disparar_projetil para a IA"
+  source: R6, R7, F5
+  adrs: [ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-combate-nucleo-007
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "ferir_inimigo com dano float, contador de acertos e caminho silencioso para Status e Selo"
+  source: R8, R9, F1
+  adrs: [ADR-0010, ADR-0009]
+  status: active
+  created: 2026-11-15
+- id: TR-combate-nucleo-008
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "ferir_jogador com dano inteiro e um arredondamento; recursos do jogador no Combate; em combate consultado das Câmaras"
+  source: R13, F10
+  adrs: [ADR-0010, ADR-0009]
+  status: active
+  created: 2026-11-15
+- id: TR-combate-nucleo-009
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Eventos tipados com campos fixos e durações prontas para HUD, Feedback, Áudio, Selo, Status, Câmaras, Run e Telemetria"
+  source: R17
+  adrs: [ADR-0002, ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-combate-nucleo-010
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Varredura de mortes com retrato por passe (até 4); morto não age; morte do jogador para os passos seguintes"
+  source: R14
+  adrs: [ADR-0010, ADR-0003]
+  status: active
+  created: 2026-11-15
+- id: TR-combate-nucleo-011
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Transição com seis ações em ordem no quadro de progresso_wipe >= 0,5"
+  source: R1
+  adrs: [ADR-0001, ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-combate-nucleo-012
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Empurrão e impacto na parede com colisão própria contra paredes e obstáculos"
+  source: R11, R12, F7, F8
+  adrs: [ADR-0008, ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-combate-nucleo-013
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Câmara limpa só é avaliada com hitstop em 0 (contrato com Câmaras e Run)"
+  source: R10, AC-95
+  adrs: [ADR-0001, ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-combate-nucleo-014
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Pedidos síncronos do Movimento (cancelar, garantir_invulneravel, aplicar_corte, esquiva_iniciada); Corte pesado sem hitstop"
+  source: R18
+  adrs: [ADR-0010, ADR-0008]
+  status: active
+  created: 2026-11-15
+- id: TR-combate-nucleo-015
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Todas as dependências do Combate por injeção (portadores, amostra, consultas, geometria, tuning, AttackDef)"
+  source: R16, AC-04
+  adrs: [ADR-0001, ADR-0003, ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-combate-nucleo-016
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Valores de tuning vêm do CombatTuning validado no catálogo (CV1-CV21)"
+  source: R15
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-combate-nucleo-017
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Orçamento de CPU dos itens 3, 5, 7, 8 e 9 com p99 <= 0,3 ms por passo"
+  source: AC-81
+  adrs: [ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-combate-nucleo-018
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Latência do golpe <= 2 passos + 1 quadro, medida até o fim de desenho do quadro"
+  source: AC-92
+  adrs: [ADR-0010, ADR-0006]
+  status: active
+  created: 2026-11-15
+- id: TR-combate-nucleo-019
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Item 6.1 Maldições depois do Selo (6) e antes dos inimigos (7)"
+  source: R1, R23
+  adrs: [ADR-0001, ADR-0017, ADR-0010]
+  status: active
+  created: 2026-11-16
+- id: TR-combate-nucleo-020
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Maldição na facção do jogador fora das listas de alvos, sem fogo amigo; aplicar_golpe_maldicao síncrono com abate creditado ao dono"
+  source: R19, R20, R14
+  adrs: [ADR-0010, ADR-0003]
+  status: active
+  created: 2026-11-16
+- id: TR-combate-nucleo-021
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "ferir_maldicao (F12) com Exaustão síncrona via exaurir; golpe e projétil inimigo testam só o alvo guardado"
+  source: R21, R22, R7
+  adrs: [ADR-0010, ADR-0014, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-combate-nucleo-022
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "ferir_acuada (F13) sem hitstop nem número; falhar_encontro síncrono nos itens 7 e 8, antes da varredura"
+  source: R25, F13
+  adrs: [ADR-0010, ADR-0001, ADR-0014]
+  status: active
+  created: 2026-11-16
+- id: TR-combate-nucleo-023
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Chefe subjugavel fica Subjugado na lista com pedido subjugar à IA e projéteis removidos; lacaios invocado_pelo_chefe saem sem abate"
+  source: R24, R14
+  adrs: [ADR-0010, ADR-0018]
+  status: active
+  created: 2026-11-16
+- id: TR-combate-nucleo-024
+  system: combate-nucleo
+  gdd: design/gdd/combate-nucleo.md
+  requirement: "Eventos maldicao_atingida, maldicao_exausta, chamado, chamado_indisponivel, chefe_vencido e campos autor_player_id, limpo_pelo_chefe, origem maldicao"
+  source: R17
+  adrs: [ADR-0002, ADR-0010, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-armas-001
+  system: armas-das-doutrinas
+  gdd: design/gdd/armas-das-doutrinas.md
+  requirement: "WeaponDef com exatamente 7 campos e AttackDef como sub-recurso; propriedade desconhecida é erro"
+  source: R1, AC-AR-01
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-armas-002
+  system: armas-das-doutrinas
+  gdd: design/gdd/armas-das-doutrinas.md
+  requirement: "Arma sem regra própria em código: tudo vem das formas e params do AttackDef"
+  source: R1, AC-AR-07
+  adrs: [ADR-0004, ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-armas-003
+  system: armas-das-doutrinas
+  gdd: design/gdd/armas-das-doutrinas.md
+  requirement: "Injeção da arma no começo da run: portador com vida_max e velocidade base, Combate com os dois AttackDef"
+  source: R9, AC-AR-06
+  adrs: [ADR-0009, ADR-0010, ADR-0015]
+  status: active
+  created: 2026-11-15
+- id: TR-armas-004
+  system: armas-das-doutrinas
+  gdd: design/gdd/armas-das-doutrinas.md
+  requirement: "Tela de escolha antes da run com o componente de carta, navegável por teclado, mouse e gamepad"
+  source: R4, AC-AR-12
+  adrs: [ADR-0012, ADR-0006]
+  status: active
+  created: 2026-11-15
+- id: TR-armas-005
+  system: armas-das-doutrinas
+  gdd: design/gdd/armas-das-doutrinas.md
+  requirement: "Estados Escolhendo, Equipada e Encerrada; arma fixa durante a run"
+  source: States, AC-AR-10
+  adrs: [ADR-0001, ADR-0015]
+  status: active
+  created: 2026-11-15
+- id: TR-armas-006
+  system: armas-das-doutrinas
+  gdd: design/gdd/armas-das-doutrinas.md
+  requirement: "Última arma em user://preferencias.cfg [armas] ultima_arma, gravada só ao confirmar"
+  source: R4, AC-AR-08
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-15
+- id: TR-armas-007
+  system: armas-das-doutrinas
+  gdd: design/gdd/armas-das-doutrinas.md
+  requirement: "Build de playtest sem pré-seleção e com zero leituras e gravações de preferencias.cfg"
+  source: R4, AC-AR-39
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-15
+- id: TR-armas-008
+  system: armas-das-doutrinas
+  gdd: design/gdd/armas-das-doutrinas.md
+  requirement: "Chave derivada <chave_nome>_DESC e nomes canônicos validados, sem campo novo"
+  source: R4, R8, AC-AR-33
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-armas-009
+  system: armas-das-doutrinas
+  gdd: design/gdd/armas-das-doutrinas.md
+  requirement: "Validações cruzadas AV1-AV8 na segunda passada, com relatório de conjunto exato"
+  source: Formulas, AC-AR-32
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-armas-010
+  system: armas-das-doutrinas
+  gdd: design/gdd/armas-das-doutrinas.md
+  requirement: "Valores de tuning vêm do ArmasTuning e dos WeaponDef validados no catálogo"
+  source: Tuning Knobs, R2
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-armas-011
+  system: armas-das-doutrinas
+  gdd: design/gdd/armas-das-doutrinas.md
+  requirement: "Arma escolhida em cada run chega à Telemetria local"
+  source: R6
+  adrs: [ADR-0002, ADR-0013]
+  status: active
+  created: 2026-11-15
+- id: TR-armas-012
+  system: armas-das-doutrinas
+  gdd: design/gdd/armas-das-doutrinas.md
+  requirement: "Especial chamado da Besta só pede o salto à Maldição pela consulta pode chamar; recusa não consome recarga e emite chamado_indisponivel"
+  source: R2b
+  adrs: [ADR-0010, ADR-0017, ADR-0002]
+  status: active
+  created: 2026-11-16
+- id: TR-armas-013
+  system: armas-das-doutrinas
+  gdd: design/gdd/armas-das-doutrinas.md
+  requirement: "Virote emite acerto_virote para a marca da Maldição"
+  source: R2b
+  adrs: [ADR-0002]
+  status: active
+  created: 2026-11-16
+- id: TR-armas-014
+  system: armas-das-doutrinas
+  gdd: design/gdd/armas-das-doutrinas.md
+  requirement: "AV9 forma chamado só no slot especial de WeaponDef pactos; pares com pactos validados pelo ML8 na 2ª passada"
+  source: AV9
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-16
+- id: TR-selo-001
+  system: selo-e-fluxo
+  gdd: design/gdd/selo-e-fluxo.md
+  requirement: "Fluxo float 0..100 com regeneração por passo vivo no item 6 e +3 por acerto_de_arma do item 5"
+  source: R1
+  adrs: [ADR-0002, ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-selo-002
+  system: selo-e-fluxo
+  gdd: design/gdd/selo-e-fluxo.md
+  requirement: "Plantar no item 6, depois do golpe, consumindo só selo do buffer"
+  source: R2
+  adrs: [ADR-0001, ADR-0010, ADR-0006]
+  status: active
+  created: 2026-11-15
+- id: TR-selo-003
+  system: selo-e-fluxo
+  gdd: design/gdd/selo-e-fluxo.md
+  requirement: "Flag do Input selo apertado neste passo para selo_sem_fluxo uma vez por toque"
+  source: R2, AC-SF-08
+  adrs: [ADR-0006]
+  status: active
+  created: 2026-11-15
+- id: TR-selo-004
+  system: selo-e-fluxo
+  gdd: design/gdd/selo-e-fluxo.md
+  requirement: "Investida ativa lida pelo Combate no item 5 antes do disparo, guardada e entregue ao Selo"
+  source: R2, AC-SF-10
+  adrs: [ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-selo-005
+  system: selo-e-fluxo
+  gdd: design/gdd/selo-e-fluxo.md
+  requirement: "Dano por passo pelo caminho silencioso de ferir_inimigo, com M do grupo Selo a cada passo"
+  source: R3
+  adrs: [ADR-0010, ADR-0009]
+  status: active
+  created: 2026-11-15
+- id: TR-selo-006
+  system: selo-e-fluxo
+  gdd: design/gdd/selo-e-fluxo.md
+  requirement: "Consulta no_selo(inimigo) válida até o próximo item 6, lida pela IA"
+  source: R4
+  adrs: [ADR-0003]
+  status: active
+  created: 2026-11-15
+- id: TR-selo-007
+  system: selo-e-fluxo
+  gdd: design/gdd/selo-e-fluxo.md
+  requirement: "Acerto do item 8 credita Fluxo no fim do passo e só serve no seguinte"
+  source: F1, AC-SF-26
+  adrs: [ADR-0010, ADR-0002]
+  status: active
+  created: 2026-11-15
+- id: TR-selo-008
+  system: selo-e-fluxo
+  gdd: design/gdd/selo-e-fluxo.md
+  requirement: "Fluxo, recarga e Selos parados no hitstop e fora de Jogo"
+  source: R1, R6
+  adrs: [ADR-0001]
+  status: active
+  created: 2026-11-15
+- id: TR-selo-009
+  system: selo-e-fluxo
+  gdd: design/gdd/selo-e-fluxo.md
+  requirement: "Selos apagados no quadro da metade do wipe pelo aviso câmara nova, sem selo_fim"
+  source: R6
+  adrs: [ADR-0001]
+  status: active
+  created: 2026-11-15
+- id: TR-selo-010
+  system: selo-e-fluxo
+  gdd: design/gdd/selo-e-fluxo.md
+  requirement: "Inimigo morto pelo Selo cai na varredura do Combate"
+  source: R5
+  adrs: [ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-selo-011
+  system: selo-e-fluxo
+  gdd: design/gdd/selo-e-fluxo.md
+  requirement: "Lista de Selos ativos em ordem de criação, marcas por inimigo, sem SceneTree"
+  source: R3, R8
+  adrs: [ADR-0003]
+  status: active
+  created: 2026-11-15
+- id: TR-selo-012
+  system: selo-e-fluxo
+  gdd: design/gdd/selo-e-fluxo.md
+  requirement: "Eventos selo, selo_sem_fluxo e selo_fim emitidos pelo Selo"
+  source: R2, R3
+  adrs: [ADR-0002]
+  status: active
+  created: 2026-11-15
+- id: TR-selo-013
+  system: selo-e-fluxo
+  gdd: design/gdd/selo-e-fluxo.md
+  requirement: "Valores de tuning vêm do SealTuning validado no catálogo (SV1-SV12)"
+  source: R7, AC-SF-24
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-selo-014
+  system: selo-e-fluxo
+  gdd: design/gdd/selo-e-fluxo.md
+  requirement: "Fluxo só por acerto_de_arma, Virote gera e golpe de Maldição não"
+  source: R1a
+  adrs: [ADR-0010, ADR-0002]
+  status: active
+  created: 2026-11-16
+- id: TR-selo-015
+  system: selo-e-fluxo
+  gdd: design/gdd/selo-e-fluxo.md
+  requirement: "Teste dentro do Selo percorre só inimigos, Maldição imune"
+  source: R3a
+  adrs: [ADR-0010]
+  status: active
+  created: 2026-11-16
+- id: TR-status-001
+  system: efeitos-de-status
+  gdd: design/gdd/efeitos-de-status.md
+  requirement: "Estado por inimigo: Sangramento e Queimadura (acúmulos float + restante int) e Abalo (restante), em passos vivos"
+  source: R1
+  adrs: [ADR-0003]
+  status: active
+  created: 2026-11-15
+- id: TR-status-002
+  system: efeitos-de-status
+  gdd: design/gdd/efeitos-de-status.md
+  requirement: "aplicar_status síncrono, chamado por Combate e Selo, recusando alvo não atingível"
+  source: R2
+  adrs: [ADR-0002, ADR-0010, ADR-0009]
+  status: active
+  created: 2026-11-15
+- id: TR-status-003
+  system: efeitos-de-status
+  gdd: design/gdd/efeitos-de-status.md
+  requirement: "Dano por passo no item 7, em ordem estável, antes de impacto e IA; aplicado no item 8 fere no passo seguinte"
+  source: R4
+  adrs: [ADR-0010, ADR-0001]
+  status: active
+  created: 2026-11-15
+- id: TR-status-004
+  system: efeitos-de-status
+  gdd: design/gdd/efeitos-de-status.md
+  requirement: "Dano de status pelo caminho silencioso de ferir_inimigo, sem acerto, empurrão, hitstop, Fluxo nem M"
+  source: R4
+  adrs: [ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-status-005
+  system: efeitos-de-status
+  gdd: design/gdd/efeitos-de-status.md
+  requirement: "Morte por status fechada na varredura do item 9"
+  source: R5
+  adrs: [ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-status-006
+  system: efeitos-de-status
+  gdd: design/gdd/efeitos-de-status.md
+  requirement: "Abalo com relógio único no Status e fonte única no portador"
+  source: R6
+  adrs: [ADR-0009]
+  status: active
+  created: 2026-11-15
+- id: TR-status-007
+  system: efeitos-de-status
+  gdd: design/gdd/efeitos-de-status.md
+  requirement: "Contadores de status congelam em hitstop e fora de Jogo"
+  source: R7
+  adrs: [ADR-0001]
+  status: active
+  created: 2026-11-15
+- id: TR-status-008
+  system: efeitos-de-status
+  gdd: design/gdd/efeitos-de-status.md
+  requirement: "Troca de câmara limpa todos os status"
+  source: R7
+  adrs: [ADR-0001, ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-status-009
+  system: efeitos-de-status
+  gdd: design/gdd/efeitos-de-status.md
+  requirement: "Número agregado por inimigo com período em passos vivos e animação no relógio de apresentação"
+  source: R8
+  adrs: [ADR-0002, ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-status-010
+  system: efeitos-de-status
+  gdd: design/gdd/efeitos-de-status.md
+  requirement: "Dependências injetadas; testes sem SceneTree"
+  source: R10
+  adrs: [ADR-0003]
+  status: active
+  created: 2026-11-15
+- id: TR-status-011
+  system: efeitos-de-status
+  gdd: design/gdd/efeitos-de-status.md
+  requirement: "Valores de tuning vêm do catálogo validado (StatusTuning, ST1-ST11)"
+  source: R9
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-status-012
+  system: efeitos-de-status
+  gdd: design/gdd/efeitos-de-status.md
+  requirement: "Consulta estado(inimigo) para HUD e VFX; sinais com teto de 3 e redução em multidão"
+  source: R6
+  adrs: [ADR-0011, ADR-0003]
+  status: active
+  created: 2026-11-15
+- id: TR-status-013
+  system: efeitos-de-status
+  gdd: design/gdd/efeitos-de-status.md
+  requirement: "Golpe de Maldição aplica Abalo pelo impacto do Combate; Maldições sem status; Saída antes de Entrada no mesmo passo"
+  source: R3a, R1a
+  adrs: [ADR-0010, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-telegrafos-001
+  system: telegrafos
+  gdd: design/gdd/telegrafos.md
+  requirement: "Telégrafo como entidade em pool pré-alocado, ligado ao dono"
+  source: R1
+  adrs: [ADR-0003, ADR-0014]
+  status: active
+  created: 2026-11-15
+- id: TR-telegrafos-002
+  system: telegrafos
+  gdd: design/gdd/telegrafos.md
+  requirement: "Um telégrafo por inimigo; teto 24 com recusa e nova tentativa"
+  source: R2
+  adrs: [ADR-0014]
+  status: active
+  created: 2026-11-15
+- id: TR-telegrafos-003
+  system: telegrafos
+  gdd: design/gdd/telegrafos.md
+  requirement: "Mira travada na criação; progresso linear só em passo vivo; acompanha o dono"
+  source: R3
+  adrs: [ADR-0014, ADR-0001]
+  status: active
+  created: 2026-11-15
+- id: TR-telegrafos-004
+  system: telegrafos
+  gdd: design/gdd/telegrafos.md
+  requirement: "Disparo resolvido no mesmo passo pela IA"
+  source: R4
+  adrs: [ADR-0014, ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-telegrafos-005
+  system: telegrafos
+  gdd: design/gdd/telegrafos.md
+  requirement: "Formas e dimensões derivadas do EnemyDef, fonte única"
+  source: R5
+  adrs: [ADR-0014]
+  status: active
+  created: 2026-11-15
+- id: TR-telegrafos-006
+  system: telegrafos
+  gdd: design/gdd/telegrafos.md
+  requirement: "A forma desenhada é o teste de acerto"
+  source: R6
+  adrs: [ADR-0014, ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-telegrafos-007
+  system: telegrafos
+  gdd: design/gdd/telegrafos.md
+  requirement: "Comprimento da faixa limitado por parede ou obstáculo na mira"
+  source: F3
+  adrs: [ADR-0014, ADR-0008]
+  status: active
+  created: 2026-11-15
+- id: TR-telegrafos-008
+  system: telegrafos
+  gdd: design/gdd/telegrafos.md
+  requirement: "Quebrar, cancelar e liberar tudo na hora na troca de câmara"
+  source: R7
+  adrs: [ADR-0014, ADR-0001]
+  status: active
+  created: 2026-11-15
+- id: TR-telegrafos-009
+  system: telegrafos
+  gdd: design/gdd/telegrafos.md
+  requirement: "Entrega do estado de cada telégrafo ao Pipeline a cada quadro"
+  source: AC-TG-13
+  adrs: [ADR-0014, ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-telegrafos-010
+  system: telegrafos
+  gdd: design/gdd/telegrafos.md
+  requirement: "Validação TV1-TV6 pelo mesmo derivar() usado em jogo"
+  source: R10
+  adrs: [ADR-0014, ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-telegrafos-011
+  system: telegrafos
+  gdd: design/gdd/telegrafos.md
+  requirement: "Valores de tuning vêm do catálogo validado (TelegraphTuning)"
+  source: R10
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-telegrafos-012
+  system: telegrafos
+  gdd: design/gdd/telegrafos.md
+  requirement: "Dependências injetadas; testes sem SceneTree"
+  source: R11
+  adrs: [ADR-0014, ADR-0003]
+  status: active
+  created: 2026-11-15
+- id: TR-telegrafos-013
+  system: telegrafos
+  gdd: design/gdd/telegrafos.md
+  requirement: "Duas passadas em z -5 e z 5, crescimento sem pulsar, contorno de 6 px na opção de acessibilidade"
+  source: AC-TG-22
+  adrs: [ADR-0011, ADR-0007]
+  status: active
+  created: 2026-11-15
+- id: TR-telegrafos-014
+  system: telegrafos
+  gdd: design/gdd/telegrafos.md
+  requirement: "Áudio com no máximo 3 telégrafos soando ao mesmo tempo"
+  source: Visual/Audio
+  adrs: [ADR-0016]
+  status: active
+  created: 2026-11-15
+- id: TR-telegrafos-015
+  system: telegrafos
+  gdd: design/gdd/telegrafos.md
+  requirement: "Telégrafo guarda alvo travado e raio, testa só ele e falha no vazio se o alvo sair"
+  source: R2a, R6a
+  adrs: [ADR-0014]
+  status: active
+  created: 2026-11-16
+- id: TR-telegrafos-016
+  system: telegrafos
+  gdd: design/gdd/telegrafos.md
+  requirement: "Dimensões pelo raio do alvo travado (F7); Maldição nunca cria telégrafo e o teto de 24 não muda"
+  source: R2b, F7
+  adrs: [ADR-0014]
+  status: active
+  created: 2026-11-16
+- id: TR-telegrafos-017
+  system: telegrafos
+  gdd: design/gdd/telegrafos.md
+  requirement: "cancelar_telegrafo na TransicaoFase e na queda do chefe"
+  source: R7a
+  adrs: [ADR-0014]
+  status: active
+  created: 2026-11-16
+- id: TR-ia-001
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "IA no item 7, em ordem estável, nunca em hitstop nem fora de Jogo"
+  source: R2
+  adrs: [ADR-0001, ADR-0018]
+  status: active
+  created: 2026-11-15
+- id: TR-ia-002
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "Lista de inimigos com identidade estável; morto não age; remoção na varredura"
+  source: R1
+  adrs: [ADR-0003, ADR-0010, ADR-0018]
+  status: active
+  created: 2026-11-15
+- id: TR-ia-003
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "Máquina de fases com timers em passos vivos"
+  source: R3-R7
+  adrs: [ADR-0003, ADR-0014, ADR-0018]
+  status: active
+  created: 2026-11-15
+- id: TR-ia-004
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "Fluxos de RNG ia (variável) e elites (consumo fixo de 1 real por inimigo)"
+  source: R10
+  adrs: [ADR-0005, ADR-0018]
+  status: active
+  created: 2026-11-15
+- id: TR-ia-005
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "Preparo acoplado a iniciar_telegrafo; golpe no mesmo passo do disparo"
+  source: R5
+  adrs: [ADR-0014, ADR-0018]
+  status: active
+  created: 2026-11-15
+- id: TR-ia-006
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "Inimigos presos a obstáculos e parede e separados par a par ao fim do item 7"
+  source: R9
+  adrs: [ADR-0008, ADR-0018]
+  status: active
+  created: 2026-11-15
+- id: TR-ia-007
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "Elite, chefe e profundidade como fontes no portador"
+  source: R10
+  adrs: [ADR-0009, ADR-0018]
+  status: active
+  created: 2026-11-15
+- id: TR-ia-008
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "sortear_elite chamado pelas Câmaras, no máximo 1 elite por onda"
+  source: R10
+  adrs: [ADR-0005, ADR-0018]
+  status: active
+  created: 2026-11-15
+- id: TR-ia-009
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "ranged só inicia o preparo dentro do retângulo visível da câmera"
+  source: R11
+  adrs: [ADR-0007, ADR-0018]
+  status: active
+  created: 2026-11-15
+- id: TR-ia-010
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "Quebra por pedir_recuperacao; armadura de elite e chefe"
+  source: R8
+  adrs: [ADR-0010, ADR-0014, ADR-0018]
+  status: active
+  created: 2026-11-15
+- id: TR-ia-011
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "Consulta de alvos atingíveis em ordem estável, com raio, para Input e Movimento"
+  source: Dependencies
+  adrs: [ADR-0006, ADR-0008, ADR-0018]
+  status: active
+  created: 2026-11-15
+- id: TR-ia-012
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "Lê no_selo do item 6 e aplica lentidão e cambaleio ao andar, não ao avanço"
+  source: R9
+  adrs: [ADR-0001, ADR-0010, ADR-0018]
+  status: active
+  created: 2026-11-15
+- id: TR-ia-013
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "Dependências injetadas; testes sem SceneTree"
+  source: R15
+  adrs: [ADR-0003, ADR-0018]
+  status: active
+  created: 2026-11-15
+- id: TR-ia-014
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "Valores de tuning vêm do catálogo validado (IATuning, EnemyDef, EliteRules, IV1-IV9)"
+  source: R14
+  adrs: [ADR-0004, ADR-0018]
+  status: active
+  created: 2026-11-15
+- id: TR-ia-015
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "Alvo por inimigo exposto por consulta; atrair sem renovação com respiro e imobilizar só em comuns"
+  source: R16, R17, R18, F6
+  adrs: [ADR-0018, ADR-0017, ADR-0010]
+  status: active
+  created: 2026-11-16
+- id: TR-ia-016
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "Consulta atingiveis só leitura em ordem estável de spawn, sem Maldição nem acuada"
+  source: R19, R20
+  adrs: [ADR-0018, ADR-0003]
+  status: active
+  created: 2026-11-16
+- id: TR-ia-017
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "Chefe ativo com fases TransicaoFase e Subjugado; subjugar para IA e colisão ofensiva; lacaios sem RNG"
+  source: R21
+  adrs: [ADR-0018, ADR-0010]
+  status: active
+  created: 2026-11-16
+- id: TR-ia-018
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "Alvo padrão acuada por paridade de ordem, suspenso enquanto atraído"
+  source: R22
+  adrs: [ADR-0018, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-ia-019
+  system: ia-de-inimigos-e-elites
+  gdd: design/gdd/ia-de-inimigos-e-elites.md
+  requirement: "Pedido puxar da IA para a técnica Convergência (TecnicaDef.puxar): aceita comuns e elites, o chefe recusa"
+  source: ADR-0017 Risks; Maldições TecnicaDef.puxar
+  adrs: [ADR-0018, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-movimento-001
+  system: movimento-e-esquiva
+  gdd: design/gdd/movimento-e-esquiva.md
+  requirement: "Só o Movimento escreve a posição do jogador; outros pedem deslocar(v)"
+  source: R1
+  adrs: [ADR-0008, ADR-0003]
+  status: active
+  created: 2026-11-15
+- id: TR-movimento-002
+  system: movimento-e-esquiva
+  gdd: design/gdd/movimento-e-esquiva.md
+  requirement: "Roda só em Jogo; o orquestrador decide passo() ou passo_congelado()"
+  source: R2
+  adrs: [ADR-0001, ADR-0008]
+  status: active
+  created: 2026-11-15
+- id: TR-movimento-003
+  system: movimento-e-esquiva
+  gdd: design/gdd/movimento-e-esquiva.md
+  requirement: "passo_congelado() só iguala anterior a atual; sem consulta ao hitstop"
+  source: R2
+  adrs: [ADR-0001, ADR-0008]
+  status: active
+  created: 2026-11-15
+- id: TR-movimento-004
+  system: movimento-e-esquiva
+  gdd: design/gdd/movimento-e-esquiva.md
+  requirement: "Ordem interna fixa do passo; Movimento antes de Combate e Selo"
+  source: R3
+  adrs: [ADR-0008, ADR-0001]
+  status: active
+  created: 2026-11-15
+- id: TR-movimento-005
+  system: movimento-e-esquiva
+  gdd: design/gdd/movimento-e-esquiva.md
+  requirement: "Pedidos síncronos ao Combate na ordem cancelar, garantir_invulneravel, esquiva_iniciada"
+  source: R5
+  adrs: [ADR-0008]
+  status: active
+  created: 2026-11-15
+- id: TR-movimento-006
+  system: movimento-e-esquiva
+  gdd: design/gdd/movimento-e-esquiva.md
+  requirement: "Esquiva pelo buffer; toque sem carga no congelamento emite esquiva_sem_carga no 1º passo vivo"
+  source: R5
+  adrs: [ADR-0006, ADR-0008]
+  status: active
+  created: 2026-11-15
+- id: TR-movimento-007
+  system: movimento-e-esquiva
+  gdd: design/gdd/movimento-e-esquiva.md
+  requirement: "Colisão própria discreta com círculos e retângulo; inimigos não bloqueiam"
+  source: R10
+  adrs: [ADR-0008]
+  status: active
+  created: 2026-11-15
+- id: TR-movimento-008
+  system: movimento-e-esquiva
+  gdd: design/gdd/movimento-e-esquiva.md
+  requirement: "Teleporte com aviso para reset de interpolação na apresentação"
+  source: R1
+  adrs: [ADR-0007, ADR-0008]
+  status: active
+  created: 2026-11-15
+- id: TR-movimento-009
+  system: movimento-e-esquiva
+  gdd: design/gdd/movimento-e-esquiva.md
+  requirement: "Corte da esquiva: consulta ordenada, M pelo portador, aplicar_corte no Combate, sem hitstop"
+  source: R8
+  adrs: [ADR-0008, ADR-0009, ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-movimento-010
+  system: movimento-e-esquiva
+  gdd: design/gdd/movimento-e-esquiva.md
+  requirement: "Máximo de cargas sincronizado com o atributo no item 0"
+  source: R7
+  adrs: [ADR-0008, ADR-0009]
+  status: active
+  created: 2026-11-15
+- id: TR-movimento-011
+  system: movimento-e-esquiva
+  gdd: design/gdd/movimento-e-esquiva.md
+  requirement: "Módulo puro injetado; determinismo bit a bit entre instâncias no mesmo build"
+  source: R12
+  adrs: [ADR-0003, ADR-0008]
+  status: active
+  created: 2026-11-15
+- id: TR-movimento-012
+  system: movimento-e-esquiva
+  gdd: design/gdd/movimento-e-esquiva.md
+  requirement: "Consultas e eventos esquiva e esquiva_sem_carga para HUD, Pipeline e Áudio"
+  source: Interactions
+  adrs: [ADR-0002, ADR-0012, ADR-0008]
+  status: active
+  created: 2026-11-15
+- id: TR-movimento-013
+  system: movimento-e-esquiva
+  gdd: design/gdd/movimento-e-esquiva.md
+  requirement: "Valores de tuning vêm do catálogo validado (MovementTuning, MV1-MV8)"
+  source: R11
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-movimento-014
+  system: movimento-e-esquiva
+  gdd: design/gdd/movimento-e-esquiva.md
+  requirement: "Orçamento de CPU do Movimento até 0,2 ms por passo (provisório)"
+  source: AC-P
+  adrs: [ADR-0001]
+  status: active
+  created: 2026-11-15
+- id: TR-camaras-001
+  system: camaras
+  gdd: design/gdd/camaras-e-ondas.md
+  requirement: "Câmaras são dono único de p e p_max; chave do RNG é o índice da câmara (santuário incluído), não p"
+  source: R3
+  adrs: [ADR-0005, ADR-0015]
+  status: active
+  created: 2026-11-15
+- id: TR-camaras-002
+  system: camaras
+  gdd: design/gdd/camaras-e-ondas.md
+  requirement: "Câmara montada no quadro da metade do wipe, depois do teleporte; 1ª onda no mesmo quadro"
+  source: R4
+  adrs: [ADR-0001, ADR-0008]
+  status: active
+  created: 2026-11-15
+- id: TR-camaras-003
+  system: camaras
+  gdd: design/gdd/camaras-e-ondas.md
+  requirement: "Retângulo jogável = câmara inteira; obstáculos circulares entregues a Movimento, Selo, Telégrafos e IA"
+  source: R2
+  adrs: [ADR-0008, ADR-0014]
+  status: active
+  created: 2026-11-15
+- id: TR-camaras-004
+  system: camaras
+  gdd: design/gdd/camaras-e-ondas.md
+  requirement: "Layout pelo fluxo layout com consumo fixo (10 candidatos por pedra, 91 reais)"
+  source: R5
+  adrs: [ADR-0005]
+  status: active
+  created: 2026-11-15
+- id: TR-camaras-005
+  system: camaras
+  gdd: design/gdd/camaras-e-ondas.md
+  requirement: "Ondas compostas na montagem pelo fluxo ondas"
+  source: R6
+  adrs: [ADR-0005]
+  status: active
+  created: 2026-11-15
+- id: TR-camaras-006
+  system: camaras
+  gdd: design/gdd/camaras-e-ondas.md
+  requirement: "Spawn sorteia sempre 14 candidatos (28 reais); só a escolha final depende do jogador"
+  source: R7
+  adrs: [ADR-0005]
+  status: active
+  created: 2026-11-15
+- id: TR-camaras-007
+  system: camaras
+  gdd: design/gdd/camaras-e-ondas.md
+  requirement: "Próxima onda e câmara limpa avaliadas no item 10, só com hitstop 0"
+  source: R9
+  adrs: [ADR-0001]
+  status: active
+  created: 2026-11-15
+- id: TR-camaras-008
+  system: camaras
+  gdd: design/gdd/camaras-e-ondas.md
+  requirement: "Consulta em combate; ao limpar remove projéteis e emite camara_limpa uma vez no mesmo passo"
+  source: R10, R11
+  adrs: [ADR-0002, ADR-0010]
+  status: active
+  created: 2026-11-15
+- id: TR-camaras-009
+  system: camaras
+  gdd: design/gdd/camaras-e-ondas.md
+  requirement: "Portas com estado, posição e alcance de 111 px; interação pede a Transição e é ignorada em hitstop e Transição"
+  source: R13
+  adrs: [ADR-0001, ADR-0006, ADR-0015]
+  status: active
+  created: 2026-11-15
+- id: TR-camaras-010
+  system: camaras
+  gdd: design/gdd/camaras-e-ondas.md
+  requirement: "Valores de tuning (WaveRules, RoomTuning) vêm do catálogo validado (WV1-WV9)"
+  source: R15
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-camaras-011
+  system: camaras
+  gdd: design/gdd/camaras-e-ondas.md
+  requirement: "Montagem pede reposicionar_maldicao(pos) e encontro_na_camara(indice); acuada nasce sem RNG e pos_acuada fica guardada"
+  source: R4-P, F6
+  adrs: [ADR-0015, ADR-0017, ADR-0005]
+  status: active
+  created: 2026-11-16
+- id: TR-camaras-012
+  system: camaras
+  gdd: design/gdd/camaras-e-ondas.md
+  requirement: "Campo ordem por inimigo passado à IA; filtro por spawn_dist_acuada_px sem mudar o consumo dos 14 candidatos"
+  source: R7-P, F3-P
+  adrs: [ADR-0005, ADR-0018]
+  status: active
+  created: 2026-11-16
+- id: TR-camaras-013
+  system: camaras
+  gdd: design/gdd/camaras-e-ondas.md
+  requirement: "Fase Subjugado com em combate falso e R9 suspensa; só limpar_camara_chefe emite camara_limpa(4, chefe), uma vez"
+  source: R8-P, R10-P, R18-P
+  adrs: [ADR-0001, ADR-0010, ADR-0015]
+  status: active
+  created: 2026-11-16
+- id: TR-camaras-014
+  system: camaras
+  gdd: design/gdd/camaras-e-ondas.md
+  requirement: "Câmara do chefe sem sorteio nem fluxos; lacaios entram na lista pelo módulo de Chefes com teto de 9 inimigos"
+  source: R14-P
+  adrs: [ADR-0018, ADR-0005, ADR-0003]
+  status: active
+  created: 2026-11-16
+- id: TR-camaras-015
+  system: camaras
+  gdd: design/gdd/camaras-e-ondas.md
+  requirement: "Câmara limpa conta só a lista de inimigos; Maldições e acuada ficam fora"
+  source: R9-P
+  adrs: [ADR-0003, ADR-0010]
+  status: active
+  created: 2026-11-16
+- id: TR-portas-001
+  system: portas
+  gdd: design/gdd/portas-e-recompensas.md
+  requirement: "Fluxo portas com 4 reais fixos por escolha e chave pelo índice da câmara; portas forçadas consomem 0"
+  source: R7
+  adrs: [ADR-0005]
+  status: active
+  created: 2026-11-15
+- id: TR-portas-002
+  system: portas
+  gdd: design/gdd/portas-e-recompensas.md
+  requirement: "Ordem recompensa, pedir_oferta, espera bencao_escolhida após tela_fechada, depois abre as portas; mundo parado"
+  source: R2
+  adrs: [ADR-0001, ADR-0011, ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-portas-003
+  system: portas
+  gdd: design/gdd/portas-e-recompensas.md
+  requirement: "Concessão ao camara_limpa; nada creditado se jogador_morreu cai no mesmo passo"
+  source: R2
+  adrs: [ADR-0002, ADR-0001]
+  status: active
+  created: 2026-11-15
+- id: TR-portas-004
+  system: portas
+  gdd: design/gdd/portas-e-recompensas.md
+  requirement: "Última câmara jogável sem recompensa e sem porta; contrato fim_da_run com a Run"
+  source: R2, R6
+  adrs: [ADR-0002, ADR-0015]
+  status: active
+  created: 2026-11-15
+- id: TR-portas-005
+  system: portas
+  gdd: design/gdd/portas-e-recompensas.md
+  requirement: "porta_escolhida(i) vira a recompensa da próxima câmara e é entregue à Run; tudo injetado, sem SceneTree"
+  source: R9, R11
+  adrs: [ADR-0002, ADR-0015]
+  status: active
+  created: 2026-11-15
+- id: TR-portas-006
+  system: portas
+  gdd: design/gdd/portas-e-recompensas.md
+  requirement: "Fragmentos creditados na ContaFragmentos injetada; cura lê vida_max do portador"
+  source: R4, R5
+  adrs: [ADR-0009, ADR-0015]
+  status: active
+  created: 2026-11-15
+- id: TR-portas-007
+  system: portas
+  gdd: design/gdd/portas-e-recompensas.md
+  requirement: "Valores de tuning (RewardTable) vêm do catálogo validado (PV1-PV7)"
+  source: R10
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-portas-008
+  system: portas
+  gdd: design/gdd/portas-e-recompensas.md
+  requirement: "Evento de porta escolhida com tipo e opcoes para Telemetria e HUD"
+  source: Dependencies
+  adrs: [ADR-0002, ADR-0015]
+  status: active
+  created: 2026-11-15
+- id: TR-portas-009
+  system: portas
+  gdd: design/gdd/portas-e-recompensas.md
+  requirement: "Estado Aguardando pacto com encontro_aguardando e pacto_resolvido lembrado; ordem recompensa, Bênção, pacto, portas"
+  source: R2-P, R11-P
+  adrs: [ADR-0002, ADR-0015]
+  status: active
+  created: 2026-11-16
+- id: TR-portas-010
+  system: portas
+  gdd: design/gdd/portas-e-recompensas.md
+  requirement: "Porta forçada chefe sem sorteio; trio (portas, 0, 5) consumido sem reordenar outros fluxos"
+  source: R6-P, R9-P
+  adrs: [ADR-0005]
+  status: active
+  created: 2026-11-16
+- id: TR-run-001
+  system: run
+  gdd: design/gdd/run-e-regioes.md
+  requirement: "Máquina de estados da run (Sem run, Escolha de arma, Ativa, Encerrada) coordenada com o orquestrador"
+  source: R1
+  adrs: [ADR-0001, ADR-0005, ADR-0015]
+  status: active
+  created: 2026-11-15
+- id: TR-run-002
+  system: run
+  gdd: design/gdd/run-e-regioes.md
+  requirement: "Ordem de início arma, seed (entropia injetável, --seed só em debug), estado inicial, câmara 0, Transição"
+  source: R2
+  adrs: [ADR-0005, ADR-0001]
+  status: active
+  created: 2026-11-15
+- id: TR-run-003
+  system: run
+  gdd: design/gdd/run-e-regioes.md
+  requirement: "Sequência pela RegionDef e camaras_jogaveis; p_max lido das Câmaras; montar o índice 6 é RN3"
+  source: R3, R9
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-run-004
+  system: run
+  gdd: design/gdd/run-e-regioes.md
+  requirement: "Vitória na ordem camara_limpa, fim_da_run, crédito, run_encerrada; tela final sem Transição"
+  source: R4
+  adrs: [ADR-0002, ADR-0015]
+  status: active
+  created: 2026-11-15
+- id: TR-run-005
+  system: run
+  gdd: design/gdd/run-e-regioes.md
+  requirement: "Morte vence a limpeza no mesmo passo"
+  source: R5
+  adrs: [ADR-0001, ADR-0002]
+  status: active
+  created: 2026-11-15
+- id: TR-run-006
+  system: run
+  gdd: design/gdd/run-e-regioes.md
+  requirement: "Abandono pela pausa, desabilitado em Bênção; pausa recusada em Transição e Morte"
+  source: R6
+  adrs: [ADR-0012, ADR-0006]
+  status: active
+  created: 2026-11-15
+- id: TR-run-007
+  system: run
+  gdd: design/gdd/run-e-regioes.md
+  requirement: "Resumo de 12 campos (10 + desfecho_chefe e dupla, R7-P) montado uma vez e imutável, lido pela tela final e pela Telemetria"
+  source: R7, R7-P
+  adrs: [ADR-0002, ADR-0015]
+  status: active
+  created: 2026-11-15
+  revised: 2026-11-16
+- id: TR-run-008
+  system: run
+  gdd: design/gdd/run-e-regioes.md
+  requirement: "nova_run com reset total dos sistemas da run e descarte da seed e dos fluxos; saldo da Economia fora do reset"
+  source: R8
+  adrs: [ADR-0005, ADR-0003, ADR-0009, ADR-0015]
+  status: active
+  created: 2026-11-15
+- id: TR-run-009
+  system: run
+  gdd: design/gdd/run-e-regioes.md
+  requirement: "Duração em passos de Jogo, contando o hitstop"
+  source: F3
+  adrs: [ADR-0001]
+  status: active
+  created: 2026-11-15
+- id: TR-run-010
+  system: run
+  gdd: design/gdd/run-e-regioes.md
+  requirement: "Várias regiões (reservado) com índice da região na chave do RNG e no orçamento"
+  source: R10
+  adrs: [ADR-0005]
+  status: active
+  created: 2026-11-15
+- id: TR-run-011
+  system: run
+  gdd: design/gdd/run-e-regioes.md
+  requirement: "Valores de tuning (RunTuning) vêm do catálogo validado (RN1-RN3)"
+  source: Tuning Knobs
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-run-012
+  system: run
+  gdd: design/gdd/run-e-regioes.md
+  requirement: "Última arma escolhida vem marcada na tela de início"
+  source: R2
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-15
+- id: TR-run-013
+  system: run
+  gdd: design/gdd/run-e-regioes.md
+  requirement: "Estados da run com Escolha da dupla (só Pactos) entre Escolha de arma e Ativa; fase Subjugado não encerra a run"
+  source: R1-P
+  adrs: [ADR-0015]
+  status: active
+  created: 2026-11-16
+- id: TR-run-014
+  system: run
+  gdd: design/gdd/run-e-regioes.md
+  requirement: "Run recebe pedir_dupla, dupla_confirmada, chefe_escolhido e chefe_subjugado; com Pactos cria a seed em dupla_confirmada"
+  source: R2-P, R11-P
+  adrs: [ADR-0015, ADR-0002, ADR-0005]
+  status: active
+  created: 2026-11-16
+- id: TR-run-015
+  system: run
+  gdd: design/gdd/run-e-regioes.md
+  requirement: "Vitória no chefe em ordem fixa (crédito do chefe, camara_limpa, fim_da_run, creditar vitoria, run_encerrada); morte no mesmo passo vence"
+  source: R4-P, R5-P
+  adrs: [ADR-0015, ADR-0001]
+  status: active
+  created: 2026-11-16
+- id: TR-run-016
+  system: run
+  gdd: design/gdd/run-e-regioes.md
+  requirement: "Reset total limpa Maldições, chefe e lacaios; registro de pactos e vínculo fica fora do reset, no perfil persistido"
+  source: R8-P
+  adrs: [ADR-0015, ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-bencaos-001
+  system: bencaos
+  gdd: design/gdd/bencaos-tradicoes.md
+  requirement: "Pool de 18 BoonDef na ordem do manifesto"
+  source: R1, R4
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-bencaos-002
+  system: bencaos
+  gdd: design/gdd/bencaos-tradicoes.md
+  requirement: "Registro de tomadas sem repetir, restantes() e tomadas(), zerado na Nova run"
+  source: R2, R8, R9
+  adrs: [ADR-0009, ADR-0015]
+  status: active
+  created: 2026-11-15
+- id: TR-bencaos-003
+  system: bencaos
+  gdd: design/gdd/bencaos-tradicoes.md
+  requirement: "Fluxos bencaos e raridade com F7 e consumo fixo de 6 reais por oferta e por troca"
+  source: R4
+  adrs: [ADR-0005]
+  status: active
+  created: 2026-11-15
+- id: TR-bencaos-004
+  system: bencaos
+  gdd: design/gdd/bencaos-tradicoes.md
+  requirement: "Efeito aplicado pelo Modificadores antes do registro e dos eventos"
+  source: R5
+  adrs: [ADR-0009]
+  status: active
+  created: 2026-11-15
+- id: TR-bencaos-005
+  system: bencaos
+  gdd: design/gdd/bencaos-tradicoes.md
+  requirement: "Troca e escolha no mesmo passo, a troca vence; sem pular"
+  source: R5, R6
+  adrs: [ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-bencaos-006
+  system: bencaos
+  gdd: design/gdd/bencaos-tradicoes.md
+  requirement: "Contrato síncrono pedir_oferta(região, índice), sem_bencao, oferta_ja_aberta, restantes()"
+  source: R3
+  adrs: [ADR-0002, ADR-0015]
+  status: active
+  created: 2026-11-15
+- id: TR-bencaos-007
+  system: bencaos
+  gdd: design/gdd/bencaos-tradicoes.md
+  requirement: "Eventos oferta_aberta, oferta_trocada e bencao_tomada para Tela, HUD, Áudio e Telemetria"
+  source: R5
+  adrs: [ADR-0002, ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-bencaos-008
+  system: bencaos
+  gdd: design/gdd/bencaos-tradicoes.md
+  requirement: "Mundo parado com a oferta aberta; contadores do Combate não descontam"
+  source: R11
+  adrs: [ADR-0001, ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-bencaos-009
+  system: bencaos
+  gdd: design/gdd/bencaos-tradicoes.md
+  requirement: "Texto da carta com o número da raridade, arredondado como no Modificadores, em chave de tradução"
+  source: R10
+  adrs: [ADR-0009, ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-bencaos-010
+  system: bencaos
+  gdd: design/gdd/bencaos-tradicoes.md
+  requirement: "Valores de tuning (BencaosTuning, RarityTable) vêm do catálogo validado (BN1, BN2)"
+  source: Tuning Knobs
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-bencaos-011
+  system: bencaos
+  gdd: design/gdd/bencaos-tradicoes.md
+  requirement: "Bênção de dano_todo_pct espelha no portador da Maldição no mesmo passo; Tradição de slot só no Virote"
+  source: R14-P, AC-BN-26
+  adrs: [ADR-0009]
+  status: active
+  created: 2026-11-16
+- id: TR-economia-001
+  system: economia
+  gdd: design/gdd/economia-de-fragmentos.md
+  requirement: "ContaFragmentos injetada, sem singleton, com saldo que atravessa as runs e coletados_run"
+  source: R1
+  adrs: [ADR-0015]
+  status: active
+  created: 2026-11-15
+- id: TR-economia-002
+  system: economia
+  gdd: design/gdd/economia-de-fragmentos.md
+  requirement: "Valores de tuning (EconomyRates) vêm do catálogo validado; cada taxa tem um só dono"
+  source: R2
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-economia-003
+  system: economia
+  gdd: design/gdd/economia-de-fragmentos.md
+  requirement: "Interface só de leitura para HUD e Telemetria; evento saldo_mudou"
+  source: R8
+  adrs: [ADR-0002, ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-economia-004
+  system: economia
+  gdd: design/gdd/economia-de-fragmentos.md
+  requirement: "Ordem com a Run (coletados antes da vitória, efetivo devolvido); nada creditado se a morte cai no mesmo passo"
+  source: R4
+  adrs: [ADR-0002, ADR-0015]
+  status: active
+  created: 2026-11-15
+- id: TR-economia-005
+  system: economia
+  gdd: design/gdd/economia-de-fragmentos.md
+  requirement: "exportar() e importar(int) sem arquivo no MVP"
+  source: R7
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-15
+- id: TR-economia-006
+  system: economia
+  gdd: design/gdd/economia-de-fragmentos.md
+  requirement: "nova_run() zera coletados_run e mantém o saldo"
+  source: R6
+  adrs: [ADR-0015]
+  status: active
+  created: 2026-11-15
+- id: TR-economia-007
+  system: economia
+  gdd: design/gdd/economia-de-fragmentos.md
+  requirement: "Run e Portas aceitam a Economia ausente sem quebrar"
+  source: Dependencies
+  adrs: [ADR-0015]
+  status: active
+  created: 2026-11-15
+- id: TR-economia-008
+  system: economia
+  gdd: design/gdd/economia-de-fragmentos.md
+  requirement: "Fonte chefe ativa, creditar(chefe, 6) chamado por Chefes no 1º passo vivo após o hitstop ou no Exorcizar; Pactuar não credita (EC1)"
+  source: R2-P, R4-P
+  adrs: [ADR-0015, ADR-0001, ADR-0010]
+  status: active
+  created: 2026-11-16
+- id: TR-economia-009
+  system: economia
+  gdd: design/gdd/economia-de-fragmentos.md
+  requirement: "Saldo de Fragmentos fora do save no MVP, enquanto pactos e vínculo persistem no perfil (decisão 21)"
+  source: OQ 6
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-hud-001
+  system: hud
+  gdd: design/gdd/hud.md
+  requirement: "HUD só lê, sem escrita e sem estado de jogo"
+  source: R1
+  adrs: [ADR-0002, ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-hud-002
+  system: hud
+  gdd: design/gdd/hud.md
+  requirement: "Na criação, inclusive na Transição, lê o estado por consulta, nunca só por evento"
+  source: R14
+  adrs: [ADR-0002, ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-hud-003
+  system: hud
+  gdd: design/gdd/hud.md
+  requirement: "Âncoras nas bordas do viewport, margem de 48 px, escala de UI de 85 a 150%, ultrawide"
+  source: R2, R13
+  adrs: [ADR-0012, ADR-0007]
+  status: active
+  created: 2026-11-15
+- id: TR-hud-004
+  system: hud
+  gdd: design/gdd/hud.md
+  requirement: "Vinheta de Vida baixa na camada de pós (z 50), sem 12ª camada"
+  source: R4
+  adrs: [ADR-0011, ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-hud-005
+  system: hud
+  gdd: design/gdd/hud.md
+  requirement: "Sinais preco_revelado e tela_fechada; rachar espera o hitstop; visibilidade pelo estado de jogo"
+  source: R3, R12
+  adrs: [ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-hud-006
+  system: hud
+  gdd: design/gdd/hud.md
+  requirement: "Glifo por dispositivo via rotulo_acao, trocado no passo seguinte"
+  source: R10
+  adrs: [ADR-0012, ADR-0006]
+  status: active
+  created: 2026-11-15
+- id: TR-hud-007
+  system: hud
+  gdd: design/gdd/hud.md
+  requirement: "Relógio de UI em tempo real que para com a pausa"
+  source: Game Feel
+  adrs: [ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-hud-008
+  system: hud
+  gdd: design/gdd/hud.md
+  requirement: "Latência de no máximo 1 passo do evento da fonte"
+  source: R1
+  adrs: [ADR-0002, ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-hud-009
+  system: hud
+  gdd: design/gdd/hud.md
+  requirement: "Fios de Vida em pool de 9, os mais próximos; aparecem pela queda da Vida, não pelo acerto"
+  source: R9
+  adrs: [ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-hud-010
+  system: hud
+  gdd: design/gdd/hud.md
+  requirement: "Valores de tuning (HudTuning) vêm do catálogo validado (HU1-HU14)"
+  source: R14
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-hud-011
+  system: hud
+  gdd: design/gdd/hud.md
+  requirement: "Camada de UI, fontes e orçamento de draw calls do Pipeline"
+  source: Dependencies
+  adrs: [ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-hud-012
+  system: hud
+  gdd: design/gdd/hud.md
+  requirement: "Opções de acessibilidade do HUD aplicadas e guardadas entre sessões"
+  source: R13
+  adrs: [ADR-0012, ADR-0013]
+  status: active
+  created: 2026-11-15
+- id: TR-hud-013
+  system: hud
+  gdd: design/gdd/hud.md
+  requirement: "Bloco do Pacto só com Pactos, lê estado_pacto no início e reage a troca_indisponivel e troca_feita"
+  source: R15, R19
+  adrs: [ADR-0012, ADR-0002]
+  status: active
+  created: 2026-11-16
+- id: TR-hud-014
+  system: hud
+  gdd: design/gdd/hud.md
+  requirement: "Vida da Maldição em barra de largura fixa (F8), atualização em até 1 passo, troca de slots no passo do evento"
+  source: F8, R18
+  adrs: [ADR-0012]
+  status: active
+  created: 2026-11-16
+- id: TR-tela-bencao-001
+  system: tela-bencao
+  gdd: design/gdd/tela-de-bencao-e-carta.md
+  requirement: "Só lê e devolve escolher ou trocar por objeto injetado; relógio de UI injetável"
+  source: R1, R16
+  adrs: [ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-tela-bencao-002
+  system: tela-bencao
+  gdd: design/gdd/tela-de-bencao-e-carta.md
+  requirement: "CartaView montada pela Bênçãos a partir do BoonDef (glifo, icone_ganho, chave do preço com {valor})"
+  source: R2
+  adrs: [ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-tela-bencao-003
+  system: tela-bencao
+  gdd: design/gdd/tela-de-bencao-e-carta.md
+  requirement: "Fileira na ordem do sorteio e escala s com margem de 48 px"
+  source: R3
+  adrs: [ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-tela-bencao-004
+  system: tela-bencao
+  gdd: design/gdd/tela-de-bencao-e-carta.md
+  requirement: "Um modelo de foco para mouse, teclado e gamepad"
+  source: R6
+  adrs: [ADR-0012, ADR-0006]
+  status: active
+  created: 2026-11-15
+- id: TR-tela-bencao-005
+  system: tela-bencao
+  gdd: design/gdd/tela-de-bencao-e-carta.md
+  requirement: "Trava de 500 ms, borda de subida e buffer esvaziado ao abrir"
+  source: R7
+  adrs: [ADR-0012, ADR-0006]
+  status: active
+  created: 2026-11-15
+- id: TR-tela-bencao-006
+  system: tela-bencao
+  gdd: design/gdd/tela-de-bencao-e-carta.md
+  requirement: "Troca e confirmar no mesmo quadro, só trocar(); troca sem carga desabilitada"
+  source: R8
+  adrs: [ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-tela-bencao-007
+  system: tela-bencao
+  gdd: design/gdd/tela-de-bencao-e-carta.md
+  requirement: "Sinais preco_revelado e tela_fechada; a Bênçãos segura bencao_escolhida até tela_fechada"
+  source: R9
+  adrs: [ADR-0002, ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-tela-bencao-008
+  system: tela-bencao
+  gdd: design/gdd/tela-de-bencao-e-carta.md
+  requirement: "Mundo congelado em gravura no fundo; entrada em até 0,45 s"
+  source: R5, R10
+  adrs: [ADR-0011]
+  status: active
+  created: 2026-11-15
+- id: TR-tela-bencao-009
+  system: tela-bencao
+  gdd: design/gdd/tela-de-bencao-e-carta.md
+  requirement: "Pausa por cima, sem pular; perder o foco da janela não pausa nem escolhe"
+  source: R12
+  adrs: [ADR-0012, ADR-0006]
+  status: active
+  created: 2026-11-15
+- id: TR-tela-bencao-010
+  system: tela-bencao
+  gdd: design/gdd/tela-de-bencao-e-carta.md
+  requirement: "Alto contraste, redução de movimento e Reduzir flashes pelo limitador"
+  source: R14
+  adrs: [ADR-0011, ADR-0012, ADR-0013]
+  status: active
+  created: 2026-11-15
+- id: TR-tela-bencao-011
+  system: tela-bencao
+  gdd: design/gdd/tela-de-bencao-e-carta.md
+  requirement: "Componente reutilizável CartaView e GrupoDeCartas com modos; só bênção no MVP"
+  source: R15
+  adrs: [ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-tela-bencao-012
+  system: tela-bencao
+  gdd: design/gdd/tela-de-bencao-e-carta.md
+  requirement: "Valores de tuning (TelaBencaoTuning) vêm do catálogo validado (TB1-TB10)"
+  source: AC-TB-35
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-tela-bencao-013
+  system: tela-bencao
+  gdd: design/gdd/tela-de-bencao-e-carta.md
+  requirement: "Foco e escolher respondem no quadro do aperto (até 16,7 ms)"
+  source: Game Feel
+  adrs: [ADR-0012]
+  status: active
+  created: 2026-11-15
+- id: TR-tela-bencao-014
+  system: tela-bencao
+  gdd: design/gdd/tela-de-bencao-e-carta.md
+  requirement: "Modo arma no MVP com 3 cartas e aviso_texto opcional na CartaView"
+  source: R15-P
+  adrs: [ADR-0012]
+  status: active
+  created: 2026-11-16
+- id: TR-tela-bencao-015
+  system: tela-bencao
+  gdd: design/gdd/tela-de-bencao-e-carta.md
+  requirement: "Modo maldicao com duas escolhas em ordem para a Escolha do Pacto"
+  source: R15b-P
+  adrs: [ADR-0012]
+  status: active
+  created: 2026-11-16
+- id: TR-telemetria-001
+  system: telemetria
+  gdd: design/gdd/telemetria-local.md
+  requirement: "Um .jsonl por sessão em user://, descarga a cada linha, campos comuns, última linha pode ficar truncada"
+  source: R2, R3, R10
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-15
+- id: TR-telemetria-002
+  system: telemetria
+  gdd: design/gdd/telemetria-local.md
+  requirement: "Só escuta; o jogo nunca lê o arquivo; tudo injetado"
+  source: R1, R13
+  adrs: [ADR-0002, ADR-0013]
+  status: active
+  created: 2026-11-15
+- id: TR-telemetria-003
+  system: telemetria
+  gdd: design/gdd/telemetria-local.md
+  requirement: "Esquema dos 10 eventos do MVP e campos ainda não emitidos (causa da morte, porta escolhida, câmara entrou, passo vivo)"
+  source: R4, R5
+  adrs: [ADR-0002]
+  status: active
+  created: 2026-11-15
+- id: TR-telemetria-004
+  system: telemetria
+  gdd: design/gdd/telemetria-local.md
+  requirement: "Contadores por câmara; duração em passos de Jogo, contando o hitstop"
+  source: R5, F1
+  adrs: [ADR-0001]
+  status: active
+  created: 2026-11-15
+- id: TR-telemetria-005
+  system: telemetria
+  gdd: design/gdd/telemetria-local.md
+  requirement: "Opção telemetria_ligada na configuração do usuário; estados Armada e Desligada; Apagar dados"
+  source: R6
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-15
+- id: TR-telemetria-006
+  system: telemetria
+  gdd: design/gdd/telemetria-local.md
+  requirement: "Privacidade sem caminho absoluto nem identificador, data em UTC, sem rede"
+  source: R7
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-15
+- id: TR-telemetria-007
+  system: telemetria
+  gdd: design/gdd/telemetria-local.md
+  requirement: "Falhas absorvidas com um TL1 e Parada por falha; orçamento de 1 ms por linha e 3 ms por passo (TL2)"
+  source: R8, F4
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-15
+- id: TR-telemetria-008
+  system: telemetria
+  gdd: design/gdd/telemetria-local.md
+  requirement: "Limite de bytes com reserva de 512 B; retenção das últimas 20 sessões"
+  source: R9, F3, F5
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-15
+- id: TR-telemetria-009
+  system: telemetria
+  gdd: design/gdd/telemetria-local.md
+  requirement: "Seed e impressão do catálogo (64 e 4 hex) nas linhas de sessão e de run"
+  source: R4
+  adrs: [ADR-0004, ADR-0005]
+  status: active
+  created: 2026-11-15
+- id: TR-telemetria-010
+  system: telemetria
+  gdd: design/gdd/telemetria-local.md
+  requirement: "Valores de tuning (TelemetriaTuning) vêm do catálogo validado"
+  source: Tuning Knobs
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-15
+- id: TR-telemetria-011
+  system: telemetria
+  gdd: design/gdd/telemetria-local.md
+  requirement: "Schema 2 com encontro_pacto, pacto, vinculo_fim_run, run_iniciada com dupla e pactos e resumo de 12 campos"
+  source: R4-P
+  adrs: [ADR-0013, ADR-0002]
+  status: active
+  created: 2026-11-16
+- id: TR-telemetria-012
+  system: telemetria
+  gdd: design/gdd/telemetria-local.md
+  requirement: "Pior passo com 5 linhas dentro do orçamento de 3 ms por passo"
+  source: F4-P
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-019
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "Orçamento de CPU do item 6.1 (Maldições) com p99 <= 0,1 ms por passo"
+  source: Desempenho do 6.1
+  adrs: [ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-001
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "Maldição é entidade da facção do jogador ligada a player_id e portador, fora das listas de inimigos e atingíveis (sem fogo amigo, não conta na câmara limpa, não bloqueia o jogador)"
+  source: R1
+  adrs: [ADR-0017, ADR-0003, ADR-0010]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-002
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "Dupla campo/reserva por jogador (MaldicaoRef) com estados Seguindo a Saltando/Pronta/Exausta; a dupla pode crescer no meio da run com portador novo"
+  source: R2, R24
+  adrs: [ADR-0017, ADR-0003, ADR-0009]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-003
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "Ordem fixa dos 8 sub-passos no item 6.1 só em passo vivo; troca automática dentro de exaurir (itens 7 e 8); quem entra só age no 6.1 seguinte"
+  source: R23
+  adrs: [ADR-0017, ADR-0001, ADR-0010]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-004
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "IA de aliado: alvo por prioridade (marca do Virote, mais perto do jogador no fio, seguir), desempate pelo menor id, fio com histerese"
+  source: R4, R5, F1
+  adrs: [ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-005
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "Golpe da Maldição pelo impacto do Combate com de_arma falso (sem Fluxo, golpe_* ou hitstop); abate creditado ao dono via autor_player_id"
+  source: R6
+  adrs: [ADR-0010, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-006
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "Alvo por inimigo (jogador ou Maldição atraída); telégrafo e projétil testam só o alvo travado"
+  source: R7
+  adrs: [ADR-0018, ADR-0010, ADR-0014, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-007
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "Atração limitada via atrair(id, passos, passos_respiro) sem renovação e com respiro; saída de campo avisada à IA no mesmo passo; fator_andar_atraido lido a cada passo"
+  source: R17, R21
+  adrs: [ADR-0017, ADR-0018]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-008
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "ferir_maldicao com F3 do Modificadores, sem invulnerabilidade nem hitstop; Exaustão com troca automática; maldicao_atingivel imune durante o salto"
+  source: R8, R9, R22
+  adrs: [ADR-0010, ADR-0017, ADR-0009]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-009
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "Contadores por passo vivo (Exaustão, regeneração com acumulador fracionário, recarga da troca) congelados em hitstop, pausa e transição"
+  source: R9.3, R10, R15
+  adrs: [ADR-0017, ADR-0001]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-010
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "Ação Troca no input por passo (buffer de 10 passos congelado no hitstop); recusa emite troca_indisponivel(motivo)"
+  source: R11
+  adrs: [ADR-0017, ADR-0006]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-011
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "Técnica combinada por dados: Saída e depois Entrada no mesmo passo, abates da Saída antes, Entrada lê o estado deixado (imobilizado, atraído, Abalo)"
+  source: R12, F5
+  adrs: [ADR-0017, ADR-0004]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-012
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "Chamado do Pacto via pode_chamar/pedir_chamado (item 5, executa no 6.1): salto de N passos que para em obstáculo, pouso que imobiliza comum e atrai, M_chamado, recusa pelo Combate"
+  source: R13, R22
+  adrs: [ADR-0017, ADR-0010]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-013
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "reposicionar_maldicao(pos) na troca de câmara limpa marca, atração e imobilização e preserva Vida, estados e recargas"
+  source: R14
+  adrs: [ADR-0017, ADR-0015]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-014
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "Leitura estado_pacto(player_id) sem efeito colateral e igual na pausa"
+  source: R19
+  adrs: [ADR-0012, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-015
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "Eventos da R20 um por fato, nunca em passo congelado, com emissor único"
+  source: R20
+  adrs: [ADR-0002, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-016
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "Passivas condicionais por código (fonte especie:<id>:<passiva>) e espelho de dano_todo_pct e velocidade_pct do jogador nos portadores da dupla"
+  source: R22, R24
+  adrs: [ADR-0009, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-017
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "Catálogo CurseDef, TecnicaDef e MaldicoesTuning validado por ML1-ML8; valores de tuning vêm do catálogo validado"
+  source: R3, R16, R17
+  adrs: [ADR-0004, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-maldicoes-018
+  system: maldicoes
+  gdd: design/gdd/maldicoes.md
+  requirement: "Fio de vínculo sempre visível, sem telégrafo de chão, marca do Virote e ganchos sfx_maldicao_* com no máximo 1 por passo"
+  source: ML-V1, ML-V2, ML-V3, ML-V4, ML-V5, ML-A1
+  adrs: [ADR-0011, ADR-0016]
+  status: active
+  created: 2026-11-16
+- id: TR-chefes-001
+  system: chefes
+  gdd: design/gdd/chefes.md
+  requirement: "Chefe como EnemyDef com comportamento chefe, lista de BossPatternDef e ChefesTuning validados por CH1-CH8; tuning vem do catálogo validado"
+  source: R1, R11
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-16
+- id: TR-chefes-002
+  system: chefes
+  gdd: design/gdd/chefes.md
+  requirement: "Máquina de estados do chefe (Surgindo a Morto/Subjugado) em ciclo de 4 padrões com timers por passo vivo"
+  source: R4, R6
+  adrs: [ADR-0018]
+  status: active
+  created: 2026-11-16
+- id: TR-chefes-003
+  system: chefes
+  gdd: design/gdd/chefes.md
+  requirement: "Luta do chefe determinística sem consumir RNG (arena fixa, esperas fixas, lacaios sem fluxos elites/spawn)"
+  source: R2, R6, R8
+  adrs: [ADR-0005, ADR-0018]
+  status: active
+  created: 2026-11-16
+- id: TR-chefes-004
+  system: chefes
+  gdd: design/gdd/chefes.md
+  requirement: "Alvo do chefe travado no início do Preparo; cada golpe testa só esse alvo; golpe em curso não fere ninguém se o alvo sair"
+  source: R3
+  adrs: [ADR-0014, ADR-0010, ADR-0018]
+  status: active
+  created: 2026-11-16
+- id: TR-chefes-005
+  system: chefes
+  gdd: design/gdd/chefes.md
+  requirement: "Telégrafos SETOR, RETANGULO, ANEL e CIRCULO no MVP, retângulo pelo raio do alvo travado, cancelamento na TransicaoFase e no abate"
+  source: R5, R7, R9.1
+  adrs: [ADR-0014]
+  status: active
+  created: 2026-11-16
+- id: TR-chefes-006
+  system: chefes
+  gdd: design/gdd/chefes.md
+  requirement: "Contorno secundário tracejado por raio_secundario_px, só desenho"
+  source: R11, CH8
+  adrs: [ADR-0014, ADR-0011, ADR-0004]
+  status: active
+  created: 2026-11-16
+- id: TR-chefes-007
+  system: chefes
+  gdd: design/gdd/chefes.md
+  requirement: "disparar_projetil(alvo = id): projétil de alvo único atravessa quem não é o alvo e some por pilar, parede ou tempo"
+  source: R5.3
+  adrs: [ADR-0010, ADR-0018]
+  status: active
+  created: 2026-11-16
+- id: TR-chefes-008
+  system: chefes
+  gdd: design/gdd/chefes.md
+  requirement: "Deslocamento forçado sem dano (puxão e pulso repulsor) em jogador e Maldição com colisão, ignorado por invulneráveis"
+  source: R5.4, R7, F3
+  adrs: [ADR-0008, ADR-0010]
+  status: active
+  created: 2026-11-16
+- id: TR-chefes-009
+  system: chefes
+  gdd: design/gdd/chefes.md
+  requirement: "Invocação controlada de lacaios com teto e marca invocado_pelo_chefe, removidos na queda do chefe sem abate nem ao_abater"
+  source: R5.4, R8
+  adrs: [ADR-0018, ADR-0010]
+  status: active
+  created: 2026-11-16
+- id: TR-chefes-010
+  system: chefes
+  gdd: design/gdd/chefes.md
+  requirement: "TransicaoFase com gatilho único, inimigo invulnerável (dano x 0, ticks continuam) e Fúria alterando velocidade e recargas"
+  source: R7, F4
+  adrs: [ADR-0018, ADR-0010, ADR-0009]
+  status: active
+  created: 2026-11-16
+- id: TR-chefes-011
+  system: chefes
+  gdd: design/gdd/chefes.md
+  requirement: "Armadura total, imunidade a imobilização, fonte chefe (empurrão x 0,12) e Abalo funcionando"
+  source: R1
+  adrs: [ADR-0010, ADR-0009]
+  status: active
+  created: 2026-11-16
+- id: TR-chefes-012
+  system: chefes
+  gdd: design/gdd/chefes.md
+  requirement: "Desfecho pela marca subjugavel do spawn: chefe fica na lista inerte com Vida 0, hitstop de chefe 36 mais impact frame, chefe_vencido, abate e cura só no Exorcizar"
+  source: R9, R9b.1, R9b.2
+  adrs: [ADR-0010, ADR-0011, ADR-0015]
+  status: active
+  created: 2026-11-16
+- id: TR-chefes-013
+  system: chefes
+  gdd: design/gdd/chefes.md
+  requirement: "Escolha síncrona resolver_subjugado, creditar, limpar_camara_chefe; Câmaras como emissora única de camara_limpa; chefe_subjugado em s+37; escolha repetida ignorada"
+  source: R9b.3, R9b.4, R9b.5, R12
+  adrs: [ADR-0015, ADR-0002, ADR-0010]
+  status: active
+  created: 2026-11-16
+- id: TR-chefes-014
+  system: chefes
+  gdd: design/gdd/chefes.md
+  requirement: "Morte do jogador no mesmo passo tem precedência sobre vitória e subjugação"
+  source: Edge Cases, AC-CH-19
+  adrs: [ADR-0010, ADR-0015]
+  status: active
+  created: 2026-11-16
+- id: TR-chefes-015
+  system: chefes
+  gdd: design/gdd/chefes.md
+  requirement: "Barra de chefe no HUD lê Vida, vida_max, fase e subjugado, atualiza no mesmo passo, sem fio de Vida sob o chefe"
+  source: R10
+  adrs: [ADR-0012]
+  status: active
+  created: 2026-11-16
+- id: TR-chefes-016
+  system: chefes
+  gdd: design/gdd/chefes.md
+  requirement: "Impact frame de chefe com preempção, luz de chefe, leitura da Fase 2 e ganchos de áudio chefe_*"
+  source: CH-V1, CH-V2, CH-V3, CH-V4, CH-A1
+  adrs: [ADR-0011, ADR-0016]
+  status: active
+  created: 2026-11-16
+- id: TR-chefes-017
+  system: chefes
+  gdd: design/gdd/chefes.md
+  requirement: "Chefe mais lacaios dentro do teto de inimigos (9) e do teto de telégrafos (24)"
+  source: CH6
+  adrs: [ADR-0014, ADR-0003]
+  status: active
+  created: 2026-11-16
+- id: TR-vinculo-001
+  system: vinculo
+  gdd: design/gdd/vinculo-e-pactos.md
+  requirement: "PerfilVinculo injetado, escrito só pelo Vínculo, atravessa runs e sessões (escopo perfil)"
+  source: V1, V34
+  adrs: [ADR-0015, ADR-0001, ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-vinculo-002
+  system: vinculo
+  gdd: design/gdd/vinculo-e-pactos.md
+  requirement: "Sorteio do encontro ao criar a run no fluxo RNG novo pactos, consumo fixo de 4 reais mesmo com garantia"
+  source: V6, F1, V40
+  adrs: [ADR-0005, ADR-0015]
+  status: active
+  created: 2026-11-16
+- id: TR-vinculo-003
+  system: vinculo
+  gdd: design/gdd/vinculo-e-pactos.md
+  requirement: "Tela Escolha do Pacto antes da seed; seed nasce em dupla_confirmada; estado inicial inclui dupla e perfil"
+  source: V16, V16b, V40, V42
+  adrs: [ADR-0015, ADR-0005, ADR-0012]
+  status: active
+  created: 2026-11-16
+- id: TR-vinculo-004
+  system: vinculo
+  gdd: design/gdd/vinculo-e-pactos.md
+  requirement: "Encontro em câmara de combate normal, índices 1-2, no máximo 1 por run; consultas encontro_na_camara e encontro_aguardando sem RNG"
+  source: V4, V6, V41
+  adrs: [ADR-0015]
+  status: active
+  created: 2026-11-16
+- id: TR-vinculo-005
+  system: vinculo
+  gdd: design/gdd/vinculo-e-pactos.md
+  requirement: "Entidade acuada neutra, imóvel, sem fogo amigo, fora da câmara limpa, congela em hitstop, pausa e Transição"
+  source: V7, States
+  adrs: [ADR-0010, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-vinculo-006
+  system: vinculo
+  gdd: design/gdd/vinculo-e-pactos.md
+  requirement: "Alvo por paridade da ordem de nascimento, atração com prioridade, golpe só testa o seu alvo, troca de alvo no mesmo passo na fuga"
+  source: V8, V44
+  adrs: [ADR-0010, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-vinculo-007
+  system: vinculo
+  gdd: design/gdd/vinculo-e-pactos.md
+  requirement: "ferir_acuada com dano inteiro, sem hitstop, aplica M do atacante; falhar_encontro síncrono antes da varredura"
+  source: V12, V44
+  adrs: [ADR-0010]
+  status: active
+  created: 2026-11-16
+- id: TR-vinculo-008
+  system: vinculo
+  gdd: design/gdd/vinculo-e-pactos.md
+  requirement: "Telas de consentimento e do chefe no estado Bênção, mundo parado, pacto grava no fim do mesmo passo"
+  source: V9, V18
+  adrs: [ADR-0001, ADR-0012, ADR-0013, ADR-0015]
+  status: active
+  created: 2026-11-16
+- id: TR-vinculo-009
+  system: vinculo
+  gdd: design/gdd/vinculo-e-pactos.md
+  requirement: "Recompensa sai primeiro; Portas esperam pacto_resolvido antes de abrir (passo 2b)"
+  source: V9, V41
+  adrs: [ADR-0015, ADR-0002]
+  status: active
+  created: 2026-11-16
+- id: TR-vinculo-010
+  system: vinculo
+  gdd: design/gdd/vinculo-e-pactos.md
+  requirement: "Dupla cresce de 1 para 2 no meio da run, nova Maldição na reserva em Pronta"
+  source: V15, V43
+  adrs: [ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-vinculo-011
+  system: vinculo
+  gdd: design/gdd/vinculo-e-pactos.md
+  requirement: "Escolha Pactuar/Exorcizar no chefe subjugado com eventos chefe_escolhido e pacto_registrado"
+  source: V18, V32, V47
+  adrs: [ADR-0015, ADR-0002, ADR-0012]
+  status: active
+  created: 2026-11-16
+- id: TR-vinculo-012
+  system: vinculo
+  gdd: design/gdd/vinculo-e-pactos.md
+  requirement: "pontos_run só em memória com tetos; consolida em run_encerrada antes da tela final, emite vinculo_atualizado, depois grava"
+  source: V17, V20
+  adrs: [ADR-0015, ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-vinculo-013
+  system: vinculo
+  gdd: design/gdd/vinculo-e-pactos.md
+  requirement: "Sair no meio da run consolida como abandono com regra de derrota; encontro Aguardando vira pendente"
+  source: V20b, V18
+  adrs: [ADR-0013, ADR-0015]
+  status: active
+  created: 2026-11-16
+- id: TR-vinculo-014
+  system: vinculo
+  gdd: design/gdd/vinculo-e-pactos.md
+  requirement: "Bônus de nível aplicados só no começo da run pela fonte de modificador vinculo (vida_max, mult_recuperacao, bonus_dano_basico no básico)"
+  source: V19, V43, F4
+  adrs: [ADR-0009, ADR-0017]
+  status: active
+  created: 2026-11-16
+- id: TR-vinculo-015
+  system: vinculo
+  gdd: design/gdd/vinculo-e-pactos.md
+  requirement: "Conteúdo de [vinculo] via escrever/ler/campos_de_ids, sem float nem StringName, espécies na ordem do manifesto, nível como cache de F3"
+  source: V2, V30, V31, V46
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-vinculo-016
+  system: vinculo
+  gdd: design/gdd/vinculo-e-pactos.md
+  requirement: "ler() corrige só a entrada afetada, aviso VP-S1 uma vez por chave, nunca trava"
+  source: V33, V2
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-vinculo-017
+  system: vinculo
+  gdd: design/gdd/vinculo-e-pactos.md
+  requirement: "Valores de tuning vêm de VinculoTuning validado (VP1-VP9) e CurseDef.memorias do catálogo"
+  source: Formulas, VP1-VP9, V22
+  adrs: [ADR-0004]
+  status: active
+  created: 2026-11-16
+- id: TR-vinculo-018
+  system: vinculo
+  gdd: design/gdd/vinculo-e-pactos.md
+  requirement: "Telemetria com estado_inicial ampliado e eventos encontro_pacto, pacto e vinculo_fim_run"
+  source: V45
+  adrs: [ADR-0013, ADR-0002]
+  status: active
+  created: 2026-11-16
+- id: TR-save-001
+  system: save
+  gdd: design/gdd/save-e-perfil.md
+  requirement: "Perfil único 0 e arquivo user://perfil.cfg em ConfigFile, caminhos por CaminhosDePersistencia.de(0)"
+  source: R1, R2
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-save-002
+  system: save
+  gdd: design/gdd/save-e-perfil.md
+  requirement: "RepositorioDePerfil com carregar sem falha e salvar com Error, gravação só por gravar_atomico do ArmazemDeArquivos"
+  source: R2, R7, AC-SP-24
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-save-003
+  system: save
+  gdd: design/gdd/save-e-perfil.md
+  requirement: "Seção [vinculo] opaca com contrato ler/escrever, especies com chave = id, campos_de_ids; seções futuras com o mesmo contrato"
+  source: R3, R15, AC-SP-02
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-save-004
+  system: save
+  gdd: design/gdd/save-e-perfil.md
+  requirement: "Carga uma vez por sessão depois do catálogo Pronto e antes da escolha de arma, em sequência pura"
+  source: R4
+  adrs: [ADR-0013, ADR-0015, ADR-0004]
+  status: active
+  created: 2026-11-16
+- id: TR-save-005
+  system: save
+  gdd: design/gdd/save-e-perfil.md
+  requirement: "Catálogo em Falhou deixa o Save em Sem gravação, sem ler nem gravar o perfil"
+  source: States, AC-SP-21
+  adrs: [ADR-0013, ADR-0004]
+  status: active
+  created: 2026-11-16
+- id: TR-save-006
+  system: save
+  gdd: design/gdd/save-e-perfil.md
+  requirement: "Gatilhos de gravação: pacto_registrado, run_encerrada (vitória, derrota, abandono), Sair, reset, dupla escolhida"
+  source: R5, AC-SP-06
+  adrs: [ADR-0015, ADR-0002, ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-save-007
+  system: save
+  gdd: design/gdd/save-e-perfil.md
+  requirement: "Gatilho marca pendente; grava no fim de passo fora de Jogo, nunca no meio dos eventos; gatilhos coalescidos em uma gravação"
+  source: R5.1, R5.3, AC-SP-04, AC-SP-05
+  adrs: [ADR-0013, ADR-0001, ADR-0002, ADR-0015]
+  status: active
+  created: 2026-11-16
+- id: TR-save-008
+  system: save
+  gdd: design/gdd/save-e-perfil.md
+  requirement: "Só grava se o texto mudou; texto determinístico byte a byte e sem dados pessoais"
+  source: R5.2, R2, AC-SP-03, AC-SP-23
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-save-009
+  system: save
+  gdd: design/gdd/save-e-perfil.md
+  requirement: "schema_version (ausente = 1) e cadeia pura de migração com migrações de conteúdo do dono; carga não grava"
+  source: R6, AC-SP-12
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-save-010
+  system: save
+  gdd: design/gdd/save-e-perfil.md
+  requirement: "Falha ao gravar mantém estado em memória, PERSIST_FALHA_GRAVAR uma vez por sessão, sem laço de nova tentativa"
+  source: R7, AC-SP-07
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-save-011
+  system: save
+  gdd: design/gdd/save-e-perfil.md
+  requirement: "Arquivo ausente, corrompido (cópia .bak incremental) ou de versão futura, com modo Sem gravação"
+  source: R8, AC-SP-08..11, AC-SP-16, AC-SP-17
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-save-012
+  system: save
+  gdd: design/gdd/save-e-perfil.md
+  requirement: "Ids desconhecidos viram órfãs regravadas; ids de campos_de_ids viram vazio; chaves e seções desconhecidas preservadas na escrita"
+  source: R9, AC-SP-13..15
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-save-013
+  system: save
+  gdd: design/gdd/save-e-perfil.md
+  requirement: "Interceptar fechar a janela, consolidar abandono e gravar antes de sair; falha mostra PERFIL_SAIR_SEM_SALVAR"
+  source: R10, AC-SP-20
+  adrs: [ADR-0013, ADR-0015, ADR-0012]
+  status: active
+  created: 2026-11-16
+- id: TR-save-014
+  system: save
+  gdd: design/gdd/save-e-perfil.md
+  requirement: "Reset com duas confirmações e cópia .reset.bak, cancelado se a cópia falhar, sem tocar outros arquivos"
+  source: R11, AC-SP-18, AC-SP-19
+  adrs: [ADR-0013, ADR-0012]
+  status: active
+  created: 2026-11-16
+- id: TR-save-015
+  system: save
+  gdd: design/gdd/save-e-perfil.md
+  requirement: "exportar_texto e importar_texto com a validação da carga, sem tela no MVP"
+  source: R12, AC-SP-22
+  adrs: [ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-save-016
+  system: save
+  gdd: design/gdd/save-e-perfil.md
+  requirement: "Build de playtest lê e grava o perfil; PerfilNulo injetável sem if no Save"
+  source: R13
+  adrs: [ADR-0013, ADR-0001]
+  status: active
+  created: 2026-11-16
+- id: TR-save-017
+  system: save
+  gdd: design/gdd/save-e-perfil.md
+  requirement: "Lógica pura injetada pelo Main sem Autoload, testes com ArmazemEmMemoria, só thread principal"
+  source: R14
+  adrs: [ADR-0001, ADR-0013]
+  status: active
+  created: 2026-11-16
+- id: TR-save-018
+  system: save
+  gdd: design/gdd/save-e-perfil.md
+  requirement: "Avisos PERFIL_* uma vez por sessão só fora de Jogo, navegáveis por teclado e gamepad"
+  source: UI Requirements
+  adrs: [ADR-0012]
+  status: active
+  created: 2026-11-16

@@ -1,8 +1,8 @@
 # Conteúdo orientado a dados
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — emenda de 2026-11-15 (tipos `CurseDef`, `BossPatternDef`, `MaldicoesTuning`, `VinculoTuning`, `ChefesTuning`; forma `chamado`; prefixos ML, VP, CH, HU15–HU17, AV9, RN2/RN3; R1-P a R11-P, AC-53 a AC-60, OQ 9–10). Antes: Approved (2026-11-11: `RewardTable` com os campos de Portas e recompensas (cura do Santuário passa ao `RoomTuning`); `RoomTuning` na R1 e em Interactions, do GDD de Câmaras; `IATuning` e o máximo de elites por onda na R1 e em Interactions, do GDD de IA; `TelegraphTuning` na R1 e em Interactions, do GDD de Telégrafos; 2026-11-10: o empurrão do projétil da arma passa a ser o do `AttackDef` (Armas R2), com aval do usuário, sem mudar regra; 4ª re-review independente de 2026-11-06, lean: APPROVED; C-B1 e S-B1 do `/review-all-gdds` resolvidos; warnings da 2ª passada do cross-review aplicados em 2026-11-06 — AC-39 por token inteiro, params da `recusa`, retirada do Tuning ao sair de Pronto — com o status mantido por decisão do usuário)
-> **Author**: usuário + Claude (design-system)
-> **Last Updated**: 2026-11-15 (emenda Pactos)
+> **Status**: Approved
+> **Author**: usuário + Claude (design-system; emenda Pactos aprovada pelo usuário em 2026-11-16)
+> **Last Updated**: 2026-11-15 (emenda Pactos: tipos `CurseDef`, `BossPatternDef`, `MaldicoesTuning`, `VinculoTuning`, `ChefesTuning`; forma `chamado`; prefixos ML, VP, CH, HU15–HU17, AV9, RN2/RN3; R1-P a R11-P, AC-53 a AC-60, OQ 9–10)
 > **Last Verified**: 2026-11-06
 > **Implements Pillar**: P1 *Toda bênção é uma filosofia* (indireto: sustenta todos os pilares)
 

@@ -1,8 +1,8 @@
 # RNG com seed
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — emenda de 2026-11-15: finalidade 9 `pactos`, estado inicial com a dupla e o perfil de vínculo, seed depois da dupla (R2-P, R3-P, R7-P, States, F2, AC-36 a AC-40). Antes: Approved (re-review `/design-review` de 2026-11-05: APPROVED; ver `reviews/rng-com-seed-review-log.md`)
-> **Author**: usuário + Claude (design-system)
-> **Last Updated**: 2026-11-15 (emenda Pactos)
+> **Status**: Approved
+> **Author**: usuário + Claude (design-system; emenda Pactos aprovada pelo usuário em 2026-11-16)
+> **Last Updated**: 2026-11-18 (vetor de referência de `pactos` em F2, Vetores de referência, AC-08 e AC-36); 2026-11-15 (emenda Pactos: finalidade 9 `pactos`, estado inicial com a dupla e o perfil de vínculo, seed depois da dupla — R2-P, R3-P, R7-P, States, F2, AC-36 a AC-40)
 > **Last Verified**: 2026-11-05
 > **Implements Pillar**: P3 *Reflexo que se lê* (indireto: bugs e playtests reproduzíveis); P1/P2 (sorteios justos de bênção e porta)
 
@@ -384,7 +384,9 @@ O pré-mix da seed evita que seeds vizinhas troquem fluxos entre si. Risco
 aceito: dois fluxos de 32 bits podem se sobrepor deslocados, com chance da ordem
 de 0,08% por run, imperceptível.
 **Example:** seed `3F9A07C2`, finalidade 4 (`portas`), região 0, profundidades
-0–4 → `0EC3245B`, `3043CE64`, `CFBE45BC`, `B0B08409`, `83C51646`. Seed 0,
+0–4 → `0EC3245B`, `3043CE64`, `CFBE45BC`, `B0B08409`, `83C51646`. Seed
+`3F9A07C2`, finalidade 9 (`pactos`), região 0, profundidade 0 → `930387A6`
+(passos 1–4 de `u`: `0602A893`, `34D3D1BA`, `5A2B71C3`, `8E90077B`). Seed 0,
 finalidade 1, região 0, profundidade 0 → `E8A7E13D`. `fmix32(1)` = `514E28B7`.
 
 ### F3. Real em [0, 1)
@@ -537,6 +539,7 @@ implementação.
 | F1, seed `3F9A07C2`, passos 1–5 (u) | `0865C80A`, `D260910A`, `B37DB9FA`, `91FD7BCE`, `7A515CDF` | Python = Godot = Node |
 | F2 fmix32(0 / 1 / FFFFFFFF) | `00000000` / `514E28B7` / `81F16F39` | Python = Godot |
 | F2 (`3F9A07C2`, 4, 0, 0…4) | `0EC3245B`, `3043CE64`, `CFBE45BC`, `B0B08409`, `83C51646` | Python = Godot |
+| F2 (`3F9A07C2`, 9 `pactos`, 0, 0) e F1 passos 1–4 (u) | `s0 = 930387A6`; u = `0602A893`, `34D3D1BA`, `5A2B71C3`, `8E90077B` | Python = Godot |
 | F2 (0, 1, 0, 0) | `E8A7E13D` | Python = Godot |
 | F4 a partir de `B0B08409`, n = 6 / 100 | 0 / 13 (estado `1DDBFDFE`) | Python = Godot = Node (cânone `randomInt`) |
 | F4, n = 100, u = 42949672 / 42949673 / `80000000` / `FFFFFFFF` | 0 / 1 / 50 / 99 | Python = Godot = Node |
@@ -760,7 +763,7 @@ uma seed.
 - **AC-07 [L]** `fmix32(0 / 1 / FFFFFFFF)` = `00000000` / `514E28B7` /
   `81F16F39`.
 - **AC-08 [L]** (`3F9A07C2`, 4, 0, 0…4) → `0EC3245B 3043CE64 CFBE45BC B0B08409
-  83C51646`; (0, 1, 0, 0) → `E8A7E13D`.
+  83C51646`; (`3F9A07C2`, 9, 0, 0) → `930387A6`; (0, 1, 0, 0) → `E8A7E13D`.
 - **AC-09 [L]** Para as seeds 0, `3F9A07C2` e `FFFFFFFF`, as profundidades
   0…1023 dão 1024 estados distintos.
 - **AC-10 [L]** As seeds −1 e 2³² + 5, passando pela fronteira, derivam o mesmo
@@ -895,9 +898,9 @@ uma seed.
 - **AC-36 [L] R3-P — finalidade 9.** **GIVEN** uma fonte com seed fixa **WHEN** se
   pede (`pactos`, 0, 0) **THEN** o fluxo nasce pela F2 com finalidade 9 **AND** o
   seu `s0` difere dos de (finalidade 1–8, 0, 0) com a mesma seed **AND** pedir de
-  novo o mesmo trio continua de onde parou. O vetor de referência de
-  (`pactos`, 0, 0) com a seed `3F9A07C2` é calculado pelo mesmo script de paridade
-  dos Vetores de referência e entra nessa tabela antes da story.
+  novo o mesmo trio continua de onde parou. Com a seed `3F9A07C2`, (`pactos`, 0, 0)
+  deriva `s0 = 930387A6` e os 4 primeiros passos F1 produzem `u = 0602A893,
+  34D3D1BA, 5A2B71C3, 8E90077B` (tabela de Vetores de referência).
 - **AC-37 [L] R3-P/R4b — consumo fixo.** **GIVEN** um dono falso de Vínculo que
   lê 4 reais **WHEN** (a) G1 verdadeiro (garantia) e (b) nenhuma garantia e
   `u0 ≥ chance_encontro` (sem encontro) **THEN** nos dois casos o fluxo avançou

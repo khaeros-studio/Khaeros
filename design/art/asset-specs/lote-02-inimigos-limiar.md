@@ -172,3 +172,18 @@ Em todas as folhas: só o corpo, sem estilhaço, partícula, fumaça, poeira nem
 - **Faz a coroa trançada como cipó:** pedir espinhos retos.
 - **Escala varia por folha:** calcular `s` por folha e montar a prancha a 90 px antes de fechar.
 - **Downloads:** pedir em PNG.
+
+---
+
+## 6. Fechamento Runtime e Prancha de Revisão (2026-11-15)
+
+Todos os 3 inimigos do Lote 02 e o conjunto de Peças de Elite (`X0`) foram processados, validados por `tools/art/validate_runtime_atlases.gd` e integrados em `src/presentation/world_view.gd`:
+
+| Ator / Conjunto | Atlas Runtime (`400×400` por célula, pivô `(200, 320)`) | SpriteFrames `.tres` | Escala Runtime (`1.0×`) | Notas de Integração |
+|---|---|---|---|---|
+| **Eco Perdido** | `assets/art/runtime/eco_perdido/eco_perdido_atlas_v01.png` | `eco_perdido_frames_v01.tres` (44 frames, 16 anims) | `0.4174` (~96 px alt.) | Sem sombra de contato (Art Bible §5.5). |
+| **Anomalia Menor** | `assets/art/runtime/anomalia_menor/anomalia_menor_atlas_v01.png` | `anomalia_menor_frames_v01.tres` (44 frames, 16 anims) | `0.3333` (~90 px larg.) | Emissor magenta `#E0259C` / `#F070C0` desenhado acima das placas e abaixo da coroa. |
+| **Fenda Errante** | `assets/art/runtime/fenda_errante/fenda_errante_atlas_v01.png` | `fenda_errante_frames_v01.tres` (44 frames, 16 anims) | `0.4400` (~110 px larg.) | Chaveamento `#00FF00` na folha `F2 costas v02` com despill `#0D0E14`. |
+| **Peças de Elite (`X0`)** | `assets/art/runtime/elite_pecas/elite_pecas_atlas_v01.png` | `elite_pecas_frames_v01.tres` (6 frames, 6 anims) | `0.135..0.250 × 1.15` | `coroa_*` e `placas_*` substituem a coroa procedural em `world_view.gd`, herdando `flip_x`, `modulate` (`spawn`/`hurt`) e queda no efeito `death`. |
+
+- **Prancha de revisão unificada (`90 px` / `48 px`):** `production/qa/evidence/assets-lote-02-2026-11-14/prancha_revisao_90px_lote02.png`.

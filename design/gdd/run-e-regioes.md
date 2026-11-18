@@ -1,8 +1,8 @@
 # Run e regiões
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — antes: Approved (2026-11-11; revisão única por subagente: 5 bloqueantes e 11 recomendadas, corrigidos sem re-review; sem entrada no review log)
-> **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-15 (emenda Pactos)
+> **Status**: Approved
+> **Author**: usuário + Claude (design-system, modo Lean; emenda Pactos aprovada pelo usuário em 2026-11-16)
+> **Last Updated**: 2026-11-18 (consolidação de decisões aprovadas em 2026-11-16); 2026-11-15 (emenda Pactos)
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P2 *A Beira cobra*; P4
 
@@ -20,7 +20,7 @@
 > (`maldicoes.md` R2). O texto antigo fica. Cada trecho novo leva a marca
 > "(emenda Pactos, 2026-11-15)" e diz o que substitui. Mudam: Summary, Overview, R1–R5,
 > R7, R8, R11, estados, interações, F1, F2, knobs, Edge Cases, Dependencies, ACs e OQs.
-> Decisões próprias desta emenda estão marcadas **[a confirmar]**.
+> Decisões próprias desta emenda foram aprovadas pelo usuário em 2026-11-16.
 
 ## Summary
 
@@ -130,7 +130,7 @@ uma parte do passo 3:
    lembrança da última) são de **Vínculo e pactos**; `maldicoes.md` R2 diz só que a
    1ª escolhida começa em campo e a 2ª na reserva. A Run espera
    `dupla_confirmada(campo, reserva)`; `reserva` e `campo` podem vir vazios. Contrato
-   pedido a Vínculo e pactos. **[a confirmar]** Quando a tela aparece:
+   pedido a Vínculo e pactos. Quando a tela aparece:
    - ~~0 espécies pactuadas: sem tela; dupla vazia; o Iniciado luta só com a Besta
      (`maldicoes.md` R2);~~ (emenda Pactos, 2026-11-15) 0 espécies pactuadas: o
      Vínculo V3 concede o Vulto Mudo e segue como dupla de 1, sem tela
@@ -160,7 +160,7 @@ reservado:
   com `p = 4` (Chefes R2).
 - Montar o índice 6 deixa de ser erro. RN3 passa a valer para índice
   `≥ camaras_jogaveis`.
-- **Índice 5 vira câmara de combate comum [a confirmar].** Ele deixa de ser a
+- **Índice 5 vira câmara de combate comum.** Ele deixa de ser a
   "última câmara jogável" das Portas (R2 passo 1b, R6):
   - a porta depois do índice 4 deixa de ser a forçada `ultima` e vira escolha livre;
   - limpar o índice 5 dá a recompensa dessa porta (Fragmentos com `p = 4`: `2 +
@@ -171,7 +171,7 @@ reservado:
   chefe também tem uso real. Contrato pedido a Portas (R2 1b, R6, F2: 4 escolhas
   livres). ~~Conflito com Chefes F6, que conta "até 7 de portas": ver F2-P.~~
   (emenda Pactos, 2026-11-15) Conflito resolvido: Chefes F6 foi emendado e conta
-  10/25/31, como F2-P. O **[a confirmar]** do índice 5 continua.
+  10/25/31, como F2-P.
 
 **R4. Vitória.** Vale quando chega `camara_limpa(p, tipo)` com `i = camaras_jogaveis
 − 1`. (O santuário, índice 3, emite o mesmo evento e **não** encerra a run.) Em
@@ -216,7 +216,7 @@ chefe deixam de ser reservados.
    não evento lógico.)
 4. **Run em `Subjugado`.** A run continua **Ativa** até `camara_limpa(4, chefe)`. A
    pausa abre, mas **"Abandonar run" fica desabilitado** de `chefe_subjugado` até a
-   vitória, como em Bênção (R6): a escolha não se abandona no meio **[a confirmar]**.
+   vitória, como em Bênção (R6): a escolha não se abandona no meio.
 5. **Índice 3 e índice 5** emitem `camara_limpa` e **não** encerram a run.
 
 **R5. Morte.** `jogador_morreu` (Combate R13) congela o jogo e encerra a run com
@@ -264,7 +264,7 @@ Ficam **fora do reset**, como o saldo: o **registro de pactos e o vínculo** de 
 espécie (dono: Vínculo e pactos; `maldicoes.md` R14: "ao fim da run nada passa
 adiante, exceto o vínculo"). Vale para vitória, morte e abandono. Um pacto feito na
 run (encontro especial ou chefe) **fica** mesmo se a run acabar em morte ou abandono
-**[a confirmar; dono da regra: Vínculo e pactos]**. A Nova run volta a Escolha de
+(dono da regra: Vínculo e pactos). A Nova run volta a Escolha de
 arma com a última arma marcada e, com Pactos, pede a dupla de novo (R2-P 1b).
 
 **R9. `p_max`.** A Run **lê** o `p_max(região)` das Câmaras (dono único: Câmaras R3;
@@ -364,7 +364,7 @@ R2; Câmaras R3).
 - `frag_chefe = 6` se o chefe foi abatido ou exorcizado;
 - `frag_chefe = 0` se foi pactuado, ou se a run não chegou ao desfecho (Chefes F6).
 
-Portas com o índice 5 recompensado **[a confirmar, R3-P]**: Fragmentos nos índices 1,
+Portas com o índice 5 recompensado (R3-P): Fragmentos nos índices 1,
 2, 4 e 5, com `p` 1, 2, 3 e 4 = **2, 2, 3, 3** (máx. 10).
 
 | Caso | Portas | Chefe | Vitória | Total |
@@ -378,8 +378,7 @@ Portas com o índice 5 recompensado **[a confirmar, R3-P]**: Fragmentos nos índ
 
 ~~Se o índice 5 **não** for recompensado (leitura de Chefes F6): portas máx. 7, totais
 28 / 28 / 22 / 21 / 15 / 7.~~ (emenda Pactos, 2026-11-15) Chefes F6 foi emendado
-(10/25/31) e já segue esta tabela. Se o usuário recusar o índice 5 recompensado
-(**[a confirmar]** de R3-P), valem portas máx. 7 e totais 28 / 28 / 22 / 21 / 15 / 7.
+(10/25/31) e já segue esta tabela (aprovado em 2026-11-16).
 
 ## Tuning Knobs
 
@@ -434,7 +433,7 @@ montar o índice 6: RN3" acima valem só com `camaras_jogaveis = 6`. Com 7:
   Besta (`maldicoes.md` R2). `dupla` no resumo fica vazia.~~ **0 espécies pactuadas
   (emenda Pactos, 2026-11-15):** o Vínculo V3 concede o Vulto Mudo; sem tela; a run
   segue como dupla de 1 (`dupla_confirmada(vulto_mudo, "")`). Dupla vazia só com dublê.
-- **1 espécie pactuada:** sem tela; ela vai a campo, sem reserva **[a confirmar]**.
+- **1 espécie pactuada:** sem tela; ela vai a campo, sem reserva.
 - **Esc na tela da dupla:** volta à escolha de arma; nenhuma seed criada.
 - **`dupla_confirmada` com espécie não pactuada ou repetida:** a Run recusa, fica em
   Escolha da dupla e registra o erro (a validação da dupla é de Vínculo e pactos;

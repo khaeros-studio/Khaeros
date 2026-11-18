@@ -1,6 +1,7 @@
 # Cena 3/4 e câmera
 
-> **Status**: Approved (2026-11-10: correções de contrato do `/review-all-gdds` 3ª passada — C-B1, camada `contorno de telégrafo` em z 5 e 11 camadas; S-B1, corte da câmera no quadro da metade do wipe, no estado Transição; mantido Approved por decisão do usuário. Antes: re-review de 2026-11-08: APPROVED, 0 bloqueantes, depois dos warnings do `/review-all-gdds` de 2026-11-06 — C-W6 a C-W9, C-I2, C-I3)
+> **Status**: Approved
+> **Status anterior**: Approved (2026-11-10: correções de contrato do `/review-all-gdds` 3ª passada — C-B1, camada `contorno de telégrafo` em z 5 e 11 camadas; S-B1, corte da câmera no quadro da metade do wipe, no estado Transição; mantido Approved por decisão do usuário. Antes: re-review de 2026-11-08: APPROVED, 0 bloqueantes, depois dos warnings do `/review-all-gdds` de 2026-11-06 — C-W6 a C-W9, C-I2, C-I3)
 > **Author**: usuário + Claude (design-system)
 > **Last Updated**: 2026-11-10 (C-B1 e S-B1 do cross-review: R4, R10, AC-09, AC-10, AC-22, OQ1). Antes, 2026-11-08 (re-review: justificativa do hitstop sem `time_scale` corrigida na R7, relógio injetado na R12 e AC-28, caso sem `CameraTuning` em Edge Cases e AC-39). Antes, 2026-11-06: hitstop sem `time_scale`, hitstop como referência ao `CombatTuning`, `unit_to_px` só na importação, OQ8 fechada
 > **Last Verified**: 2026-11-08

@@ -1,8 +1,8 @@
 # Telégrafos
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — antes: Approved (2026-11-11; revisão única por subagente, 5 bloqueantes corrigidos sem re-review; sem entrada no review log)
-> **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-15 (decisões do usuário via ADR-0014: troca de câmara libera na hora, leitura do AC-TG-09, mira com distância 0); 2026-11-15 (emenda Pactos: alvo travado, teste contra o alvo, dimensões pelo raio do alvo, padrões do chefe, cancelamento na `TransicaoFase` — R2a, R2b, R5a, R6a, R7a, F7; alinhado depois a Chefes R3 emendado: todo golpe do chefe testa só o alvo travado)
+> **Status**: Approved
+> **Author**: usuário + Claude (design-system, modo Lean; emenda Pactos aprovada pelo usuário em 2026-11-16)
+> **Last Updated**: 2026-11-18 (consolidação de decisões aprovadas em 2026-11-16); 2026-11-15 (decisões do usuário via ADR-0014: troca de câmara libera na hora, leitura do AC-TG-09, mira com distância 0); 2026-11-15 (emenda Pactos: alvo travado, teste contra o alvo, dimensões pelo raio do alvo, padrões do chefe, cancelamento na `TransicaoFase` — R2a, R2b, R5a, R6a, R7a, F7; alinhado depois a Chefes R3 emendado: todo golpe do chefe testa só o alvo travado)
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P3 *Reflexo que se lê* (de onde vem o golpe e quando)
 
@@ -166,8 +166,7 @@ Com alvo travado na Maldição, as dimensões dos comuns saem da F7 (emenda Pact
   é usada.
 - **Contorno do puxão:** o tracejado de 420 px faz parte do mesmo telégrafo
   (um por dono, R1). É um segundo contorno, sem preenchimento, e não conta no
-  teto. **[a confirmar]** — contrato pedido ao Pipeline visual (contorno
-  tracejado secundário).
+  teto (Pipeline R5a, Telégrafos R5a).
 - **Projéteis radiais:** os 12 projéteis do Padrão 2 não têm faixa própria. O
   anel é o aviso da rajada e, em voo, o projétil é a leitura (como o avanço
   depois de 2 passos). Exceção declarada ao "todo projétil tem faixa". ~~Cada um
@@ -175,9 +174,8 @@ Com alvo travado na Maldição, as dimensões dos comuns saem da F7 (emenda Pact
   Maldição) e some.~~ **Substituído (emenda Pactos, 2026-11-15; Chefes R3,
   R5.3):** cada projétil leva o alvo travado do padrão, só acerta esse alvo
   (Combate R7, com o raio dele) e atravessa o outro, como na R6a.
-- ~~**Retângulo do Padrão 1 e Maldição grande:** a envoltória usa o raio do
-  jogador (Chefes F2). [...] **[a confirmar]**~~ **Resolvido (emenda Pactos,
-  2026-11-15):** Chefes R5.2 e F2 passaram a `R_c = 45 + raio do alvo
+- **Retângulo do Padrão 1 e Maldição grande (resolvido em 2026-11-15):**
+  Chefes R5.2 e F2 passaram a `R_c = 45 + raio do alvo
   travado`. Com só o alvo testado, a envoltória é a F4/F7 com o raio dele
   (*Baluarte* 75 px: 420 × 150 px) e o desenho nunca é menor que o perigo.
 

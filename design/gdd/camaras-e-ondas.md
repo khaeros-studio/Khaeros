@@ -1,9 +1,9 @@
 # Câmaras e ondas
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16)
-> **Status anterior**: Approved (2026-11-11; revisão única por subagente, 3 bloqueantes corrigidos sem re-review; sem entrada no review log)
+> **Status**: Approved
+> **Status anterior**: Approved (2026-11-11; emenda Pactos aprovada pelo usuário em 2026-11-16)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-15 (emenda Pactos: R1-P a R20-P, F6, Edge Cases, Dependencies e AC-CO-28 a AC-CO-43)
+> **Last Updated**: 2026-11-18 (consolidação de decisões aprovadas em 2026-11-16); 2026-11-15 (emenda Pactos: R1-P a R20-P, F6, Edge Cases, Dependencies e AC-CO-28 a AC-CO-43)
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P3 *Reflexo que se lê* (arena legível); P2 *A Beira cobra*
 
@@ -239,7 +239,7 @@ A chave do RNG da câmara do chefe é o índice 6, mas ela não pede nenhum flux
    `pos_entrada_maldicao` (F6) e pedem `reposicionar_maldicao(pos)` às Maldições,
    que fazem o resto da Maldições R14 (atração, imobilização e marca terminam;
    Vida, estado e recargas ficam). É o ponto a `distancia_seguir_px` **atrás** do
-   jogador, isto é, abaixo dele, do lado oposto às portas **[a confirmar]**
+   jogador, isto é, abaixo dele, do lado oposto às portas
    (Maldições, Edge Cases: "atrás do jogador na entrada"). Não consome RNG e não
    muda nenhum sorteio;
 2. o layout é gerado (R5; fixo no santuário e no chefe) e as ondas são compostas
@@ -258,7 +258,7 @@ A chave do RNG da câmara do chefe é o índice 6, mas ela não pede nenhum flux
   do encontro, a IA usa a paridade de `ordem` para o alvo padrão (Vínculo V8,
   contrato V44 com a IA): par mira a acuada, ímpar mira o jogador. Fora do
   encontro, `ordem` não muda nada;
-- **distância da acuada [a confirmar]:** na câmara do encontro, enquanto a acuada
+- **distância da acuada:** na câmara do encontro, enquanto a acuada
   está no estado `Acuada`, um candidato de nascimento também precisa estar a
   **mais de** `spawn_dist_acuada_px` (240) de `pos_acuada` (F3-P). Motivo: um
   inimigo que nasce colado na acuada a fere antes que o jogador leia a onda; com
@@ -288,8 +288,8 @@ congelado pelo hitstop e os projéteis já foram removidos (Combate R24).
 **R11-P. Última câmara jogável e encontro.** Substitui o parêntese da R11.3:
 - a **última câmara jogável** do Limiar passa a ser o **chefe (índice 6)**: não dá
   recompensa de Portas e não tem portas (Portas R2 1b, Run R4-P);
-- o **índice 5** vira câmara de combate comum **[a confirmar, Run R3-P e OQ 10 da
-  Run]**: dá a recompensa da porta escolhida depois do índice 4 e abre a porta
+- o **índice 5** vira câmara de combate comum (Run R3-P e OQ 10 da
+  Run): dá a recompensa da porta escolhida depois do índice 4 e abre a porta
   forçada `chefe`;
 - na **câmara do encontro**, as Portas concedem a recompensa e depois esperam
   `pacto_resolvido` antes de pedir as portas (Portas R2 passo 2b). A câmara fica
@@ -521,7 +521,7 @@ escolhe o primeiro `C_i` com `válido_P`; se nenhum, `C_K` (como na F3)
 | válido(C) | bool | — | F3 | regra antiga (jogador e pedras) |
 | acuada_presente | bool | — | Vínculo e pactos | câmara do encontro com a acuada no estado `Acuada` |
 | pos_acuada | Vector2 | um dos 5 `pontos_acuada` | Vínculo V7 | posição fixa da acuada |
-| d_acuada | float | 0–390 (240) | data file | `spawn_dist_acuada_px` (`RoomTuning`) **[a confirmar]**; 0 desliga |
+| d_acuada | float | 0–390 (240) | data file | `spawn_dist_acuada_px` (`RoomTuning`); 0 desliga |
 
 **Output Range:** um ponto da câmara. Consumo do fluxo `spawn` igual ao da F3 (2K
 reais por inimigo). Com a acuada em (960; 540) e o jogador na entrada, o
@@ -870,7 +870,7 @@ contrariam os abaixo (portas do Limiar e chefe reservado foram substituídos).
 | 9 | Índice: linha 16 com Combate, Portas e Run em Depends On | usuário / producer | próxima edição do índice |
 | 10 | O alvo de dano recebido por câmara (IA R12, 0,25 da Vida) e `invuln_atingido_s` (Combate, 40 passos) só se verificam em jogo; a alavanca é a composição por orçamento (F1) (D-W14) | Telemetria / `/balance-check` | primeiro playtest |
 | 11 *(emenda Pactos)* | ~~Índice 5 comum com recompensa (Run R3-P) vs. Chefes F6 ("até 7 de portas"): a R11-P e a R13-P seguem a Run; se o usuário escolher "índice 5 sem recompensa", a porta depois do 4 volta a ser forçada (sem ícone)~~ **Resolvida:** Chefes F6 foi emendado com o índice 5 recompensado (10/25/31); a R11-P e a R13-P ficam como estão | usuário; Run; Chefes | ~~antes de aprovar a emenda~~ — |
-| 12 *(emenda Pactos)* | `spawn_dist_acuada_px` 240 e a regra em si (R7-P) **[a confirmar]** | usuário / level-designer | primeiro playtest do encontro |
-| 13 *(emenda Pactos)* | Maldição "atrás" = abaixo do jogador na entrada (F6) **[a confirmar]** | usuário / Maldições | revisão da emenda |
+| 12 *(emenda Pactos)* | `spawn_dist_acuada_px` 240 e a regra em si (R7-P; aprovada em 2026-11-16, validar sensação no 1º playtest) | usuário / level-designer | primeiro playtest do encontro |
+| 13 *(emenda Pactos)* | ~~Maldição "atrás" = abaixo do jogador na entrada (F6)~~ **Resolvida (2026-11-16):** sim, abaixo do jogador na entrada | — | — |
 | 14 *(emenda Pactos)* | ~~Nome da chamada `limpar_camara_chefe()` e quem emite `camara_limpa(4, chefe)` (Chefes R9 diz "as Câmaras emitem" num ramo e "emite" no outro): contrato pedido a Chefes~~ **Resolvida:** Chefes R9b fecha o contrato: só as Câmaras emitem `camara_limpa(4, chefe)`; com Pactos, os Chefes chamam `limpar_camara_chefe()` depois de `resolver_subjugado(id, escolha)`; fora de Pactos, sai pela lista vazia | Chefes | ~~próxima edição de Chefes~~ — |
 | 15 *(emenda Pactos)* | Campo `ordem` no nascimento: contrato pedido à IA (V44) | IA de inimigos e elites | emenda da IA |

@@ -144,18 +144,26 @@ Gere uma IMAGEM nova de FOLHA DE PEÇAS ISOLADAS: objetos soltos, sem nenhum per
 
   Tudo isso precisa de spec e de prompts revisados antes de gerar.
 
-## 6. Controle
+## 6. Controle (Lote 02 Concluído e Empacotado em Runtime)
 
 | Folha | Conversa (URL) | Arquivo salvo | OK? | Observação |
 |---|---|---|---|---|
+| E0 ficha | — | [v01 JPG](../../../assets/art/source/raw/enm_eco_perdido_ficha_raw_v01.jpg) | Aceita | Referência base canônica do Eco Perdido (capuz em gancho, furo no peito, sem pés, sem sombra de contato). |
+| E1 frente | — | [v01 JPG](../../../assets/art/source/raw/enm_eco_perdido_spawnrun_frente34_raw_v01.jpg) | Aceita com retoque leve | 12 poses em 6×2 empacotadas em `eco_perdido_frames_v01.tres`. Imperceptível a 90 px: pequenos respingos acima do capuz em `run` 4 e 6. |
+| E2 frente | — | [v02 JPG](../../../assets/art/source/raw/enm_eco_perdido_ataquemorte_frente34_raw_v02.jpg) | Aceita | 10 poses em 5×2 limpas (`windup`, `attack`, `recover`, `hurt`, `death`). |
+| E1 costas | — | [v02 JPG](../../../assets/art/source/raw/enm_eco_perdido_spawnrun_costas34_raw_v02.jpg) | Aceita | 12 poses em 6×2 todas de costas (rosto oculto, furo dorsal visível). |
+| E2 costas | — | [v01 JPG](../../../assets/art/source/raw/enm_eco_perdido_ataquemorte_costas34_raw_v01.jpg) | Aceita | 10 poses em 5×2 de costas consistentes com E2 frente. |
 | A0 ficha | — | [Referência ampliada](../../../assets/art/source/ref/enm_anomalia_menor_ref_chatgpt_v01_upscale.png) | Referência escolhida | Decisão registrada na especificação do lote. |
-| A1 frente | [Gemini](https://gemini.google.com/app/8a99600cfc4edbb3) | [v01 JPG](../../../assets/art/source/raw/enm_anomalia_menor_spawnrun_frente34_raw_v01.jpg) | Em revisão | 12 poses em 3×4. As poses 2 e 3 mostram a criatura de costas. |
-| A2 frente | — | — | Pendente | Arquivo ausente na pasta do projeto. |
-| A1 costas | — | — | Pendente | Arquivo ausente na pasta do projeto. |
-| A2 costas | — | — | Pendente | Arquivo ausente na pasta do projeto. |
-| F0 ficha | — | — | Pendente de salvar | O chat menciona uma referência aprovada. O arquivo original ainda precisa ser localizado na conversa. |
-| F1 frente | — | — | Pendente | Arquivo ausente na pasta do projeto. |
-| F2 frente | — | — | Pendente | Arquivo ausente na pasta do projeto. |
-| F1 costas | — | — | Pendente | Arquivo ausente na pasta do projeto. |
-| F2 costas | [Criar ficha de design](https://chatgpt.com/c/6af7d5db-1dc4-83e9-88a8-8163002f5527) | [v01 PNG](../../../assets/art/source/raw/enm_fenda_errante_ataquemorte_costas34_raw_v01.png), [v02 PNG](../../../assets/art/source/raw/enm_fenda_errante_ataquemorte_costas34_raw_v02.png) | Em revisão | A v01 tem poeira e rastros. A v02 tem 10 poses, mas mostra olhos na pose 5. |
-| X0 elite | [Criar ficha de design](https://chatgpt.com/c/6af7d5db-1dc4-83e9-88a8-8163002f5527) | [v01 PNG](../../../assets/art/source/raw/enm_elite_pecas_raw_v01.png), [v02 PNG](../../../assets/art/source/raw/enm_elite_pecas_raw_v02.png) | Em revisão | A v01 é uma versão vetorial simplificada. A terceira coroa da v02 tem espinhos inclinados e mais de quatro pontas visíveis. |
+| A1 frente | [Gemini](https://gemini.google.com/app/8a99600cfc4edbb3) | [v02 PNG](../../../assets/art/source/raw/enm_anomalia_menor_spawnrun_frente34_raw_v02.png) | Aceita | Substituiu a `v01.jpg` (3×4). Grade 6×2 em PNG transparente, todas em 3/4 de frente, 5 encaixes dorsais limpos. |
+| A2 frente | — | [v01 PNG](../../../assets/art/source/raw/enm_anomalia_menor_ataquemorte_frente34_raw_v01.png) | Aceita | Grade 5×2 em PNG transparente. Elevação clara da boca no `windup`, recuo no disparo e morte de barriga para cima. |
+| A1 costas | — | [v01 PNG](../../../assets/art/source/raw/enm_anomalia_menor_spawnrun_costas34_raw_v01.png) | Aceita | Grade 6×2 em PNG transparente. Todas as 12 poses rigorosamente em 3/4 de costas. |
+| A2 costas | — | [v01 PNG](../../../assets/art/source/raw/enm_anomalia_menor_ataquemorte_costas34_raw_v01.png) | Aceita | Grade 5×2 em PNG transparente. Mantém os 5 encaixes dorsais e a placa traseira sem rosto/boca visíveis. |
+| F0 ficha | — | *(Derivada de F1/F2)* | Aceita | Cunha baixa escamada em pedra ameixa, espinho magenta na proa, fileira de 4 olhos laterais, 6 patas. |
+| F1 frente | — | [v01 PNG](../../../assets/art/source/raw/enm_fenda_errante_spawnrun_frente34_raw_v01.png) | Aceita | Grade 6×2 em PNG transparente. Silhueta em cunha afiada, 4 olhos laterais e filete magenta dorsal. |
+| F2 frente | — | [v01 PNG](../../../assets/art/source/raw/enm_fenda_errante_ataquemorte_frente34_raw_v01.png) | Aceita | Grade 5×2 em PNG transparente. Abertura clara da rachadura no `windup` e bipartição na morte (poses 9–10). |
+| F1 costas | — | [v01 PNG](../../../assets/art/source/raw/enm_fenda_errante_spawnrun_costas34_raw_v01.png) | Aceita | Grade 6×2 em PNG transparente. Vista 3/4 de costas limpa sem olhos visíveis. |
+| F2 costas | [Criar ficha de design](https://chatgpt.com/c/6af7d5db-1dc4-83e9-88a8-8163002f5527) | [v02 PNG](../../../assets/art/source/raw/enm_fenda_errante_ataquemorte_costas34_raw_v02.png) | Aceita com ressalva | Grade 5×2 em `#00FF00` chaveada em `fenda_errante_atlas_v01.png`. Ressalva: pose 5 exibe olhinhos laterais e matiz ~15% mais quente. |
+| X0 elite | [Criar ficha de design](https://chatgpt.com/c/6af7d5db-1dc4-83e9-88a8-8163002f5527) | [v02 PNG](../../../assets/art/source/raw/enm_elite_pecas_raw_v02.png) | Aceita com ajuste de montagem | Empacotada em `assets/art/runtime/elite_pecas/elite_pecas_frames_v01.tres` (`coroa_fenda_errante` espelhada horizontalmente e `placas_fenda_errante` alinhadas no eixo proa/dorso). |
+
+### Evidência de Fechamento (Prancha a 90 px / 48 px)
+- Prancha unificada gerada em `production/qa/evidence/assets-lote-02-2026-11-14/prancha_revisao_90px_lote02.png` via `scenes/art/anomalia_review.tscn` (`--capture-lote02`).

@@ -1,8 +1,9 @@
 # Movimento e esquiva
 
-> **Status**: Approved (`/design-review` 2026-11-08, lean: NEEDS REVISION, 6 bloqueantes revisados; re-review independente 2026-11-08: **APPROVED**, 0 bloqueantes, 4 recomendadas aplicadas na mesma data, com o pedido `deslocar(v)`)
+> **Status**: Approved
+> **Status anterior**: Approved (`/design-review` 2026-11-08, lean: NEEDS REVISION, 6 bloqueantes revisados; re-review independente 2026-11-08: **APPROVED**, 0 bloqueantes, 4 recomendadas aplicadas na mesma data, com o pedido `deslocar(v)`)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-08
+> **Last Updated**: 2026-11-18 (AC-59, preâmbulo de ACs e OQ 1 fechada com limite IEEE-754 binary64 / `ADR-0009` `EX-0009-1`); 2026-11-08
 > **Last Verified**: 2026-11-08
 > **Implements Pillar**: P3 *Reflexo que se lê* ("a esquiva com invulnerabilidade sempre responde")
 > **Creative Director Review (CD-GDD-ALIGN)**: pulada (modo Lean)
@@ -902,7 +903,11 @@ mesmas imagens residuais, sem variante visual.
 > desempenho; **[M]** manual, com testador, build e resultado registrados.
 >
 > Tolerância de posição: ±0,001 px em esquiva e em passo único; ±0,01 px em andar
-> acumulado (o `Vector2` é float32; Open Questions); ±0,05 px na paridade.
+> acumulado (o `Vector2` é float32; ADR-0008); ±0,05 px na paridade. Contadores
+> de passos e acumuladores inteiros usam `int` de 64 bits, e escalares `float`
+> usam IEEE-754 binary64 com 53 bits de significando (inteiros exatos até `2^53`,
+> verificados por `2.0**52 + 1.0 != 2.0**52` e `2.0**53 + 1.0 == 2.0**53`, nunca
+> exigindo `2^53 + 1 != 2^53`; ADR-0009, `EX-0009-1`).
 > Dano e fração de recarga: ±0,001. Cargas, passos e contagens são exatos.
 > A borda do Corte é exata (F5).
 >
@@ -1424,6 +1429,12 @@ GDDs deles já existem)
   depuração de toques de esquiva e cargas por passo ligado: 0 mortes por um
   golpe que chega quando havia carga e um toque de esquiva nos 10 passos
   anteriores. Registro em `production/qa/evidence/` com testador e build.
+- **AC-59 [L] Precisão de passo e acumulador (ADR-0008, ADR-0009, `EX-0009-1`).**
+  Contadores de passos (`D`, `E`, `R`, `restante`) operam em `int` de 64 bits
+  sem perda; escalares `float` do GDScript operam em IEEE-754 binary64 (53 bits
+  de significando: `2.0**52 + 1.0 != 2.0**52` e `2.0**53 + 1.0 == 2.0**53`, sem
+  exigir `2^53 + 1` distinto de `2^53`), enquanto `Vector2` opera em `float32`
+  dentro das tolerâncias declaradas (`±0,001 px` por passo, `±0,01 px` acumulado).
 
 Cobertura: R1–R12, F1–F7 e MV1–MV8 têm ao menos um critério cada, e os limites
 das faixas da R11 e das validações estão na AC-53 e na AC-54. Os Edge Cases de
@@ -1439,7 +1450,7 @@ maior risco estão nos blocos C, D, E, F e G. Lacunas assumidas:
 
 | # | Pergunta | Dono | Resolver até |
 |---|---|---|---|
-| 1 | Corpo do jogador: `CharacterBody2D` ou cinemática própria de círculos (cânone)? Posição em float32 ou float64 (as tolerâncias dos ACs dependem disso)? A referência do motor não cobre o 2D | technical-director + godot-specialist | ADR, antes de `/create-architecture` |
+| 1 | ~~Corpo do jogador: `CharacterBody2D` ou cinemática própria de círculos (cânone)? Posição em float32 ou float64 (as tolerâncias dos ACs dependem disso)? A referência do motor não cobre o 2D~~ **Resolvida (ADR-0008, ADR-0009, `EX-0009-1`, 2026-11-16):** cinemática própria em `RefCounted`, `Vector2` em `float32`, contadores de passos em `int64` e escalares `float` em IEEE-754 binary64 (`2.0**52 + 1.0 != 2.0**52` e `2.0**53 + 1.0 == 2.0**53`) | technical-director + godot-specialist | ✅ |
 | 2 | Contratos provisórios com o Combate, a honrar: consultas (recuperação, investida e `d` vetor, `contexto_de_dano` só com a Vida atual e a máxima; o hitstop é lido pelo orquestrador), pedidos (`cancelar`, `garantir_invulneravel`, `aplicar_corte`, `esquiva_iniciada` e, do Combate para cá, `deslocar(v)` para o passo de apoio, R9), desconto da invulnerabilidade no início de cada passo vivo seguinte (F4), golpe e Selo pela consulta "em esquiva" (R6), chamada `passo_congelado()` pelo orquestrador (R2) | dono do GDD de Combate núcleo | ao escrever o Combate |
 | 3 | **Decidido (2026-11-13):** o MV1 e as demais regras cruzadas rodam na 2ª passada do validador do Conteúdo. Resta a garantia do vão mínimo do MV4 | dono do GDD de Câmaras e ondas + Conteúdo | GDD de Câmaras (liga à OQ9 da Cena) |
 | 4 | A consulta de alvos do Input não traz o raio; o Corte precisa dele | dono do GDD de IA | GDD de IA |

@@ -1,9 +1,9 @@
 # Efeitos de status
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16)
-> **Status anterior**: Approved (2026-11-11; revisão única por subagente, 4 bloqueantes de texto corrigidos sem re-review; sem entrada no review log)
+> **Status**: Approved
+> **Status anterior**: Approved (2026-11-11; emenda Pactos aprovada pelo usuário em 2026-11-16)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-16 (alinhamento: Eco de Muralha 1,5 s na R3a, Edge Cases, AC-ST-27, OQ8 fechada); 2026-11-15 (emenda Pactos: Maldições como 5ª fonte de Abalo — R3a, R1a; ver `maldicoes.md`)
+> **Last Updated**: 2026-11-18 (consolidação de decisões aprovadas em 2026-11-16); 2026-11-16 (alinhamento: Eco de Muralha 1,5 s na R3a, Edge Cases, AC-ST-27, OQ8 fechada); 2026-11-15 (emenda Pactos: Maldições como 5ª fonte de Abalo — R3a, R1a; ver `maldicoes.md`)
 > **Last Verified**: 2026-11-10
 > **Implements Pillar**: P3 *Reflexo que se lê* (o estado do inimigo é visível)
 
@@ -117,9 +117,9 @@ acumula). No MVP há três golpes com Abalo (`maldicoes.md` §Catálogo):
   do `AttackDef`. A regra de passo da R4 vale igual (item em que o impacto resolve).
 - **Duração:** usa `duracao_abalo_s` (4 s = 240 passos), como as "outras fontes"
   da R2; o "4,0 s" do catálogo é esse campo, não um valor próprio. O `CurseDef`
-  diz só *qual* status aplica **[a confirmar]**.
-- **Exceção: *Eco de Muralha*** (alinhamento 2026-11-16, fecha a OQ8) **[a
-  confirmar]**: o efeito no Chamado traz a própria `duracao_abalo_s` no `CurseDef`
+  diz só *qual* status aplica.
+- **Exceção: *Eco de Muralha*** (alinhamento 2026-11-16, fecha a OQ8):
+  o efeito no Chamado traz a própria `duracao_abalo_s` no `CurseDef`
   (**1,5 s = 90 passos**, `maldicoes.md` §Catálogo) e a passa à R2, como o Selo
   passa a dele. Com o Chamado a cada 120 passos, o alvo fica abalado no máximo
   90/120 = 75% do tempo pelo Eco, chefe incluído (sem imunidade). O ML1 de
@@ -635,7 +635,7 @@ quando o critério diz.
 |---|---|---|---|
 | 1 | Teto de Sangramento 10 diverge do cânone (sem teto); conferir a sensação no playtest | game-designer | primeiro playtest |
 | 2 | `duracao_abalo_s` (4 s) não tem consumidor no MVP; fica no dado para bênçãos e chefes. **Emenda Pactos (2026-11-15): resolvida — as Maldições a usam (R3a).** | Bênçãos / Chefes | GDDs de Bênçãos e Chefes |
-| 8 | (emenda Pactos) Abalo quase permanente: o *Eco de Muralha* do Baluarte vem no Chamado (recarga 2,0 s, `maldicoes.md` §Constantes) e dura 4 s, então um alvo dentro de 135 px do pouso fica abalado 100% do tempo, chefe incluído; a dupla Espreitador + Baluarte também cobre 100% só com Trocas (recarga 4 s, uma Saída com Abalo por Troca). Conferir no playtest se −30% constante no chefe é saudável; alavancas: duração própria no `CurseDef` ou Abalo do Chamado só em comuns. **Fechada (alinhamento 2026-11-16) [a confirmar]:** o *Eco de Muralha* tem duração própria de 1,5 s (90 passos) no `CurseDef` (R3a; `maldicoes.md` §Catálogo, ML1, OQ9): teto de 75% pelo Chamado, sem imunidade de chefe. A cobertura por Trocas (Saídas de 4 s a cada 4 s) fica aceita como execução manual; conferir no playtest | game-designer / `/balance-check` | primeiro playtest com Pactos |
+| 8 | (emenda Pactos) Abalo quase permanente: o *Eco de Muralha* do Baluarte vem no Chamado (recarga 2,0 s, `maldicoes.md` §Constantes) e dura 4 s, então um alvo dentro de 135 px do pouso fica abalado 100% do tempo, chefe incluído; a dupla Espreitador + Baluarte também cobre 100% só com Trocas (recarga 4 s, uma Saída com Abalo por Troca). Conferir no playtest se −30% constante no chefe é saudável; alavancas: duração própria no `CurseDef` ou Abalo do Chamado só em comuns. **Fechada (alinhamento 2026-11-16):** o *Eco de Muralha* tem duração própria de 1,5 s (90 passos) no `CurseDef` (R3a; `maldicoes.md` §Catálogo, ML1, OQ9): teto de 75% pelo Chamado, sem imunidade de chefe. A cobertura por Trocas (Saídas de 4 s a cada 4 s) fica aceita como execução manual; conferir no playtest | game-designer / `/balance-check` | primeiro playtest com Pactos |
 | 3 | Escala de raridade de `golpe_sangramento` e `golpe_queimadura` (o cânone mostra n = 1 base) e o dano plano de status sem M perde peso com bênçãos de Ataque | Bênçãos / `/balance-check` | GDD de Bênçãos |
 | 4 | Cadência de esquivas por segundo (placeholder 0,5/s) usada nas fontes de Sangramento | Movimento | `/balance-check` |
 | 5 | IA lê `estado(inimigo)` para reações (por exemplo, fugir ao queimar)? | IA de inimigos | GDD de IA |

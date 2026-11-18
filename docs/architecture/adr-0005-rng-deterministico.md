@@ -2,7 +2,35 @@
 
 ## Status
 
-Proposed · 2026-11-14
+Accepted · 2026-11-16 (aprovado pelo usuário; Proposed em 2026-11-14)
+
+## Date
+2026-11-16
+
+## Last Verified
+
+2026-11-16 (emenda Pactos: finalidade 9 `pactos`; seções Engine Compatibility e ADR Dependencies acrescentadas pela revisão de 2026-11-15)
+
+## Engine Compatibility
+
+| Field | Value |
+|-------|-------|
+| **Engine** | Godot 4.7, pin 4.7.2 (instalado, sem gap) |
+| **Domain** | Core (Scripting) |
+| **Layer** | Foundation |
+| **Knowledge Risk** | LOW: aritmética inteira de 64 bits do GDScript, máscaras e `RefCounted`; não usa `RandomNumberGenerator` da engine |
+| **References Consulted** | `docs/engine-reference/godot/VERSION.md`, `breaking-changes.md`, `current-best-practices.md` |
+| **Post-Cutoff APIs Used** | Nenhuma |
+| **Verification Required** | Vetores de F1/F2 do cânone reproduzidos em 4.7.2 com `int` de 64 bits (seção "Evidência"); paridade debug/release dos vetores |
+
+## ADR Dependencies
+
+| Field | Value |
+|-------|-------|
+| **Depends On** | [ADR-0001](adr-0001-orquestrador-do-passo.md): ciclo da run e composição; [ADR-0004](adr-0004-catalogo-de-dados.md): ordem do manifesto e impressão |
+| **Enables** | ADR-0010 (spawn e IA no passo), ADR-0013 (seed na telemetria), ADR-0015 (sorteio do encontro de pacto), ADR-0017 |
+| **Blocks** | Toda story com sorteio |
+| **Ordering Note** | Sem ciclo: 0001 → … → 0004 → 0005 |
 
 ## Contexto e escopo
 
@@ -10,7 +38,7 @@ O [GDD de RNG](../../design/gdd/rng-com-seed.md) já aprova mulberry32, derivaç
 
 Depende do ciclo da run ligado ao [ADR-0001](adr-0001-orquestrador-do-passo.md) e da ordem e impressão do catálogo do [ADR-0004](adr-0004-catalogo-de-dados.md). O contrato garante a estrutura quando coincidem seed, versão do jogo, impressão completa do conteúdo, estado inicial da run, escolhas de portas/bênçãos e usos de troca de oferta. Os candidatos de spawn são reproduzíveis. A escolha final entre candidatos pode depender da posição do jogador. O consumo de IA acompanha o combate.
 
-## Decisão proposta
+## Decision
 
 ### Algoritmo e estado
 
@@ -32,6 +60,21 @@ O ponto de composição cria uma fonte por run, injetada por interfaces limitada
 | Bênçãos | 5 bencaos, 6 raridade |
 
 A finalidade 7 permite consumo dependente do combate. Nas finalidades 1–6 e 8, os consumidores mantêm a quantidade e ordem de sorteios de cada decisão. Spawn sorteia a quantidade completa de candidatos antes de aplicar sua seleção. As listas de opções seguem a ordem do manifesto e os ajustes aprovados dos donos.
+
+### Emenda (2026-11-16): Doutrina de Pactos
+
+Conferido contra `rng-com-seed.md` (emenda Pactos: R2-P, R3-P, R7-P, F2, AC-36 a AC-40):
+
+| Consumidor | Finalidade nova | Chave | Uso |
+|---|---|---|---|
+| Vínculo e pactos (via ADR-0015, encontro) | **9 `pactos`** | (`pactos`, região, 0); um por região, no MVP um por run | se há encontro de pacto, em que câmara (índices 1–2) e com que espécie (Vínculo F1); pedido só em runs da Doutrina `pactos`, ao criar a run, com **consumo fixo de 4 reais** mesmo quando a garantia (pity) decide o encontro (Vínculo V6, F1, V40) |
+
+- A chave passa a aceitar **finalidade 1–9**. `pactos` é trio próprio: pela F2 não toca nenhum outro fluxo, e nenhum fluxo existente muda de ordem.
+- **IA de aliado (Maldições) não ganha fluxo.** A dupla e o portador não consomem fluxo de estrutura; o que a Maldição muda no combate só afeta `ia` (finalidade 7, já não garantida) e o ponto de spawn escolhido. Se a IA de aliado do ADR-0017 precisar sortear, ela pede `ia` com a mesma autorização da IA de inimigos, nunca um fluxo estrutural.
+- **Chefe não ganha fluxo.** A câmara do chefe (índice 6) não consome `ondas`, `elites` nem `layout`; a profundidade 6 entra em `ia` só se Chefes pedir (hoje não: esperas fixas). O chefe não sorteia nada (chefes.md R2/R6, camaras-e-ondas.md R14-P): as esperas e os padrões dele são fixos. Os lacaios `invocado_pelo_chefe` nascem comuns, em posições fixas, **sem consumir `elites` nem `spawn`**; depois rodam a IA `melee` normal e consomem `ia` como qualquer comum (IA R21, AC-IA-46; ADR-0018 §8). **Porta forçada do chefe (TR-portas-010).** A porta depois do índice 5 é forçada `chefe`, **sem sorteio** (Portas R6): nenhuma forçada consome fluxo. O trio (`portas`, 0, 5) só seria consumido se Portas sortear algo nessa porta; se isso ocorrer, é consumo novo daquele trio, **sem reordenar** nenhum outro fluxo (F2: trio próprio). Hoje o consumo é zero.
+- **Filtro de spawn pela acuada (TR-camaras-012).** O consumo de `spawn` é **fixo em 14 candidatos por nascimento**, sempre sorteados por inteiro (RNG R4b), com ou sem encontro. O filtro `spawn_dist_acuada_px` (Câmaras F3-P, 240 px, `RoomTuning`) é aplicado **depois do sorteio**, sobre a lista já sorteada, junto da distância do jogador: muda só qual candidato é escolhido, nunca quantos números saem. Se nenhum serve, vale o último (R7). `ordem` (paridade para o alvo padrão) é dado de Câmaras para a IA (ADR-0018) e não toca RNG.
+- A **acuada** entra em pontos fixos e não consome RNG.
+- O estado inicial da run passa a incluir, em runs de Pactos, a dupla e o perfil de vínculo (R7-P); a seed nasce em **`dupla_confirmada`** (Vínculo V16/V16b/V42), não ao confirmar a arma. Pedir fluxo durante a Escolha da dupla é erro (estado Sem run).
 
 ### Ciclo de vida e referências retidas
 
@@ -78,6 +121,72 @@ RNG de cosméticos fica em `src/presentation/`. Nenhuma regra do jogo lê seu re
 | Um fluxo único para todos os sistemas | O consumo variável de IA deslocaria os sorteios das câmaras e recompensas. |
 | Derivar um fluxo novo a cada consulta | Repetiria o começo da sequência quando o mesmo consumidor consulta novamente uma chave. |
 | Comparar acumulados deslocados em int64 | O limite W=2³¹ pode gerar overflow. A comparação pelo bucket mantém o domínio aprovado. |
+
+## Consequences
+
+### Positivas
+
+- Estrutura da run (ondas, layout, portas, bênçãos, elites, encontro de pacto) reproduzível pelos seis elementos, independente do consumo de IA.
+- Gerador próprio (mulberry32) estável entre versões da engine e sistemas operacionais, com paridade verificável contra o cânone.
+- Fonte injetada por run e autorização por consumidor: nenhum sistema consome fluxo alheio; testes sem singleton.
+- Marcador de validade impede sorteio por referência retida após o fim da run.
+- Pactos, chefe e acuada entram sem reordenar nenhum fluxo existente (trio próprio pela F2).
+
+### Negativas
+
+- Toda mudança de constante ou algoritmo exige nova versão do jogo e novos vetores.
+- Consumidores estruturais carregam a disciplina de consumo fixo (ex.: 14 candidatos de spawn, 4 reais de `pactos` mesmo com garantia).
+- APIs aleatórias da engine ficam proibidas no código de jogo, com lint de CI a manter.
+- A posição do jogador e o consumo de IA ficam fora da garantia de reprodução.
+
+### Riscos
+
+- Limites de coleção (n até 2²¹) e o ajuste de arredondamento do caminho real de F6 são extensões técnicas propostas, ainda sem revisão e sem vetor próprio.
+- Comparação direta com a implementação TypeScript canônica e custo do AC-33 pendentes.
+- Lint de AC-32 com falso negativo deixaria RNG da engine entrar na regra; mitigação: fixture com violação inserida.
+
+## GDD Requirements Addressed
+
+| TR-ID | Requisito | Origem | Como este ADR atende |
+|---|---|---|---|
+| TR-conteudo-019 | Ordem estável do manifesto de CurseDef para o sorteio do Vínculo | conteudo-orientado-a-dados.md R10-P | §Posse e autorização dos fluxos (listas de opções na ordem do manifesto) e Emenda Pactos (sorteio de espécie); estabilidade da ordem: ADR-0004 |
+| TR-rng-001 | Fonte única; APIs aleatórias da engine proibidas, com lint de CI | rng-com-seed.md R1 | §Algoritmo e estado (gerador próprio) e §Seed, telemetria e fronteira da apresentação (lint de AC-32) |
+| TR-rng-002 | Seed u32 sorteada ao criar a run; --seed só em debug; fixa durante a run | rng-com-seed.md R2 | §Ciclo de vida e referências retidas; máscara u32 em §Algoritmo e estado |
+| TR-rng-003 | Fluxos derivados por finalidade, região e profundidade; lista fechada | rng-com-seed.md R3 | §Algoritmo e estado (chave F2) e §Posse e autorização dos fluxos (tabela fechada) |
+| TR-rng-004 | Sorteios iteram na ordem do manifesto, nunca Dictionary, hash ou árvore | rng-com-seed.md R4 | §Posse e autorização dos fluxos (iteração do mapa fora das fórmulas; listas na ordem do manifesto) |
+| TR-rng-005 | Consumo fixo nas finalidades de estrutura | rng-com-seed.md R4b | §Posse e autorização dos fluxos (finalidades 1–6 e 8) |
+| TR-rng-006 | Operações com consumo definido; erros não consomem e vão ao relator | rng-com-seed.md R5 | §Operações e limites e §Escolha ponderada inteira no limite |
+| TR-rng-007 | Gerador próprio mulberry32, estável, com paridade com o cânone | rng-com-seed.md R6 | §Algoritmo e estado; seção "Evidência e critérios de implementação" |
+| TR-rng-008 | Contrato de reprodução com seis elementos | rng-com-seed.md R7 | Contexto (seis elementos) e §Seed, telemetria e fronteira da apresentação |
+| TR-rng-009 | Fonte de fluxos injetada, sem singleton global | rng-com-seed.md R9 | §Posse e autorização dos fluxos |
+| TR-rng-010 | Máscara u32 na fronteira e na leitura de save; save no meio da run fora do MVP | rng-com-seed.md AC-10 | §Algoritmo e estado (máscara na fronteira); leitura de save: ADR-0013 |
+| TR-rng-011 | RNG cosmético só em src/presentation/, sem acesso à fonte de fluxos | rng-com-seed.md R1 | §Seed, telemetria e fronteira da apresentação |
+| TR-rng-012 | Texto da seed na pausa, morte, vitória e debug, com copiar e campo no debug | rng-com-seed.md R8 | §Seed, telemetria e fronteira da apresentação (F9 e rótulo); telas: ADR-0012 |
+| TR-rng-013 | Finalidade 9 pactos com chave (pactos, região, 0) e consumo fixo de 4 reais | rng-com-seed.md R3-P | Emenda Pactos |
+| TR-rng-014 | Com Pactos a seed nasce em dupla_confirmada | rng-com-seed.md R2-P | Emenda Pactos (último item) |
+| TR-rng-015 | Estado inicial ampliado com dupla e perfil de vínculo | rng-com-seed.md R7-P | Emenda Pactos (último item) |
+| TR-ia-004 | Fluxos ia (variável) e elites (consumo fixo de 1 real por inimigo) | ia-de-inimigos-e-elites.md R10 | §Posse e autorização dos fluxos (IA e elites: 2 e 7; 7 variável); 1 real por inimigo: ADR-0018 |
+| TR-ia-008 | sortear_elite chamado pelas Câmaras, no máximo 1 elite por onda | ia-de-inimigos-e-elites.md R10 | Parcial: §Posse e autorização dos fluxos (`elites` autorizado só à IA); chamada e limite: ADR-0018 |
+| TR-camaras-001 | Câmaras dono de p e p_max; chave do RNG é o índice da câmara | camaras-e-ondas.md R3 | §Algoritmo e estado (índice inclui Santuário; `p` pertence a Câmaras) |
+| TR-camaras-004 | Layout pelo fluxo layout com consumo fixo | camaras-e-ondas.md R5 | §Posse e autorização dos fluxos (8 layout, consumo fixo) |
+| TR-camaras-005 | Ondas compostas na montagem pelo fluxo ondas | camaras-e-ondas.md R6 | §Posse e autorização dos fluxos (1 ondas) |
+| TR-camaras-006 | Spawn sorteia sempre 14 candidatos | camaras-e-ondas.md R7 | §Posse e autorização dos fluxos (quantidade completa antes da seleção) e Emenda Pactos (filtro de spawn) |
+| TR-camaras-011 | Montagem pede reposicionar_maldicao e encontro_na_camara; acuada sem RNG | camaras-e-ondas.md R4-P, F6 | Parcial: Emenda Pactos (acuada em pontos fixos, sem RNG); montagem: ADR-0015 |
+| TR-camaras-012 | Campo ordem por inimigo; filtro spawn_dist_acuada_px sem mudar o consumo | camaras-e-ondas.md R7-P, F3-P | Emenda Pactos (filtro de spawn pela acuada) |
+| TR-camaras-014 | Câmara do chefe sem sorteio nem fluxos | camaras-e-ondas.md R14-P | Emenda Pactos (chefe não ganha fluxo) |
+| TR-portas-001 | Fluxo portas com 4 reais fixos por escolha; forçadas consomem 0 | portas-e-recompensas.md R7 | §Posse e autorização dos fluxos (4 portas) e Emenda Pactos (forçadas consomem 0) |
+| TR-portas-010 | Porta forçada chefe sem sorteio; trio (portas, 0, 5) sem reordenar | portas-e-recompensas.md R6-P, R9-P | Emenda Pactos (porta forçada do chefe) |
+| TR-run-001 | Máquina de estados da run coordenada com o orquestrador | run-e-regioes.md R1 | Parcial: §Ciclo de vida e referências retidas (efeito dos estados sobre a fonte); a máquina: ADR-0015 |
+| TR-run-002 | Ordem de início arma, seed, estado inicial, câmara 0, Transição | run-e-regioes.md R2 | §Ciclo de vida e referências retidas (seed ao confirmar a arma, entropia injetável) |
+| TR-run-008 | nova_run com reset total e descarte da seed e dos fluxos | run-e-regioes.md R8 | §Ciclo de vida e referências retidas (descarte dos fluxos, marcador novo); reset dos demais sistemas: ADR-0015 |
+| TR-run-010 | Várias regiões com índice da região na chave do RNG | run-e-regioes.md R10 | §Algoritmo e estado (região 0–255 na chave); orçamento: ADR-0015 |
+| TR-run-014 | Run recebe pedir_dupla, dupla_confirmada etc.; seed em dupla_confirmada | run-e-regioes.md R2-P, R11-P | Emenda Pactos (seed em `dupla_confirmada`); sinais da run: ADR-0015 |
+| TR-bencaos-003 | Fluxos bencaos e raridade com F7 e consumo fixo de 6 reais | bencaos-tradicoes.md R4 | §Posse e autorização dos fluxos (5 bencaos, 6 raridade) e §Operações e limites (F7) |
+| TR-economia-006 | nova_run() zera coletados_run e mantém o saldo | economia-de-fragmentos.md R6 | não tratado aqui — ver ADR-0015 |
+| TR-telemetria-009 | Seed e impressão do catálogo nas linhas de sessão e de run | telemetria-local.md R4 | §Seed, telemetria e fronteira da apresentação; impressão: ADR-0004 |
+| TR-chefes-003 | Luta do chefe determinística sem consumir RNG | chefes.md R2, R6, R8 | Emenda Pactos (chefe não ganha fluxo; lacaios sem `elites`/`spawn`) |
+| TR-vinculo-002 | Sorteio do encontro no fluxo pactos, consumo fixo de 4 reais mesmo com garantia | vinculo-e-pactos.md V6, F1, V40 | Emenda Pactos (finalidade 9) |
+| TR-vinculo-003 | Escolha do Pacto antes da seed; seed em dupla_confirmada; estado inicial com dupla e perfil | vinculo-e-pactos.md V16, V16b, V40, V42 | Emenda Pactos (último item); tela: ADR-0012 e ADR-0015 |
 
 ## Evidência e critérios de implementação
 

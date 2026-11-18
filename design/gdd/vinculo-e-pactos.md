@@ -1,8 +1,8 @@
 # Vínculo e pactos
 
-> **Status**: Approved (usuário, 2026-11-16)
-> **Author**: game-designer (lote Pactos, 2026-11-15) — aguarda aprovação do usuário
-> **Last Updated**: 2026-11-15
+> **Status**: Approved
+> **Author**: game-designer (lote Pactos, 2026-11-15; aprovado pelo usuário em 2026-11-16)
+> **Last Updated**: 2026-11-18
 > **Implements Pillar**: P1 *Toda bênção é uma filosofia* (pacto consentido, não comandado); P4 *Ritual, não pressão* (vínculo que cresce devagar, sem perda); P2 *A Beira cobra* (proteger custa risco; pactuar com o chefe custa Fragmentos); P5 *O mundo não se explica de uma vez* (história das espécies em fragmentos)
 
 ## Summary
@@ -60,8 +60,8 @@ derrota" do chefe não registraria nada e nada passaria de uma run para a outra.
 ### Core Rules
 
 Os valores nomeados (`chance_encontro` etc.) estão no `VinculoTuning` (Formulas,
-tabela final). Regras marcadas **[a confirmar]** são escolhas deste GDD que o
-usuário ainda não aprovou.
+tabela final). Todas as escolhas de regras deste GDD foram aprovadas pelo
+usuário em 2026-11-16 (`pactos-decisoes-a-confirmar.md`).
 
 #### A. Perfil de vínculo
 
@@ -76,7 +76,7 @@ pede) e, ao carregar, é **recalculado**. Se diferir, vale o recalculado.
 
 #### B. Primeiro pacto
 
-**V3. Primeiro pacto [a confirmar].** Quando o jogador confirma a arma **Besta
+**V3. Primeiro pacto.** Quando o jogador confirma a arma **Besta
 do Vínculo** na Escolha de arma (Run R2 passo 1) e `primeiro_pacto_concedido` é
 falso:
 
@@ -103,7 +103,7 @@ regra de dados é a mesma.
 **Maldição acuada** a mais. Não é um tipo novo de câmara nem uma porta nova:
 a sequência da região (Câmaras R1) e o fluxo `portas` (Portas R7) não mudam.
 
-**V5. Só para Pactos [a confirmar].** O encontro só existe em runs com a
+**V5. Só para Pactos.** O encontro só existe em runs com a
 Doutrina `pactos`. Nas outras Doutrinas ele **não aparece** e nada o substitui.
 Motivo: só quem jurou Pactos escolhe entre pacto e derrota (decisão do
 usuário); dar outra recompensa às outras Doutrinas mexeria na economia das
@@ -118,7 +118,7 @@ decide: se há encontro, em que câmara e com que espécie.
   p 2). Ficam fora: a de índice 0 (primeira câmara e primeira bênção), o
   santuário (3), as de índice 4 e 5 (~~2 ondas mais pesadas e a última, sem
   recompensa, Portas R1~~ (emenda Pactos, 2026-11-15) 2 ondas mais pesadas antes
-  do chefe; o índice 5 agora tem recompensa, Run R3-P) e o chefe (6). **[a confirmar]**
+  do chefe; o índice 5 agora tem recompensa, Run R3-P) e o chefe (6).
 - **Chance:** `chance_encontro` (`0,6`) por run de Pactos.
 - **Garantias** (qualquer uma força o encontro):
   1. **primeiro encontro:** `primeiro_encontro_visto` falso. O encontro vai para
@@ -151,7 +151,7 @@ do layout e antes da 1ª onda), nasce a acuada:
   Ela **não conta** na câmara limpa (Câmaras R9) e não bloqueia ninguém.
   Obstáculos não importam (ela não se move).
 
-**V8. Quem as Anomalias atacam [a confirmar].** Na câmara do encontro, enquanto a
+**V8. Quem as Anomalias atacam.** Na câmara do encontro, enquanto a
 acuada está no estado `Acuada`:
 
 - cada inimigo que nasce recebe o alvo padrão pela **ordem de nascimento na
@@ -182,7 +182,7 @@ da porta, Câmaras R13: `raio_especie + 27 + 15 px`).
   grava no ponto seguro **do mesmo instante** (Save R5.1), e não na Transição
   seguinte. A tela do chefe (V18) segue a mesma regra.
   - **(emenda Pactos, 2026-11-15)** A tela de consentimento usa o **estado Bênção**
-    do ADR-0001 (o mesmo da Tela de bênção), sem estado novo. **[a confirmar]**
+    do ADR-0001 (o mesmo da Tela de bênção), sem estado novo.
 
 **V10. Consentimento e pacto novo.** Na tela, se a espécie **não** está
 pactuada:
@@ -212,12 +212,12 @@ pacto "precisa ser reafirmado… nunca presumido como permanente" (FRENTE4 §1.5
 1. ela passa a `Fugiu`: dissolve-se numa fenda no chão em `12` passos e sai;
 2. os inimigos que a miravam passam a mirar o jogador (V8);
 3. `encontro_pendente = [especie]` (**ela volta** na próxima run de Pactos, com a
-   garantia 2 da V6) **[a confirmar]**; grava no próximo gatilho (V32);
+   garantia 2 da V6); grava no próximo gatilho (V32);
 4. a câmara segue normal: ondas, limpeza, recompensa e portas, sem esperar nada.
 
 Ela **não morre**: Maldições são resíduos de Anomalia, e o jogador não a derrotou.
 
-**V13. Espécies raras contam a história em vários encontros [a confirmar].**
+**V13. Espécies raras contam a história em vários encontros.**
 `encontros_para_consentir` por raridade: Comum 1, Refinado 1, **Raro 2**,
 **Épico 2**, Primordial 1. Um *Baluarte de Cinza* (Raro) precisa de **dois**
 encontros bem-sucedidos. O primeiro revela uma memória e marca a espécie como
@@ -230,7 +230,7 @@ acuada **nasce** na câmara, e quando o chefe da espécie entra em `Subjugado`
 (V18). `primeiro_encontro_visto = true` no mesmo momento. Ver a acuada já conta,
 mesmo que o jogador morra em seguida.
 
-**V15. Entrar na dupla durante a run [a confirmar].** Se o jogador pactua no
+**V15. Entrar na dupla durante a run.** Se o jogador pactua no
 encontro e a dupla da run tem **uma** Maldição (caso da primeira run de
 Pactos), a nova entra **agora** como reserva, no estado `Pronta`, com
 `Vida = min(Vida_acuada, vida_max)` (nível 1, sem bônus) e regenera na reserva
@@ -298,18 +298,18 @@ as fontes acima têm teto natural (inimigos e câmaras são finitos).
 `chefe_subjugado(id)`:
 
 1. `encontros_vistos += 1` e `primeiro_encontro_visto = true` (V14);
-2. o chefe ajoelhado ganha o prompt **Interagir** (resposta à OQ1 de Chefes,
-   **[a confirmar]**). Interagir abre a tela **Pactuar / Exorcizar**, com o preço
+2. o chefe ajoelhado ganha o prompt **Interagir** (resposta à OQ1 de Chefes).
+   Interagir abre a tela **Pactuar / Exorcizar**, com o preço
    à vista: "Pactuar: 0 Fragmentos" e "Exorcizar: +6 Fragmentos" (P2);
 3. **Pactuar**, espécie não pactuada: `pactuada = true`, `nivel = 1`,
    `vinculo_pontos = 0`, `encontros_bem_sucedidos += 1`; emite
    `pacto_registrado("soberano_do_limiar")`. A espécie não entra na dupla desta
    run (a run acaba com a vitória);
-4. **Pactuar, espécie já pactuada e abaixo do nível máximo [a confirmar]:** soma
+4. **Pactuar, espécie já pactuada e abaixo do nível máximo:** soma
    `pts_reafirmar_chefe` (10) aos pontos da run do *Soberano*,
    `encontros_bem_sucedidos += 1` e revela memória (F5, pelo encontro). Emite
    `pacto_registrado` (o Save grava; Save R5 inclui `pactuar` no chefe);
-5. **Pactuar, espécie já no nível máximo (5) [a confirmar]: "o fardo
+5. **Pactuar, espécie já no nível máximo (5): "o fardo
    repartido".** Os 10 pontos não teriam efeito no *Soberano*. Eles vão
    **inteiros para cada espécie da dupla desta run** (`pts_reafirmar_chefe` para
    cada uma, até 2). Se uma delas também já está no nível 5, a parte dela vai
@@ -537,7 +537,7 @@ Não há volta: o pacto não se desfaz no MVP.
   `acuada_atingivel()` (consulta da IA e do Combate) e `falhar_encontro()`
   (chamada síncrona do Combate quando a Vida da acuada chega a 0; Combate R25,
   IA R22). O `ferir_acuada` do Combate também aplica o M do atacante (elite,
-  Abalo) **[a confirmar]** (emenda de alinhamento, 2026-11-16).
+  Abalo) (emenda de alinhamento, 2026-11-16).
 - **V45. Telemetria local:** `run_iniciada.estado_inicial` ganha `pactos` e
   `dupla`; eventos novos `encontro_pacto` (`indice_camara`, `especie`,
   `resultado` ∈ {`pactuada`, `reafirmada`, `deixada`, `voltara`, `fugiu`,
@@ -664,7 +664,7 @@ níveis é `50` pontos (4 → 5), cerca de 2 vitórias.
 |---|---|---|---|---|
 | `bonus_vida` | float | `0–0,055` (MVP `0,05`) | `VinculoTuning` | teto pelo ML5 de Vida |
 | `mult_recuperacao` | float | `0,80–1,0` (MVP `0,90`) | `VinculoTuning` | encurta a Exaustão |
-| `bonus_dano_basico` | float | ~~`0–0,12`~~ → `0–0,07` (MVP `0,05`) (emenda Pactos, 2026-11-15) **[a confirmar]** | `VinculoTuning` | teto pela paridade com técnica (`≤ 0,076`); o ML5 de DPS (`0,127`) deixou de ser o limite |
+| `bonus_dano_basico` | float | ~~`0–0,12`~~ → `0–0,07` (MVP `0,05`) (emenda Pactos, 2026-11-15) | `VinculoTuning` | teto pela paridade com técnica (`≤ 0,076`); o ML5 de DPS (`0,127`) deixou de ser o limite |
 | `f_campo_atk` | float | `0,9` | Maldições F6 | `(120 − 12) / 120` |
 | `DPS_besta`, `dano_chamado × 60 / R_esp` | float | `40,0`; `8,5` | Maldições F6 | parcelas fixas, que o vínculo não toca |
 | `D_tecnica_max` | float | ~~`28`~~ → `14` (emenda Pactos, 2026-11-15) | Maldições F5 e Catálogo (R18) | Saída que controla (`5`) + Entrada com sinergia (`6 × 1,5 = 9`) |
@@ -720,7 +720,7 @@ vínculo na técnica, no Chamado e na recarga da troca.
 **Teto do `bonus_dano_basico` pela paridade:** `DPS_teto ≤ 66,47 × 1,05 =
 69,79` → `DPS_autonomo_v(Espreitador) ≤ (69,79 − 40 − 8,5 − 3,5) / 0,9 =
 19,77` → `bonus_dano_basico ≤ 19,77 / 18,36 − 1 = 0,077`. A faixa de design
-passa a `0–0,07` **[a confirmar]**. Com `0,08`: `69,85 DPS` → `5,08%` → aviso
+passa a `0–0,07`. Com `0,08`: `69,85 DPS` → `5,08%` → aviso
 VP7.
 
 **Registro (antes da emenda, meta `15%`):** nível 5 sem técnica `67,33–67,78
@@ -761,7 +761,7 @@ foi resolvido pela Maldições F6 com a técnica (OQ3 fechada).
 | `pontos_teto` | 9 999 | ≥ último limiar | gate | F3 |
 | `bonus_vida` | 0,05 | 0–0,055 | curva | F4 |
 | `mult_recuperacao` | 0,90 | 0,80–1,0 | feel | F4 |
-| `bonus_dano_basico` | 0,05 | ~~0–0,12~~ → 0–0,07 (emenda Pactos, 2026-11-15) **[a confirmar]** | curva | F4 (teto pela paridade com técnica) |
+| `bonus_dano_basico` | 0,05 | ~~0–0,12~~ → 0–0,07 (emenda Pactos, 2026-11-15) | curva | F4 (teto pela paridade com técnica) |
 | `memorias_por_raridade` | 1 / 2 / 3 / 4 / 4 | 1–6 | — | F5 |
 
 ### Validações (`VP1`–`VP9`, no Conteúdo orientado a dados)

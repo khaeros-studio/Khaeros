@@ -1,7 +1,7 @@
 # Khaeros — Conceito do Jogo e Pilares
 
-> **Status:** v1.0 — **APROVADO pelo Creative Director em 2026-11-05.** Pendências 3–7 da §13 seguem abertas.
-> **Nota de versão v1.1 (emenda Pactos, 2026-11-15, aguarda aprovação do usuário):** Pactos entra no MVP como 3ª Doutrina, com a Besta do Vínculo e as **Maldições** (`maldicoes.md`); o chefe do Limiar no MVP passa a ser a Maldição-chefe **Soberano do Limiar** (`chefes.md`). Emendas em §4, §5, §6, §12 e §13; o resto do documento não mudou.
+> **Status**: Approved (v1.1 — v1.0 aprovado pelo Creative Director em 2026-11-05; emenda Pactos v1.1 aprovada pelo usuário em 2026-11-16). Pendências 3–7 da §13 seguem abertas para a Fatia Vertical.
+> **Nota de versão v1.1 (emenda Pactos, 2026-11-15, aprovada pelo usuário em 2026-11-16):** Pactos entra no MVP como 3ª Doutrina, com a Besta do Vínculo e as **Maldições** (`maldicoes.md`); o chefe do Limiar no MVP passa a ser a Maldição-chefe **Soberano do Limiar** (`chefes.md`). Emendas em §4, §5, §6, §12 e §13; o resto do documento não mudou.
 > **Data:** 2026-11-05 · **Engine:** Godot 4.7 / GDScript (ver `project.yaml`)
 > **Fonte da verdade do universo:** `C:\Users\lucas\Desktop\Khaeros` (repo Khaeros).
 > Este documento **traduz** o cânone para o jogo novo; nunca reescreve o cânone.
@@ -110,7 +110,7 @@ Campus (hub) ─► Rito/escolha de arma ─► Run na Beira ─► morte ou vit
 **Escopo do MVP (emenda Pactos, 2026-11-15):**
 - **Doutrinas jogáveis:** 3 — Lâmina, Ressonância e **Pactos** (Besta do Vínculo + Maldições). A paridade de TTK das três está em `maldicoes.md` F6 (Pactos `10,47–10,53 s`, Lâmina `10,53 s`, Ressonância `10,45 s`).
 - **Maldições:** 3 espécies de encontro (Vulto Mudo Comum, Espreitador da Fenda Refinado, Baluarte de Cinza Raro) + o Soberano do Limiar Primordial (`maldicoes.md` §Catálogo). O jogador leva 2 por expedição (uma em campo, outra na reserva).
-- **Chefe do Limiar no MVP:** a Maldição-chefe **Soberano do Limiar** na 7ª câmara (`chefes.md` Overview). O cânone e a lista acima dizem **Anomalia Maior**; no MVP ela não entra. A Anomalia Maior fica reservada no manifesto para a Fatia Vertical (`chefes.md` Overview e OQ3) — se volta como 2º chefe possível do Limiar ou sai é **[a confirmar]** pelo usuário. O Guardião do Rito (Veio) segue reservado para o Alpha.
+- **Chefe do Limiar no MVP:** a Maldição-chefe **Soberano do Limiar** na 7ª câmara (`chefes.md` Overview). O cânone e a lista acima dizem **Anomalia Maior**; no MVP ela não entra. A Anomalia Maior fica reservada no manifesto para a Fatia Vertical (`chefes.md` Overview e OQ3). O Guardião do Rito (Veio) segue reservado para o Alpha.
 - **Pacto ou derrota:** só quem jurou Pactos escolhe. O chefe Subjugado pode ser pactuado (0 Fragmentos do chefe) ou exorcizado (+6) (`chefes.md` F6).
 
 **Câmara:** porta fecha → ondas de inimigos → câmara limpa → recompensa
@@ -337,7 +337,7 @@ protótipo pelos canônicos. Isso será feito em `/asset-spec`, depois do Art Bi
 | 5 | Guardião do Rito: base Soldado ou Sacerdotisa | Soldado (armadura = rito, guarda) |
 | 6 | Estilo único: ilustração de quadrinho ou pixel-art | Ilustração de quadrinho com traço preto |
 | 7 | Rito de Iniciação jogável dentro do jogo (escolha da Doutrina inicial + nome) | Sim, como tutorial curto |
-| 8 | Anomalia Maior: volta na Fatia Vertical como 2º chefe possível do Limiar, ou sai | **[a confirmar]** — `chefes.md` a reserva para a Fatia Vertical (OQ3) |
+| 8 | Anomalia Maior: volta na Fatia Vertical como 2º chefe possível do Limiar, ou sai | Reservada no manifesto para a Fatia Vertical (`chefes.md` Overview e OQ3, aprovado em 2026-11-16) |
 
 **Decisões do usuário de 2026-11-15 (emenda Pactos; não reabrir):**
 - Pactos ("Domadora de Pactos") é a **3ª Doutrina do MVP**, com a Besta do Vínculo (Virote / Chamado do Pacto).

@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed · 2026-11-14
+Accepted · 2026-11-16 (aprovado pelo usuário; Proposed em 2026-11-14)
 
 ## Date
 
@@ -10,7 +10,7 @@ Proposed · 2026-11-14
 
 ## Last Verified
 
-2026-11-14 — GDD de Cena completo, contratos de Input e relógios, referência local Godot. Experimento e limites na seção Validation Criteria.
+2026-11-17 (experimentos EX-0007-NV: interpolação 2D, `reset_physics_interpolation()` no mesmo passo após teleporte e pillarbox em runtime marcados como Verificados (EX-0007-NV, 2026-11-16), com nota sobre escala fracionária em `1366×768`). Antes: 2026-11-14 — GDD de Cena completo, contratos de Input e relógios, referência local Godot. Experimento e limites na seção Validation Criteria.
 
 ## Decision Makers
 
@@ -29,8 +29,8 @@ A câmera calcula duas posições base e uma transformação visual separada, se
 | **Layer** | Foundation |
 | **Knowledge Risk** | HIGH |
 | **References Consulted** | `docs/engine-reference/godot/VERSION.md`, `modules/rendering.md`, `modules/physics.md`, `modules/input.md` |
-| **Post-Cutoff APIs Used** | Propriedades de escala de Window, interpolação 2D e reset no teleporte conforme referência e GDD; uso final depende de ensaio de render |
-| **Verification Required** | Imagem real com stretch/faixas, origem de eventos sob stretch/DPI, ordenação visual, interpolação a 144 Hz, custo de reordenação e pós-processamento. Headless não comprova aparência nem suavidade |
+| **Post-Cutoff APIs Used** | Propriedades de escala de Window, interpolação de física 2D (`physics/common/physics_interpolation=true`, `Node.physics_interpolation_mode`) e `reset_physics_interpolation()` no teleporte: **Verificados (EX-0007-NV, 2026-11-16)** |
+| **Verification Required** | Interpolação 2D (`Sprite2D` a 144 fps com passo de 60 Hz), `reset_physics_interpolation()` no mesmo passo após atribuir a posição do teleporte (sem os 2 quadros fantasmas) e pillarbox/letterbox em runtime (`canvas_items`/`keep`/`fractional`): **Verificados (EX-0007-NV, 2026-11-16)**, anotando escala fracionária não uniforme em `1366×768` (`2,1328 × 2,1333`, sobra de 1 px). Pendente apenas ensaio visual com conteúdo real e monitor físico de 144 Hz com vsync — ver "Verificação de engine (2026-11-16)" |
 
 ## ADR Dependencies
 
@@ -133,7 +133,7 @@ Na primeira entrada em Pausa, Bênção, Morte ou Transição, limpar impulsos e
 
 ### 7. Corte atômico na metade do wipe
 
-O orquestrador conserva a ordem de seis ações do Combate R1. A ação de câmera, no mesmo quadro do teleporte, recebe nova época, limites e ponto de spawn, iguala P_anterior/P_atual e solicita `reset_physics_interpolation()` dos nós teleportados. Calcula diretamente `pos_seguir = F4(P)` e `pos = F4(alvo_F2)`, zera impulsos e publica a transformação/consulta imediatamente. A fonte de mira/cursor usada nesse corte é um valor válido capturado; não exige ações de Input em Transição.
+O orquestrador conserva a ordem de seis ações do Combate R1. A ação de câmera, no mesmo quadro do teleporte, recebe nova época, limites e ponto de spawn, iguala P_anterior/P_atual e chama `reset_physics_interpolation()` nos nós teleportados **no mesmo passo e depois de atribuir a nova posição** (sem a chamada, ou com ela antes da atribuição, aparecem 2 quadros fantasmas interpolando entre as posições; verificado em 2026-11-16). Calcula diretamente `pos_seguir = F4(P)` e `pos = F4(alvo_F2)`, zera impulsos e publica a transformação/consulta imediatamente. A fonte de mira/cursor usada nesse corte é um valor válido capturado; não exige ações de Input em Transição.
 
 Como o zero de `t_apres` ocorre na última ação, depois do corte, o orquestrador informa o novo início de época ao concluir a troca. A câmera reinicializa sua base temporal em zero, sem subtrair um tempo da câmara anterior. `reiniciar_relogio` só aceita a época atual e uma vez por corte; pedidos repetidos ou de épocas antigas não retrocedem o relógio. Não aplica F3 no quadro do corte. Progresso do wipe é próprio do Pipeline e não reinicia junto com esses relógios.
 
@@ -207,6 +207,16 @@ Antes da integração, executar as oito dimensões de AC-02, cursor nas faixas, 
 - AC-20 fala em direção da mira idêntica com `pos_seguir` igual: a invariância vale para o vetor que gera lookahead. A mira de gameplay usa `pos`, conforme R9/AC-37, e pode diferir se essa base diferir. O GDD precisa tornar esse nome inequívoco.
 - Corte→Seguindo de AC-30 é condicionado ao estado global permitir seguir; AC-30b exige congelar em Transição.
 - A arquitetura deve distinguir arbitragem/entrega de impulso no fim do passo da aplicação de efeitos visuais no render. A câmera avalia o impulso já entregue.
+
+## Verificação de engine (2026-11-16)
+
+Fonte: Completion Notes em `production/epics/experimentos-de-engine/` e `production/qa/evidence/experimentos/ex-0007-nv-cena.md`, com captura `ex-0007-pillarbox-1000x360.png`. Editor 4.7.2 standard, Windows 11.
+
+- **VERIFICADO:** a interpolação de física 2D suaviza a apresentação entre passos como este ADR supõe.
+- **VERIFICADO, com regra:** `reset_physics_interpolation()` precisa ser chamado no mesmo passo e **depois** de atribuir a posição do teleporte. Sem isso aparecem 2 quadros fantasmas. Texto da Decision ajustado.
+- **VERIFICADO:** as faixas laterais (pillarbox) se ajustam em runtime ao redimensionar a janela (captura 1000×360).
+- **Achado — escala não uniforme:** com `fractional` em 1366×768, a escala final sai 2,1328 × 2,1333 (diferença de cerca de 0,02%, menos de 1 px na largura total). **Decisão:** manter `fractional` e aceitar, documentando a diferença; a consulta de câmera e a conversão de eventos usam `get_final_transform()`, não um fator único suposto. **Fallback:** se o ensaio visual mostrar tremulação ou costura de pixel nessa resolução, trocar para escala `integer` com aspecto fixo (`keep`) e faixas maiores.
+- **Pendente:** 144 Hz só foi emulado; a gravação em monitor real de 144 Hz continua exigida (Validation Criteria).
 
 ## Migration Plan
 

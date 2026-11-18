@@ -1,8 +1,8 @@
 # Combate núcleo
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — histórico anterior: Approved (2026-11-11, Efeitos de status: o número de dano de status é o agregado da R8 deles; 2026-11-10, Selo e Fluxo: a Transição também apaga os Selos (R1, item 3); o dano do Selo usa o caminho silencioso da R8 e sai da lista de origens do `acerto` na R17, decisão do usuário; 2026-11-10, correções de contrato do `/review-all-gdds` 3ª passada, mantido Approved por decisão do usuário: C-B2, durações visuais no `CombatTuning` e nos eventos; S-B1, estado Transição no orquestrador; S-B2, câmara limpa só com hitstop 0; S-W5, hitstop parado fora de Jogo. 2026-11-10: exemplos do Pulso alinhados ao empurrão 540 do GDD de Armas, com aval do usuário, sem mudar regra; `/design-review` 2026-11-09, lean, por subagentes: NEEDS REVISION — 3 bloqueantes nas regras e 8 nos critérios, revisados; re-review 2026-11-09: regras APPROVED, critérios com 2 correções de uma linha aplicadas, e as recomendadas das duas re-reviews aplicadas na mesma data; aprovado pelo usuário)
-> **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-15 (emenda Pactos, encontro de pacto: R25 `ferir_acuada`, F13, R1, R7, R10, States, Interactions, Edge Cases "Acuada", Dependencies, AC-113–AC-119, OQ15; contrato V44 de `vinculo-e-pactos.md`); 2026-11-15 (emenda Pactos: R1 item 6.1, R3.1 forma `chamado`, AC-112, R7, R8, R10, R14, R16, R17, R19–R24, F12, States, Interactions, Edge Cases, Dependencies, AC-98–AC-111, OQ12–OQ14); antes, 2026-11-10 (cross-review: R1, R10, R15, R17, V1, V6, V10–V12, CV22, AC-10, AC-78, AC-95–AC-97, OQ11)
+> **Status**: Approved
+> **Author**: usuário + Claude (design-system, modo Lean; emenda Pactos aprovada pelo usuário em 2026-11-16)
+> **Last Updated**: 2026-11-18 (consolidação de decisões aprovadas em 2026-11-16); 2026-11-15 (emenda Pactos, encontro de pacto: R25 `ferir_acuada`, F13, R1, R7, R10, States, Interactions, Edge Cases "Acuada", Dependencies, AC-113–AC-119, OQ15; contrato V44 de `vinculo-e-pactos.md`); 2026-11-15 (emenda Pactos: R1 item 6.1, R3.1 forma `chamado`, AC-112, R7, R8, R10, R14, R16, R17, R19–R24, F12, States, Interactions, Edge Cases, Dependencies, AC-98–AC-111, OQ12–OQ14); antes, 2026-11-10 (cross-review: R1, R10, R15, R17, V1, V6, V10–V12, CV22, AC-10, AC-78, AC-95–AC-97, OQ11)
 > **Last Verified**: 2026-11-09
 > **Implements Pillar**: P3 *Reflexo que se lê* (hitstop, buffer, cancelamento; baseline §55)
 
@@ -19,7 +19,7 @@
 > estado `Subjugado` do chefe (`chefes.md` R8, R9, F6). Regras novas: R19–R24 e
 > F12, e a forma `chamado` do Especial da Besta (R3.1, pedido de Armas); ajustes
 > marcados "(emenda Pactos, 2026-11-15)" na R1, R7, R8, R10, R14, R16 e R17.
-> Nada do texto aprovado foi removido. Pontos **[a confirmar]** pelo usuário:
+> Nada do texto aprovado foi removido. Decisões confirmadas pelo usuário em 2026-11-16:
 > lugar das Maldições na ordem do passo (R1 item 6.1, R23), Exaustão síncrona
 > (R21), `peso_visual` do golpe da Maldição (R17), M do Chamado e Chamado sem
 > recuperação (R3.1), abate e `cura_ao_abater` do chefe só no Exorcizar (R24).
@@ -227,8 +227,8 @@ Forma do Especial da Besta (*Chamado do Pacto*). Params do `AttackDef`: `dano`,
 - **M do Chamado:** `M_chamado` = o `M_sem` do jogador no grupo **Especial**,
   congelado no disparo (R3.2), sem 4º acerto (não conta acerto)
   **[a confirmar]**: assim as bênçãos de Especial valem para o Chamado.
-- **Sem recuperação** (item 7) e sem guarda: o jogador não golpeia
-  **[a confirmar]**. Sem finalizador (sem combo).
+- **Sem recuperação** (item 7) e sem guarda: o jogador não golpeia.
+  Sem finalizador (sem combo).
 - **Hitstop:** nenhum no disparo nem no pouso (R10, linha do golpe de Maldição).
 - Evento `chamado` (posição do jogador, ponto mirado) no disparo. A forma
   `chamado` só é válida no slot Especial (contrato pedido ao Conteúdo: validação
@@ -605,7 +605,7 @@ testes os montam pela fixture. Campos dos eventos:
 arma ganha a origem `maldicao` (slot "nenhum", forma `maldicao`); `inimigo_morreu`
 ganha `autor_player_id` (R14) e `limpo_pelo_chefe` (lacaio zerado pela queda do
 chefe). O `peso_visual` do `acerto` de origem `maldicao` é **pesado** se o
-impacto é pesado pela R8.4 e **leve** nos outros casos **[a confirmar]** (o
+impacto é pesado pela R8.4 e **leve** nos outros casos (o
 Baluarte e o Pulso de Soberania, com empurrão 900, ficam pesados).
 
 **R18. Pedidos do Movimento** (contrato da OQ2 do Movimento), síncronos:
@@ -656,7 +656,7 @@ direção, empurrão, status, `pesado`, `ataque_id`.
 6. `M_maldicao` é a F2 do Modificadores no portador da Maldição, sem slot, com o
    teto `teto_multiplicador_dano`. É calculado no impacto (golpe direto).
    Exceção: o pouso do Chamado usa o `M_chamado` do jogador, congelado no
-   disparo (R3.1) **[a confirmar]**.
+   disparo (R3.1).
 7. Evento `acerto` com slot "nenhum" e forma `maldicao` (R17).
 
 **R21. Dano na Maldição** (`ferir_maldicao(curse_id, dano_base, m_atacante,
@@ -678,8 +678,7 @@ projéteis (R22).
    nas Maldições **no mesmo ponto do passo** e emite `maldicao_exausta`. Não é
    morte do jogador: nada de `jogador_morreu`, nenhum estado de jogo muda. A
    troca automática e o fim das atrações são das Maldições (`maldicoes.md` R9).
-   A chamada é síncrona para a troca automática sair no mesmo passo (AC-ML-13)
-   **[a confirmar]**.
+   A chamada é síncrona para a troca automática sair no mesmo passo (AC-ML-13).
 8. Golpes seguintes do mesmo passo que miravam a Maldição Exausta caem no item 1:
    nada.
 
@@ -708,8 +707,8 @@ R7).
   **acuada** (IA R22; Vínculo V8). O telégrafo mirado nela chama só
   `ferir_acuada` (R25); o projétil segue a R7 (alvo `acuada`).
 
-**R23. Lugar das Maldições no passo** (emenda Pactos, 2026-11-15) **[a
-confirmar]**. As Maldições rodam no **item 6.1**: depois do Selo e antes dos
+**R23. Lugar das Maldições no passo** (emenda Pactos, 2026-11-15).
+As Maldições rodam no **item 6.1**: depois do Selo e antes dos
 inimigos. Motivo, pela coerência com o ADR-0010:
 
 - **§6 (empurrão):** acertos do item 5 movem o alvo no mesmo passo, porque o
@@ -756,10 +755,9 @@ passo de atraso. Nada roda no 6.1 em passo congelado ou fora de Jogo
     `inimigo_morreu` (chefe, `autor_player_id`, `impact_passos` 0, porque o
     *impact frame* já saiu em `s`) e `cura_ao_abater` do autor. Sem hitstop novo e
     sem `explosao_ao_abater` (não há atingível e a câmara está fora de combate).
-    O `cura_ao_abater` do chefe só vale aqui **[a confirmar]**;
+    O `cura_ao_abater` do chefe só vale aqui;
   - **Pactuar:** o chefe sai da lista **sem** contagem, sem `inimigo_morreu`, sem
-    cura e sem explosão. A dissolução em Osso é dos Chefes (CH-V4)
-    **[a confirmar]**.
+    cura e sem explosão. A dissolução em Osso é dos Chefes (CH-V4).
 - A "câmara limpa" da câmara do chefe em Pactos sai da escolha
   (`camara_limpa(4, chefe)`, `chefes.md` R9), não da lista vazia. É contrato de
   Chefes com Câmaras; o Combate não muda a R10.
@@ -771,7 +769,7 @@ o estado dela são do Vínculo; o Combate só escreve a Vida dela, aqui. Chamado
 pela IA e pelos Telégrafos (golpe travado na acuada, IA R22) e pelos projéteis
 (R7). O V44 pede `ferir_acuada(dano)` com dano inteiro; a assinatura ganha os
 campos do atacante, como `ferir_maldicao` (R21), para a F13 aplicar o M do
-elite e do Abalo no mesmo lugar **[a confirmar]**.
+elite e do Abalo no mesmo lugar.
 
 1. Nada acontece se `acuada_atingivel()` do Vínculo é falsa (só é verdadeira com
    a acuada no estado `Acuada`; `Aguardando` e `Fugiu` não são atingíveis) ou se
@@ -786,7 +784,7 @@ elite e do Abalo no mesmo lugar **[a confirmar]**.
    recusa de morte ou status: são do jogador ou da Maldição em campo.
 6. **Falha do encontro:** com Vida ≤ 0, a Vida fica 0 e o Combate chama
    `falhar_encontro()` no Vínculo **no mesmo ponto do passo**, síncrono, como o
-   `exaurir` da R21.7 **[a confirmar]** (nome). O Vínculo passa a acuada a
+   `exaurir` da R21.7. O Vínculo passa a acuada a
    `Fugiu` (V12). Golpes e projéteis seguintes do mesmo passo caem no item 1. Não
    é morte de inimigo nem do jogador: sem `inimigo_morreu`, sem contagem, sem
    hitstop, sem `jogador_morreu`; a lista de inimigos não muda.
@@ -1423,7 +1421,7 @@ O CV12, o CV14, o CV16, o CV17 e o CV18 dependem de dados de outros sistemas
   Os projéteis inimigos somem no passo da queda (R24). Com a Doutrina de Pactos o
   chefe **não sai da lista**: fica `Subjugado` (Vida 0, não atingível, fora de
   combate) até a escolha Pactuar/Exorcizar de `chefes.md` R9. O `cura_ao_abater`
-  do próprio chefe só vale no Exorcizar **[a confirmar]** (R24).
+  do próprio chefe só vale no Exorcizar (R24).
 
 **Maldições** (emenda Pactos, 2026-11-15)
 

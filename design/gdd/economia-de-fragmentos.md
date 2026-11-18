@@ -1,17 +1,15 @@
 # Economia de Fragmentos
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — antes: Approved (2026-11-11; revisão única por subagente: 4 bloqueantes e recomendadas, corrigidos sem re-review; sem entrada no review log)
-> **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-15 (emenda Pactos)
+> **Status**: Approved
+> **Author**: usuário + Claude (design-system, modo Lean; emenda Pactos aprovada pelo usuário em 2026-11-16)
+> **Last Updated**: 2026-11-18 (correção de `efetivo = 1` em F1 e AC-EF-08); 2026-11-15 (emenda Pactos)
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P2 *A Beira cobra*; P4
 
 > **Emenda Pactos (2026-11-15).** A fonte `chefe` deixa de ser reservada: entra no MVP
 > com o *Soberano do Limiar* (`chefes.md` R9, F6). Abate ou Exorcizar: +6. Pactuar: 0
 > do chefe. Vitória: +15 (sem mudança). O texto antigo fica; o novo leva a marca
-> "(emenda Pactos, 2026-11-15)". Conferência das taxas: F3-P. ~~Conflito registrado
-> **[a confirmar]**: a faixa de portas depende de o índice 5 dar recompensa (Run R3-P)
-> ou não (Chefes F6).~~ Conflito resolvido: Chefes F6 foi emendado e usa o índice 5
+> "(emenda Pactos, 2026-11-15)". Conferência das taxas: F3-P. Conflito resolvido: Chefes F6 foi emendado e usa o índice 5
 > recompensado (Run R3-P), com 10/25/31.
 
 ## Summary
@@ -156,7 +154,7 @@ jogo (a Run decide quando chamar). A única transição é `nova_run()` (R6).
 
 **F1. Crédito.** `efetivo = min(q, saldo_max − saldo)`; `saldo' = saldo + efetivo`;
 `coletados_run' = coletados_run + efetivo`. Se `efetivo < q`, emite `saldo_no_teto`.
-`q` é inteiro ≥ 1 (R3). Ex.: saldo 999 998, `q` 3 → efetivo 2, saldo 999 999.
+`q` é inteiro ≥ 1 (R3). Ex.: saldo 999 998, `q` 3 → efetivo 1, saldo 999 999.
 
 **F2. Gasto.** `saldo' = saldo − custo` se `saldo ≥ custo`, senão nada muda. Ex.:
 saldo 11, custo 15 → recusa; saldo 26, custo 15 → saldo 11.
@@ -334,7 +332,7 @@ Tipos: [L] lógica (unitário), [I] integração, [V] visual (screenshot).
 - **AC-EF-05 [L] R3 — origem inválida.** `creditar("abate", 1)`: recusa `EC1`, nada muda.
 - **AC-EF-06 [L] R3 — sem abate.** O evento de morte de inimigo do Combate (dublê) não altera o saldo; nenhuma origem `abate`/`elite` existe.
 - **AC-EF-07 [L] R2 — reservadas aceitas.** `creditar(chefe, 6)` e `creditar(provacao, 3)` funcionam como qualquer origem válida.
-- **AC-EF-08 [L] F1/R1 — teto.** Saldo 999 998, `creditar(porta, 3)`: saldo 999 999, `coletados_run` soma 2, `saldo_no_teto` emitido, `saldo_mudou` com delta +2.
+- **AC-EF-08 [L] F1/R1 — teto.** Saldo 999 998, `creditar(porta, 3)`: saldo 999 999, `coletados_run` soma 1, `saldo_no_teto` emitido, `saldo_mudou` com delta +1.
 - **AC-EF-09 [L] R1 — teto cheio.** Saldo 999 999, `creditar(porta, 2)`: nenhum `saldo_mudou`; `saldo_no_teto` emitido; saldo igual.
 - **AC-EF-10 [L] R5/F2 — gastar com saldo.** Saldo 26, `gastar(15, "teste")`: saldo 11, `saldo_mudou(11, −15, "teste")`, `coletados_run` intacto.
 - **AC-EF-11 [L] R5 — gasto exato.** Saldo 15, `gastar(15)`: saldo 0.

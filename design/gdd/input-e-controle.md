@@ -1,8 +1,8 @@
 # Input e controle
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — 2026-11-15: ação `troca`, campo `ponto_mira` e consumidor Maldições (R1, R2, R6, F3, Interactions, Edge Cases, Dependencies, AC-41 a AC-46), aguardando aprovação do usuário. Histórico anterior: Approved (2026-11-10: contexto Transição na R10 e na R11, do `/review-all-gdds` 3ª passada (S-B1), mantido Approved por decisão do usuário; 2026-11-09: R6 diz que o orquestrador lê o hitstop do Combate, alinhado ao Combate núcleo R10 com aval do usuário; 4ª re-review `/design-review` 2026-11-06, sessão independente: APPROVED, 0 bloqueantes, recomendadas no log; anteriores: 3ª re-review NEEDS REVISION e `/review-all-gdds` FAIL, ambos revisados; 2ª passada do cross-review, CONCERNS: retirada do `InputTuning` ao sair de Pronto na R12 e Cross-References, aplicadas em 2026-11-06 com o status mantido por decisão do usuário)
-> **Author**: usuário + Claude (design-system)
-> **Last Updated**: 2026-11-15 (emenda Pactos: ação `troca` e `ponto_mira`); 2026-11-10 (contexto Transição: R10, R11, AC-22, AC-23)
+> **Status**: Approved
+> **Author**: usuário + Claude (design-system; emenda Pactos aprovada pelo usuário em 2026-11-16)
+> **Last Updated**: 2026-11-18 (consolidação de decisões aprovadas em 2026-11-16); 2026-11-15 (emenda Pactos: ação `troca` e `ponto_mira`); 2026-11-10 (contexto Transição: R10, R11, AC-22, AC-23)
 > **Last Verified**: 2026-11-06
 > **Implements Pillar**: P3 *Reflexo que se lê* ("a esquiva sempre responde")
 > **Creative Director Review (CD-GDD-ALIGN)**: pulada (modo Lean)
@@ -76,7 +76,7 @@ código de jogo. Os nomes são `StringName`.
 | Jogo | `selo` | botão | Q (F) | B (LB) |
 | Jogo | `esquiva` | botão | Espaço (Shift, L) | A (RT) |
 | Jogo | `interagir` | botão | E | RB |
-| Jogo | `troca` (emenda Pactos, 2026-11-15) | botão | R (Tab) **[a confirmar]** | LT **[a confirmar]** |
+| Jogo | `troca` (emenda Pactos, 2026-11-15) | botão | R (Tab) | LT |
 | Jogo, Pausa e Bênção | `pausar` | botão | Esc | Start |
 | Pausa, Bênção e Menu | `ui_aceitar` | botão | Enter (Espaço, E) | A |
 | Menu | `ui_voltar` | botão | Esc | B |
@@ -97,12 +97,12 @@ Troca de Maldições (Maldições R11). Existe em toda run e em toda Doutrina: s
 GDD de Maldições a consome, e sem Maldição em campo o pedido é recusado lá, não
 aqui. Bind padrão escolhido por conflito com o mapa atual:
 
-- **Teclado: R (primário) e Tab (secundário) [a confirmar].** A sugestão da
+- **Teclado: R (primário) e Tab (secundário).** A sugestão da
   Maldições OQ1 era Q / Tab, mas Q é o primário do `selo` no contexto Jogo. R
   fica no mesmo grupo da mão esquerda (Q, E, R ao redor do WASD) e só é usado na
   Bênção (`ui_trocar_ofertas`), contexto diferente, o que a R8 permite. Tab não
   tem uso no MVP.
-- **Gamepad: LT (primário) [a confirmar].** A sugestão era LB, mas LB é o
+- **Gamepad: LT (primário).** A sugestão era LB, mas LB é o
   secundário do `selo`. LT é o único botão de ombro livre no contexto Jogo e
   espelha o RT (secundário da `esquiva`). Vira botão pela histerese da R12
   (aperta em ≥ 0,5, solta em < 0,4). Alternativa, se o usuário preferir LB:
@@ -113,8 +113,7 @@ aqui. Bind padrão escolhido por conflito com o mapa atual:
 **R1b. Mira do Chamado do Pacto (emenda Pactos, 2026-11-15).** O Chamado é o
 Especial da Besta do Vínculo e usa a **mesma mira do Especial**: `mirar` (R5) e
 o botão `especial`. O salto precisa de um **ponto** (Maldições F4,
-`pos_mirada`), por isso a amostra ganha o campo `ponto_mira` (R2) **[a
-confirmar]**:
+`pos_mirada`), por isso a amostra ganha o campo `ponto_mira` (R2):
 
 - `fonte_mira = mouse`: o ponto do cursor em mundo, o mesmo que já gera `mirar`
   (conversão da Cena 3/4 R9/F6).
@@ -619,7 +618,7 @@ contínuos.
   contexto Jogo no arquivo do usuário, ela recebe o **primeiro bind livre** da
   lista R, Tab, G, C (teclado) ou LT, D-pad baixo, D-pad esquerda (gamepad), sem
   tirar bind de outra ação, e o aviso `INPUT_ACAO_NOVA` aparece uma vez por
-  sessão na tela de remapeamento **[a confirmar]**.
+  sessão na tela de remapeamento.
 - **Se o cursor estiver sobre o personagem ao usar o Chamado** (vetor zero):
   `mirar` mantém a direção anterior (R5) e `ponto_mira` vale a posição do
   jogador; Maldições F4 trata `||u|| = 0` com `mira × alcance_chamado_px`.

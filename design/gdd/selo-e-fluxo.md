@@ -1,9 +1,9 @@
 # Selo e Fluxo
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16)
-> **Status anterior**: Approved (2026-11-10; Efeitos de status: o AC-SF-21 passa a 28 passos de Abalo depois do círculo, F4 de Efeitos de status)
+> **Status**: Approved
+> **Status anterior**: Approved (2026-11-10; emenda Pactos aprovada pelo usuário em 2026-11-16)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-15 (emenda Pactos: R1a, R3a, linha da Besta em F3–F5, ACs SF-29 a SF-32)
+> **Last Updated**: 2026-11-18 (consolidação de decisões aprovadas em 2026-11-16); 2026-11-15 (emenda Pactos: R1a, R3a, linha da Besta em F3–F5, ACs SF-29 a SF-32)
 > **Last Verified**: 2026-11-10
 > **Implements Pillar**: P3 *Reflexo que se lê* (área e tempo do Selo visíveis)
 
@@ -844,4 +844,4 @@ quando o critério diz.
 | 6 | Assimetria de Fluxo em grupo (Lâmina até 2× a Ressonância) | `/balance-check` | depois do primeiro playtest |
 | 7 | Índice: linha 10 com Movimento, IA, Câmaras e Run em Depends On | usuário / producer | próxima edição do índice |
 | 8 | Selo no mesmo passo do disparo da investida (cânone aceito aqui): conferir com Combate e IA | game-designer | `/design-review` |
-| 9 | (emenda Pactos) Besta com 5 inimigos no Selo: f_selo 49,1% só com a arma, acima do teto 0,45 da meta (o Virote fere um só alvo). O SV12 em grupo deve contar o DPS da Maldição (≤ 38,4%) ou aceitar a exceção da Besta? Recomendação: contar a Maldição, porque ela é metade da arma da Doutrina **[a confirmar]** | usuário / `/balance-check` | `/design-review` desta emenda |
+| 9 | (emenda Pactos) Besta com 5 inimigos no Selo: f_selo 49,1% só com a arma, acima do teto 0,45 da meta (o Virote fere um só alvo). O SV12 em grupo conta o DPS da Maldição (≤ 38,4%), porque ela é metade da arma da Doutrina (confirmado em 2026-11-16) | — | resolvida (2026-11-16) |

@@ -1,17 +1,18 @@
 # Pactos no MVP — decisões a confirmar (2026-11-16)
 
 > **Aprovado pelo usuário em 2026-11-16** ("Aprovar todas"): as 21 decisões
-> abaixo valem como estão. Todo **[a confirmar]** dos GDDs do lote que aponta
-> para um item desta lista está confirmado por esta aprovação.
+> abaixo valem como estão. Todo marcador provisório dos GDDs do lote que apontava
+> para um item desta lista foi confirmado por esta aprovação e consolidado nos
+> respectivos GDDs em **2026-11-18** (`Status: Approved` em todos os 26 GDDs do MVP).
 
 Lote feito por agentes a pedido do usuário ("termine todos os GDD usando os
-agentes"). Cada item foi decidido por um agente e está marcado **[a confirmar]**
-no GDD citado.
+agentes"). Cada item abaixo foi decidido por um agente, aprovado pelo usuário em
+2026-11-16 e consolidado sem tags provisórias nos GDDs citados em 2026-11-18.
 
 ## Estado do lote
 
-- **Novos (Designed):** [vinculo-e-pactos.md](vinculo-e-pactos.md), [save-e-perfil.md](save-e-perfil.md).
-- **Emendados (In Revision, emenda Pactos):** maldicoes, chefes, armas-das-doutrinas,
+- **Novos (Approved):** [vinculo-e-pactos.md](vinculo-e-pactos.md), [save-e-perfil.md](save-e-perfil.md).
+- **Emendados (Approved, emenda Pactos):** maldicoes, chefes, armas-das-doutrinas,
   run-e-regioes, economia-de-fragmentos, camaras-e-ondas, portas-e-recompensas,
   combate-nucleo, modificadores-e-atributos, ia-de-inimigos-e-elites, telegrafos,
   input-e-controle, hud, feedback-de-combate, conteudo-orientado-a-dados,

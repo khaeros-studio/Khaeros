@@ -1,9 +1,9 @@
 # Pipeline visual
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — R5a (contorno tracejado secundário do telégrafo do chefe), R5b (fio de vínculo, marca do Virote, Maldição sem telégrafo SDF); faixas no `VisualTuning`, Dependencies, Edge Cases, AC-PV-84 a AC-PV-88, OQ 15–16. Last Updated: 2026-11-15.
-> **Status anterior**: Approved (2026-11-10, `/review-all-gdds` 3ª passada, mantido Approved por decisão do usuário: S-B1, a troca na metade do wipe segue a ordem do estado Transição do Combate R1; S-B2, a Bênção só abre com o hitstop em 0; C-B2, os campos de duração do `CombatTuning` citados na R7 e na R12) — (`/design-review` 2026-11-10, lean, por subagentes: NEEDS REVISION — 7 bloqueantes nas regras e 9 nos critérios, revisados; re-review: NEEDS REVISION leve — 3 nas regras e 3 nos critérios, revisados na mesma data; os dois revisores confirmaram a aprovação com as correções; aprovado pelo usuário)
+> **Status**: Approved
+> **Status anterior**: Approved (2026-11-10; emenda Pactos aprovada pelo usuário em 2026-11-16: R5a contorno tracejado secundário do telégrafo do chefe, R5b fio de vínculo, marca do Virote, Maldição sem telégrafo SDF; faixas no `VisualTuning`, Dependencies, Edge Cases, AC-PV-84 a AC-PV-88, OQ 15–16)
 > **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-10
+> **Last Updated**: 2026-11-15
 > **Last Verified**: 2026-11-10
 > **Implements Pillar**: P3 *Reflexo que se lê* (regra central do Art Bible: "Da sombra, só sai o que fere ou o que se escolhe")
 

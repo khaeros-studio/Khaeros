@@ -1,8 +1,8 @@
 # Modificadores e atributos
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — histórico anterior: Approved (2026-11-09: nota da exceção de `cura_ao_abater` com o jogador morto, R13, e piso 1 na Vida da recusa de morte, R13, alinhado ao Combate núcleo R13/F10 com aval do usuário; re-review 2026-11-08, lean: APPROVED, 0 bloqueantes — confirmou os warnings da 1ª e da 2ª passada do `/review-all-gdds` de 2026-11-06 aplicados aqui: C-W1, C-W5, C-I1, OQ6 fechada, dependentes Câmaras e ondas e Chefes, Cross-References; esta re-review não tem entrada no `reviews/modificadores-e-atributos-review-log.md`, por escolha do usuário)
-> **Author**: usuário + Claude (design-system)
-> **Last Updated**: 2026-11-16 (alinhamento da emenda Pactos: R14 criação do portador no meio da run, States, AC-40); 2026-11-15 (emenda Pactos: Overview, R2, `ModifiersTuning`, R3, R12, R14, F6, States, Interactions, Edge Cases, Dependencies, AC-33–AC-39, OQ7); antes, 2026-11-06 (tokens de forma em PT na R12, AC-29 com arma de fábrica, V11 e `ModifiersTuning` citados do Conteúdo; 2ª passada do cross-review: Câmaras e ondas e Chefes como dependentes, Cross-References)
+> **Status**: Approved
+> **Author**: usuário + Claude (design-system; emenda Pactos aprovada pelo usuário em 2026-11-16)
+> **Last Updated**: 2026-11-18 (esclarecimento de `12,54` / `14,08` em F2 e AC-04b; consolidação de decisões aprovadas em 2026-11-16); 2026-11-16 (alinhamento da emenda Pactos: R14 criação do portador no meio da run, States, AC-40); 2026-11-15 (emenda Pactos: Overview, R2, `ModifiersTuning`, R3, R12, R14, F6, States, Interactions, Edge Cases, Dependencies, AC-33–AC-39, OQ7); antes, 2026-11-06 (tokens de forma em PT na R12, AC-29 com arma de fábrica, V11 e `ModifiersTuning` citados do Conteúdo; 2ª passada do cross-review: Câmaras e ondas e Chefes como dependentes, Cross-References)
 > **Last Verified**: 2026-11-08
 > **Implements Pillar**: P1 *Toda bênção é uma filosofia* (bênçãos como dado; só os 8 gatilhos têm executor próprio); P2 *A Beira cobra* (preços visíveis)
 > **Creative Director Review (CD-GDD-ALIGN)**: pulada (modo Lean)
@@ -119,10 +119,10 @@ grupo do **Ataque** (R12), como no cânone, e o Traço Único também os aumenta
 | `piso_vida_jogador` | 20 | 1 – 100 | piso de `vida_max` do jogador (F1) |
 | `piso_vida_inimigo` | 1 | ≥ 1 | piso de `vida_max` de inimigos (F1) |
 | `teto_reducao_dano` | 0,6 | 0 – 0,9 | teto de `reducao_dano` (F3) |
-| `teto_multiplicador_dano` | 4,0 (provisório) | 2–8 | teto do M efetivo da F2 (`min(M, teto)`); M 14,08 → 4,0; DPS máx. de Armas F1 ≈ 66,47 × 4 = 265,9; `/balance-check` confirma antes da fatia vertical |
+| `teto_multiplicador_dano` | 4,0 (provisório) | 2–8 | teto do M efetivo da F2 (`min(M, teto)`); M 12,54 (3 bênçãos do exemplo em Épico + Ímpeto nv3) ou 14,08 (com +0,35 extra em `P_todo + P_slot`) → 4,0; DPS máx. de Armas F1 ≈ 66,47 × 4 = 265,9; `/balance-check` confirma antes da fatia vertical |
 | `fator_empurrao_chefe` | 0,12 | 0 – 1 | multiplicador de `fator_empurrao` da fonte `chefe` (R10) |
 | `piso_vida_maldicao` (emenda Pactos, 2026-11-15) | 20 | 1 – 100 | piso de `vida_max` do portador da Maldição (F1); igual ao limite do ML2 de `maldicoes.md` |
-| `tipos_propagados_maldicao` (emenda Pactos, 2026-11-15) | [`dano_todo_pct`, `velocidade_pct`] **[a confirmar]** | subconjunto de {`dano_todo_pct`, `velocidade_pct`} | tipos de efeito do jogador que viram espelho nos portadores das Maldições (R14, F6) |
+| `tipos_propagados_maldicao` (emenda Pactos, 2026-11-15) | [`dano_todo_pct`, `velocidade_pct`] | subconjunto de {`dano_todo_pct`, `velocidade_pct`} | tipos de efeito do jogador que viram espelho nos portadores das Maldições (R14, F6) |
 | `fator_propagacao_maldicao` (emenda Pactos, 2026-11-15) | 1,0 | 0 – 1 | fração do valor do jogador copiada para o espelho (F6); alavanca de balanço da Doutrina de Pactos |
 
 **R3. Modificador.** Um modificador tem:
@@ -362,8 +362,8 @@ R6, R8, OQ3).
     quando o estado muda (R6, R7);
   - **`espelho`** (id `espelho:<fonte_original>`): a propagação do jogador
     (abaixo).
-- **Propagação do jogador (resposta à OQ3 de `maldicoes.md`)** **[a
-  confirmar]**: todo modificador do portador do jogador cujo **tipo de efeito**
+- **Propagação do jogador (resposta à OQ3 de `maldicoes.md`):**
+  todo modificador do portador do jogador cujo **tipo de efeito**
   está em `tipos_propagados_maldicao` ganha um espelho em **cada** portador de
   Maldição da dupla, com o valor da F6, a mesma operação e a mesma duração. O
   espelho nasce e some junto com a fonte original (aplicar, remover, expirar,
@@ -490,10 +490,15 @@ condição é verdadeira no momento da R12. Para inimigos não há slot: vale s�
 
 **Output Range:** ≥ 0, com teto `teto_multiplicador_dano` = **4,0** (provisório,
 faixa 2–8; decisão do usuário, 2026-11-12): o M **efetivo** é
-`min(M, teto_multiplicador_dano)`. O máximo teórico sem teto é ≈ 14,08 (tudo
-Épico, 4º acerto e pós-esquiva) e vira **4,0** com o teto. DPS máximo de Armas
-F1 ≈ 66,47 × 4 = **265,9**. Os exemplos abaixo (M 2,00, 3,20) ficam abaixo do
-teto; o de 4,80 vira 4,0.
+`min(M, teto_multiplicador_dano)`. Com as 3 bênçãos aditivas do exemplo abaixo
+em raridade Épica mais Ímpeto nv3 (`P_todo = 0,40 + 0,15 = 0,55`; `P_slot = 0,80
++ 0,50 = 1,30`; `1 + P_todo + P_slot = 2,85`), Linha Contada Épica (`× 2,2` no
+4º acerto) e Penumbra Épica (`× 2,0` pós-esquiva), o produto sem teto é `2,85 ×
+2,2 × 2,0 = 12,54`; o valor de referência `14,08` corresponde a `3,20 × 2,2 ×
+2,0` (soma aditiva `P_todo + P_slot = 2,20`, isto é, `+0,35` extra em `P_todo +
+P_slot` além de `1,85`, 4º acerto e pós-esquiva). Ambos viram **4,0** com o
+teto. DPS máximo de Armas F1 ≈ 66,47 × 4 = **265,9**. Os exemplos abaixo (M
+2,00, 3,20) ficam abaixo do teto; o de 4,80 vira 4,0.
 **Example:** Ataque com Traço Único +25%, Preço com Nome +20%, Ímpeto nível 3
 +15% e Fundo do Poço +40% (Vida < 50%):
 
@@ -795,7 +800,7 @@ escolha na hora.
   Recursos só mudam pela R9.
 - **AC-03 [L]** Oráculos F1: 175; 165; base 25 − 10 → 20; Muro de Pedras Raro
   167,5 → 168; velocidade 12,4; base 10 + 5 plano, +20%, ×1,5 → 27.
-- **AC-04b [L] F2 — teto do M** (`teto_multiplicador_dano` = 4,0). M calculado 14,08 (tudo Épico, 4º acerto, pós-esquiva) → M efetivo 4,0; M 3,20 → 3,20 (abaixo do teto, intacto); M 4,0 exato → 4,0; com o teto em 8, o 14,08 vira 8. O dano da Lâmina combinada no teto = DPS de Armas F1 66,47 × 4 ≈ 265,9. O ST5 e o SV12 usam M = 4.
+- **AC-04b [L] F2 — teto do M** (`teto_multiplicador_dano` = 4,0). M calculado 12,54 (as 3 bênçãos aditivas do exemplo da F2 em Épico + Ímpeto nv3: `2,85 × 2,2 × 2,0`, 4º acerto, pós-esquiva) ou 14,08 (com `+0,35` extra em `P_todo + P_slot`: `3,20 × 2,2 × 2,0`, 4º acerto, pós-esquiva) → M efetivo 4,0; M 3,20 → 3,20 (abaixo do teto, intacto); M 4,0 exato → 4,0; com o teto em 8, o 12,54 e o 14,08 viram 8 (e com teto 6,0 viram 6,0). O dano da Lâmina combinada no teto = DPS de Armas F1 66,47 × 4 ≈ 265,9. O ST5 e o SV12 usam M = 4.
 - **AC-04 [L]** Pisos e tetos:
   - `reducao_dano` 0,9 → 0,6 e −0,1 → 0;
   - `cargas_esquiva` 1 − 1 → 1;
@@ -804,7 +809,7 @@ escolha na hora.
   - base −5 (plano) com Σ% −1,5 → 0, depois piso (nunca positivo por dois
     negativos).
 - **AC-05 [L]** 22,5 → 23 e 22,4 → 22. Os 5 atributos inteiros devolvem `int`;
-  `velocidade` fica `float`.
+  `velocidade` fica `float` (IEEE-754 binary64 com 53 bits de significando, verificado em `EX-0009-1`: `2.0**52 + 1.0 != 2.0**52` e `2.0**53 + 1.0 == 2.0**53`).
 - **AC-06 [L]** Muro de Pedras, Preço com Nome, Vigor nv2 e Ímpeto nv3 nas 24
   ordens → `vida_max` 165 e o mesmo M em todas.
 

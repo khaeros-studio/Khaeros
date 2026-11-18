@@ -1,8 +1,8 @@
 # Telemetria local
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — emenda de 2026-11-15: resumo da run com `desfecho_chefe` e `dupla`, estado inicial com `pactos` e `dupla`, eventos `encontro_pacto`, `pacto` e `vinculo_fim_run` (R4-P, F3-P, F4-P, Edge Cases, AC-TL-34 a AC-TL-40). Antes: Approved (2026-11-11; revisão única por subagente: 8 bloqueantes e recomendadas, corrigidos sem re-review; sem entrada no review log)
-> **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-15 (emenda Pactos)
+> **Status**: Approved
+> **Author**: usuário + Claude (design-system, modo Lean; emenda Pactos aprovada pelo usuário em 2026-11-16)
+> **Last Updated**: 2026-11-18 (consolidação de decisões aprovadas em 2026-11-16); 2026-11-15 (emenda Pactos)
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P2 *A Beira cobra* (dado para calibrar o preço); P4
 
@@ -154,12 +154,12 @@ Regras de ordem e de `run`:
 
 - **`pacto` de `origem = primeiro`** acontece na Escolha de arma (Vínculo V3), antes
   de `run_iniciada`. A linha sai com `run` = **0** (fora de run, R3), e as
-  ferramentas a ligam à `run_iniciada` seguinte. **[a confirmar]** Alternativa
+  ferramentas a ligam à `run_iniciada` seguinte. Alternativa
   recusada: segurar a linha até a `run_iniciada`, o que obrigaria a Telemetria a
   guardar estado.
 - **`vinculo_fim_run`** sai **depois** de `run_encerrada` e antes de qualquer
   `run_iniciada` seguinte, com o mesmo `run`: o Vínculo consolida ao receber
-  `run_encerrada` (V20, V42). **[a confirmar]**
+  `run_encerrada` (V20, V42).
 - **`encontro_pacto`** sai uma vez por run, no máximo (Vínculo V6), sempre antes da
   `run_encerrada` da mesma run.
 - Runs de Lâmina e Ressonância não geram nenhuma das três linhas novas (Vínculo V21).
@@ -233,7 +233,7 @@ Pactos que é a primeira (V3 primeiro pacto, G1 força o encontro, pacto com o c
 
 | Variável | Tipo | Faixa | Descrição |
 |---|---|---|---|
-| `n_portas` | int | 5–6 | 5 hoje; 6 se a emenda de Portas abrir uma porta depois do índice 5 para o chefe **[a confirmar com Portas]** |
+| `n_portas` | int | 5–6 | 6 no Limiar com chefe (Portas R6-P abre 1 porta forçada depois do índice 5 para o chefe); 5 sem chefe |
 | linhas curtas | int | 24–25 | `camara`, `oferta`, `bencao`, `porta`, `encontro_pacto`, `pacto`, ~300 B cada |
 | `run_iniciada` | — | ~900 B | 600 B de antes + ~300 B de `pactos` e `dupla` |
 | `run_encerrada` | — | ~1 100 B | ~1 000 B de antes + 2 campos |

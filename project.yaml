@@ -47,6 +47,12 @@ naming:
   files: snake_case
   scenes: snake_case
 
+performance:
+  target_fps: 60
+  frame_budget_ms: 16.6
+  max_draw_calls: 500
+  memory_ceiling_mb: 512
+
 commands:
   # godot = 4.7.2 stable (installed 2026-11-05): C:\Users\lucas\Godot\godot.cmd
   # (and a `godot` sh shim for Git Bash) on the user PATH, pointing at the

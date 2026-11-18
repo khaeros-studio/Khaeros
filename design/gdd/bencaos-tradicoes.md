@@ -1,8 +1,8 @@
 # Bênçãos (Tradições)
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — antes: Approved (2026-11-11; revisão única por subagente: 5 bloqueantes e 5 grupos de recomendadas, corrigidos sem re-review; sem entrada no review log)
-> **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-16 (emenda Pactos, 2026-11-15: R13-P, R14-P, F4-P, Edge Cases, AC-BN-24 a 26, OQ 12–13)
+> **Status**: Approved
+> **Author**: usuário + Claude (design-system, modo Lean; emenda Pactos aprovada pelo usuário em 2026-11-16)
+> **Last Updated**: 2026-11-18 (AC-BN-07 alinhado à R13-P); 2026-11-16 (emenda Pactos, 2026-11-15: R13-P, R14-P, F4-P, Edge Cases, AC-BN-24 a 26, OQ 12–13)
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P1 *Toda bênção é uma filosofia*; P4
 
@@ -311,7 +311,7 @@ quando o GDD for aprovado.
 - **AC-BN-04 [L] R4 — troca consome.** Uma troca consome mais 3 + 3 reais do mesmo fluxo da câmara.
 - **AC-BN-05 [L] R4 — limites da raridade.** u 0,5999 → Comum; 0,6 → Rara; 0,8999 → Rara; 0,9 → Épica; a carta i usa o real i, e os reais das cartas que não existem são descartados.
 - **AC-BN-06 [L] R4 — determinismo.** Mesma seed, mesma câmara, mesmas escolhas e mesmas trocas dão a mesma oferta; escolhas anteriores diferentes mudam o pool, mas o estado do fluxo depois da oferta (sem troca) é o mesmo; uma troca na câmara 1 não altera o fluxo da câmara 2.
-- **AC-BN-07 [L] R4 — chave.** O pedido `pedir_oferta(limiar, índice)` usa a chave do índice: as câmaras que dão oferta no Limiar (índices 0, 1, 2 e 4; a de índice 5 não dá recompensa) usam as chaves 0, 1, 2 e 4.
+- **AC-BN-07 [L] R4/R13-P — chave.** O pedido `pedir_oferta(limiar, índice)` usa a chave do índice da câmara na região: no Limiar com chefe (`camaras_jogaveis = 7`, R13-P), as câmaras que podem dar oferta são os índices `0, 1, 2, 4 e 5` (o `3` é santuário e o `6` é chefe) e usam as chaves `0, 1, 2, 4 e 5` (com `camaras_jogaveis = 6` antes da emenda, `0, 1, 2 e 4`).
 - **AC-BN-08 [I] R5 — aplicar com escala.** Pegar O Muro de Pedras Épico entrega ao Modificadores `(efeito Vida máxima 25, Épica)`; com Vida base 100, a Vida máxima final é 150; Rara, 138 (137,5 arredondado meio longe de zero).
 - **AC-BN-09 [I] R5 — ordem dos eventos.** A ordem é: efeitos aplicados, registro, `bencao_tomada`, `bencao_escolhida`, e só então as Portas abrem as portas.
 - **AC-BN-10 [L] R5 — sem pular, índice inválido, mesmo passo.** Pular é ignorado; o índice 3 numa oferta de 3 cartas (0 a 2) é ignorado; troca e escolha no mesmo passo: a troca vence.

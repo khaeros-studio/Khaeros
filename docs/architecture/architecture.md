@@ -1,13 +1,14 @@
 # Khaeros — Master Architecture
 
 ## Document Status
-- Version: 1.10
-- Last Updated: 2026-11-14 (v1.10: primeira fatia jogável integrada por pedido explícito; v1.9: Movimento; v1.8: Cena/câmera; v1.7: Input; v1.6: RNG; v1.5: catálogo; v1.4: entidades; v1.3: co-op; v1.2: eventos; v1.1: hitstop e orquestrador)
+- Version: 1.13
+- Last Updated: 2026-11-17 (v1.13: propagação dos experimentos EX-0001..0016 nos ADRs e em `architecture.md`, PC de referência fixado no ADR-0004 com `TR-conteudo-015` promovido a ✅ `400/400 (100%)`, e limpeza de `Open Questions`; v1.12: Doutrina de Pactos — ADRs 0015–0018 aceitos, emendas em 0001–0014, registro com 400 requisitos e revisão de 2026-11-16; v1.11: ADRs 0009–0014 propostos, revisão de 0001/0002 e revisão cruzada; v1.10: primeira fatia jogável integrada por pedido explícito; v1.9: Movimento; v1.8: Cena/câmera; v1.7: Input; v1.6: RNG; v1.5: catálogo; v1.4: entidades; v1.3: co-op; v1.2: eventos; v1.1: hitstop e orquestrador)
 - Engine: Godot 4.7.2 (pin 4.7), GDScript, Forward+ (D3D12 padrão no Windows)
+- Reference PC (CPU / Load Budgets): AMD Ryzen 5 5600H (6C/12T), 16 GB RAM, SSD NVMe, GPU RTX 3050 Laptop, Windows 11 Home 10.0.26300
 - Review mode: lean
-- GDDs Covered (22 de 22 do MVP): conteudo-orientado-a-dados, rng-com-seed, input-e-controle, cena-3-4-e-camera, pipeline-visual, modificadores-e-atributos, movimento-e-esquiva, combate-nucleo, armas-das-doutrinas, selo-e-fluxo, efeitos-de-status, telegrafos, ia-de-inimigos-e-elites, camaras-e-ondas, portas-e-recompensas, run-e-regioes, bencaos-tradicoes, economia-de-fragmentos, hud, tela-de-bencao-e-carta, feedback-de-combate, telemetria-local
-- ADRs Referenced: ADR-0001, ADR-0002, [ADR-0003](adr-0003-entidades-e-portadores.md), [ADR-0004](adr-0004-catalogo-de-dados.md), [ADR-0005](adr-0005-rng-deterministico.md), [ADR-0006](adr-0006-input-por-passo.md), [ADR-0007](adr-0007-cena-viewport-e-camera.md) e [ADR-0008](adr-0008-movimento-e-colisao-propria.md), todos Proposed. 8 existentes, 6 por escrever (14 necessários, ver "Required ADRs")
-- Technical Requirements Baseline: 233 requisitos, todos **provisórios** (TR registry vazio; os IDs `TR-<sistema>-NNN` só viram permanentes em `/architecture-review`)
+- GDDs Covered (26 de 26 do MVP): maldicoes, chefes, vinculo-e-pactos, save-e-perfil, conteudo-orientado-a-dados, rng-com-seed, input-e-controle, cena-3-4-e-camera, pipeline-visual, modificadores-e-atributos, movimento-e-esquiva, combate-nucleo, armas-das-doutrinas, selo-e-fluxo, efeitos-de-status, telegrafos, ia-de-inimigos-e-elites, camaras-e-ondas, portas-e-recompensas, run-e-regioes, bencaos-tradicoes, economia-de-fragmentos, hud, tela-de-bencao-e-carta, feedback-de-combate, telemetria-local
+- ADRs Referenced: [ADR-0001](adr-0001-orquestrador-do-passo.md), [ADR-0002](adr-0002-canal-de-eventos.md), [ADR-0003](adr-0003-entidades-e-portadores.md), [ADR-0004](adr-0004-catalogo-de-dados.md), [ADR-0005](adr-0005-rng-deterministico.md), [ADR-0006](adr-0006-input-por-passo.md), [ADR-0007](adr-0007-cena-viewport-e-camera.md), [ADR-0008](adr-0008-movimento-e-colisao-propria.md), [ADR-0009](adr-0009-atributos-e-modificadores.md), [ADR-0010](adr-0010-resolucao-do-combate-no-passo.md), [ADR-0011](adr-0011-pipeline-visual.md), [ADR-0012](adr-0012-ui-e-hud.md), [ADR-0013](adr-0013-persistencia-do-mvp.md), [ADR-0014](adr-0014-telegrafos-geometria-e-teto.md), [ADR-0015](adr-0015-ciclo-da-run-e-composicao.md), [ADR-0016](adr-0016-audio-ganchos-e-vozes.md), [ADR-0017](adr-0017-aliados-e-invocacoes.md) e [ADR-0018](adr-0018-ia-de-inimigos-e-chefe.md), todos Accepted em 2026-11-16 (aprovação do usuário) e atualizados com as verificações `EX-0001..0016` em 2026-11-17. 18 de 18 necessários escritos (ver "Required ADRs")
+- Technical Requirements Baseline: 400 requisitos permanentes em `tr-registry.yaml` (`400/400 ✅ Covered (Accepted) (100%)`, `0 🟡`, `0 ⚠️`, `0 ❌`)
 - TD-ARCHITECTURE: 2026-11-13 — skipped — lean mode (nenhum diretor revisou esta arquitetura)
 - LP-FEASIBILITY: 2026-11-13 — skipped — lean mode (nenhum diretor revisou esta arquitetura)
 
@@ -19,27 +20,33 @@
 
 O pedido explícito do usuário “faça a integração do jogo” autorizou avançar da preparação para uma primeira fatia executável. `scenes/main.tscn` agora é a cena inicial, com módulos novos em `src/app`, `src/foundation`, `src/gameplay` e `src/presentation`. Integra Lâmina, controles/buffer, movimento/colisão, câmera, dois inimigos, três ondas, bênçãos e telas. [Como jogar e limites](../COMO-JOGAR.md); [evidência](../../production/qa/evidence/integracao-jogavel/README.md).
 
-Os ADRs continuam Proposed: a autorização para implementar esta fatia não promove automaticamente seu status nem declara todos os requisitos atendidos. `GameSession` é uma composição de combate/IA/ondas para a integração inicial, ainda a separar conforme os contratos completos. Dados usam JSON validado e impressão do arquivo, não o catálogo `.tres`/hash canônico; RNG próprio cobre espera de IA, não os oito fluxos. Bênçãos são explícitas, sem sistema geral de modificadores. Arte e camadas visuais são provisórias; não há Selo/Fluxo, Ressonância, áudio final, persistência ou remapeamento. O protótipo anterior foi preservado.
+Os ADRs foram aceitos em 2026-11-16; a fatia de 2026-11-14 foi feita antes do aceite e precisa ser conferida contra eles nas stories. `GameSession` é uma composição de combate/IA/ondas para a integração inicial, ainda a separar conforme os contratos completos. Dados usam JSON validado e impressão do arquivo, não o catálogo `.tres`/hash canônico; RNG próprio cobre espera de IA, não os oito fluxos. Bênçãos são explícitas, sem sistema geral de modificadores. Arte e camadas visuais são provisórias; não há Selo/Fluxo, Ressonância, áudio final, persistência ou remapeamento. O protótipo anterior foi preservado.
 
 O modelo conhece a engine até ~4.3. Fontes: `docs/engine-reference/godot/`.
 
-**Risco ALTO** (conferir a referência antes de decidir):
-- **Rendering 2D** (pipeline-visual, cena-3-4-e-camera, feedback-de-combate): linhas de `CanvasItem` sem feather (4.7), D3D12 padrão no Windows (4.6), Shader Baker (4.5), `LinearToSRGB` sem clamp (4.7).
-- **UI e Input** (hud, tela-de-bencao-e-carta, input-e-controle): foco duplo mouse/teclado-gamepad (4.6); `InputEvent.device` de mouse e teclado deixa de ser `0` (4.7); `Control.offset_transform_*` (4.7).
-- **GDScript** (todo o código): em 4.7 um `override` de método com retorno tipado herda o tipo e exige `return` explícito (**quebra**); escrita em elemento de packed array não chama o setter (4.7); `@abstract` (4.5).
+**Risco ALTO** (conferido contra a referência e verificado nos experimentos `EX-0001..0016` em 2026-11-16):
+- **Rendering 2D** (pipeline-visual, cena-3-4-e-camera, feedback-de-combate): linhas de `CanvasItem` sem feather (4.7), D3D12 padrão no Windows (4.6), Shader Baker (4.5), `LinearToSRGB` sem clamp (4.7). `RenderingServer.frame_post_draw` **VERIFICADO (`EX-0010-1`)** (1× por quadro, pior caso medido `33,33 ms ≤ 50 ms`). Interpolação 2D, `reset_physics_interpolation()` no mesmo passo após teleporte e pillarbox em runtime **VERIFICADOS (`EX-0007-NV`)**.
+- **UI e Input** (hud, tela-de-bencao-e-carta, input-e-controle): foco duplo mouse/teclado-gamepad (4.6); `InputEvent.device` de mouse e teclado deixa de ser `0` (4.7); `Control.offset_transform_*` e `offset_transform_visual_only = true` **VERIFICADOS (`EX-0012 E1`)**; esvaziamento de `ui_*` preservando `ui_text_*` em `LineEdit` **VERIFICADO (`EX-0012 E2`)**; barreira de retorno após `NOTIFICATION_APPLICATION_FOCUS_IN` **VERIFICADA (`EX-0012 E3` / `EX-0001-5`)**; `focus_behavior_recursive`/`mouse_behavior_recursive` **VERIFICADOS (`EX-0012 E4`)**; CSV plural/contexto com `0` singular em `pt_BR` **VERIFICADO (`EX-0012 E6`)**; `DisplayServer.clipboard_set/get` **VERIFICADO (`EX-0012 CB`)**.
+- **GDScript** (todo o código): em 4.7 um `override` de método com retorno tipado herda o tipo e exige `return` explícito (**quebra**); escrita em elemento de packed array não chama o setter (4.7); `@abstract` (4.5, **VERIFICADO em `EX-0002-2`** como checagem estática que não impede `Script.new()` dinâmico); `Array[T].filter()` devolve array tipado no 4.7.2 (**VERIFICADO em `EX-0002-2`**); `float` é IEEE-754 binary64 no build padrão (**VERIFICADO em `EX-0009-1`**, `2^52 + 1.0 != 2^52`).
 
-**Risco MÉDIO**: `duplicate_deep()` (4.5) no catálogo; `FileAccess.store_*` retornam `bool` (4.4); interpolação de física 2D e `reset_physics_interpolation()`.
+**Risco MÉDIO** (todos **VERIFICADOS** no 4.7.2): `Resource.duplicate_deep(Resource.DEEP_DUPLICATE_ALL)` (`EX-0004-NV`); `ResourceLoader.load(..., CACHE_MODE_IGNORE_DEEP)` (`EX-0004-NV`); `HashingContext` SHA-256 (`EX-0004-NV`); CSV `keep` exigindo `exclude_filter="assets/data/canon/*"` (`EX-0004-NV`); `FileAccess.store_line` + `flush`, sequência `.old` em `DirAccess.rename` no Windows, `ConfigFile.parse` exigindo `schema_version`, `Time` UTC + `"Z"`, `OS.shell_open` e `NOTIFICATION_WM_CLOSE_REQUEST` (`EX-0013 E-P1..P7`); interpolação de física 2D e `reset_physics_interpolation()` (`EX-0007-NV`).
 
-**Risco BAIXO**: Physics 2D (inalterada), Audio, Animation 2D. Navigation não é usada (a IA é movimento direto, sem pathfinding).
+**Risco BAIXO**: Physics 2D (inalterada; `physics_ticks_per_second=60`, `max_physics_steps_per_frame=8`, ordem `_physics_process` → `_process`, parada da Apresentação por `PROCESS_MODE_DISABLED`/explícita e clamp `dt_max_apres` no 1º quadro **VERIFICADOS em `EX-0001-1..6`**), Audio (`get_bus_index` `-1`, `pitch_scale > 0` faixa `0,25–4`, `stream_paused` reportando `playing == false`, `linear_to_db`, `default_bus_layout.tres`, loop WAV `edit/loop_mode=2` com `loop_end=-1` e `mix_rate` `48000 Hz` **CONFIRMADOS em `EX-0016-A`**), Animation 2D. Navigation não é usada (a IA é movimento direto, sem pathfinding).
 
-**NOT SOURCEABLE** (não coberto por `docs/engine-reference/`; qualquer decisão que dependa disso nasce "a verificar", nunca como fato):
-- Experimentos **E1–E7** do Pipeline visual: contagem de draw calls 2D, LUT como `global uniform sampler2D` em `canvas_item` com Shader Baker (E2), `speed_scale` 0 em emissores, SDF do telégrafo, `CanvasGroup` e `fit_margin`, `Line2D` × SDF, material único por entidade.
-- "Sinal de fim de quadro" do 4.7 que o AC-92 do Combate exige (latência toque→golpe ≤ 50 ms).
-- Flush e append do `FileAccess` (telemetria).
-- `ResourceLoader` síncrono vs threaded.
-- Interpolação de física **2D** (a referência só descreve a reestruturação da 3D, 4.5); pillarbox em runtime.
+**VERIFICADOS nos experimentos `EX-0001..0016` (2026-11-16, saíram de NOT SOURCEABLE / NEEDS VERIFICATION):**
+- **Orquestrador e Foco (`EX-0001-1..6`):** VR(1), VR(2), VR(3), VR(4), VR(5) e VR(6) verificados no 4.7.2 (`NOTIFICATION_APPLICATION_FOCUS_OUT`, inexistência de `pause_on_focus_loss`, parada da Apresentação sem `SceneTree.paused`, clamp `dt_max_apres` no 1º quadro e `RenderingServer.global_shader_parameter_set` em `1,8 µs` média / `4 µs` p99 para 2 globais por quadro em `EX-0001-3`).
+- **Eventos (`EX-0002-1..3`):** VR(2) e VR(3) verificados (`filter()` tipado, `@abstract` estático vs `Script.new()`, `CONNECT_DEFERRED` por ordem de conexão); VR(1) medido em debug com teto seguro de ~20 eventos/passo (`166–198 µs` p99) e fallback de pool decidido caso o binário de release ultrapasse `0,3 ms` com 50 eventos.
+- **Catálogo (`EX-0004-NV`):** `HashingContext` SHA-256, `CACHE_MODE_IGNORE_DEEP`, CSV `keep` (`exclude_filter="assets/data/canon/*"` obrigatório), `Resource.DEEP_DUPLICATE_ALL` e tempo de carga síncrona (`160,8 ms` texto / `86,2 ms` `.pck` < `250 ms` no PC de referência fixado).
+- **Cena e Câmera (`EX-0007-NV`):** interpolação de física 2D, `reset_physics_interpolation()` no mesmo passo após teleporte e pillarbox/letterbox em runtime (com nota de escala fracionária `2,1328 × 2,1333` em `1366×768`).
+- **Aritmética (`EX-0009-1`):** `float` IEEE-754 binary64 (`2^52 + 1.0 != 2^52`, `0.1 + 0.2 == 0x3fd3333333333334`) e nota sobre literais em empate no tokenizer.
+- **Latência de Combate (`EX-0010-1`):** `RenderingServer.frame_post_draw` dispara 1× por quadro; pior caso medido `33,33 ms ≤ 50 ms` (AC-92).
+- **UI e Localização (`EX-0012 E1–E6, CB`):** `offset_transform_visual_only = true`, esvaziamento de `ui_*` preservando `ui_text_*`, barreira de retorno pós-foco, `focus_behavior_recursive`/`mouse_behavior_recursive`, CSV plural/contexto (`0` singular em `pt_BR`) e `DisplayServer.clipboard_set/get`.
+- **Persistência e Telemetria (`EX-0013 E-P1..P7`):** `store_line` + `flush` (`p99 ≤ 1 ms/linha`, picos isolados do SO geram `TL2` benigno), sequência `.old` obrigatória em `gravar_atomico`, exigência de `schema_version` após `ConfigFile.parse == OK`, concatenação de `"Z"` em UTC, `OS.shell_open` e `NOTIFICATION_WM_CLOSE_REQUEST`.
+- **Pipeline Visual (`EX-0011 E1–E7` e `EX-0001-3`):** orçamento de draw calls na cena de estresse F10 (`444 ≤ 500`, `D_g = 292`, `E1`), `global uniform sampler2D` com LUT `1024×32` (erro `≤ 1/255`, `EscritorGlobalRS` primário e `EscritorPorMaterial` fallback, `E2`), congelamento em hitstop (`speed_scale = 0`, `E3`), contorno SDF de `4 px` com malha de borda `ArrayMesh` (`-90%` área no `C120`, `E4`), `CanvasGroup` com `fit_margin = 8.0` (`E5`), quad SDF para o fio do Vínculo (`E6`) e `ShaderMaterial` próprio por entidade (`p99 = 11/22/43 µs` para 9/20/40 entidades, `E7`) **VERIFICADOS** em `prototypes/pipeline-verificacao/`.
+- **Áudio (`EX-0016-A`):** itens 1–6 confirmados (`get_bus_index` `-1`, `pitch_scale` `0,25–4`, `stream_paused` com `playing == false`, `linear_to_db`, `default_bus_layout.tres`, loop WAV `edit/loop_mode=2` com `loop_end=-1`, `mix_rate` `48000 Hz`).
 
-**NEEDS VERIFICATION**: `HashingContext`, importador CSV `keep` (4.7.2), semântica de `SceneTree.paused`, contagem de draw calls 2D em runtime.
+**Único item de infraestrutura de release ainda pendente (sem impacto na arquitetura):**
+- Repetição das medições de exportação no binário `.exe` de release quando os export templates do Godot 4.7.2 forem instalados em `%APPDATA%\Godot\export_templates\` (o empacotamento `.pck` já foi verificado com `--export-pack` + `--main-pack`).
 
 ## System Layer Map
 
@@ -85,19 +92,20 @@ Legenda de risco: ⚠️ pós-corte (4.5+); **confirmado** = coberto por `docs/e
 
 | Módulo | Posse | Expõe | Consome | APIs da engine |
 |---|---|---|---|---|
-| **Conteúdo** | Catálogo `.tres` (13 tipos de Resource), validadores V1–V11, impressão SHA-256 | `obter(tipo,id)`, `listar/filtrar` (ordem do manifesto), impressão, relator de erros | Arquivos `assets/data/` | `Resource`, `ResourceLoader`; ⚠️ `duplicate_deep()` (4.5, **confirmado**); `HashingContext` e CSV `keep`: **NEEDS VERIFICATION** |
-| **RNG** | Seed da run, estado dos fluxos (8 finalidades) | `fluxo(finalidade, região, índice)` e operações puras | Lista e impressão do catálogo, entropia injetada | Nenhuma (GDScript puro, int64). BAIXO |
-| **Input** | Amostra por passo, buffer de 10 passos, remapeamento, arquivo de binds | Amostra, `rotulo_acao`, cursor, `fonte_mira` | Consulta de alvos (IA), conversão tela→mundo (Cena), "hitstop ativo" | `Input`, `InputMap`, `InputEvent`; ⚠️ `device` ≠ 0 (4.7, **confirmado**); ⚠️ foco duplo (4.6, **confirmado**); `ConfigFile`/`user://` |
-| **Cena 3/4 e câmera** | Viewport, 11 camadas, câmera própria, snapshot tela→mundo | Conversão sem impulsos, bases `pos`/`pos_seguir`, geometria da vista | `t_apres` (Orquestrador), retângulo (Câmaras), posições (Movimento), impulsos (Feedback) | ADR-0007: `canvas_transform`, três faixas de stretch, parallax manual e ordem por pé/spawn; 67 checks isolados, render/144 Hz ainda pendentes |
-| **Orquestrador do passo** *(novo, sem GDD)* | Estado de jogo (Jogo/Pausa/Bênção/Transição/Morte/Encerrada), ordem do passo, `t_vivo` e `t_apres` (o contador de hitstop é do Combate, R10) | Estado atual, sinal de passo, `passo()`/`passo_congelado()`, consulta `hitstop_ativo()` (delegada ao Combate) | Todos os módulos do passo | `_physics_process` a 60 Hz; ⚠️ retorno tipado herdado em override (4.7, **confirmado**); `SceneTree.paused`: **NEEDS VERIFICATION** |
+| **Conteúdo** | Catálogo `.tres` (13 tipos de Resource + Pactos/Áudio), validadores V1–V11, impressão SHA-256 | `obter(tipo,id)`, `listar/filtrar` (ordem do manifesto), impressão, relator de erros | Arquivos `assets/data/` | `Resource`, `ResourceLoader`; `duplicate_deep(DEEP_DUPLICATE_ALL)`, `CACHE_MODE_IGNORE_DEEP`, `HashingContext` SHA-256 e CSV `keep` (`exclude_filter` obrigatório): **VERIFICADOS (`EX-0004-NV`)** |
+| **RNG** | Seed da run, estado dos fluxos (9 finalidades) | `fluxo(finalidade, região, índice)` e operações puras | Lista e impressão do catálogo, entropia injetada | Nenhuma (GDScript puro, int64; 33 checks verificados). BAIXO |
+| **Input** | Amostra por passo, buffer de 10 passos, remapeamento, arquivo de binds | Amostra, `rotulo_acao`, cursor, `fonte_mira` | Consulta de alvos (IA), conversão tela→mundo (Cena), "hitstop ativo" | `Input`, `InputMap`, `InputEvent`; `device` ≠ 0 (4.7), foco duplo (4.6) e barreira de foco (`EX-0012 E2/E3`, 38 checks): **VERIFICADOS** |
+| **Cena 3/4 e câmera** | Viewport, 11 camadas, câmera própria, snapshot tela→mundo | Conversão sem impulsos, bases `pos`/`pos_seguir`, geometria da vista | `t_apres` (Orquestrador), retângulo (Câmaras), posições (Movimento), impulsos (Feedback) | ADR-0007: `canvas_transform`, três faixas de stretch, parallax manual, interpolação 2D, `reset_physics_interpolation()` e pillarbox em runtime: **VERIFICADOS (`EX-0007-NV` + 67 checks)** |
+| **Orquestrador do passo** *(novo, sem GDD)* | Estado de jogo (Jogo/Pausa/Bênção/Transição/Morte/Menu), ordem do passo, `t_vivo` e `t_apres` (o contador de hitstop é do Combate, R10) | Estado atual, sinal de passo, `passo()`/`passo_congelado()`, consulta `hitstop_ativo()` (delegada ao Combate) | Todos os módulos do passo | `_physics_process` a 60 Hz; retorno tipado herdado em override (4.7); sem `SceneTree.paused`; VR(1,2,4,5,6) **VERIFICADOS (`EX-0001-1..6`)**; item 6.1 Maldições (ADR-0017) |
+| **Persistência / Save e perfil** | Armazém de arquivos em `user://` (gravação atômica com `.old` e `.bak`), `user://perfil.cfg` (um perfil; seção `[vinculo]` opaca), binds, preferências, opções, telemetria `.jsonl` | Repositórios por dono (`RepositorioDeBinds`, `RepositorioDePerfil`, `RepositorioDeOpcoes`, `RepositorioDePreferencias`, telemetria); gravação só fora de Jogo | Run/Ciclo da run (quando gravar), Vínculo, Input, Armas, Telemetria | `ConfigFile`, `FileAccess`, `DirAccess`, `NOTIFICATION_WM_CLOSE_REQUEST`: **E-P1..P7 VERIFICADOS (`EX-0013`)** |
 
 ### Core
 
 | Módulo | Posse | Expõe | Consome | APIs da engine |
 |---|---|---|---|---|
-| **Modificadores** | Portador (atributos, modificadores, gatilhos) | `valor()`, `multiplicador_de_dano()`, `gatilhos()`, `aplicar/remover/avancar` | Definições (`EffectDef`, `RarityTable`) | Nenhuma. BAIXO |
-| **Movimento** | **Única** escritora da posição do jogador, cargas de esquiva | Posição atual/anterior, "em esquiva", `deslocar`, `teleportar` | Amostra (Input), portador, geometria (Câmaras), lista de alvos (IA), contrato do Combate | Nenhuma (colisão própria). Nó de apresentação: `Node2D` |
-| **Combate núcleo** | Golpes, projéteis, empurrão, varredura de mortes, Vida do jogador, eventos | Eventos V1–V15, `ferir_jogador/inimigo`, `disparar_projetil`, `aplicar_corte` | Portador, amostra, geometria, lista de inimigos, `CombatTuning` | Nenhuma (matemática própria); **NOT SOURCEABLE:** sinal de fim de quadro (AC-92) |
+| **Modificadores** | Portador (atributos, modificadores, gatilhos) | `valor()`, `inteiro()`, `congelar_dano()`, `multiplicador_de_dano()`, `gatilhos()`, `aplicar/remover/avancar` | Definições (`EffectDef`, `RarityTable`) | GDScript puro (`float` IEEE-754 binary64 **VERIFICADO em `EX-0009-1`**). BAIXO |
+| **Movimento** | **Única** escritora da posição do jogador, cargas de esquiva | Posição atual/anterior, "em esquiva", `deslocar`, `teleportar` | Amostra (Input), portador, geometria (Câmaras), lista de alvos (IA), contrato do Combate | Nenhuma (colisão própria; 51 checks verificados). Nó de apresentação: `Node2D` |
+| **Combate núcleo** | Golpes, projéteis, empurrão, varredura de mortes, Vida do jogador, eventos | Eventos V1–V15, `ferir_jogador/inimigo/maldicao/acuada`, `disparar_projetil`, `aplicar_corte`, `subjugar` | Portador, amostra, geometria, lista de inimigos, `CombatTuning` | Matemática própria; `RenderingServer.frame_post_draw` (AC-92, `33,33 ms ≤ 50 ms`): **VERIFICADO (`EX-0010-1`)** |
 
 ### Feature (lógica pura; nenhuma usa API de engine)
 
@@ -113,16 +121,20 @@ Legenda de risco: ⚠️ pós-corte (4.5+); **confirmado** = coberto por `docs/e
 | **Run e regiões** | Máquina da run, seed, resumo | `nova_run`, `run_encerrada`, `fim_da_run` | Câmaras, Portas, Economia, RNG |
 | **Bênçãos** | Pool de 18 `BoonDef`, bênçãos tomadas | `oferta_aberta`, `bencao_tomada` | Modificadores, RNG, Portas |
 | **Economia** | `ContaFragmentos` (saldo, coletados) | `saldo()`, `creditar`, `saldo_mudou` | Portas, Run |
+| **Maldições** (ADR-0017) | `ModuloDeMaldicoes` (item 6.1), `MaldicaoRef` da dupla, troca, técnica combinada, Chamado, reserva/Exaustão, IA de aliado | Consulta da Maldição em campo, `EvMaldicaoTrocada`/`EvTecnicaCombinada`/`EvMaldicaoFerida`/`EvMaldicaoExausta` | Input (`troca`, `ponto_mira`), Modificadores (portadores), Combate (facção ALIADO), Movimento (geometria), catálogo (`CurseDef`, `MaldicoesTuning`) |
+| **Vínculo e pactos** (ADR-0015, ADR-0017) | Pontos e nível por espécie, encontro de pacto e acuada, consentimento, conteúdo da seção `[vinculo]` | `EvVinculoGanho`, `EvPactoFormado`, `EvEncontroFalhou`, fonte `vinculo:<curse_id>` | RNG (`pactos`), Combate (`ferir_acuada`), Persistência, `VinculoTuning` |
+| **Chefes** (ADR-0018, ADR-0014) | Padrões do chefe (`BossPatternDef`), fases e Fúria, alvo travado, Pactuar/Exorcizar | `EvChefeSubjugado`, `EvChefeExorcizado`, telégrafos com alvo travado | IA, Telégrafos, Combate (`subjugar`), `ChefesTuning` |
 
 ### Apresentação
 
 | Módulo | Posse | Consome | APIs da engine |
 |---|---|---|---|
-| **HUD** | Controls do HUD (somente leitura) | Combate, Selo, Movimento, Economia, Câmaras, Input | `Control`, `CanvasLayer`; ⚠️ foco duplo (4.6) |
-| **Tela de bênção e carta** | `CartaView`, máquina de 8 estados | Bênçãos (`oferta_aberta`), Input | `Control`; ⚠️ `Control.offset_transform_*` (4.7, **confirmado**) |
-| **Feedback de combate** | Árbitro eventos→respostas, pool de VFX e números | Eventos do Combate, relógios | `GPUParticles2D`/`CPUParticles2D`, `AudioStreamPlayer`; contagem de draw calls: **NEEDS VERIFICATION** |
-| **Pipeline visual** | Shaders (3 famílias), LUT, `shader_globals`, passes de tela, relógios `t_apres` | Região, telégrafos, estado do orquestrador | `global uniform` com sampler em `canvas_item` + Shader Baker: **NOT SOURCEABLE** (E2); `CanvasGroup`, `Parallax2D`; ⚠️ linhas de `CanvasItem` sem feather (4.7, **confirmado**) |
-| **Telemetria** | Arquivo `.jsonl`, retenção | Eventos de Run, Bênçãos, Portas, Combate, Economia | `FileAccess` ⚠️ `store_*` retorna `bool` (4.4, **confirmado**); flush/append: **NOT SOURCEABLE** |
+| **HUD** | Controls do HUD (somente leitura) | Combate, Selo, Movimento, Economia, Câmaras, Input | `Control`, `CanvasLayer`; foco duplo (4.6) e `ui_*` esvaziados **VERIFICADOS (`EX-0012`)** |
+| **Tela de bênção e carta** | `CartaView`, máquina de 8 estados | Bênçãos (`oferta_aberta`), Input | `Control`; `offset_transform_visual_only = true`, barreira de retorno e `clipboard_set/get`: **VERIFICADOS (`EX-0012`)** |
+| **Áudio** (ADR-0016) | Barramentos, pool de vozes, eventos→sons pela lista do passo (`SomDef`, `AudioTuning`) | Lista de eventos do passo, relógios, estado de jogo | `AudioStreamPlayer`, `AudioServer` (`get_bus_index`, `pitch_scale`, `stream_paused`, `linear_to_db`, `default_bus_layout.tres`, loop WAV): **CONFIRMADOS (`EX-0016-A`)** |
+| **Feedback de combate** | Árbitro eventos→respostas, pool de VFX e números | Eventos do Combate, relógios | `GPUParticles2D`/`CPUParticles2D` (`speed_scale = 0` **VERIFICADO em `EX-0001-4`**), `AudioStreamPlayer` |
+| **Pipeline visual** | Shaders (3 famílias), LUT, `shader_globals`, passes de tela, relógios `t_apres` | Região, telégrafos, estado do orquestrador | `global uniform` com sampler em `canvas_item` + Shader Baker (E2, com plano B `EscritorPorMaterial`), `CanvasGroup`, `Parallax2D`; linhas de `CanvasItem` sem feather (4.7) |
+| **Telemetria** | Arquivo `.jsonl`, retenção | Eventos de Run, Bênçãos, Portas, Combate, Economia | `FileAccess.store_line` (`bool`) + `flush` (`p99 ≤ 1 ms/linha`, sobrevivência a `OS.kill`): **VERIFICADOS (`EX-0013 E-P1`)** |
 
 ### Conflitos de posse resolvidos (donos aprovados)
 1. **Contador de hitstop:** o **Combate** guarda o contador (`pedir_hitstop(n)`, R10); o Orquestrador só consulta `hitstop_ativo()` e congela o passo. *(Corrigido na v1.1: a v1 dava o contador ao Orquestrador, o que contradizia o GDD de Combate; ver ADR-0001.)*
@@ -245,12 +257,16 @@ func rotulo_acao(acao: StringName, dispositivo: StringName) -> Dictionary   # {t
 
 ### 5. Modificadores (portador)
 ```gdscript
-func valor(atributo: StringName) -> float                         # não vale para dano_*
-func multiplicador_de_dano(slot: StringName, contexto: Dictionary) -> float
-func gatilhos(tipo: StringName) -> Array
-func aplicar(mod: Modificador) -> void; func remover_fonte(fonte: StringName) -> void
+func valor(atributo: StringName) -> float                         # contínuos; não vale para dano_*
+func inteiro(atributo: StringName) -> int                         # só os 5 atributos inteiros (AC-05)
+func congelar_dano(slot: int, ctx: ContextoDeDano) -> DanoCongelado   # M congelado no disparo
+func multiplicador_de_dano(slot: int, ctx: ContextoDeDano) -> float   # já com teto
+func gatilhos(tipo: StringName) -> ResumoDeGatilho                # ex.: gatilhos(&"refletir_dano").total
+func fontes_de(atributo: StringName) -> Array[LinhaDeFonte]       # HUD/Tela: "de onde vem"
+func aplicar_fonte(fonte: FonteDeModificador) -> void; func remover_fonte(id_fonte: StringName) -> void
 func avancar(passos: int) -> void                                 # só em passo vivo
 ```
+Detalhes e fórmulas (`FormulasDeModificadores.dano_recebido`, arredondamento meio longe do zero) no [ADR-0009](adr-0009-atributos-e-modificadores.md).
 - Invariante: duração em passos inteiros; M de golpe congelado no disparo; reaplicar = `max(restante, nova)`.
 - Garantia: recálculo imediato após `aplicar`, `remover_fonte` ou expiração; `reducao_dano` ≤ 0,6.
 
@@ -271,7 +287,8 @@ func teleportar(pos: Vector2) -> void
 
 ### 7. Combate ↔ IA ↔ Telégrafos (o Combate define a interface)
 ```gdscript
-func ferir_jogador(dano: int, origem: Vector2, atq: AttackDef) -> void   # 1 vez por golpe
+func ferir_jogador(player_id: int, dano_base: float, m_atacante: float, atacante_id: int, ataque_id: StringName) -> void   # 1 vez por golpe; assinatura canônica no ADR-0010
+# Pactos (ADR-0010): ferir_maldicao, ferir_acuada, subjugar(inimigo_id), disparar_projetil(..., alvo_id, alvo_faccao)
 func ferir_inimigo(alvo: InimigoRef, dano: float, causa: StringName) -> void  # causa "silencioso" p/ Selo e Status
 func disparar_projetil(...8 params...) -> void
 func iniciar_telegrafo(inimigo: InimigoRef, ataque: AttackDef) -> bool   # false se teto 24
@@ -318,20 +335,30 @@ Os ADRs 0001 e 0002 propõem os contratos de `Passo` e `EventoDoPasso`. O [ADR-0
 
 ## ADR Audit
 
-Os ADRs 0001 a 0008 estão em Proposed. A auditoria consolidada ocorre em `/architecture-review`.
+Os ADRs 0001 a 0018 foram aceitos pelo usuário em 2026-11-16 (Accepted). A auditoria consolidada ocorre em `/architecture-review`. A revisão cruzada de 2026-11-15 (resumo em [architecture-review.md](architecture-review.md#revisão-cruzada-dos-adrs-0001-a-0014-2026-11-15)) alinhou interfaces entre os 14 primeiros; a de 2026-11-16 ([architecture-review-2026-11-16.md](architecture-review-2026-11-16.md)) cobriu os 18 depois da Doutrina de Pactos.
 
 | ADR | Engine Compat | Version | GDD Linkage | Conflicts | Valid |
 |-----|--------------|---------|-------------|-----------|-------|
-| ADR-0001: Orquestrador do passo | Verificações em aberto | 4.7 | Combate, Movimento, Input, Câmaras, Run e Telemetria | [Revisão inicial](architecture-review.md): entrega nos passos congelados e duração da run | ⚠️ Proposed |
-| ADR-0002: Canal de eventos | Verificações em aberto | 4.7 | Combate, Selo, Status, Run, Portas, HUD, Feedback e Telemetria | [Revisão inicial](architecture-review.md): crédito de Fluxo do Pulso e aplicação síncrona de status | ⚠️ Proposed; depende do ADR-0001 |
-| [ADR-0003: Entidades e portadores](adr-0003-entidades-e-portadores.md) | `RefCounted` e arrays tipados verificados em experimento isolado | ✅ (4.7.2) | IA, Combate, Movimento, Modificadores, Selo, Status e Telégrafos | Revisão consolidada pendente | ⚠️ Proposed; depende dos ADRs 0001 e 0002 |
-| [ADR-0004: Catálogo de dados](adr-0004-catalogo-de-dados.md) | 16 verificações de cache, cópia e SHA-256 aprovadas | 4.7.2 | Conteúdo R1–R12, RNG e ajustes dos consumidores | Presença de campos obrigatórios e protocolo canônico precisam de prova na implementação | Proposed; depende dos ADRs 0001–0003 |
-| [ADR-0005: RNG determinístico](adr-0005-rng-deterministico.md) | 33 verificações aritméticas aprovadas | 4.7.2 | RNG R1–R9 e F1/F2/F4/F6 | Ciclo de vida, demais operações e integração pendentes | Proposed; depende dos ADRs 0001 e 0004 |
-| [ADR-0006: Input por passo](adr-0006-input-por-passo.md) | 38 verificações de eventos sintéticos, buffer e barreira aprovadas | 4.7.2 | Input R1–R13, F1–F5; experimento cobre recorte de F3/F5 e AC-04/15–22 | UI, hardware, persistência e integração pendentes; explicitar Input fora de Jogo no ADR-0001 | Proposed; depende dos ADRs 0001, 0003 e 0004 |
-| [ADR-0007: Cena, viewport e câmera](adr-0007-cena-viewport-e-camera.md) | 67 verificações matemáticas e de propriedades/transformações nativas aprovadas | 4.7.2 | Cena R1–R12, F1–F7; experimento cobre recorte de F2–F7 | Render real, ordem visual, DPI, sincronização e 144 Hz pendentes; clarificações de AC-20/30 e delta na proposta | Proposed; depende dos ADRs 0001, 0003, 0004 e 0006 |
-| [ADR-0008: Movimento e colisão própria](adr-0008-movimento-e-colisao-propria.md) | 51 verificações em fixtures; limite tangencial reproduzido | 4.7.2 | Movimento R1–R12, F1–F7 e MV1–MV8; cobertura parcial de exemplos | F7 contínua não garantida; toques congelados e AC-26 de Corte pesado requerem alinhamento; integração/performance pendentes | Proposed; depende dos ADRs 0001–0004, 0006 e 0007 |
+| [ADR-0001: Orquestrador do passo](adr-0001-orquestrador-do-passo.md) | ✅ VR(1–6) verificados (`EX-0001-1..6`, incl. `global_shader_parameter_set` `4 µs` p99) | ✅ (4.7.2) | Combate, Movimento, Input, Câmaras, Run e Telemetria | Lacunas 1–2 tratadas em 2026-11-15; foco, pausa e globais verificados em 2026-11-16/17 | ✅ Accepted |
+| [ADR-0002: Canal de eventos](adr-0002-canal-de-eventos.md) | ✅ VR(2,3) verificados (`EX-0002-2..3`); VR(1) ~20 ev/passo ok em debug, fallback de pool decidido | ✅ (4.7.2) | Combate, Selo, Status, Run, Portas, HUD, Feedback, Telas, Áudio e Telemetria | Lacunas 3–4 tratadas em 2026-11-15; `filter()` tipado e `@abstract` verificados em 2026-11-16 | ✅ Accepted |
+| [ADR-0003: Entidades e portadores](adr-0003-entidades-e-portadores.md) | ✅ `RefCounted` e arrays tipados verificados em experimento isolado | ✅ (4.7.2) | IA, Combate, Movimento, Modificadores, Selo, Status, Telégrafos e Maldições | Revisão consolidada PASS | ✅ Accepted |
+| [ADR-0004: Catálogo de dados](adr-0004-catalogo-de-dados.md) | ✅ `HashingContext`, `IGNORE_DEEP`, `DEEP_DUPLICATE_ALL`, CSV `keep` (`exclude_filter`) e carga `160,8/86,2 ms` verificados (`EX-0004-NV`) | ✅ (4.7.2) | Conteúdo R1–R12, RNG, Pactos e ajustes dos consumidores | PC de referência fixado; `TR-conteudo-015` promovido a ✅ Covered | ✅ Accepted |
+| [ADR-0005: RNG determinístico](adr-0005-rng-deterministico.md) | ✅ 33 verificações aritméticas aprovadas | ✅ (4.7.2) | RNG R1–R9, F1/F2/F4/F6 e finalidade 9 `pactos` | Revisão consolidada PASS | ✅ Accepted |
+| [ADR-0006: Input por passo](adr-0006-input-por-passo.md) | ✅ 38 verificações de eventos sintéticos, buffer e barreira aprovadas | ✅ (4.7.2) | Input R1–R13, F1–F5, `troca` e `ponto_mira` | Revisão consolidada PASS | ✅ Accepted |
+| [ADR-0007: Cena, viewport e câmera](adr-0007-cena-viewport-e-camera.md) | ✅ 67 checks + interpolação 2D, `reset_physics_interpolation()` pós-teleporte e pillarbox verificados (`EX-0007-NV`) | ✅ (4.7.2) | Cena R1–R12, F1–F7 | Escala fracionária em `1366×768` documentada com fallback `integer` | ✅ Accepted |
+| [ADR-0008: Movimento e colisão própria](adr-0008-movimento-e-colisao-propria.md) | ✅ 51 verificações em fixtures; limite tangencial reproduzido | ✅ (4.7.2) | Movimento R1–R12, F1–F7 e MV1–MV8 | AC-26 de Corte pesado alinhado com ADR-0010 | ✅ Accepted |
+| [ADR-0009: Atributos e modificadores](adr-0009-atributos-e-modificadores.md) | ✅ `float` IEEE-754 binary64 verificado (`EX-0009-1`, `2^52+1 != 2^52`) | ✅ (4.7.2) | Modificadores R1–R14, F1–F6 | Nota de literais em empate no tokenizer registrada | ✅ Accepted |
+| [ADR-0010: Resolução do combate](adr-0010-resolucao-do-combate-no-passo.md) | ✅ `RenderingServer.frame_post_draw` verificado (`EX-0010-1`, 1×/quadro, `33,33 ms ≤ 50 ms`) | ✅ (4.7.2) | Combate R1–R25, Selo F1, Status R2–R4, Telégrafos, Chefes | Revisão consolidada PASS | ✅ Accepted |
+| [ADR-0011: Pipeline visual](adr-0011-pipeline-visual.md) | ✅ E1–E7 e `EX-0001-3` verificados (`ex-0011-e1-e3.md`, `ex-0011-e4-e7.md`: 444 draw calls, LUT global, `speed_scale=0`, malha SDF, `CanvasGroup`, quad SDF, material por entidade) | ✅ (4.7.2) | Pipeline R1–R12, R5a/R5b, Feedback | Revisão consolidada PASS; plano B `EscritorPorMaterial` preservado | ✅ Accepted |
+| [ADR-0012: UI e HUD](adr-0012-ui-e-hud.md) | ✅ E1–E6 e CB verificados (`EX-0012`: `offset_transform_visual_only`, `ui_*`, barreira de foco, CSV plural, clipboard) | ✅ (4.7.2) | HUD, Tela de bênção, Input, Vínculo, Save | Revisão consolidada PASS | ✅ Accepted |
+| [ADR-0013: Persistência do MVP](adr-0013-persistencia-do-mvp.md) | ✅ E-P1..E-P7 verificados (`EX-0013`: `flush`, `.old` obrigatório, `schema_version`, UTC+`Z`, `shell_open`, `WM_CLOSE_REQUEST`) | ✅ (4.7.2) | Telemetria, Input, Armas, Economia, Save e Perfil, Vínculo | Mitigação de picos do SO no passo de morte decidida | ✅ Accepted |
+| [ADR-0014: Telégrafos](adr-0014-telegrafos-geometria-e-teto.md) | ✅ Sem API nova além de `Vector2` | ✅ (4.7.2) | Telégrafos, IA, Combate, Chefes | Troca de câmara com `LIBERAR_JA` (decisão de 2026-11-15) | ✅ Accepted |
+| [ADR-0015: Ciclo da run e composição](adr-0015-ciclo-da-run-e-composicao.md) | ✅ `NOTIFICATION_WM_CLOSE_REQUEST` verificado em `EX-0013 E-P7` | ✅ (4.7.2) | Run, Câmaras, Portas, Economia, Bênçãos, Vínculo, Chefes, Save | Revisão de 2026-11-16: C4 corrigido (consolidação direta antes de `run_encerrada`) | ✅ Accepted |
+| [ADR-0016: Áudio: ganchos e vozes](adr-0016-audio-ganchos-e-vozes.md) | ✅ Itens 1–6 confirmados (`EX-0016-A`: `get_bus_index`, `pitch_scale`, `stream_paused`, `linear_to_db`, layout, loop WAV) | ✅ (4.7.2) | Feedback, Telégrafos, Maldições, Chefes, HUD | 5º consumidor da lista (Telemetria→HUD→Feedback→Telas→Áudio) | ✅ Accepted |
+| [ADR-0017: Aliados e invocações](adr-0017-aliados-e-invocacoes.md) | ✅ Sem API nova além de `RefCounted`/`Vector2` | ✅ (4.7.2) | Maldições, Armas (Besta), Combate R20–R23, Vínculo, Modificadores | C3 e C5 corrigidos; aceito junto com o 0018 | ✅ Accepted |
+| [ADR-0018: IA de inimigos e chefe](adr-0018-ia-de-inimigos-e-chefe.md) | ✅ Sem API nova | ✅ (4.7.2) | IA R1–R22, Chefes, Câmaras R14-P, Vínculo V8 | Lacaios usam `ia` (IA R21); aceito junto com o 0017 | ✅ Accepted |
 
-**Cobertura de rastreabilidade: 0 de 233 requisitos formalmente cobertos** (o ADR-0001 ainda é Proposed e não foi revisado; a contagem fina requisito→ADR sai de `/architecture-review`). As cinco decisões desta sessão também ainda não têm ADR: mapa de camadas, posse dos módulos, módulo Orquestrador, canal duplo de eventos e a regra "só se chama para baixo".
+**Cobertura de rastreabilidade (atualizada em 2026-11-17): 400 requisitos registrados em [tr-registry.yaml](tr-registry.yaml); `400/400 ✅ Covered (Accepted) (100%)`, `0 🟡 Covered (Proposed)`, `0 ⚠️ Partial`, `0 ❌ Gap`.** `TR-conteudo-015` promovido de `⚠️ Partial` a `✅ Covered (Accepted)` após fixar o PC de referência (`AMD Ryzen 5 5600H (6C/12T), 16 GB RAM, SSD NVMe, GPU RTX 3050 Laptop, Windows 11 Home 10.0.26300`) e registrar as medições `160,8 ms` (texto) e `86,2 ms` (`.pck`) `≤ 250 ms` no [ADR-0004](adr-0004-catalogo-de-dados.md). Detalhes em [architecture-review-2026-11-16.md](architecture-review-2026-11-16.md) e [requirements-traceability.md](requirements-traceability.md).
 
 ## Required ADRs
 
@@ -343,7 +370,7 @@ Nível `standard`: só os críticos. O mapeamento fino requisito→ADR (`TR-<sis
 
 | # | Título | Decide | Cobre (grupos de TR) | Risco |
 |---|---|---|---|---|
-| 0001 | Orquestrador do passo e estados de jogo | Nó ou `Autoload`; ordem do passo; hitstop como contador; `t_vivo`/`t_apres`; quem liga `modo_bencao`; `_physics_process` a 60 Hz | `combate-nucleo-001/002/011`, `movimento-002/003`, `cena-009/011`, `pipeline-004`, `ia-001`, `camaras-002/007`, `run-005`, `input-008` | **ALTO** (GDScript 4.7; `SceneTree.paused` NEEDS VERIFICATION) |
+| 0001 | Orquestrador do passo e estados de jogo | Nó ou `Autoload`; ordem do passo; hitstop como contador; `t_vivo`/`t_apres`; quem liga `modo_bencao`; `_physics_process` a 60 Hz | `combate-nucleo-001/002/011`, `movimento-002/003`, `cena-009/011`, `pipeline-004`, `ia-001`, `camaras-002/007`, `run-005`, `input-008` | **ALTO** (GDScript 4.7; estado próprio, sem `SceneTree.paused`) |
 | 0002 | Canal de eventos | Lista do passo + chamadas síncronas; payload de `EventoDoPasso` | `combate-nucleo-009`, `feedback-001/003/009`, `hud-001`, `telemetria-*` | MÉDIO |
 | 0003 | Representação de entidades e portadores | Node vs RefCounted vs Resource; `InimigoRef`, pool de telégrafos; lógica sem `SceneTree` | `combate-nucleo-003`, `movimento-011`, `selo-011`, `modificadores-003`, `telegrafos-001`, `status-001/010`, `ia-*` | MÉDIO |
 | 0004 | Catálogo de dados | `.tres`, carregador síncrono vs threaded, validação, impressão SHA-256, `duplicate_deep` | `conteudo-orientado-a-dados-*`, todos os `*-Tuning` | MÉDIO (`HashingContext`, CSV `keep`, `ResourceLoader`: NEEDS VERIFICATION) |
@@ -366,14 +393,26 @@ Nível `standard`: só os críticos. O mapeamento fino requisito→ADR (`TR-<sis
 | 0011 | Pipeline visual | Nós e materiais, LUT global vs plano B, famílias de shader, passes, orçamento de draw calls (**a verificar nos experimentos E1–E7**) | `pipeline-visual-*`, `feedback-004/005/010/011` | **ALTO** (E2 NOT SOURCEABLE) |
 | 0012 | UI e HUD | `Control` em `CanvasLayer` vs nós no mundo, foco duplo, escala 85–150% | `hud-*`, `tela-de-bencao-e-carta-*` | **ALTO** (foco duplo, `offset_transform_*`) |
 
+### Novo escopo do MVP: Doutrina de Pactos (decisão do usuário, 2026-11-15)
+
+Pactos entra no MVP como **3ª Doutrina** (antes era Alpha). O jogador leva **2 Maldições** (criaturas do pacto) por expedição, **uma em campo** e a outra para troca ou técnica combinada; o vínculo cresce com o uso e pactos novos nascem de encontros na expedição. **Os GDDs existem** (commit 6698079): `maldicoes.md`, `chefes.md`, `vinculo-e-pactos.md`, `save-e-perfil.md`, mais a "emenda Pactos" nos outros 22 e as 21 decisões de `pactos-decisoes-a-confirmar.md`. Cobertura na arquitetura (2026-11-16):
+
+| ADR | Cobre |
+|---|---|
+| [ADR-0015: Ciclo da run e composição](adr-0015-ciclo-da-run-e-composicao.md) (novo) | Composição da run (Main/GameSession), câmaras→portas→bênção→chefe, Run R3-P, encontro de pacto (índices 1–2), Pactuar/Exorcizar, quando gravar o perfil, resumo de run, `ContaFragmentos` |
+| [ADR-0016: Áudio: ganchos e vozes](adr-0016-audio-ganchos-e-vozes.md) (novo) | Barramentos, pool de vozes, eventos→sons, TR-feedback-008, TR-telegrafos-014 |
+| [ADR-0017: Aliados e invocações](adr-0017-aliados-e-invocacoes.md) (novo) | `ModuloDeMaldicoes` (item 6.1), `MaldicaoRef`, troca, técnica combinada, Chamado, reserva/Exaustão, IA de aliado |
+| [ADR-0018: IA de inimigos e chefe](adr-0018-ia-de-inimigos-e-chefe.md) (novo) | IA de inimigos e do chefe (padrões, fases, Fúria) |
+| Emendas de 2026-11-16 | 0001 (item 6.1; Bênção serve ao consentimento), 0002 (eventos novos), 0003 (`MaldicaoRef`; chefe como `InimigoRef` com flags; acuada fora da lista de inimigos), 0004 (`CurseDef`, `BossPatternDef`, `*Tuning` novos, TR-armas-008), 0005 (finalidade 9 `pactos`), 0006 (`troca`, `ponto_mira`), 0008 (geometria das Maldições, deslocamento forçado), 0009 (portador da Maldição, espelho, `furia`), 0010 (facções, `ferir_maldicao`, `ferir_acuada`, `subjugar`), 0011 (contorno secundário, VFX das Maldições), 0012 (HUD do Pacto, consentimento), 0013 (`perfil.cfg` e `[vinculo]`), 0014 (alvo travado) |
+
 ### Devem existir antes do sistema correspondente ser construído
 - **0013 Persistência do MVP** (`ConfigFile` em `user://`, binds, telemetria, `exportar`/`importar`): `armas-006/007`, `input-006`, `telemetria-001..009`, `economia-005`, `rng-010`. **NOT SOURCEABLE** (flush/append de `FileAccess`).
 - **0014 Telégrafos: geometria de acerto e teto 24**: `telegrafos-003/006/010`.
 
 ### Podem esperar a implementação
-Pool de vozes de áudio, pool de VFX e números, medir `dc_vfx` em runtime, e tudo de Vertical Slice e Alpha (Save e perfil, Chefes, Criatura, Oficina, Campus).
+Medir `dc_vfx` em runtime (o pool de vozes agora é do ADR-0016 e o de números do ADR-0011), e tudo de Vertical Slice e Alpha (Criatura, Oficina, Campus). Save e perfil e Chefes saíram desta lista: são MVP desde a Doutrina de Pactos (ADR-0013, ADR-0015, ADR-0018).
 
-Dos 12 ADRs obrigatórios, **7 têm risco ALTO**; quatro deles (0001, 0007, 0010, 0011) dependem de itens NOT SOURCEABLE e nascem marcados "a verificar no protótipo".
+Dos 12 ADRs obrigatórios originais, **7 têm risco ALTO**; quatro deles (0001, 0007, 0010, 0011) dependem de itens NOT SOURCEABLE e nascem marcados "a verificar no protótipo". Os quatro de Pactos (0015–0018) são de risco BAIXO a MÉDIO (0016 por API de áudio não verificada). Ordem de aceite sugerida (grafo sem ciclos, 2026-11-16): 0001, 0002, 0003, 0004, 0005, 0006, 0009, 0007, 0013, 0008, 0010, 0014, 0011, 0017+0018 (juntos), 0012, 0015, 0016.
 
 ## Architecture Principles
 
@@ -413,20 +452,28 @@ Decisão do usuário (2026-11-13): co-op online de 1 a 4 jogadores **depois** do
 
 ## Open Questions
 
-Decisões adiadas que precisam fechar antes de a camada correspondente ser construída.
+Todas as perguntas de arquitetura do MVP foram respondidas pelos ADRs `0001–0018` (`Accepted`) e pelos experimentos de engine `EX-0001..0016` (2026-11-16/17). Restam abertas apenas questões pós-MVP (Co-op Alpha) e de infraestrutura de release (instalação dos export templates 4.7.2).
 
-| Pergunta | Camada | Fecha em |
+### Fechadas / Resolvidas (MVP)
+
+| Pergunta | Camada | Resolução |
 |---|---|---|
-| Orquestrador: nó na cena raiz ou `Autoload`? | Foundation | ADR 0001 |
-| Revisar representação de combatentes, portadores e slots de telégrafo | Foundation/Core | ADR 0003 (Proposed) |
-| Payload de `EventoDoPasso` e herança `@abstract` vs duck typing | Foundation | ADR 0002 |
-| Semântica de `SceneTree.paused`, `HashingContext`, CSV `keep` e `ResourceLoader` threaded | Foundation | ADR 0001 e 0004 |
-| Interpolação de física 2D, `reset_physics_interpolation()`, pillarbox em runtime, parallax manual | Foundation | ADR 0007 |
-| "Sinal de fim de quadro" do 4.7 que o AC-92 exige (latência ≤ 50 ms) | Core | ADR 0010 |
-| Experimentos E1–E7 do Pipeline (draw calls 2D, LUT global com Shader Baker, `CanvasGroup`, SDF do telégrafo…) | Apresentação | ADR 0011 |
-| Flush e append do `FileAccess` na telemetria | Apresentação | ADR 0013 |
-| Custo de montar layout + 3 ondas + 1ª onda num único quadro da Transição | Feature | medir no protótipo |
-| Formato do Save e perfil e do estado dos fluxos do RNG | Foundation | Vertical Slice |
-| Os 233 requisitos são provisórios e a extração não leu Formulas/Edge Cases/ACs de 10 GDDs | todas | `/architecture-review` |
-| Co-op pós-MVP: câmera compartilhada ou por jogador, oferta de bênção por jogador, saldo por jogador, comportamento de pausa e hitstop online, morte individual vs fim da run | todas | decisão de design antes de o co-op entrar; ver "Preparação para co-op" |
-| Atualizar o `systems-index.md` com os desvios de camada (Pipeline visual e Telemetria na Apresentação; Orquestrador como módulo novo) | — | quem atualizar o índice |
+| Orquestrador: nó na cena raiz ou `Autoload`? | Foundation | **Fechada / Resolvida** — [ADR-0001](adr-0001-orquestrador-do-passo.md) (`Accepted`) + `EX-0001-1..6`: `OrquestradorDoPasso` em `RefCounted` puro acionado por `Main` (`Node` fino na raiz), sem `Autoload` e sem `SceneTree.paused`. |
+| Revisar representação de combatentes, portadores e slots de telégrafo | Foundation/Core | **Fechada / Resolvida** — [ADR-0003](adr-0003-entidades-e-portadores.md), [ADR-0009](adr-0009-atributos-e-modificadores.md) e [ADR-0014](adr-0014-telegrafos-geometria-e-teto.md) (`Accepted`) + `EX-0009-1`: `InimigoRef`, `MaldicaoRef`, `Portador` em `RefCounted` e pool fixo de 24 slots. |
+| Payload de `EventoDoPasso` e herança `@abstract` vs duck typing | Foundation | **Fechada / Resolvida** — [ADR-0002](adr-0002-canal-de-eventos.md) (`Accepted`) + `EX-0002-1..3`: subclasses tipadas de `EventoDoPasso` (`@abstract`), `filter()` tipado confirmado, ordem fixa de entrega Telemetria → HUD → Feedback → Telas → Áudio. |
+| `HashingContext`, CSV `keep` e `ResourceLoader` síncrono vs threaded | Foundation | **Fechada / Resolvida** — [ADR-0004](adr-0004-catalogo-de-dados.md) (`Accepted`) + `EX-0004-NV`: `HashingContext` SHA-256, `CACHE_MODE_IGNORE_DEEP`, `DEEP_DUPLICATE_ALL` e CSV `keep` (`exclude_filter="assets/data/canon/*"` obrigatório) verificados; carga síncrona medida em `160,8 ms` (texto) / `86,2 ms` (`.pck`) `< 250 ms` no PC de referência fixado (`TR-conteudo-015` ✅). |
+| Interpolação de física 2D, `reset_physics_interpolation()`, pillarbox em runtime, parallax manual | Foundation | **Fechada / Resolvida** — [ADR-0007](adr-0007-cena-viewport-e-camera.md) (`Accepted`) + `EX-0007-NV`: interpolação 2D, `reset_physics_interpolation()` no mesmo passo após teleporte e pillarbox/letterbox em runtime verificados. |
+| "Sinal de fim de quadro" do 4.7 que o AC-92 exige (latência ≤ 50 ms) | Core | **Fechada / Resolvida** — [ADR-0010](adr-0010-resolucao-do-combate-no-passo.md) (`Accepted`) + `EX-0010-1`: `RenderingServer.frame_post_draw` dispara 1× por quadro; pior caso medido `33,33 ms ≤ 50 ms`. |
+| Experimentos de apresentação, foco/UI e áudio (`offset_transform_*`, `ui_*`, barreira de foco, CSV plural, clipboard, barramentos/vozes) | Apresentação | **Fechada / Resolvida** — [ADR-0011](adr-0011-pipeline-visual.md), [ADR-0012](adr-0012-ui-e-hud.md) e [ADR-0016](adr-0016-audio-ganchos-e-vozes.md) (`Accepted`) + `EX-0001-4`, `EX-0012 E1–E6/CB` e `EX-0016-A`; para globais de shader/LUT (E2) o ADR-0011 define o plano B `EscritorPorMaterial` atrás de `EscritorDeGlobais`. |
+| Flush e append do `FileAccess` na telemetria e atomicidade de `.cfg` no Windows | Foundation/Apresentação | **Fechada / Resolvida** — [ADR-0013](adr-0013-persistencia-do-mvp.md) (`Accepted`) + `EX-0013 E-P1..P7`: arquivo novo por sessão com `store_line` + `flush` (`p99 ≤ 1 ms/linha`), sequência `.old` obrigatória em `gravar_atomico`, exigência de `schema_version` após `parse == OK`, UTC + `"Z"`, `OS.shell_open` e `NOTIFICATION_WM_CLOSE_REQUEST`. |
+| Custo de montar layout + 3 ondas + 1ª onda na Transição e ciclo de vida da run | Feature | **Fechada / Resolvida** — [ADR-0005](adr-0005-rng-deterministico.md), [ADR-0015](adr-0015-ciclo-da-run-e-composicao.md), [ADR-0017](adr-0017-aliados-e-invocacoes.md) e [ADR-0018](adr-0018-ia-de-inimigos-e-chefe.md) (`Accepted`): composição por `EscopoDaRun` e harness comum de orçamento (`MedidorDeOrcamento`, ADR-0001). |
+| Formato do Save e perfil (`user://perfil.cfg`) e escopo de persistência no MVP | Foundation | **Fechada / Resolvida** — [ADR-0013](adr-0013-persistencia-do-mvp.md) §7 e [ADR-0015](adr-0015-ciclo-da-run-e-composicao.md) §7 (`Accepted`): `RepositorioDePerfil` com seção `[vinculo]` opaca, gravação coalescida fora de `JOGO`, sem save no meio da run e saldo de Fragmentos em memória no MVP. |
+| Extração completa de requisitos técnicos e rastreabilidade dos 26 GDDs | todas | **Fechada / Resolvida** — [tr-registry.yaml](tr-registry.yaml), [requirements-traceability.md](requirements-traceability.md) e [architecture-review-2026-11-16.md](architecture-review-2026-11-16.md): `400/400 ✅ Covered (Accepted) (100%)`, `0 🟡`, `0 ⚠️`, `0 ❌`. |
+| Desvios de camada em relação ao `systems-index.md` (Pipeline visual e Telemetria na Apresentação; Orquestrador do passo na Foundation) | todas | **Fechada / Resolvida** — Formalizados em `System Layer Map`, [ADR-0001](adr-0001-orquestrador-do-passo.md), [ADR-0011](adr-0011-pipeline-visual.md) e [ADR-0013](adr-0013-persistencia-do-mvp.md). |
+
+### Abertas (Pós-MVP / Infraestrutura de Release)
+
+| Pergunta | Escopo | Quando fecha |
+|---|---|---|
+| **Co-op Alpha (pós-MVP):** câmera compartilhada ou por jogador, oferta de bênção por jogador, saldo de Fragmentos por jogador, comportamento de pausa e hitstop online, morte individual vs fim da run (os ganchos `player_id` já estão nos contratos dos ADRs 0001–0018) | Co-op Alpha (pós-MVP) | Decisão de design e ADR de rede antes de iniciar o marco de Co-op Alpha (ver "Preparação para co-op") |
+| **Templates de exportação de release (Godot 4.7.2):** instalar os export templates oficiais do 4.7.2 em `%APPDATA%\Godot\export_templates\` e repetir no binário `.exe` de release as medições já validadas no editor e em `.pck` (`EX-0001`, `EX-0002-1`, `EX-0004-NV`, `EX-0013 E-P7`) | Build / Release | Antes do fechamento do marco de Pre-Production / Release |

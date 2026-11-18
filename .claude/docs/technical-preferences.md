@@ -41,28 +41,50 @@
 - **Target Framerate**: 60 fps
 - **Frame Budget**: 16.6 ms
 - **Draw Calls**: <= 500 per frame (2D, batched)
-- **Memory Ceiling**: [TO BE CONFIGURED]
+- **Memory Ceiling**: 512 MiB (texturas e recursos em runtime; alerta em 448 MiB conforme Pipeline visual R9 / ADR-0011)
 
 ## Testing
 
 - **Framework**: gdUnit4 (installed by /test-setup)
-- **Minimum Coverage**: [TO BE CONFIGURED]
+- **Minimum Coverage**: 100% dos requisitos técnicos (400/400 TRs) e critérios de aceite de lógica/integração
 - **Required Tests**: Balance formulas, gameplay systems, networking (if applicable)
 
 ## Forbidden Patterns
 
 <!-- Add patterns that should never appear in this project's codebase -->
-- [None configured yet — add as architectural decisions are made]
+- **Sem `Autoload`/singleton para lógica de jogo**: `OrquestradorDoPasso` e todos os módulos de regra são `RefCounted` puros injetados pelo `Main` (`ComposicaoDaSessao` / `FabricaDaRun`) — ADR-0001, ADR-0013, ADR-0015.
+- **Sem `SceneTree.paused` para pausar o jogo**: usar o estado de jogo próprio (`EstadoDeJogo.Valor`) no `OrquestradorDoPasso` e parada explícita na Apresentação — ADR-0001.
+- **Sem `Engine.time_scale`, `Timer`, `create_timer`, `Time` ou `OS` na simulação**: o tempo de jogo é contagem inteira de passos a 60 Hz (`PASSO = 1.0 / 60.0`) — ADR-0001.
+- **Sem sinais do Godot entre módulos de regra**: usar a lista tipada `EventoDoPasso` do canal de eventos e chamadas síncronas contratadas por injeção — ADR-0002.
+- **Sem `randf`, `randi`, `shuffle`, `pick_random` ou `RandomNumberGenerator` na lógica**: usar `FluxoRng` determinístico de 64 bits (única exceção: função de entropia inicial da criação da run; RNG cosmético restrito a `src/presentation/`) — ADR-0005.
+- **Sem gravar `.cfg` durante um passo em estado `JOGO`**: gatilhos apenas marcam o perfil como pendente; a gravação atômica (`gravar_atomico` com sequência `.old`) ocorre fora de `JOGO` via `ArmazemDeArquivos` — ADR-0013, ADR-0015.
 
 ## Allowed Libraries / Addons
 
 <!-- Add approved third-party dependencies here -->
-- [None configured yet — add as dependencies are approved]
+- **gdUnit4**: framework de testes automatizados em `res://addons/gdUnit4` (nenhum outro addon de terceiros no MVP).
 
 ## Architecture Decisions Log
 
 <!-- Quick reference linking to full ADRs in docs/architecture/ -->
-- [No ADRs yet — use /architecture-decision to create one]
+- [ADR-0001: Orquestrador do passo e estados de jogo](../../docs/architecture/adr-0001-orquestrador-do-passo.md) — **Accepted** (2026-11-16)
+- [ADR-0002: Canal de eventos](../../docs/architecture/adr-0002-canal-de-eventos.md) — **Accepted** (2026-11-16)
+- [ADR-0003: Representação de entidades e portadores](../../docs/architecture/adr-0003-entidades-e-portadores.md) — **Accepted** (2026-11-16)
+- [ADR-0004: Catálogo de dados](../../docs/architecture/adr-0004-catalogo-de-dados.md) — **Accepted** (2026-11-16)
+- [ADR-0005: RNG determinístico](../../docs/architecture/adr-0005-rng-deterministico.md) — **Accepted** (2026-11-16)
+- [ADR-0006: Input por passo](../../docs/architecture/adr-0006-input-por-passo.md) — **Accepted** (2026-11-16)
+- [ADR-0007: Cena, viewport e câmera](../../docs/architecture/adr-0007-cena-viewport-e-camera.md) — **Accepted** (2026-11-16)
+- [ADR-0008: Movimento e colisão própria](../../docs/architecture/adr-0008-movimento-e-colisao-propria.md) — **Accepted** (2026-11-16)
+- [ADR-0009: Atributos e modificadores](../../docs/architecture/adr-0009-atributos-e-modificadores.md) — **Accepted** (2026-11-16)
+- [ADR-0010: Resolução do combate no passo](../../docs/architecture/adr-0010-resolucao-do-combate-no-passo.md) — **Accepted** (2026-11-16)
+- [ADR-0011: Pipeline visual](../../docs/architecture/adr-0011-pipeline-visual.md) — **Accepted** (2026-11-16)
+- [ADR-0012: UI e HUD](../../docs/architecture/adr-0012-ui-e-hud.md) — **Accepted** (2026-11-16)
+- [ADR-0013: Persistência do MVP](../../docs/architecture/adr-0013-persistencia-do-mvp.md) — **Accepted** (2026-11-16)
+- [ADR-0014: Telégrafos: geometria de acerto e teto 24](../../docs/architecture/adr-0014-telegrafos-geometria-e-teto.md) — **Accepted** (2026-11-16)
+- [ADR-0015: Ciclo da run e composição](../../docs/architecture/adr-0015-ciclo-da-run-e-composicao.md) — **Accepted** (2026-11-16)
+- [ADR-0016: Áudio: ganchos e vozes](../../docs/architecture/adr-0016-audio-ganchos-e-vozes.md) — **Accepted** (2026-11-16)
+- [ADR-0017: Aliados e invocações](../../docs/architecture/adr-0017-aliados-e-invocacoes.md) — **Accepted** (2026-11-16)
+- [ADR-0018: IA de inimigos e chefe](../../docs/architecture/adr-0018-ia-de-inimigos-e-chefe.md) — **Accepted** (2026-11-16)
 
 ## Engine Specialists
 

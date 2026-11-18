@@ -1,8 +1,8 @@
 # Feedback de combate (VFX)
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — 2026-11-15: respostas das Maldições (R15–R18, Edge Cases, Dependencies, AC-FB-32 a 41), aguardando aprovação do usuário. Histórico anterior: Approved (2026-11-11; revisão única por subagente: 11 bloqueantes e recomendadas, corrigidos sem re-review; sem entrada no review log)
-> **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-16 (alinhamento: ganchos `sfx_maldicao_*`, `chamado_indisponivel` emitido pelo Combate R3.1); 2026-11-15 (emenda Pactos: Maldições); 2026-11-11
+> **Status**: Approved
+> **Author**: usuário + Claude (design-system, modo Lean; emenda Pactos aprovada pelo usuário em 2026-11-16)
+> **Last Updated**: 2026-11-18 (consolidação de decisões aprovadas em 2026-11-16); 2026-11-16 (alinhamento: ganchos `sfx_maldicao_*`, `chamado_indisponivel` emitido pelo Combate R3.1); 2026-11-15 (emenda Pactos: Maldições); 2026-11-11
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P3 *Reflexo que se lê*; P4; P2 *A Beira cobra*
 
@@ -237,16 +237,16 @@ do corpo delas são do relógio **vivo**.
 | número do impacto da Maldição | faixa **golpe** (R16) | apres. | este GDD | — | 3 | — |
 | `maldicao_atingida` (`ferir_maldicao`, Combate) | flash de Osso no sprite por 4 passos vivos (ML-V5); sem inversão, sem impact frame, sem câmera, **sem número** (R16) | vivo | Maldições ML-V5 | — | 3 | — |
 | `maldicao_exausta` | dissolve em partículas de tinta que correm pelo fio até o jogador em 12 passos (ML-V5) | vivo | Maldições ML-V5 | — | 2 | `sfx_maldicao_exausta` |
-| `maldicao_entrou` (troca automática, volta de Exausta com campo vazio) | a silhueta se condensa de tinta ao lado do jogador em 6 passos **[a confirmar]**; sem técnica | vivo | este GDD (resposta mínima) | — | 3 | — |
+| `maldicao_entrou` (troca automática, volta de Exausta com campo vazio) | a silhueta se condensa de tinta ao lado do jogador em 6 passos; sem técnica | vivo | este GDD (resposta mínima) | — | 3 | — |
 | `maldicao_pronta` (fim da Exaustão na reserva) | só o HUD (anel se fecha, HUD R17) e o gancho | — | HUD R17 | — | 4 | `sfx_maldicao_pronta` |
 | `chamado_salto` | rastro de pincelada em Tinta e Osso ao longo do salto, 12 passos (Maldições F4) | vivo | Maldições R13, F4 | — | 3 | `sfx_maldicao_chamado_salto` |
 | `chamado_pouso` | anel sólido de Osso que abre até `raio_chamado_px` em 6 passos (z −5) e smear largo de Tinta; o dano usa as linhas de impacto acima | vivo (anel) | Maldições R13, Game Feel | **leve, `escala` 0,6** (R17) | 2 | `sfx_maldicao_chamado_pouso` |
 | `tecnica_combinada` (troca manual, Maldições R12) | a que sai se desfaz em tinta pelo fio (6 passos) e executa o smear/anel do seu Efeito de Saída; no mesmo passo a que entra se condensa e executa o do Efeito de Entrada; smears largos | vivo | Maldições R12, Game Feel | **leve, `escala` 0,6** (R17) | 2 | `sfx_maldicao_troca_tecnica` |
 | `troca_indisponivel` | só HUD (sacudida do Slot de Reserva, HUD R18) | — | HUD R18 | — | 4 | `sfx_maldicao_recusa` |
-| `chamado_indisponivel` (**emissor: Combate**, Combate R3.1: Chamado sem Maldição em campo ou com ela saltando; campos `player_id`, motivo) | só o gancho (sem VFX; o HUD não sacode) **[a confirmar]** | — | este GDD | — | 4 | `sfx_maldicao_recusa` |
+| `chamado_indisponivel` (**emissor: Combate**, Combate R3.1: Chamado sem Maldição em campo ou com ela saltando; campos `player_id`, motivo) | só o gancho (sem VFX; o HUD não sacode) | — | este GDD | — | 4 | `sfx_maldicao_recusa` |
 | marca do Virote (`marca_virote_mudou`) | ilhós/elo de Osso junto aos pés do inimigo marcado; **um só na tela**; muda de alvo no passo; some com a morte do alvo ou na troca de câmara | vivo | Maldições ML-V3, R4, R14 | — | 3 | — |
 | inimigo atraído (`atraido` / fim) | traço vertical de Osso acima da cabeça enquanto durar a atração; com sinal de status, o traço fica 8 px acima dele | vivo | Maldições UI Requirements, R7 | — | 3 | — |
-| inimigo imobilizado (Chamado R13.3 ou Efeito de Saída) | duas amarras de Osso cruzadas nos pés enquanto durar **[a confirmar]** | vivo | este GDD (pedido a Maldições) | — | 3 | — |
+| inimigo imobilizado (Chamado R13.3 ou Efeito de Saída) | duas amarras de Osso cruzadas nos pés enquanto durar | vivo | este GDD (pedido a Maldições) | — | 3 | — |
 | fio de vínculo estoura (`fio_estourou`) | pulso de Osso claro no fio enquanto puxa a Maldição (ML-V2) | vivo | Maldições ML-V2 | — | 3 | — |
 
 O **fio de vínculo** em si (curva de Osso, tensão a 408 px) é desenho permanente do
@@ -286,7 +286,7 @@ Abates feitos pela Maldição usam as linhas de `inimigo_morreu` da R3 sem mudan
 
 - **Flash de Osso da Maldição atingida:** não reinicia se já está aceso e só acende de
   novo **20 passos vivos** depois do início do anterior (≤ 3 por segundo, Art Bible §7.9
-  nº 4) **[a confirmar]**. Com "Reduzir flashes" (opção 4), fica mais baixo, como o flash
+  nº 4). Com "Reduzir flashes" (opção 4), fica mais baixo, como o flash
   de inimigo (R7).
 - **Áudio:** os ganchos ML-A1 seguem a R9 (um som por gancho por passo) e a F4, com as
   prioridades da R15. Os nomes usam o prefixo `sfx_` como os demais ganchos deste GDD

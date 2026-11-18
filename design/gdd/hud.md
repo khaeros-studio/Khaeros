@@ -1,8 +1,8 @@
 # HUD
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — 2026-11-15: Bloco do Pacto (R15–R19, F8, Tuning, Edge Cases, Dependencies, AC-HD-38 a 47), aguardando aprovação do usuário. Histórico anterior: Approved (2026-11-11; revisão única por subagente: 7 bloqueantes e recomendadas, corrigidos sem re-review; sem entrada no review log)
-> **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-15 (emenda Pactos: Bloco do Pacto); 2026-11-11
+> **Status**: Approved
+> **Author**: usuário + Claude (design-system, modo Lean; emenda Pactos aprovada pelo usuário em 2026-11-16)
+> **Last Updated**: 2026-11-18 (consolidação de decisões aprovadas em 2026-11-16); 2026-11-15 (emenda Pactos: Bloco do Pacto); 2026-11-11
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P3 *Reflexo que se lê*; P4
 
@@ -239,7 +239,7 @@ Magenta, ML-V1).
   sacudida vira um **pulso do contorno** do Selo da Troca (borda de 2 para 3 px
   por 0,15 s), sem deslocamento. O som (~~`maldicao_recusa`~~ `sfx_maldicao_recusa`, emenda Pactos, 2026-11-15) é do Feedback.
 - **Troca feita** (manual ou automática): os dois slots trocam de conteúdo no
-  passo do evento (≤ 1 passo). Sem animação de cruzar no MVP **[a confirmar]**:
+  passo do evento (≤ 1 passo). Sem animação de cruzar no MVP:
   a resposta de peso é do Feedback (técnica combinada), não do HUD.
 - **Dano na Maldição em campo:** a barra de Vida de Campo cai no passo (≤ 1
   passo), sem rachar segmento (o racho é da Vida do jogador, R3, para não
@@ -420,7 +420,7 @@ constantes de layout da spec de UX, não knobs.
 - **Troca de dispositivo:** o glifo do Selo da Troca troca no passo seguinte.
 - **Rótulo longo (bind "Tab", glifo de LT):** o glifo cabe em 28 × 28 com fonte de
   14 px; rótulo com mais de 3 caracteres vira o glifo genérico de tecla com as 3
-  primeiras letras **[a confirmar]**.
+  primeiras letras.
 - **Alto contraste (opção 10):** placa 100%, molduras dos slots de 3 px, anel e
   setor em osso puro sobre tinta.
 - **Vida colorida (opção 9):** vale só para a Vida do jogador; as barras das

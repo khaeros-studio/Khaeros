@@ -1,8 +1,8 @@
 # Tela de bênção e componente de carta
 
-> **Status**: Approved (emenda Pactos aprovada pelo usuário em 2026-11-16) — antes: Approved (2026-11-11; revisão única por subagente: 9 bloqueantes e 13 recomendadas, corrigidos sem re-review; sem entrada no review log)
-> **Author**: usuário + Claude (design-system, modo Lean)
-> **Last Updated**: 2026-11-16 (emenda Pactos, 2026-11-15: R15-P, R15b-P, AC-TB-36 a 38, OQ 8–9)
+> **Status**: Approved
+> **Author**: usuário + Claude (design-system, modo Lean; emenda Pactos aprovada pelo usuário em 2026-11-16)
+> **Last Updated**: 2026-11-18 (foco inicial no modo `arma` alinhado a Armas R4 e UX §5); 2026-11-16 (emenda Pactos, 2026-11-15: R15-P, R15b-P, AC-TB-36 a 38, OQ 8–9)
 > **Last Verified**: 2026-11-11
 > **Implements Pillar**: P1 *Toda bênção é uma filosofia*; P2 *A Beira cobra*; P3; P4
 
@@ -112,8 +112,8 @@ da Art Bible §7.6:
 | Pausa | Esc | Start | — |
 | Foco para o botão e de volta | ↓ / ↑ | D-pad ↓ / ↑ | passar o mouse |
 
-O foco inicial é a **carta do meio** (índice `floor((n − 1) / 2)`: n 1 → 0, 2 → 0, 3 → 1, 4
-→ 1, 5 → 2); **não dá a volta** entre a última e a primeira. Confirmar com o foco no botão
+O foco inicial no modo `bencao` é a **carta do meio** (índice `floor((n − 1) / 2)`: n 1 → 0, 2 → 0, 3 → 1, 4
+→ 1, 5 → 2); no modo `arma`, é a carta correspondente a `ultima_arma` do perfil/`preferencias.cfg` ou a 1ª carta (`lamina`, índice 0) se ausente/inválida (e sem foco pré-selecionado em build de playtest até mover o foco, R15-P e Armas R4); **não dá a volta** entre a última e a primeira. Confirmar com o foco no botão
 de troca troca. Os botões são os do Input, remapeáveis (Input). **Mouse:** passar o ponteiro move o foco quando o ponteiro **se move** sobre uma carta; o clique **só confirma a carta que já está em foco**: um clique sobre uma carta fora de foco (por exemplo com o mouse parado desde a abertura) apenas move o foco para ela, e o segundo clique confirma.
 
 **R7. Trava contra escolha acidental.** Ao abrir a tela o **buffer de entrada é
@@ -181,23 +181,25 @@ melhoria ficam como interface para a Run (tela de início) e a Oficina.
 **R15-P. Modo arma com três cartas** (emenda Pactos, 2026-11-15). A Escolha de
 arma do MVP usa o componente (Armas R4, contrato suave; Run R2-P/R4-P) e passa a
 ter **3 cartas**: Lâmina, Ressonância e Besta do Vínculo, `n` = 3, fileira de
-1 056 px (R3, sem mudança de conta), foco inicial na do meio (R6). Por isso o
-**modo arma entra no MVP** (o "só o modo bênção" acima fica para a melhoria). Os
-campos da carta de arma são do Armas (nome, Doutrina, Vida, rótulo de velocidade,
-nomes de Ataque e Especial); a trava, a navegação e a entrada são as mesmas; não
-há troca nem preço revelado (`preco_revelado` não é emitido; `tela_fechada`
-sim). **Aviso da Besta:** `CartaView` ganha o campo opcional **`aviso_texto`**
-(chave de texto, nulo por padrão). Quem monta a carta de arma o preenche na Besta
-quando o perfil não tem Maldição pactuada (Armas UI, "sem Maldição: o Chamado não
-responde", texto do ux-designer). Ele ocupa a **posição do selo do preço** (76–92%,
-R4), que a carta de arma não usa, em tinta sobre osso com ícone de alerta, sem
-magenta (magenta é preço, P2) **[a confirmar]**. Na bênção, `aviso_texto` é
-sempre nulo.
+1 056 px (R3, sem mudança de conta), foco inicial na última arma escolhida no
+perfil/`preferencias.cfg` (`ultima_arma`) ou na 1ª carta `lamina` (índice 0) se
+ausente ou inválida (em build de playtest, nenhuma carta vem pré-selecionada e
+confirmar fica bloqueado até mover o foco, Armas R4 e
+`design/ux/tela-escolha-de-arma-e-pacto.md` §5). Por isso o **modo arma entra no
+MVP** (o "só o modo bênção" acima fica para a melhoria). Os campos da carta de
+arma são do Armas (nome, Doutrina, Vida, rótulo de velocidade, nomes de Ataque e
+Especial); a trava, a navegação e a entrada são as mesmas; não há troca nem
+preço revelado (`preco_revelado` não é emitido; `tela_fechada` sim). **Aviso da
+Besta:** `CartaView` ganha o campo opcional **`aviso_texto`** (chave de texto,
+nulo por padrão). Quem monta a carta de arma o preenche na Besta quando o perfil
+não tem Maldição pactuada (Armas UI, "sem Maldição: o Chamado não responde",
+texto do ux-designer). Ele ocupa a **posição do selo do preço** (76–92%, R4),
+que a carta de arma não usa, em tinta sobre osso com ícone de alerta, sem
+magenta (magenta é preço, P2). Na bênção, `aviso_texto` é sempre nulo.
 
 **R15b-P. Tela "Escolha do Pacto" (Vínculo V16): contrato** (emenda Pactos,
 2026-11-15). A tela é do Vínculo; ele não diz se usa este componente. Proposta,
-**contrato pedido a `vinculo-e-pactos.md`** **[a confirmar]**: um modo
-**`maldicao`** reutiliza `CartaView` + `GrupoDeCartas` (foco, trava R7, entrada
+**contrato pedido a `vinculo-e-pactos.md`**: um modo **`maldicao`** reutiliza `CartaView` + `GrupoDeCartas` (foco, trava R7, entrada
 R10, acessibilidade R14). Diferenças, todas do Vínculo: topo neutro (a raridade é
 da espécie, lida por palavra e ornamento como em R14); corpo com nível, barra de
 vínculo, kit e memórias (V16, UI Requirements); **duas escolhas** em ordem
@@ -245,7 +247,7 @@ Pausa pode abrir em qualquer estado menos Fechada; ao voltar vale a trava de 300
 UI 150% → s = min(1,5; 1,018) = 1,018, 1 824 px, altura 509 px; n 3, UI 85% → s = 0,85, 898 px.
 Altura total no pior caso (UI 150%, n 3): 750 + 24 + botão 64 = 838 px ≤ 984 (1080 − 2 × 48).
 
-**F2. Foco inicial.** `i0 = floor((n − 1) / 2)` (n 1 → 0; 2 → 0; 3 → 1; 4 → 1; 5 → 2).
+**F2. Foco inicial.** No modo `bencao`: `i0 = floor((n − 1) / 2)` (n 1 → 0; 2 → 0; 3 → 1; 4 → 1; 5 → 2). No modo `arma` (R15-P, Armas R4): `i0` é o índice da carta correspondente a `ultima_arma` do perfil/`preferencias.cfg`, ou `0` (`lamina`) se ausente/inválida (em build de playtest, sem foco pré-selecionado até o 1º movimento). No modo `maldicao` (R15b-P, Vínculo V16): `i0` segue `ultima_dupla` ou `0`.
 
 **F3. Trava de confirmação.** `t_assentou` = o **fim real da entrada** (`t_abrir + entrada_s`, ou o fim do fade com redução de movimento). Confirmar vale em `t ≥ t_assentou + trava_confirmar_ms` **e** se o botão subiu
 (borda de subida) em `t_aperto > t_abrir`. Ex.: abre em 0 s, entrada 0,45 s → confirmar vale
@@ -419,7 +421,7 @@ em `production/qa/evidence/`).
 - **AC-TB-33 [L] R14 — acessibilidade (partes).** Alto contraste: painéis 100% e raridade por linhas e palavra; redução de movimento: fade ≤ 300 ms e foco a 106% em corte seco; "Reduzir flashes": sem flash (três testes separados).
 - **AC-TB-34 [L] Edge — pausa e foco de janela.** Esc na trava abre a pausa; perder o foco da janela não pausa nem escolhe.
 - **AC-TB-35 [L] Validação — faixa do `TelaBencaoTuning`.** `trava_confirmar_ms` 400 gera o erro TB1; `entrada_s` 0,5 gera TB3; `anim_confirmar_s` 0,7 gera TB5; `foco_escala` 1,2 gera TB6; o dado de fábrica não gera nenhum TB; cada um dos 10 campos fora da faixa gera só o código do seu campo (TB1 a TB10).
-- **AC-TB-36 [L] R15-P — modo arma (emenda Pactos, 2026-11-15).** GIVEN 3 `CartaView` de arma, WHEN a tela abre em modo arma, THEN a fileira mede 1 056 px a 100%, o foco inicial é o índice 1, não há botão de troca e confirmar envia `escolher(i)` e `tela_fechada`, sem `preco_revelado`.
+- **AC-TB-36 [L] R15-P — modo arma (emenda Pactos, 2026-11-15).** GIVEN 3 `CartaView` de arma, WHEN a tela abre em modo arma, THEN a fileira mede 1 056 px a 100%, o foco inicial está na carta correspondente a `ultima_arma` no perfil/`preferencias.cfg` (ex.: índice 1 para `ressonancia`) ou na 1ª carta `lamina` (índice 0) quando ausente/inválida (e sem foco pré-selecionado em build de playtest até mover o foco, Armas R4 / UX §5), não há botão de troca e confirmar envia `escolher(i)` e `tela_fechada`, sem `preco_revelado`.
 - **AC-TB-37 [L] R15-P — aviso da Besta.** GIVEN a carta da Besta com `aviso_texto` preenchido, THEN o aviso aparece na faixa 76–92% e a altura da carta não muda; com `aviso_texto` nulo, a faixa fica vazia de osso; uma `CartaView` de bênção com `aviso_texto` nulo desenha igual à de antes da emenda.
 - **AC-TB-38 [UI] R15-P — evidência.** Captura retida em `production/qa/evidence/` da Escolha de arma com 3 cartas, com e sem o aviso na Besta.
 

@@ -15,7 +15,40 @@ O [índice de sistemas](../../design/gdd/systems-index.md) registra 22 GDDs do M
 | Prioridade de morte e recompensa | [Run R5 e AC-RN-16](../../design/gdd/run-e-regioes.md), [Portas AC-PR-23–25](../../design/gdd/portas-e-recompensas.md), [ADR-0002](adr-0002-canal-de-eventos.md) | O evento de morte fica visível antes da avaliação de limpeza. Run e Portas consultam a morte antes de terminar a run com vitória, creditar, pedir oferta ou abrir portas. |
 | Notificações e controle de bênção | [Feedback R14](../../design/gdd/feedback-de-combate.md), [Tela de bênção R9 e Interactions](../../design/gdd/tela-de-bencao-e-carta.md), [Portas AC-PR-25](../../design/gdd/portas-e-recompensas.md), [ADR-0002](adr-0002-canal-de-eventos.md) | Feedback recebe a lista ordenada. A cadeia de controle espera `tela_fechada` para publicar `bencao_escolhida` e abrir portas. |
 
+## Revisão cruzada dos ADRs 0001 a 0014 (2026-11-15)
+
+Revisor independente (subagente `technical-director`), depois da escrita em paralelo dos ADRs 0009–0014. Não substitui `/architecture-review` formal.
+
+- **Vereditos:** PASS em 0003–0009, 0012 e 0014. CONCERNS em 0010 (falta teste de arredondamento; AC-92 sem fonte), 0011 (E1–E7 NOT SOURCEABLE) e 0013 (experimentos E-P2/E-P3). 0001 e 0002 revisados nesta data pela aba de Arquitetura.
+- **Alinhamentos aplicados:** assinaturas de `GeometriaDeAcerto` (dono: 0010, com `circulos_encostam` e `alcance_do_raio`); ordem do item 7 (`varrer`, depois por inimigo `avancar(1)` → `status.tick` → `telegrafos.avancar` → impacto → IA); dano via `FormulasDeModificadores` em vez de `roundi`; `VistaDeTelegrafo.slot`; vinheta no 0011; `ComandosDeTela` no 0006; `[ui] escala` e repositórios no 0012/0013; `resolver_colisao_informando` no 0008; `autor_player_id` em `EvInimigoMorreu`; `telegrafos.quebrar` chamado pelo 0010; consumidor `Telas` no 0002; `retomar()` no 0001.
+- **Em aberto:** `EvRecusouMorte` talvez precise de `impact_passos` (Feedback); o Status não tem ADR próprio, então o contrato de `status.tick` fica sem dono formal.
+- **Nenhum padrão proibido** do registro usado (Autoload, `Timer`, `SceneTree.paused`, `time_scale`, sinal entre módulos de regra).
+
+### Decisões de design do usuário
+
+> **2026-11-15: o usuário aceitou todas as 15 recomendações.** Propagado: GDD de Telégrafos (R7, estados, Edge, AC-TG-09, AC-TG-16, AC-TG-25), texto de `refletir_dano` no GDD de Combate e API 5 do `architecture.md`. As seções "Decisões do usuário" dos ADRs 0009–0014 registram a aceitação; o ADR-0014 passa à política `LIBERAR_JA`.
+
+| # | ADR | Decisão | Recomendação |
+|---|---|---|---|
+| 1 | 0014 | Telégrafos na troca de câmara: fade de 2 passos (GDD) ou liberar na hora | Liberar na hora (muda Telégrafos R7/AC-TG-16) |
+| 2 | 0014 | AC-TG-09: faixa até a superfície da pedra ou até onde o projétil some | Superfície |
+| 3 | 0014 | Mira com distância 0 | `(1, 0)` |
+| 4 | 0010 | Teto de projéteis | Sem teto de jogo; só aviso de depuração |
+| 5 | 0010 | Ordem entre projéteis do jogador e dos inimigos | Lista única por criação (confirmar no cânone) |
+| 6 | 0010/0009 | Co-op: hitstop global, morte individual, autor dos gatilhos de abate | Adiar; gatilhos só do autor |
+| 7 | 0009 | Ajustar textos do Combate e da API 5 (`valor`/`inteiro`, `gatilhos`) | Ajustar na próxima edição |
+| 8 | 0012 | Camada do fio de Vida e do prompt | UI (confirmar com art-director) |
+| 9 | 0012 | Separador de milhar | Espaço fixo "1 234" |
+| 10 | 0012 | Leitor de tela (AccessKit) no MVP | Fora do MVP, estrutura pronta |
+| 11 | 0013 | Aviso de falha ao gravar configurações | Discreto, uma vez por sessão |
+| 12 | 0013 | Arquivo de versão futura | Não regravar |
+| 13 | 0013 | `telemetria_ligada` em `opcoes.cfg` | Confirmar |
+| 14 | 0011 | Redução de movimento ligada no meio de um wipe | O passe termina como começou |
+| 15 | 0011 | Fallback do E7 (material por papel) se material por entidade pesar | Decidir após o E7 (muda Pipeline R6) |
+
 ## Lacunas a resolver antes da implementação afetada
+
+> **2026-11-15:** as lacunas 1 a 4 foram tratadas na proposta revisada dos ADRs 0001 (final comum do passo, `n_vivos`, `passos_em_jogo()`, pedidos de estado com `MORTE` vencendo) e 0002 (lista só para itens anteriores; `aplicar_status` e `creditar_acerto_tardio()` por chamada direta; entrega em passo congelado). Os ADRs seguem Proposed até a revisão formal e o aceite.
 
 ### ADR-0001 — Orquestrador e integração com o ADR-0002
 
@@ -46,3 +79,7 @@ Detalhes e evidência em [ADR-0008](adr-0008-movimento-e-colisao-propria.md) e [
 - O experimento isolado do [ADR-0003](adr-0003-entidades-e-portadores.md#verificação-no-godot-472) confirmou aspectos da semântica de arrays tipados e referências do Godot. O custo no jogo continua em aberto.
 
 A cobertura dos contratos do ADR-0001 e do ADR-0002 nesta passada é documental e pontual. Os resultados executáveis cobrem o protótipo, o ambiente de testes e o recorte do experimento de entidades. A implementação integrada e os demais requisitos dos 22 GDDs aguardam verificação própria.
+
+## Revisão de 2026-11-16 (Doutrina de Pactos)
+
+Relatório formal: [architecture-review-2026-11-16.md](architecture-review-2026-11-16.md). 18 ADRs (novos: 0015 Ciclo da run, 0016 Áudio, 0017 Aliados e invocações, 0018 IA de inimigos e chefe; emendas em 0001–0014). 400 requisitos: 399 🟡, 1 ⚠️ (TR-conteudo-015, PC de referência), 0 ❌. 5 conflitos 🔴 achados por revisor independente, todos corrigidos; grafo sem ciclos. Veredito: CONCERNS (teto por todos estarem Proposed).
