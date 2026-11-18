@@ -8,6 +8,46 @@ const PINK := Color("ed618f")
 const PANEL := Color("11151f")
 var app: Node
 var font: Font = ThemeDB.fallback_font
+var _ui_tex: Dictionary = {}
+var _ui_loaded: bool = false
+
+func _garantir_texturas_ui() -> void:
+	if _ui_loaded:
+		return
+	_ui_loaded = true
+	var mapas: Dictionary = {
+		"moldura_comum": "res://assets/art/ui/cartas/moldura_comum.png",
+		"moldura_rara": "res://assets/art/ui/cartas/moldura_rara.png",
+		"coroa_lamina": "res://assets/art/ui/cartas/coroa_lamina.png",
+		"coroa_ressonancia": "res://assets/art/ui/cartas/coroa_ressonancia.png",
+		"coroa_pactos": "res://assets/art/ui/cartas/coroa_pactos.png",
+		"silhueta_vulto": "res://assets/art/ui/maldicoes/silhueta_vulto_mudo_72.png",
+		"icone_fragmento": "res://assets/art/ui/hud/icone_fragmento.png",
+		"gota_fluxo": "res://assets/art/ui/hud/gota_fluxo.png",
+	}
+	for k: String in mapas.keys():
+		var path: String = mapas[k]
+		if ResourceLoader.exists(path):
+			var t := load(path) as Texture2D
+			if t != null:
+				_ui_tex[k] = t
+				continue
+		if FileAccess.file_exists(path):
+			var img := Image.load_from_file(path)
+			if img != null and not img.is_empty():
+				_ui_tex[k] = ImageTexture.create_from_image(img)
+
+func _nome_doutrina() -> String:
+	var w := StringName(&"lamina")
+	if app != null and app.get("selected_weapon") != null:
+		w = app.get("selected_weapon")
+	match w:
+		&"ressonancia":
+			return "Ressonância de Sangue"
+		&"pactos":
+			return "Besta do Vínculo (Pactos)"
+		_:
+			return "Lâmina do Juramento"
 
 ## Logical viewport rectangles shared by drawing, hover and confirmation.
 func action_rects() -> Array[Rect2]:
@@ -17,7 +57,11 @@ func action_rects() -> Array[Rect2]:
 	var center: float = app.camera.width / 2
 	match app.session.state:
 		"menu":
-			result = [Rect2(center-240,580,480,74),Rect2(center-240,677,480,64)]
+			result = [
+				Rect2(center-240,560,480,72),
+				Rect2(center-240,648,480,62),
+				Rect2(center-240,726,480,62),
+			]
 		"pausa":
 			result = [Rect2(center-240,470,480,74),Rect2(center-240,570,480,64),Rect2(center-240,660,480,64)]
 		"morte", "vitoria":
@@ -35,6 +79,7 @@ func _draw() -> void:
 		_text("Não foi possível abrir Khaeros",Vector2(100,180),42,BONE)
 		_wrapped(app.data_error,Rect2(100,240,1500,500),25,PINK)
 		return
+	_garantir_texturas_ui()
 	var width: float = app.camera.width
 	var state: String = app.session.state
 	if state != "menu":
@@ -50,14 +95,16 @@ func _draw() -> void:
 		var center := width/2
 		match state:
 			"menu":
-				_center("K H A E R O S",300,80,BONE,width)
-				_rule(center,342,300)
-				_center("A BEIRA COBRA",404,22,GOLD,width)
-				_center("Lâmina do Juramento",490,30,BONE,width)
-				_center("Atravesse três ondas. Escolha o que levar para a próxima.",535,23,MUTED,width)
-				_button(action_rects()[0],"Entrar na Beira",0)
-				_button(action_rects()[1],"Redução de movimento: "+("ligada" if app.reduced_motion else "desligada"),1,true)
-				_center("VERSÃO JOGÁVEL EM DESENVOLVIMENTO • ARTE PROVISÓRIA",900,18,MUTED,width)
+				_center("K H A E R O S",270,80,BONE,width)
+				_rule(center,312,300)
+				_center("O LIMIAR",368,22,GOLD,width)
+				_center(_nome_doutrina(),445,30,BONE,width)
+				_center("Atravesse as câmaras do Limiar. Escolha arma, bênçãos e pactos.",490,22,MUTED,width)
+				_button(action_rects()[0],"Entrar no Limiar",0)
+				_button(action_rects()[1],"Doutrina: "+_nome_doutrina(),1,true)
+				_button(action_rects()[2],"Redução de movimento: "+("ligada" if app.reduced_motion else "desligada"),2,true)
+				var cat_ok := app.get("catalogo_real") != null
+				_center("MVP KHAEROS • CATÁLOGO .TRES %s • 11 ATORES • ÁUDIO P0" % ["ATIVO" if cat_ok else "FALLBACK"],900,18,MUTED,width)
 				_controls(width)
 			"pausa":
 				_center("UMA PAUSA NA BEIRA",335,46,BONE,width)
@@ -96,7 +143,10 @@ func _status(width: float) -> void:
 	if player.is_empty():
 		return
 	draw_rect(Rect2(0,0,width,145),Color(0.035,0.04,0.065,0.94))
-	_text("LÂMINA DO JURAMENTO",Vector2(60,43),20,BONE)
+	_text(_nome_doutrina().to_upper(),Vector2(60,43),20,BONE)
+	if app.get("selected_weapon") == &"pactos" and _ui_tex.has("silhueta_vulto"):
+		draw_texture_rect(_ui_tex["silhueta_vulto"], Rect2(540, 32, 64, 64), false)
+		_text("VULTO MUDO (ALIADO)", Vector2(614, 70), 16, GOLD)
 	_text("VIDA",Vector2(60,83),17,MUTED)
 	draw_rect(Rect2(125,65,310,19),Color("34313f"))
 	draw_rect(Rect2(125,65,310*clampf(float(player.hp)/float(player.max_hp),0,1),19),PINK)
@@ -125,8 +175,12 @@ func _controls(width: float) -> void:
 
 func _card(rect: Rect2,index: int) -> void:
 	var chosen: bool = app.selected == index
-	draw_rect(rect,Color("242532") if chosen else PANEL)
-	draw_rect(rect,GOLD if chosen else Color("45404b"),false,3 if chosen else 1)
+	var mold_tex: Texture2D = _ui_tex.get("moldura_rara" if chosen else "moldura_comum", null)
+	if mold_tex != null:
+		draw_texture_rect(mold_tex, rect, false, Color.WHITE if chosen else Color(0.75, 0.75, 0.8, 0.95))
+	else:
+		draw_rect(rect,Color("242532") if chosen else PANEL)
+		draw_rect(rect,GOLD if chosen else Color("45404b"),false,3 if chosen else 1)
 	var center := Vector2(rect.get_center().x,rect.position.y+95)
 	match index:
 		0:

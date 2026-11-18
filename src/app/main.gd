@@ -35,6 +35,17 @@ var capture_started := false
 var ready_to_play := false
 var data_error := ""
 var observed_wave := -1
+var selected_weapon: StringName = &"lamina"
+var weapon_order: Array[StringName] = [&"lamina", &"ressonancia", &"pactos"]
+var companion_species: StringName = &"vulto_mudo"
+var companion_pos: Vector2 = Vector2(960, 620)
+var companion_prev: Vector2 = Vector2(960, 620)
+var companion_attack_t: float = 0.0
+var catalogo_real: Catalogo = null
+var _sfx_players: Dictionary = {}
+var _prev_effects_count: int = 0
+var _prev_selected: int = 0
+
 ## Canal de eventos do passo (ADR-0002).
 var eventos := EventosDoPasso.new()
 ## Consumidores na ordem fixa do ADR-0002/0016: Telemetria, HUD, Feedback, Telas, Áudio.
@@ -101,6 +112,8 @@ func _ready() -> void:
 	camera.cut(Vector2(catalog.data.jogador.spawn[0], catalog.data.jogador.spawn[1]))
 	get_window().size_changed.connect(_on_resize)
 	compor_apresentacao(world)
+	_carregar_catalogo_real()
+	_preparar_audio_p0()
 	_compor_passo()
 	ready_to_play = true
 	sync_context()
@@ -124,6 +137,9 @@ func _physics_process(_delta: float) -> void:
 	save.gravar_se_pendente(orquestrador.estado())
 	if estado_antes != "jogo":
 		_handle_ui(last_sample)
+	else:
+		_atualizar_aliado_mvp()
+		_tocar_sfx_dos_efeitos()
 	_espelhar_estado()
 	sync_context()
 
@@ -205,11 +221,19 @@ func activate(index: int) -> void:
 	match session.state:
 		"menu":
 			if index == 0:
+				_aplicar_arma_na_sessao()
 				session.start()
+				_reiniciar_aliado_mvp()
 				observed_wave = -1
 				camera.cut(session.player.pos)
+				_tocar_sfx(&"sfx_carta_confirmar")
 			elif index == 1:
+				var pos_idx: int = weapon_order.find(selected_weapon)
+				selected_weapon = weapon_order[(pos_idx + 1) % weapon_order.size()]
+				_tocar_sfx(&"sfx_carta_foco")
+			elif index == 2:
 				reduced_motion = not reduced_motion
+				_tocar_sfx(&"sfx_carta_foco")
 		"pausa":
 			if index == 0:
 				session.resume()
@@ -306,3 +330,99 @@ func _sair() -> void:
 	if save.pedir_saida(Callable()) != OK:
 		push_warning("Main: perfil não gravado na saída (PERFIL_SAIR_SEM_SALVAR).")
 	get_tree().quit()
+
+
+func _carregar_catalogo_real() -> void:
+	var textos := TabelaDeTextosCsv.de_arquivo("res://assets/i18n/conteudo.csv")
+	var registros := FabricasDeCatalogo.registros()
+	TabelaDeEfeitos.registrar_em(registros)
+	var val := ValidadorDeCatalogo.new(registros, textos, VerificadorDeArte.new())
+	var donos := FabricasDeCatalogo.validadores_dos_donos()
+	for d in donos:
+		val.acrescentar(d)
+	var sp := SegundaPassada.new(donos)
+	var carregador := CarregadorDeCatalogo.new(val, RelatorAcumulador.new(), null, sp, Engine.physics_ticks_per_second)
+	if carregador.carregar():
+		catalogo_real = carregador.catalogo()
+
+
+func _preparar_audio_p0() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	var sons: Array[StringName] = [
+		&"sfx_acerto_leve", &"sfx_acerto_pesado", &"sfx_carta_foco",
+		&"sfx_carta_confirmar", &"sfx_jogador_atingido", &"sfx_chefe_surgimento"
+	]
+	for s_id: StringName in sons:
+		var caminho := "res://assets/audio/%s.wav" % String(s_id)
+		if ResourceLoader.exists(caminho):
+			var stream := load(caminho) as AudioStream
+			if stream != null:
+				var p := AudioStreamPlayer.new()
+				p.stream = stream
+				p.volume_db = -8.0
+				add_child(p)
+				_sfx_players[s_id] = p
+
+
+func _tocar_sfx(s_id: StringName) -> void:
+	var p: AudioStreamPlayer = _sfx_players.get(s_id, null)
+	if p != null and is_instance_valid(p):
+		p.play()
+
+
+func _aplicar_arma_na_sessao() -> void:
+	if catalogo_real == null:
+		return
+	var w_def := catalogo_real.obter(&"weapon", selected_weapon, &"main") as WeaponDef
+	if w_def == null:
+		return
+	catalog.data.jogador.vida_max = w_def.vida_max
+	catalog.data.jogador.velocidade = w_def.velocidade
+	var atk: AttackDef = w_def.basico
+	if atk != null:
+		catalog.data.corte.dano = atk.dano
+		catalog.data.corte.alcance_px = float(atk.params.get(&"alcance_px", catalog.data.corte.alcance_px))
+		catalog.data.corte.recarga_s = atk.recarga_s
+
+
+func _reiniciar_aliado_mvp() -> void:
+	if not session.player.is_empty():
+		companion_pos = session.player.pos + Vector2(-72, 24)
+		companion_prev = companion_pos
+	companion_attack_t = 0.0
+
+
+func _atualizar_aliado_mvp() -> void:
+	if selected_weapon != &"pactos" or session.player.is_empty():
+		return
+	companion_prev = companion_pos
+	var alvo_pos: Vector2 = session.player.pos + Vector2(-72, 24)
+	if not session.enemies.is_empty():
+		var inimigo: Dictionary = session.enemies[0]
+		var dist: float = companion_pos.distance_to(inimigo.pos)
+		if dist < 420.0:
+			alvo_pos = inimigo.pos + (companion_pos - inimigo.pos).normalized() * 54.0
+			companion_attack_t += 1.0 / 60.0
+			if companion_attack_t >= 1.1:
+				companion_attack_t = 0.0
+				inimigo.hp -= 6.0
+				inimigo.flash = 6
+				session.effects.append({"kind": "hit", "pos": inimigo.pos, "age": 0.0, "duration": 0.16})
+				_tocar_sfx(&"sfx_acerto_leve")
+	companion_pos = companion_pos.lerp(alvo_pos, 0.12)
+
+
+func _tocar_sfx_dos_efeitos() -> void:
+	var n: int = session.effects.size()
+	if n > _prev_effects_count:
+		for i: int in range(_prev_effects_count, n):
+			var ef: Dictionary = session.effects[i]
+			match String(ef.get("kind", "")):
+				"attack":
+					_tocar_sfx(&"sfx_acerto_leve")
+				"hit", "special":
+					_tocar_sfx(&"sfx_acerto_pesado")
+				"hurt":
+					_tocar_sfx(&"sfx_jogador_atingido")
+	_prev_effects_count = n

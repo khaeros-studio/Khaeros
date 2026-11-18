@@ -8,12 +8,27 @@ const MAGENTA := Color("e0259c")
 const MAGENTA_BRIGHT := Color("f070c0")
 const GOLD := Color("e3b23c")
 const PIVOT := Vector2(200, 320)
-const ACTOR_IDS := ["iniciado_lamina", "eco_perdido", "anomalia_menor", "fenda_errante", "elite_pecas"]
+const ACTOR_IDS := [
+	"iniciado_lamina", "iniciado_pactos", "eco_perdido", "anomalia_menor", "fenda_errante", "elite_pecas",
+	"vulto_mudo", "espreitador_da_fenda", "baluarte_de_cinza", "soberano_do_limiar", "chefe_soberano_limiar"
+]
 
 var app: Node
 var _atlases_loaded := false
 var _frames_by_actor: Dictionary = {}
 var _manifests_by_actor: Dictionary = {}
+var _env_textures: Dictionary = {}
+
+func _carregar_tex(path: String) -> Texture2D:
+	if ResourceLoader.exists(path):
+		var res := load(path) as Texture2D
+		if res != null:
+			return res
+	if FileAccess.file_exists(path):
+		var img := Image.load_from_file(path)
+		if img != null and not img.is_empty():
+			return ImageTexture.create_from_image(img)
+	return null
 
 func _ensure_atlases() -> void:
 	if _atlases_loaded:
@@ -28,6 +43,14 @@ func _ensure_atlases() -> void:
 			if frames_res != null and typeof(manifest_parsed) == TYPE_DICTIONARY:
 				_frames_by_actor[actor_id] = frames_res
 				_manifests_by_actor[actor_id] = manifest_parsed
+	for env_name: String in [
+		"chao_laje_01", "chao_laje_02", "chao_laje_03", "chao_laje_04",
+		"obstaculo_rocha_01", "obstaculo_rocha_02", "obstaculo_rocha_03", "obstaculo_coluna_04",
+		"porta_fechada", "porta_aberta", "porta_chefe", "altar_santuario"
+	]:
+		var tex := _carregar_tex("res://assets/art/environment/limiar/%s.png" % env_name)
+		if tex != null:
+			_env_textures[env_name] = tex
 
 func _draw() -> void:
 	if app == null or not app.ready_to_play:
@@ -41,23 +64,33 @@ func _draw() -> void:
 	draw_rect(room, Color("1d212b"))
 	draw_rect(room.grow(-18), Color("383b46"), false, 3)
 	draw_rect(room.grow(-36), Color("282d39"), false, 2)
-	# Quiet geometric floor; detail remains below danger indicators.
+	# Quiet geometric floor + real Limiar floor slabs; detail remains below danger indicators.
 	for x in range(120, int(room.size.x), 240):
 		for y in range(120, int(room.size.y), 240):
-			var offset := float((x / 240 + y / 240) % 3) * 12
-			draw_line(Vector2(x - 45, y + offset), Vector2(x + 45, y + offset), Color("272c37"), 1)
-			draw_line(Vector2(x, y - 45 + offset), Vector2(x, y + 45 + offset), Color("272c37"), 1)
+			var tile_idx := ((x / 240) + (y / 240)) % 4 + 1
+			var tile_tex: Texture2D = _env_textures.get("chao_laje_0%d" % tile_idx, null)
+			if tile_tex != null:
+				draw_texture_rect(tile_tex, Rect2(x - 110, y - 110, 220, 220), false, Color(1, 1, 1, 0.35))
+			else:
+				var offset := float((x / 240 + y / 240) % 3) * 12
+				draw_line(Vector2(x - 45, y + offset), Vector2(x + 45, y + offset), Color("272c37"), 1)
+				draw_line(Vector2(x, y - 45 + offset), Vector2(x, y + 45 + offset), Color("272c37"), 1)
 	var center := room.get_center()
 	draw_arc(center, 220, 0, TAU, 96, Color("2b303d"), 2, true)
 	draw_arc(center, 236, 0, TAU, 96, Color("262b36"), 2, true)
 	for i in range(12):
 		var direction := Vector2.RIGHT.rotated(i * TAU / 12)
 		draw_line(center + direction * 205, center + direction * 250, Color("303541"), 3)
-	# Door motif: an extinguished ritual gate beyond the far wall.
+	# Door motif: Limiar ritual gate beyond the far wall.
 	var gate := Vector2(room.size.x / 2, 15)
-	draw_rect(Rect2(gate + Vector2(-90, -150), Vector2(180, 160)), INK)
-	draw_line(gate + Vector2(-95, 10), gate + Vector2(-95, -150), Color("55505a"), 8)
-	draw_line(gate + Vector2(95, 10), gate + Vector2(95, -150), Color("55505a"), 8)
+	var gate_key := "porta_aberta" if session.enemies.is_empty() else "porta_fechada"
+	var gate_tex: Texture2D = _env_textures.get(gate_key, null)
+	if gate_tex != null:
+		draw_texture_rect(gate_tex, Rect2(gate + Vector2(-95, -165), Vector2(190, 180)), false)
+	else:
+		draw_rect(Rect2(gate + Vector2(-90, -150), Vector2(180, 160)), INK)
+		draw_line(gate + Vector2(-95, 10), gate + Vector2(-95, -150), Color("55505a"), 8)
+		draw_line(gate + Vector2(95, 10), gate + Vector2(95, -150), Color("55505a"), 8)
 	for enemy in session.enemies:
 		if enemy.get("phase", "") == "windup":
 			_telegraph(enemy, true)
@@ -74,6 +107,10 @@ func _draw() -> void:
 	if not session.player.is_empty():
 		var position: Vector2 = session.player.prev.lerp(session.player.pos, interpolation)
 		bodies.append({"type": "player", "pos": position, "entity": session.player, "order": 50})
+		if app.get("selected_weapon") == &"pactos":
+			var c_prev: Vector2 = app.get("companion_prev") if app.get("companion_prev") != null else position
+			var c_curr: Vector2 = app.get("companion_pos") if app.get("companion_pos") != null else position
+			bodies.append({"type": "companion", "pos": c_prev.lerp(c_curr, interpolation), "order": 49})
 	for body in bodies:
 		# Art Bible §5.5: Ecos never cast a contact shadow ("gramática da subtração aplicada à luz").
 		if body.type == "enemy" and String(body.entity.get("kind", "")) == "eco_perdido":
@@ -85,8 +122,9 @@ func _draw() -> void:
 	bodies.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.pos.y < b.pos.y if a.pos.y != b.pos.y else a.order < b.order)
 	for body in bodies:
 		match body.type:
-			"pillar": _pillar(body.pos, body.radius)
+			"pillar": _pillar(body.pos, body.radius, int(body.order))
 			"player": _player(body.pos, body.entity)
+			"companion": _companion(body.pos)
 			"enemy": _enemy(body.pos, body.entity)
 	for enemy in session.enemies:
 		if enemy.get("phase", "") == "windup":
@@ -99,7 +137,14 @@ func _draw() -> void:
 	for effect in session.effects:
 		_effect(effect)
 
-func _pillar(pos: Vector2, radius: float) -> void:
+func _pillar(pos: Vector2, radius: float, index: int = 0) -> void:
+	var rock_keys := ["obstaculo_rocha_01", "obstaculo_rocha_02", "obstaculo_rocha_03", "obstaculo_coluna_04"]
+	var tex: Texture2D = _env_textures.get(rock_keys[index % rock_keys.size()], null)
+	if tex != null:
+		var w := radius * 2.6
+		var h := radius * 3.4
+		draw_texture_rect(tex, Rect2(pos + Vector2(-w * 0.5, -h * 0.78), Vector2(w, h)), false)
+		return
 	var base := PackedVector2Array([pos + Vector2(-radius, 0), pos + Vector2(-radius - 7, -105), pos + Vector2(-18, -145), pos + Vector2(radius, -124), pos + Vector2(radius + 8, -12), pos + Vector2(radius * 0.5, 14)])
 	draw_colored_polygon(base, Color("303441"))
 	draw_polyline(_closed(base), INK, 7, true)
@@ -107,6 +152,20 @@ func _pillar(pos: Vector2, radius: float) -> void:
 	draw_line(pos + Vector2(8, -100), pos + Vector2(13, -58), Color("171c28"), 3)
 	draw_line(pos + Vector2(13, -58), pos + Vector2(4, -35), Color("171c28"), 3)
 	draw_arc(pos, radius, 0, PI, 18, Color("53515b"), 3, true)
+
+func _companion(pos: Vector2) -> void:
+	var sp := String(app.get("companion_species") if app.get("companion_species") != null else &"vulto_mudo")
+	if _frames_by_actor.has(sp):
+		var c_prev: Vector2 = app.get("companion_prev") if app.get("companion_prev") != null else pos
+		var c_curr: Vector2 = app.get("companion_pos") if app.get("companion_pos") != null else pos
+		var delta := c_curr - c_prev
+		var dir_suffix := "costas34" if delta.y < -0.15 else "frente34"
+		var flip_x := -1.0 if delta.x < -0.05 else 1.0
+		var action := "run" if delta.length_squared() > 0.04 else "idle"
+		_draw_actor_sprite(sp, action + "_" + dir_suffix, pos, flip_x, 0.9, app.session.presentation_time, -1.0, Color.WHITE)
+		return
+	draw_circle(pos + Vector2(0, -24), 18, INK)
+	draw_circle(pos + Vector2(0, -24), 13, BONE)
 
 func _player(pos: Vector2, player: Dictionary) -> void:
 	var session = app.session
@@ -118,7 +177,8 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 	if dash:
 		for i in range(1, 4):
 			draw_line(pos - facing * i * 18 + Vector2(-12, -20), pos - facing * i * 18 + Vector2(12, -45), Color(BONE, 0.32 / float(i)), 4, true)
-	if _frames_by_actor.has("iniciado_lamina"):
+	var player_actor := "iniciado_pactos" if app.get("selected_weapon") == &"pactos" and _frames_by_actor.has("iniciado_pactos") else "iniciado_lamina"
+	if _frames_by_actor.has(player_actor):
 		var dir_suffix := "costas34" if facing.y < -0.15 else "frente34"
 		var flip_x := -1.0 if facing.x < -0.05 else 1.0
 		var action := "idle"
@@ -145,8 +205,10 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 		elif player.pos.distance_squared_to(player.get("prev", player.pos)) > 0.04:
 			action = "run"
 		var anim_name := action + "_" + dir_suffix
+		if not _frames_by_actor[player_actor].has_animation(anim_name):
+			anim_name = "idle_" + dir_suffix
 		var modulate := BONE if int(player.get("flash", 0)) > 0 else Color.WHITE
-		_draw_actor_sprite("iniciado_lamina", anim_name, pos, flip_x, 1.0, session.presentation_time, progress, modulate)
+		_draw_actor_sprite(player_actor, anim_name, pos, flip_x, 1.0, session.presentation_time, progress, modulate)
 		draw_arc(pos, 34, 0, TAU, 40, Color(BONE, 0.35), 1.5, true)
 		if int(player.get("inv", 0)) > 0 and not dash:
 			draw_arc(pos, 39, -PI * 0.8, -PI * 0.2, 15, Color(BONE, 0.65), 2, true)
