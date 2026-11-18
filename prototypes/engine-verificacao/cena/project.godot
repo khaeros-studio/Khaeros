@@ -1,0 +1,23 @@
+; Protótipo descartável (EX-0007-NV): interpolação de física 2D, teleporte, pillarbox.
+config_version=5
+
+[application]
+config/name="EX-0007 cena"
+run/main_scene="res://cena.tscn"
+
+[display]
+window/size/viewport_width=640
+window/size/viewport_height=360
+window/vsync/vsync_mode=0
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+window/stretch/scale_mode="fractional"
+
+[physics]
+common/physics_ticks_per_second=60
+common/max_physics_steps_per_frame=8
+common/physics_interpolation=true
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+environment/defaults/default_clear_color=Color(0, 0, 0, 1)

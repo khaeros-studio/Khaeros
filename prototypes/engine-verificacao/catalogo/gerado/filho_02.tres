@@ -1,0 +1,9 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://def.gd" id="1_7vo3l"]
+
+[resource]
+script = ExtResource("1_7vo3l")
+id = "filho_02"
+valor = 102
+pesos = PackedFloat64Array()

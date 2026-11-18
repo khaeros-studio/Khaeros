@@ -25,6 +25,17 @@ jobs:
         with:
           lfs: true
 
+      # Story RNG-006 (AC-32, ADR-0005): lint contra RNG da engine em src/.
+      # Exit 1 = violação; exit 2 = NOT ASSESSED (zero arquivos varridos).
+      - name: Lint RNG (AC-32)
+        run: |
+          curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          unzip -q godot.zip -d godot-bin
+          GODOT=godot-bin/Godot_v4.7.2-stable_linux.x86_64
+          $GODOT --headless --path . --import || true
+          $GODOT --headless --path . --script res://tools/ci/lint_rng.gd
+          rm -rf godot.zip godot-bin
+
       # godot-version must be a full release (godot --version shows 4.7.2).
       # version: installed runs the gdUnit4 committed in addons/ -- without it
       # the action deletes that copy and installs the latest release.

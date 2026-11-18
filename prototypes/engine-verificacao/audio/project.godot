@@ -1,0 +1,14 @@
+; Protótipo descartável (EX-0016-A, story-009). Não declara audio/buses/default_bus_layout:
+; o experimento confirma que o padrão res://default_bus_layout.tres é carregado sozinho.
+config_version=5
+
+[application]
+config/name="EX-0016 audio api"
+run/main_scene="res://audio_probe.tscn"
+
+[display]
+window/size/viewport_width=320
+window/size/viewport_height=180
+
+[rendering]
+renderer/rendering_method="gl_compatibility"

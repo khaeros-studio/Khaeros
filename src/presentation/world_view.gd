@@ -8,7 +8,7 @@ const MAGENTA := Color("e0259c")
 const MAGENTA_BRIGHT := Color("f070c0")
 const GOLD := Color("e3b23c")
 const PIVOT := Vector2(200, 320)
-const ACTOR_IDS := ["iniciado_lamina", "eco_perdido", "anomalia_menor", "fenda_errante"]
+const ACTOR_IDS := ["iniciado_lamina", "eco_perdido", "anomalia_menor", "fenda_errante", "elite_pecas"]
 
 var app: Node
 var _atlases_loaded := false
@@ -229,6 +229,8 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 			modulate = Color(1.6, 1.55, 1.42, modulate.a)
 		var phase_time: float = session.presentation_time + float(int(enemy.get("id", 0))) * 0.19
 		_draw_actor_sprite(kind, anim_name, pos, flip_x, elite_scale, phase_time, progress, modulate)
+		if is_elite:
+			_draw_elite_part(kind, "placas_", pos, flip_x, dir_suffix, elite_scale, action, progress, modulate)
 		# Art Bible §3.2 & Lote 02 §3: Anomalia Menor has Magenta emitter ring & dorsal crystal accents
 		if kind == "anomalia_menor":
 			var emitter_pos := pos + Vector2(0, -26 * elite_scale) + look_vec * (22.0 * elite_scale)
@@ -236,18 +238,9 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 			draw_circle(emitter_pos, emitter_r + 2.5, INK)
 			draw_circle(emitter_pos, emitter_r, MAGENTA_BRIGHT if enemy.phase == "windup" else MAGENTA)
 		if is_elite:
-			var crown_y := -96.0 if kind == "eco_perdido" else -68.0
-			var crown := PackedVector2Array([
-				pos + Vector2(-20, crown_y),
-				pos + Vector2(-17, crown_y - 16),
-				pos + Vector2(0, crown_y - 5),
-				pos + Vector2(17, crown_y - 16),
-				pos + Vector2(20, crown_y)
-			])
-			draw_polyline(crown, INK, 6, true)
-			draw_polyline(crown, GOLD, 3, true)
+			_draw_elite_part(kind, "coroa_", pos, flip_x, dir_suffix, elite_scale, action, progress, modulate)
 		if enemy.hp < enemy.max_hp:
-			var bar_y := -108.0 if kind == "eco_perdido" else -82.0
+			var bar_y := (-108.0 if kind == "eco_perdido" else -82.0) - (10.0 if is_elite else 0.0)
 			draw_rect(Rect2(pos + Vector2(-28, bar_y), Vector2(56, 5)), INK)
 			draw_rect(Rect2(pos + Vector2(-28, bar_y), Vector2(56 * maxf(0, enemy.hp / enemy.max_hp), 5)), tint)
 		return
@@ -307,6 +300,49 @@ func _draw_actor_sprite(actor_id: String, anim_name: String, pos: Vector2, flip_
 	tex.draw_rect(get_canvas_item(), Rect2(-PIVOT, Vector2(400, 400)), false, modulate)
 	draw_set_transform(Vector2.ZERO)
 
+func _draw_elite_part(kind: String, part_prefix: String, pos: Vector2, flip_x: float, dir_suffix: String, elite_scale: float, action: String, progress: float, modulate: Color) -> void:
+	if not _frames_by_actor.has("elite_pecas"):
+		if part_prefix == "coroa_":
+			var crown_y := -96.0 if kind == "eco_perdido" else -68.0
+			var crown := PackedVector2Array([
+				pos + Vector2(-20, crown_y),
+				pos + Vector2(-17, crown_y - 16),
+				pos + Vector2(0, crown_y - 5),
+				pos + Vector2(17, crown_y - 16),
+				pos + Vector2(20, crown_y)
+			])
+			draw_polyline(crown, INK, 6, true)
+			draw_polyline(crown, GOLD, 3, true)
+		return
+	var frames: SpriteFrames = _frames_by_actor["elite_pecas"]
+	var part_anim := part_prefix + kind
+	if not frames.has_animation(part_anim):
+		return
+	var tex := frames.get_frame_texture(part_anim, 0)
+	if tex == null:
+		return
+	var manifest: Dictionary = _manifests_by_actor.get("elite_pecas", {})
+	var meta: Dictionary = manifest.get("animations", {}).get(part_anim, {})
+	var part_scale := float(meta.get("scale", 0.18)) * elite_scale
+	var off_arr: Array = meta.get("offset", [0.0, -60.0])
+	var pose_y := 0.0
+	if action == "spawn" and progress >= 0.0:
+		pose_y = (1.0 - progress) * 14.0
+	elif action in ["windup", "recover"]:
+		pose_y = 3.0
+	elif action == "death" and progress >= 0.0:
+		pose_y = progress * 18.0
+	var off := Vector2(float(off_arr[0]) * flip_x, float(off_arr[1]) + pose_y)
+	var part_mod := modulate
+	if dir_suffix == "costas34" and part_prefix == "placas_":
+		off.y -= 3.0
+		if kind == "eco_perdido":
+			part_mod.a *= 0.88
+	var part_pos := pos + off * elite_scale
+	draw_set_transform(part_pos, 0.0, Vector2(flip_x * part_scale, part_scale))
+	tex.draw_rect(get_canvas_item(), Rect2(-PIVOT, Vector2(400, 400)), false, part_mod)
+	draw_set_transform(Vector2.ZERO)
+
 func _telegraph(enemy: Dictionary, fill: bool) -> void:
 	var pos: Vector2 = enemy.pos
 	var direction: Vector2 = enemy.aim
@@ -346,8 +382,13 @@ func _effect(effect: Dictionary) -> void:
 			if _frames_by_actor.has(actor_kind):
 				var dir_suffix := "costas34" if direction.y < -0.15 else "frente34"
 				var flip_x := -1.0 if direction.x < -0.05 else 1.0
-				var elite_scale := 1.15 if bool(effect.get("elite", false)) else 1.0
-				_draw_actor_sprite(actor_kind, "death_" + dir_suffix, pos, flip_x, elite_scale, 0.0, progress, Color(1, 1, 1, alpha))
+				var is_elite_death := bool(effect.get("elite", false))
+				var elite_scale := 1.15 if is_elite_death else 1.0
+				var death_mod := Color(1, 1, 1, alpha)
+				_draw_actor_sprite(actor_kind, "death_" + dir_suffix, pos, flip_x, elite_scale, 0.0, progress, death_mod)
+				if is_elite_death:
+					_draw_elite_part(actor_kind, "placas_", pos, flip_x, dir_suffix, elite_scale, "death", progress, death_mod)
+					_draw_elite_part(actor_kind, "coroa_", pos, flip_x, dir_suffix, elite_scale, "death", progress, death_mod)
 			for i in range(7):
 				var ray := Vector2.RIGHT.rotated(i * TAU / 7 + 0.3)
 				draw_line(pos + ray * (8 + 30 * (1 - alpha)), pos + ray * (19 + 40 * (1 - alpha)), Color(BONE, alpha), 3, true)

@@ -1,0 +1,8 @@
+; Protótipo descartável (EX-0004-NV).
+config_version=5
+
+[application]
+config/name="EX-0004 catalogo"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"

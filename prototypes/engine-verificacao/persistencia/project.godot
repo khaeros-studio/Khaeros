@@ -1,0 +1,13 @@
+; Protótipo descartável (EX-0013-P1..P7). Raiz de teste: user://experimentos/ (limpa ao fim).
+config_version=5
+
+[application]
+config/name="EX-0013 persistencia"
+run/main_scene="res://janela.tscn"
+
+[display]
+window/size/viewport_width=480
+window/size/viewport_height=270
+
+[rendering]
+renderer/rendering_method="gl_compatibility"

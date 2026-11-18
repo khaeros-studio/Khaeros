@@ -1,0 +1,17 @@
+; Protótipo descartável (EX-0002-1..3, EX-0009-1, EX-0010-1).
+config_version=5
+
+[application]
+config/name="EX-0002 eventos e aritmetica"
+run/main_scene="res://latencia.tscn"
+
+[display]
+window/size/viewport_width=640
+window/size/viewport_height=360
+
+[physics]
+common/physics_ticks_per_second=60
+common/max_physics_steps_per_frame=8
+
+[rendering]
+renderer/rendering_method="gl_compatibility"

@@ -1,0 +1,5 @@
+keys,?context,?plural,en,pt_BR
+ITEM,,ITEMS,%d item,%d item
+,,,%d items,%d itens
+ABRIR,menu,,Open,Abrir
+ABRIR,porta,,Open,Abrir (porta)

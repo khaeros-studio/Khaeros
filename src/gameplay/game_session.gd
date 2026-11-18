@@ -23,20 +23,30 @@ var seed_value := 1
 var transition_progress := 0.0
 var blessing_counts: Dictionary = {}
 var _resume_state := "jogo"
-var _rng_state := 1
+## Fonte de fluxos da run (ADR-0005), recriada a cada start(); só a interface de IA
+## é guardada (fluxo `ia`, região/profundidade 0 na câmara única da fatia).
+var _fonte_rng: FonteDeFluxos = null
+var _fluxo_ia: FluxoRng = null
+var _relator_rng: RelatorDeErrosRng = null
 var _next_id := 0
 var _pending_hitstop := 0
 var _transition_cut := false
 
 ## Installs validated data without starting the run.
-func configure(tuning: Dictionary, seed: int = 1) -> void:
+## `relator_rng` recebe os diagnósticos do RNG; nulo usa avisos da engine (push_warning).
+func configure(tuning: Dictionary, seed: int = 1, relator_rng: RelatorDeErrosRng = null) -> void:
 	data = tuning.duplicate(true)
 	seed_value = seed & MASK
+	_relator_rng = relator_rng if relator_rng != null else _RelatorDeAvisosRng.new()
 	state = "menu"
 
 ## Starts/restarts a clean run from its fixed seed and initial loadout.
 func start() -> void:
-	_rng_state = seed_value
+	# Story RNG-006: a espera da IA sai do fluxo `ia` da fonte (antes, gerador próprio).
+	if _relator_rng == null: _relator_rng = _RelatorDeAvisosRng.new()
+	_fonte_rng = FonteDeFluxos.new(_relator_rng)
+	_fonte_rng.iniciar_run(seed_value,false)
+	_fluxo_ia = FluxosDeIa.new(_fonte_rng).ia(0,0)
 	_next_id = 0
 	wave_index = 0
 	kills = 0
@@ -367,13 +377,15 @@ func _effect(kind: String, position: Vector2, direction: Vector2, duration: floa
 	effects.append(value)
 	return value
 
-func _imul(a: int, b: int) -> int:
-	return (((a & 65535)*(b & 65535))+((((a >> 16)*(b & 65535)+(b >> 16)*(a & 65535)) & 65535)<<16)) & MASK
-
 func _integer(limit: int) -> int:
-	# Separate run-local cosmetic/AI timing stream; no engine-global randomness.
-	_rng_state = (_rng_state+0x6d2b79f5) & MASK
-	var value := _imul(_rng_state ^ (_rng_state >> 15),_rng_state | 1)
-	value ^= (value+_imul(value ^ (value >> 7),value | 61)) & MASK
-	value = (value ^ (value >> 14)) & MASK
-	return int((value*limit) >> 32)
+	# Fluxo `ia` (finalidade 7): consumo não garantido, depende do combate (GDD rng-com-seed R3).
+	return _fluxo_ia.inteiro(limit)
+
+## Relator padrão quando o ponto de composição não injeta um (fatia atual).
+class _RelatorDeAvisosRng extends RelatorDeErrosRng:
+	func registrar_operacao_invalida(operacao: StringName, motivo: String) -> void:
+		push_warning("RNG: operação %s recusada: %s" % [operacao,motivo])
+	func registrar_pedido_recusado(finalidade: int, regiao: int, profundidade: int, solicitante: StringName, motivo: String) -> void:
+		push_warning("RNG: fluxo (%d, %d, %d) recusado para %s: %s" % [finalidade,regiao,profundidade,solicitante,motivo])
+	func registrar_aviso(mensagem: String) -> void:
+		push_warning("RNG: %s" % mensagem)

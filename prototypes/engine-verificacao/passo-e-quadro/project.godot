@@ -1,0 +1,15 @@
+; Protótipo descartável (EX-0001-1/2/6). NÃO declara physics_ticks_per_second nem
+; max_physics_steps_per_frame de propósito: o experimento lê os padrões do 4.7.2.
+config_version=5
+
+[application]
+config/name="EX-0001 passo e quadro"
+run/main_scene="res://passo_e_quadro.tscn"
+
+[display]
+window/vsync/vsync_mode=0
+window/size/viewport_width=640
+window/size/viewport_height=360
+
+[rendering]
+renderer/rendering_method="gl_compatibility"

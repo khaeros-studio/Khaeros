@@ -1,0 +1,83 @@
+; Protótipo descartável (EX-0001-3, EX-0011-E1..E7, stories 006 e 007)
+config_version=5
+
+[application]
+config/name="EX-0011 Pipeline Visual"
+run/main_scene="res://pipeline_probe.tscn"
+config/features=PackedStringArray("4.7", "Forward Plus")
+
+[display]
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/vsync/vsync_mode=0
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep_height"
+window/stretch/scale_mode="fractional"
+
+[physics]
+common/physics_ticks_per_second=60
+common/max_physics_steps_per_frame=8
+common/physics_interpolation=true
+
+[rendering]
+textures/canvas_textures/default_texture_filter=2
+2d/snap/snap_2d_transforms_to_pixel=false
+2d/snap/snap_2d_vertices_to_pixel=false
+viewport/hdr_2d=false
+environment/defaults/default_clear_color=Color(0.051, 0.055, 0.078, 1)
+
+[shader_globals]
+lut_regiao={
+"type": "sampler2D",
+"value": ""
+}
+cor_nevoa={
+"type": "color",
+"value": Color(0.2, 0.23, 0.29, 1)
+}
+cor_feixe={
+"type": "color",
+"value": Color(0.9, 0.87, 0.81, 1)
+}
+cor_fundo={
+"type": "color",
+"value": Color(0.051, 0.055, 0.078, 1)
+}
+fator_profundidade={
+"type": "float",
+"value": 1.0
+}
+modo_impacto={
+"type": "int",
+"value": 0
+}
+modo_bencao={
+"type": "int",
+"value": 0
+}
+modo_morte={
+"type": "int",
+"value": 0
+}
+saturacao_bencao={
+"type": "float",
+"value": 0.2
+}
+valor_bencao={
+"type": "float",
+"value": 0.6
+}
+t_vivo={
+"type": "float",
+"value": 0.0
+}
+t_apres={
+"type": "float",
+"value": 0.0
+}
+escala_traco={
+"type": "float",
+"value": 1.0
+}

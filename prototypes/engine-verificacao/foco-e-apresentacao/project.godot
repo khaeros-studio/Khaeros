@@ -1,0 +1,13 @@
+; Protótipo descartável (EX-0001-4, EX-0001-5, EX-0012-E3; story-003).
+config_version=5
+
+[application]
+config/name="EX-0001 foco e apresentacao"
+run/main_scene="res://foco.tscn"
+
+[display]
+window/size/viewport_width=640
+window/size/viewport_height=360
+
+[rendering]
+renderer/rendering_method="gl_compatibility"

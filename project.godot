@@ -22,18 +22,71 @@ window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="keep_height"
-window/stretch/scale_mode="fractional"
-
-[physics]
-
-common/physics_ticks_per_second=60
-common/max_physics_steps_per_frame=8
-common/physics_interpolation=true
-
-[rendering]
-
-environment/defaults/default_clear_color=Color(0.035, 0.04, 0.065, 1)
 
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/gdUnit4/plugin.cfg")
+
+[physics]
+
+common/physics_interpolation=true
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=2
+environment/defaults/default_clear_color=Color(0.035, 0.04, 0.065, 1)
+
+[shader_globals]
+
+lut_regiao={
+"type": "sampler2D",
+"value": "res://assets/art/lut/limiar.png"
+}
+cor_nevoa={
+"type": "color",
+"value": Color(0.2, 0.23, 0.29, 1)
+}
+cor_feixe={
+"type": "color",
+"value": Color(0.9, 0.87, 0.81, 1)
+}
+cor_fundo={
+"type": "color",
+"value": Color(0.051, 0.055, 0.078, 1)
+}
+fator_profundidade={
+"type": "float",
+"value": 1.0
+}
+modo_impacto={
+"type": "int",
+"value": 0
+}
+modo_bencao={
+"type": "int",
+"value": 0
+}
+modo_morte={
+"type": "int",
+"value": 0
+}
+saturacao_bencao={
+"type": "float",
+"value": 0.2
+}
+valor_bencao={
+"type": "float",
+"value": 0.6
+}
+t_vivo={
+"type": "float",
+"value": 0.0
+}
+t_apres={
+"type": "float",
+"value": 0.0
+}
+escala_traco={
+"type": "float",
+"value": 1.0
+}

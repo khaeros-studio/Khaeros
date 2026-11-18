@@ -1,0 +1,16 @@
+; Protótipo descartável (EX-0012 E1, E2, E4, E5, E6, CB; story-008).
+config_version=5
+
+[application]
+config/name="EX-0012 ui"
+run/main_scene="res://ui_probe.tscn"
+
+[display]
+window/size/viewport_width=640
+window/size/viewport_height=360
+
+[internationalization]
+locale/translations=PackedStringArray("res://i18n/plural.en.translation", "res://i18n/plural.pt_BR.translation")
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
