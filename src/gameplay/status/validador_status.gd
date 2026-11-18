@@ -164,8 +164,8 @@ static func validar_tuning(t: StatusTuning, item: ItemDoCatalogo = null) -> Arra
 
 ## Relatório informativo ST9 (tempos até matar em passos inteiros nos alvos de referência).
 static func relatorio_st9(t: StatusTuning) -> Dictionary:
-	var taxa_s_passo := (float(t.max_acumulos_sangramento) * t.dano_sangramento_s) / float(Unidades.PASSOS_POR_SEGUNDO)
-	var taxa_q_passo := (float(t.max_acumulos_queimadura) * t.dano_queimadura_s) / float(Unidades.PASSOS_POR_SEGUNDO)
+	var taxa_s_passo: float = (float(t.max_acumulos_sangramento) * t.dano_sangramento_s) / float(Unidades.TICK_RATE)
+	var taxa_q_passo: float = (float(t.max_acumulos_queimadura) * t.dano_queimadura_s) / float(Unidades.TICK_RATE)
 	var passos_s_75 := int(ceil(75.0 / taxa_s_passo - 1e-9)) if taxa_s_passo > 0.0 else -1
 	var passos_s_60 := int(ceil(60.0 / taxa_s_passo - 1e-9)) if taxa_s_passo > 0.0 else -1
 	var passos_s_115 := int(ceil(115.0 / taxa_s_passo - 1e-9)) if taxa_s_passo > 0.0 else -1

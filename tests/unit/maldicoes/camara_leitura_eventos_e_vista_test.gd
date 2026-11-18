@@ -38,13 +38,13 @@ func test_ac_ml_29_marca_virote_mudou_emite_evento_e_limpa_ao_morrer() -> void:
 	var id_in := FixtureMaldicoes.nascer_inimigo_padrao(amb, Vector2(500.0, 400.0), 100.0)
 	amb.modulo.registrar_acerto_virote(0, id_in)
 
-	var evs_1 := amb.eventos.filtrar(EventosMaldicoes.EvMarcaViroteMudou.TIPO)
+	var evs_1: Array = amb.eventos.filtrar(EventosMaldicoes.EvMarcaViroteMudou.TIPO)
 	assert_int(evs_1.size()).is_equal(1)
 	assert_int((evs_1[0] as EventosMaldicoes.EvMarcaViroteMudou).inimigo_id).is_equal(id_in)
 
 	amb.ia.remover_morto(id_in)
 	amb.avancar_passo(false)
-	var evs_2 := amb.eventos.filtrar(EventosMaldicoes.EvMarcaViroteMudou.TIPO)
+	var evs_2: Array = amb.eventos.filtrar(EventosMaldicoes.EvMarcaViroteMudou.TIPO)
 	assert_int(evs_2.size()).is_equal(2)
 	assert_int((evs_2[1] as EventosMaldicoes.EvMarcaViroteMudou).inimigo_id).is_equal(-1)
 

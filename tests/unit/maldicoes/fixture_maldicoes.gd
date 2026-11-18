@@ -119,9 +119,10 @@ static func criar_ambiente(
 	amb.telegrafos = Telegrafos.new()
 	amb.combate_aliado = CombateAliadoSpy.new(amb.ia)
 	amb.status_aliado = ContextoDaTecnica.StatusNulo.new()
+	var mod_tuning := ModuloDeMaldicoes._normalizar_mod_tuning(ModifiersTuning.new())
 	amb.espelho_dupla = EspelhoDaDupla.new()
-	amb.portador_jogador = Portador.new()
-	amb.espelho_dupla.configurar_jogador(0, amb.portador_jogador, ModifiersTuning.new())
+	amb.portador_jogador = Portador.new(1, 0, Atributos.Especie.JOGADOR, {Atributos.VIDA_MAX: 100.0}, mod_tuning)
+	amb.espelho_dupla.configurar_jogador(0, amb.portador_jogador, mod_tuning)
 
 	amb.modulo = ModuloDeMaldicoes.criar(
 		amb.tuning_ml,
@@ -131,7 +132,7 @@ static func criar_ambiente(
 		amb.status_aliado,
 		amb.eventos,
 		GeradorDeIds.new(),
-		ModifiersTuning.new(),
+		mod_tuning,
 		amb.espelho_dupla,
 		amb.geometria
 	)
@@ -146,7 +147,7 @@ static func criar_ambiente(
 		ConsultaDaAcuada.Nula.new(),
 		amb.vista,
 		DeslocamentosDoChefe.Nulo.new(),
-		FixtureIA.FluxoRoteirizado.new(),
+		FixtureIA.FluxoIaRoteirizado.new(),
 		null,
 		amb.eventos
 	)

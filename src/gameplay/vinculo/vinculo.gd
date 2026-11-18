@@ -208,6 +208,8 @@ func _fixar_dupla_da_run(campo: StringName, reserva: StringName, abriu_tela: boo
 ## Planeja o encontro da run no fluxo [param fluxo_pactos] (V5, V6, F1, AC-VP-02..06).
 ## Só consome os 4 reais se [param doutrina] == [code]pactos[/code].
 func planejar_encontro(doutrina: StringName, fluxo_pactos: FluxoRng) -> void:
+	if _consolidado_nesta_run:
+		_acumuladores.clear()
 	_doutrina_run = doutrina
 	_consolidado_nesta_run = false
 	_encontro = EncontroDePacto.new()

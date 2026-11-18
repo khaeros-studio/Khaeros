@@ -21,7 +21,7 @@ func test_ac_ml_15_troca_manual_dispara_saida_e_entrada_com_sinergia_f5_e_recarg
 	assert_int(int(amb.combate_aliado.golpes_registrados[1]["dano_int"])).is_equal(9)
 	assert_bool(amb.ia.esta_imobilizado(id_in)).is_true()
 
-	var evs_comb := amb.eventos.filtrar(EventosMaldicoes.EvTecnicaCombinada.TIPO)
+	var evs_comb: Array = amb.eventos.filtrar(EventosMaldicoes.EvTecnicaCombinada.TIPO)
 	assert_int(evs_comb.size()).is_equal(1)
 	var ev_tc := evs_comb[0] as EventosMaldicoes.EvTecnicaCombinada
 	assert_str(String(ev_tc.saida_id)).is_equal("paredes_de_sombra")
@@ -38,7 +38,7 @@ func test_ac_ml_16_troca_recusada_em_recarga_ou_reserva_exausta() -> void:
 	amb.avancar_passo(false)
 
 	assert_str(String(amb.modulo.estado_pacto(0).campo.especie_id)).is_equal("vulto_mudo")
-	var evs_rec := amb.eventos.filtrar(EventosMaldicoes.EvTrocaIndisponivel.TIPO)
+	var evs_rec: Array = amb.eventos.filtrar(EventosMaldicoes.EvTrocaIndisponivel.TIPO)
 	assert_int(evs_rec.size()).is_equal(1)
 	assert_str(String((evs_rec[0] as EventosMaldicoes.EvTrocaIndisponivel).motivo)).is_equal("reserva_exausta")
 
@@ -68,7 +68,7 @@ func test_matriz_12_pares_de_tecnica_combinada_disparam_saida_e_entrada_corretas
 		amb.r_troca = true
 		amb.avancar_passo(false)
 
-		var evs := amb.eventos.filtrar(EventosMaldicoes.EvTecnicaCombinada.TIPO)
+		var evs: Array = amb.eventos.filtrar(EventosMaldicoes.EvTecnicaCombinada.TIPO)
 		assert_int(evs.size()).is_equal(1)
 		var tc := evs[0] as EventosMaldicoes.EvTecnicaCombinada
 		assert_str(String(tc.saida_id)).is_equal(String(par["saida"]))

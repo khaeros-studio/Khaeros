@@ -9,6 +9,11 @@ extends Control
 const LARGURA_PADRAO: float = 320.0
 const ALTURA_PADRAO: float = 500.0
 
+var offset_transform_offset: Vector2 = Vector2.ZERO:
+	set(valor):
+		offset_transform_offset = valor
+		offset_transform_position = valor
+
 var _dados: DadosDaCarta = null
 var _em_foco: bool = false
 var _tuning: TelaBencaoTuning = TelaBencaoTuning.new()

@@ -52,7 +52,10 @@ func _rodar_roteiro() -> Array:
 		else:
 			sim.vivo(mover, toque, mirar)
 		saida.append([sim.mov.posicao(), sim.mov.cargas(), sim.mov.progresso_recarga(), sim.log_eventos.size()])
-	saida.append(sim.log_eventos)
+	var log_tipos: Array = []
+	for item: Array in sim.log_eventos:
+		log_tipos.append([item[0], item[1]])
+	saida.append(log_tipos)
 	return saida
 
 

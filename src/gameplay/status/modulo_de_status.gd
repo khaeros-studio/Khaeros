@@ -160,19 +160,41 @@ func aplicar_fontes_no_acerto(alvo_id: int, origem: StringName, slot_golpe: Stri
 	if origem != &"arma" or portador_jogador == null:
 		return
 
+	var totais_por_status: Dictionary[StringName, float] = {}
+
+	# Tipos canónicos da R5 (Modificadores): golpe_sangramento / golpe_queimadura no slot Ataque
+	if slot_golpe == &"ataque":
+		var res_s: ResumoDeGatilho = portador_jogador.gatilhos(&"golpe_sangramento")
+		if res_s != null and not res_s.esta_vazio() and res_s.total > 0.0:
+			totais_por_status[ID_SANGRAMENTO] = totais_por_status.get(ID_SANGRAMENTO, 0.0) + res_s.total
+		var res_q: ResumoDeGatilho = portador_jogador.gatilhos(&"golpe_queimadura")
+		if res_q != null and not res_q.esta_vazio() and res_q.total > 0.0:
+			totais_por_status[ID_QUEIMADURA] = totais_por_status.get(ID_QUEIMADURA, 0.0) + res_q.total
+
 	var tipos_gatilho: Array[StringName] = [&"acerto_qualquer"]
 	if slot_golpe == &"ataque":
 		tipos_gatilho.insert(0, &"acerto_ataque")
 	elif slot_golpe == &"especial":
 		tipos_gatilho.insert(0, &"acerto_especial")
 
-	var totais_por_status: Dictionary[StringName, float] = {}
 	for tg: StringName in tipos_gatilho:
 		var resumo: ResumoDeGatilho = portador_jogador.gatilhos(tg)
-		if resumo == null or not resumo.ativo():
+		if resumo == null or resumo.esta_vazio():
 			continue
 		for entrada: ResumoDeGatilho.Entrada in resumo.entradas:
-			var st_id: StringName = StringName(entrada.params.get("status", entrada.params.get(&"status", &"")))
+			var st_id: StringName = &""
+			for k: StringName in entrada.params.keys():
+				if k == ID_SANGRAMENTO or k == ID_QUEIMADURA or k == ID_ABALO:
+					st_id = k
+					break
+			if st_id == &"" and entrada.params.has(&"status"):
+				var cod: int = int(entrada.params[&"status"])
+				if cod == 1:
+					st_id = ID_SANGRAMENTO
+				elif cod == 2:
+					st_id = ID_QUEIMADURA
+				elif cod == 3:
+					st_id = ID_ABALO
 			if st_id == &"":
 				continue
 			totais_por_status[st_id] = totais_por_status.get(st_id, 0.0) + entrada.valor
@@ -197,7 +219,7 @@ func tick(inimigo_id: int) -> void:
 
 	# 1. Sangramento primeiro (R4)
 	if est.sangramento_restante > 0 and est.sangramento_acumulos > 0.0:
-		var dp_s: float = (est.sangramento_acumulos * _tuning.dano_sangramento_s) / float(Unidades.PASSOS_POR_SEGUNDO)
+		var dp_s: float = (est.sangramento_acumulos * _tuning.dano_sangramento_s) / float(Unidades.TICK_RATE)
 		if dp_s > 0.0:
 			var morreu_s: bool = _causar_dano_silencioso(inimigo_id, dp_s)
 			if morreu_s:
@@ -207,7 +229,7 @@ func tick(inimigo_id: int) -> void:
 
 	# 2. Queimadura em seguida, se continuar vivo (R4)
 	if est.queimadura_restante > 0 and est.queimadura_acumulos > 0.0:
-		var dp_q: float = (est.queimadura_acumulos * _tuning.dano_queimadura_s) / float(Unidades.PASSOS_POR_SEGUNDO)
+		var dp_q: float = (est.queimadura_acumulos * _tuning.dano_queimadura_s) / float(Unidades.TICK_RATE)
 		if dp_q > 0.0:
 			var morreu_q: bool = _causar_dano_silencioso(inimigo_id, dp_q)
 			if morreu_q:
@@ -282,7 +304,9 @@ func abalado(inimigo_id: int) -> bool:
 func multiplicador_dano_inimigo(inimigo_id: int) -> float:
 	if _portadores.has(inimigo_id):
 		var p: Portador = _portadores[inimigo_id]
-		return p.multiplicador_de_dano(Modificador.Slot.ATAQUE, ContextoDeDano.new())
+		var m_port: float = p.multiplicador_de_dano(Modificador.Slot.ATAQUE, ContextoDeDano.new())
+		if m_port > 0.0:
+			return m_port
 	if abalado(inimigo_id):
 		return 1.0 - _tuning.reducao_dano_causado
 	return 1.0
@@ -303,8 +327,8 @@ func calcular_dano_causado_pelo_inimigo(inimigo_id: int, dano_base: int) -> int:
 func estado(inimigo_id: int) -> Dictionary:
 	if not _estados.has(inimigo_id):
 		return {
-			&"sangramento": {&"acumulos": 0.0, &"restante": 0},
-			&"queimadura": {&"acumulos": 0.0, &"restante": 0},
+			&"sangramento": {&"acumulos": 0, &"restante": 0},
+			&"queimadura": {&"acumulos": 0, &"restante": 0},
 			&"abalo": {&"ativo": false, &"restante": 0},
 		}
 	return _estados[inimigo_id].para_dicionario()

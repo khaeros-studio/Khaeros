@@ -87,7 +87,7 @@ func deixar_imagem_residual(camadas: CamadasDoMundo, pos_pe: Vector2, textura_po
 	if camadas == null:
 		return null
 	if _ancoras_residuais.size() >= MAX_IMAGENS_RESIDUAIS:
-		var velha := _ancoras_residuais.pop_front()
+		var velha: Node2D = _ancoras_residuais.pop_front()
 		_sprites_residuais.pop_front()
 		_pes_residuais.pop_front()
 		camadas.remover_ancora(velha)
@@ -155,7 +155,7 @@ func montar_vfx_maldicoes_em_z_menos_5(camadas: CamadasDoMundo) -> void:
 	_mat_marca_virote = ShaderMaterial.new()
 	_mat_marca_virote.shader = sh_traco
 	_mat_marca_virote.set_shader_parameter(&"modo_traco", 3)
-	var r_virote := _tuning.raio_marca_virote_px if _tuning != null else 9.0
+	var r_virote: float = _tuning.raio_marca_virote_px if _tuning != null else 9.0
 	_mat_marca_virote.set_shader_parameter(&"raio_anel", r_virote)
 	_mat_marca_virote.set_shader_parameter(&"largura_px", 2.0)
 	_mat_marca_virote.set_shader_parameter(&"opacidade", 0.85)
@@ -182,11 +182,11 @@ func atualizar_fio_de_vinculo(
 			_no_fio.visible = false
 		return
 
-	var dist := pos_jogador.distance_to(pos_maldicao)
-	var limiar_tenso := 0.85 * alcance_fio_px # 408 px
-	var larg := _tuning.largura_fio_px if _tuning != null else 2.0
-	var op_base := _tuning.opacidade_fio if _tuning != null else 0.60
-	var ciclo := _tuning.ciclo_fio_estourado_s if _tuning != null else 0.50
+	var dist: float = pos_jogador.distance_to(pos_maldicao)
+	var limiar_tenso: float = 0.85 * alcance_fio_px # 408 px
+	var larg: float = _tuning.largura_fio_px if _tuning != null else 2.0
+	var op_base: float = _tuning.opacidade_fio if _tuning != null else 0.60
+	var ciclo: float = _tuning.ciclo_fio_estourado_s if _tuning != null else 0.50
 
 	var tracejado := false
 	var estourado := false

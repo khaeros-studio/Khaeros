@@ -8,8 +8,8 @@ func test_ac_pr_32_33_portas_do_limiar_livres_e_forcadas_com_consumo_fixo() -> v
 	var fonte := FonteDeFluxos.new(RelatorDeErrosRng.new())
 	fonte.iniciar_run(0x3F9A07C2, true)
 	var fp := FluxosDePortas.new(fonte)
-	var run := Run.new()
-	var portas := Portas.new(rt, fp)
+	var run: Run = Run.new()
+	var portas: Portas = Portas.new(rt, fp)
 	portas.configurar_run(run)
 
 	# Escolhas livres: depois dos índices 0, 1, 3 e 4 (cada uma consome 4 reais da sua chave)
@@ -31,8 +31,8 @@ func test_ac_pr_08_porta_ultima_em_regiao_sem_chefe_de_6_camaras() -> void:
 	var rt := FabricasDeCatalogo.reward_table()
 	var run_tun := FabricasDeCatalogo.run_tuning()
 	run_tun.camaras_jogaveis[&"limiar"] = 6 # modo legado sem chefe (índice 5 é a última jogável de combate)
-	var run := Run.new(run_tun)
-	var portas := Portas.new(rt)
+	var run: Run = Run.new(run_tun)
+	var portas: Portas = Portas.new(rt)
 	portas.configurar_run(run)
 
 	# Depois do índice 4 (próxima é 5, última jogável sem chefe): 1 porta forçada `ultima`

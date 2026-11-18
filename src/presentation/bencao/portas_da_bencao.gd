@@ -37,21 +37,21 @@ class PortaDaBencaoReal extends PortaDaBencao:
 		if indice < 0 or indice >= _cartas_cache.size():
 			return false
 		if _bencaos != null:
-			var eventos_dummy: Array[EventoDoPasso] = []
-			return _bencaos.escolher(_player_id, indice, eventos_dummy)
+			return _bencaos.escolher(indice, false)
 		return true
 
 	func trocar_oferta() -> bool:
 		if _trocas_cache <= 0:
 			return false
 		if _bencaos != null:
-			var eventos_dummy: Array[EventoDoPasso] = []
-			var ok: bool = _bencaos.trocar_oferta(_player_id, eventos_dummy)
+			var ok: bool = _bencaos.trocar()
 			if ok:
-				for ev: EventoDoPasso in eventos_dummy:
-					if ev is EvOfertaTrocada:
-						var ev_t: EvOfertaTrocada = ev as EvOfertaTrocada
-						sincronizar_de_evento(ev_t.ids, ev_t.raridades, ev_t.trocas)
+				var ids: Array[StringName] = []
+				var rars: Array[int] = []
+				for c: CartaDaOferta in _bencaos.cartas():
+					ids.append(c.id)
+					rars.append(c.raridade)
+				sincronizar_de_evento(ids, rars, _bencaos.trocas_restantes())
 			return ok
 		_trocas_cache -= 1
 		return true

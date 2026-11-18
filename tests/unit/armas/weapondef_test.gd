@@ -7,8 +7,14 @@ class _MovFalso:
 	extends MovimentoParaCombate
 	var deslocamentos: Array[Vector2] = []
 
+	func posicao(_player_id: int) -> Vector2:
+		return Vector2(960.0, 540.0)
+
 	func em_esquiva(_player_id: int) -> bool:
 		return false
+
+	func raio(_player_id: int) -> float:
+		return 27.0
 
 	func deslocar(_player_id: int, delta: Vector2) -> void:
 		deslocamentos.append(delta)
@@ -172,11 +178,12 @@ func _rodar_roteiro_combate(arma: WeaponDef, passos: int) -> Array:
 	var trace: Array = []
 	for p: int in passos:
 		c.inicio_do_passo()
-		var segurados: Dictionary[StringName, bool] = {
-			Acoes.ATAQUE: (p % 3) != 0,
-			Acoes.ESPECIAL: (p % 25) == 0,
-		}
-		var cmd := ComandosDoPasso.new(p, buffer, segurados)
+		var segurados: Array[StringName] = []
+		if (p % 3) != 0:
+			segurados.append(Acoes.ATAQUE)
+		if (p % 25) == 0:
+			segurados.append(Acoes.ESPECIAL)
+		var cmd := ComandosDoPasso.new(buffer, segurados, p, 0)
 		c.golpe_do_jogador([cmd])
 		var r: RecursosDoJogador = c.recursos(0)
 		trace.append("%d|%d|%d|%d|%d" % [r.recarga[0], r.recarga[1], r.recuperacao, r.investida, r.passo_combo[0]])

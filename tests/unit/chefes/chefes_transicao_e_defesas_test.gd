@@ -5,11 +5,11 @@ func test_ac_ch_02_03_12_transicao_de_furia_em_350_hp_invulneravel_30_passos_pul
 	var amb := FixtureChefes.criar_ambiente(&"lamina", Vector2(960.0, 400.0), true)
 	var est := amb.ia.estado_de(amb.id_chefe)
 
-	# AC-CH-02: Chefe é imune a imobilizar, puxar e pedir_recuperacao ("Quebrou!")
+	# AC-CH-02: Chefe é imune a imobilizar, puxar e pedir_recuperacao ("Quebrou!") e tem fator_empurrao = 0.12 (R1)
 	assert_bool(amb.ia.imobilizar(amb.id_chefe, 90)).is_false()
 	assert_bool(amb.ia.puxar(amb.id_chefe, Vector2.ZERO, 100.0, 30.0)).is_false()
 	assert_bool(amb.ia.pedir_recuperacao(amb.id_chefe)).is_false()
-	assert_float(est.fator_empurrao).is_equal_approx(0.0, 0.001)
+	assert_float(est.fator_empurrao).is_equal_approx(0.12, 0.001)
 
 	# Inicia preparo de P0 e sofre dano até 350 HP (50% de 700 HP): cancela telégrafo e entra em TRANSICAO_FASE por 30 passos
 	amb.avancar_passo()

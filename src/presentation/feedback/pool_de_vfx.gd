@@ -41,7 +41,6 @@ func aplicar_pedidos(pedidos: Array[PedidosDeFeedback.PedidoVfx]) -> int:
 		var no: ColorRect = _nos_vfx[exibidos]
 		var mat: ShaderMaterial = _materiais_vfx[exibidos]
 		no.visible = true
-		no.z_index = p.camada_z
 		no.position = p.pos - no.size * 0.5
 		mat.set_shader_parameter(&"cor_vfx", p.cor)
 		mat.set_shader_parameter(&"intensidade", 1.25 if p.eh_estrela_acerto else 1.0)

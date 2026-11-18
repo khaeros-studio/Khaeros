@@ -223,12 +223,12 @@ static func avaliar_tracejado(
 	var p_info := parametros_tracejado(perimetro, traco_px, intervalo_px)
 	var p_aj: float = p_info["P_aj"]
 	var r_t: float = p_info["r_t"]
-	var razao := s / p_aj
-	var phi := razao - floor(razao)
-	var u := phi - 0.5 * r_t + 0.5
-	var delta := absf((u - floor(u)) - 0.5)
-	var aa_phi := aa * grad_s / p_aj
-	var on := cov(delta - 0.5 * r_t, aa_phi)
+	var razao: float = s / p_aj
+	var phi: float = razao - floor(razao)
+	var u: float = phi - 0.5 * r_t + 0.5
+	var delta: float = absf((u - floor(u)) - 0.5)
+	var aa_phi: float = aa * grad_s / p_aj
+	var on: float = cov(delta - 0.5 * r_t, aa_phi)
 	return {
 		"phi": phi,
 		"delta": delta,

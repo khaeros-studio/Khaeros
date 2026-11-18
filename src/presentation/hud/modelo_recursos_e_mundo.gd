@@ -230,7 +230,9 @@ func chave_nome_chefe() -> StringName:
 
 
 static func resolver_glifo_acao(acao: StringName, dispositivo: StringName) -> String:
-	return RotulosDeAcao.rotulo_acao(acao, dispositivo)
+	var rotulos: RotulosDeAcao = RotulosDeAcao.new()
+	var info: Dictionary = rotulos.rotulo(MapaDeBinds.padrao(), acao, dispositivo)
+	return String(info.get("glifo", ""))
 
 
 static func visibilidade_por_estado_de_jogo(estado: int) -> Dictionary:

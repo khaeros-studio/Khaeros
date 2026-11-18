@@ -35,9 +35,10 @@ func test_ac_co_03_retangulo_jogavel_prende_jogador_de_raio_27() -> void:
 	var rt := FabricasDeCatalogo.room_tuning()
 	var rect := LayoutDaCamara.retangulo_jogavel(rt)
 	assert_that(rect).is_equal(Rect2(0.0, 0.0, 1920.0, 1080.0))
-	var geom := LayoutDaCamara.construir_geometria(rt, [])
-	var p1 := Colisao.conter_no_retangulo(Vector2(-10.0, -5.0), 27.0, geom.jogavel)
-	var p2 := Colisao.conter_no_retangulo(Vector2(2000.0, 1100.0), 27.0, geom.jogavel)
+	var pedras_vazias: Array[ObstaculoCircular] = []
+	var geom: GeometriaDeMovimento = LayoutDaCamara.construir_geometria(rt, pedras_vazias)
+	var p1: Vector2 = Colisao.resolver_colisao(Vector2(-10.0, -5.0), 27.0, geom)
+	var p2: Vector2 = Colisao.resolver_colisao(Vector2(2000.0, 1100.0), 27.0, geom)
 	assert_that(p1).is_equal(Vector2(27.0, 27.0))
 	assert_that(p2).is_equal(Vector2(1893.0, 1053.0))
 

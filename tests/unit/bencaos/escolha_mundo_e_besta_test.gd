@@ -185,6 +185,7 @@ func test_ac_bn_19_mundo_parado_60_passos_em_bencao_e_pausa_nao_pula_escolha() -
 	for chave: StringName in OrdemDoPasso.modulos():
 		modulos[chave] = combate_duble if chave == OrdemDoPasso.COMBATE_INICIO else _ModuloCombateDuble.new()
 	assert_array(orq.configurar_passo(_FonteAmostraVazia.new(), _HitstopFalso.new(), modulos)).is_empty()
+	assert_bool(orq.pedir_estado(EstadoDeJogo.Valor.MENU)).is_true()
 	assert_bool(orq.pedir_estado(EstadoDeJogo.Valor.TRANSICAO)).is_true()
 	assert_bool(orq.pedir_estado(EstadoDeJogo.Valor.JOGO)).is_true()
 

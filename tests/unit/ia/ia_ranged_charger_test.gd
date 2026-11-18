@@ -78,5 +78,5 @@ func test_ac_ia_04_09_22_charger_fenda_avanco_ignora_selo_e_cambaleio_e_fere_1x(
 
 	# AC-IA-22: ciclos mínimos (Eco 96, Anomalia 142, Fenda 158)
 	assert_int(ValidadorIA.ciclo_minimo_passos(FixtureTelegrafos.eco_perdido())).is_equal(96)
-	assert_int(ValidadorIA.ciclo_minimo_passos(anom)).is_equal(142)
+	assert_int(ValidadorIA.ciclo_minimo_passos(FixtureTelegrafos.anomalia_menor())).is_equal(142)
 	assert_int(ValidadorIA.ciclo_minimo_passos(fenda)).is_equal(158)

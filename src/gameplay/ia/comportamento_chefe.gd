@@ -83,12 +83,12 @@ func decidir(i: EstadoDeInimigoIA, alvo: AlvoDeInimigo, ia: Object) -> void:
 
 		EstadoDeInimigoIA.Fase.RECUPERACAO:
 			var tuning: IATuning = ia.tuning()
-			var delta := alvo.pos - i.posicao
-			var d := delta.length()
+			var delta: Vector2 = alvo.pos - i.posicao
+			var d: float = delta.length()
 			if d > 0.0:
 				i.ultima_direcao = delta / d
 			if d > tuning.recuperacao_dist_min_px + 1e-5:
-				var passo_rec: float = ia.velocidade_andar_passo(i) * tuning.fator_recuperacao_andar
+				var passo_rec: float = float(ia.velocidade_andar_passo(i)) * tuning.fator_recuperacao_andar
 				i.posicao += i.ultima_direcao * passo_rec
 			i.timer -= 1
 			if i.timer <= 0:

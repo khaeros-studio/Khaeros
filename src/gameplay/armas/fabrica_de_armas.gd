@@ -62,7 +62,7 @@ static func lamina() -> WeaponDef:
 	w.doutrina = ID_LAMINA
 	w.chave_nome = &"WEAPON_LAMINA_NAME"
 	w.vida_max = 100
-	w.velocidade = Unidades.velocidade_para_pxs(4.3 / 60.0) # 387.0 px/s
+	w.velocidade = Unidades.velocidade_para_pxs(4.3) # 387.0 px/s
 
 	var corte := AttackDef.new()
 	corte.chave_nome = &"WEAPON_LAMINA_ATK"
@@ -73,7 +73,7 @@ static func lamina() -> WeaponDef:
 	}
 	corte.dano = 14.0
 	corte.recarga_s = Unidades.ticks_para_segundos(16)
-	corte.empurrao = Unidades.velocidade_para_pxs(5.0 / 60.0) # 450.0
+	corte.empurrao = Unidades.velocidade_para_pxs(5.0) # 450.0
 	corte.multiplicadores_combo = PackedFloat64Array([1.0, 1.0, 1.8])
 	w.ataque = corte
 
@@ -87,7 +87,7 @@ static func lamina() -> WeaponDef:
 	}
 	investida.dano = 26.0
 	investida.recarga_s = Unidades.ticks_para_segundos(70)
-	investida.empurrao = Unidades.velocidade_para_pxs(12.0 / 60.0) # 1080.0
+	investida.empurrao = Unidades.velocidade_para_pxs(12.0) # 1080.0
 	w.especial = investida
 	return w
 
@@ -99,13 +99,13 @@ static func ressonancia() -> WeaponDef:
 	w.doutrina = ID_RESSONANCIA
 	w.chave_nome = &"WEAPON_RESSONANCIA_NAME"
 	w.vida_max = 80
-	w.velocidade = Unidades.velocidade_para_pxs(4.2 / 60.0) # 378.0 px/s
+	w.velocidade = Unidades.velocidade_para_pxs(4.2) # 378.0 px/s
 
 	var pulso := AttackDef.new()
 	pulso.chave_nome = &"WEAPON_RESSONANCIA_ATK"
 	pulso.forma = AtaqueConvertido.FORMA_PROJETIL
 	pulso.params = {
-		&"velocidade_pxs": Unidades.velocidade_para_pxs(11.0 / 60.0), # 990.0
+		&"velocidade_pxs": Unidades.velocidade_para_pxs(11.0), # 990.0
 		&"raio_px": Unidades.unidade_para_px(10.0), # 15.0
 		&"vida_s": Unidades.ticks_para_segundos(50),
 	}
@@ -113,7 +113,7 @@ static func ressonancia() -> WeaponDef:
 	pulso.atravessa = false
 	pulso.dano = 12.0
 	pulso.recarga_s = Unidades.ticks_para_segundos(14)
-	pulso.empurrao = Unidades.velocidade_para_pxs(6.0 / 60.0) # 540.0
+	pulso.empurrao = Unidades.velocidade_para_pxs(6.0) # 540.0
 	w.ataque = pulso
 
 	var onda := AttackDef.new()
@@ -125,7 +125,7 @@ static func ressonancia() -> WeaponDef:
 	}
 	onda.dano = 30.0
 	onda.recarga_s = Unidades.ticks_para_segundos(90)
-	onda.empurrao = Unidades.velocidade_para_pxs(14.0 / 60.0) # 1260.0
+	onda.empurrao = Unidades.velocidade_para_pxs(14.0) # 1260.0
 	w.especial = onda
 	return w
 
@@ -137,13 +137,13 @@ static func pactos() -> WeaponDef:
 	w.doutrina = ID_PACTOS
 	w.chave_nome = &"WEAPON_PACTOS_NAME"
 	w.vida_max = 90
-	w.velocidade = Unidades.velocidade_para_pxs(4.25 / 60.0) # 382.5 px/s
+	w.velocidade = Unidades.velocidade_para_pxs(4.25) # 382.5 px/s
 
 	var virote := AttackDef.new()
 	virote.chave_nome = &"WEAPON_PACTOS_ATK"
 	virote.forma = AtaqueConvertido.FORMA_PROJETIL
 	virote.params = {
-		&"velocidade_pxs": Unidades.velocidade_para_pxs(13.0 / 60.0), # 1170.0
+		&"velocidade_pxs": Unidades.velocidade_para_pxs(13.0), # 1170.0
 		&"raio_px": Unidades.unidade_para_px(8.0), # 12.0
 		&"vida_s": Unidades.ticks_para_segundos(45),
 	}
@@ -151,7 +151,7 @@ static func pactos() -> WeaponDef:
 	virote.atravessa = false
 	virote.dano = 10.0
 	virote.recarga_s = Unidades.ticks_para_segundos(15)
-	virote.empurrao = Unidades.velocidade_para_pxs(4.0 / 60.0) # 360.0
+	virote.empurrao = Unidades.velocidade_para_pxs(4.0) # 360.0
 	w.ataque = virote
 
 	var chamado := AttackDef.new()
@@ -204,16 +204,16 @@ static func combat_tuning_padrao() -> CombatTuning:
 	c.hitstop_leve_s = 3.0 / 60.0
 	c.hitstop_pesado_s = 6.0 / 60.0
 	c.hitstop_abate_s = 4.0 / 60.0
-	c.hitstop_atingido_s = 5.0 / 60.0
+	c.hitstop_atingido_s = 6.0 / 60.0
 	c.hitstop_abate_chefe_s = 36.0 / 60.0
-	c.hitstop_recusa_s = 12.0 / 60.0
+	c.hitstop_recusa_s = 18.0 / 60.0
 	c.janela_combo_s = 34.0 / 60.0
 	c.fator_recuperacao_golpe = 0.5
 	c.recuperacao_max_s = 12.0 / 60.0
 	c.limiar_finalizador = 1.2
 	c.empurrao_pesado = 900.0
 	c.parede_vel_min = 630.0
-	c.dano_parede = 6.0
+	c.parede_dano = 8.0
 	c.queda_empurrao = 0.78
 	c.empurrao_zero = 4.5
 	c.cambaleio_s = 8.0 / 60.0
@@ -221,16 +221,16 @@ static func combat_tuning_padrao() -> CombatTuning:
 	c.quebrou_recuperacao_s = 24.0 / 60.0
 	c.invuln_atingido_s = 40.0 / 60.0
 	c.invuln_extra_investida_s = 2.0 / 60.0
-	c.passo_apoio_px = 18.0
-	c.raio_encostado_px = 27.0
+	c.passo_apoio_px = 10.5
+	c.folga_encostado_px = 6.0
 	c.nascimento_projetil_px = 36.0
-	c.giro_leque_graus = 7.0
-	c.fator_obstaculo_projetil = 0.85
-	c.passes_varredura = 8
-	c.cura_recusa_frac = 0.4
-	c.flash_acerto_s = 4.0 / 60.0
-	c.extra_inversao_s = 2.0 / 60.0
-	c.impact_chefe_s = 6.0 / 60.0
+	c.giro_leque_graus = 12.0
+	c.fator_raio_obstaculo_projetil = 0.5
+	c.passes_varredura = 4
+	c.fator_guarda = 0.5
+	c.flash_acerto_s = 5.0 / 60.0
+	c.extra_inversao_s = 4.0 / 60.0
+	c.impact_chefe_s = 12.0 / 60.0
 	return c
 
 

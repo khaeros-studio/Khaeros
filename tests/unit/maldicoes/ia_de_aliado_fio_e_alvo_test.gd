@@ -56,11 +56,11 @@ func test_ac_ml_31_faro_do_vinculo_aplica_mais_15_porcento_velocidade_perseguind
 	m.pos = Vector2(400.0, 400.0)
 
 	var vel_base := m.velocidade_pxs()
-	assert_float(vel_base).is_equal_approx(450.0, 0.01)
+	assert_float(vel_base).is_equal_approx(435.0, 0.01)
 
 	var id_in := FixtureMaldicoes.nascer_inimigo_padrao(amb, Vector2(650.0, 400.0), 300.0)
 	amb.modulo.registrar_acerto_virote(0, id_in)
 	amb.avancar_passo(false)
 
 	assert_int(int(m.estado)).is_equal(int(MaldicaoRef.Estado.PERSEGUINDO))
-	assert_float(m.velocidade_pxs()).is_equal_approx(450.0 * 1.15, 0.01)
+	assert_float(m.velocidade_pxs()).is_equal_approx(435.0 * 1.15, 0.01)

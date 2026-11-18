@@ -6,12 +6,12 @@ extends GdUnitTestSuite
 
 
 func test_ac_st_19_20_21_22_numero_agregado_a_cada_30_passos_com_transporte_de_resto_e_descarga_final() -> void:
-	var vida: float = 500.0
+	var estado_vida := [500.0]
 	var m := ModuloDeStatus.new()
 	m.registrar_combatente(401, &"inimigo")
 	m.configurar_callbacks(func(_id: int, dp: float) -> bool:
-		vida -= dp
-		return vida <= 0.0
+		estado_vida[0] -= dp
+		return float(estado_vida[0]) <= 0.0
 	)
 
 	# AC-ST-19 & AC-ST-20: 1 acúmulo de sangramento (2,4/s = 1,2 por janela de 0,5s / 30 passos)

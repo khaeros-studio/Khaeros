@@ -74,20 +74,20 @@ static func calcular_paridade_f6(itens: Array[ItemDoCatalogo]) -> Dictionary:
 			vt = i.definicao as VinculoTuning
 	if not armas.has(&"pactos") or mt == null or especies.is_empty():
 		return {}
-	var besta := armas[&"pactos"]
-	var r_virote := maxi(1, Unidades.duracao_para_passos(besta.ataque.recarga_s))
-	var r_esp := maxi(1, Unidades.duracao_para_passos(besta.especial.recarga_s))
-	var n_salto := Unidades.duracao_para_passos(mt.duracao_salto_s)
-	var dps_besta := besta.ataque.dano * float(Unidades.TICK_RATE) / float(r_virote)
-	var dps_chamado := besta.especial.dano * float(Unidades.TICK_RATE) / float(r_esp)
-	var f_campo := float(maxi(0, r_esp - n_salto)) / float(r_esp)
-	var bonus_v := vt.bonus_dano_basico if vt != null else 0.05
-	var dps_tec := DANO_TECNICA_MAX_MVP / mt.recarga_troca_s if mt.recarga_troca_s > 0.0 else 3.5
+	var besta: WeaponDef = armas[&"pactos"]
+	var r_virote: int = maxi(1, Unidades.duracao_para_passos(besta.ataque.recarga_s))
+	var r_esp: int = maxi(1, Unidades.duracao_para_passos(besta.especial.recarga_s))
+	var n_salto: int = Unidades.duracao_para_passos(mt.duracao_salto_s)
+	var dps_besta: float = besta.ataque.dano * float(Unidades.TICK_RATE) / float(r_virote)
+	var dps_chamado: float = besta.especial.dano * float(Unidades.TICK_RATE) / float(r_esp)
+	var f_campo: float = float(maxi(0, r_esp - n_salto)) / float(r_esp)
+	var bonus_v: float = vt.bonus_dano_basico if vt != null else 0.05
+	var dps_tec: float = DANO_TECNICA_MAX_MVP / mt.recarga_troca_s if mt.recarga_troca_s > 0.0 else 3.5
 
 	var ttk_refs: Array[float] = []
 	for ref_id: StringName in [&"lamina", &"ressonancia"]:
 		if armas.has(ref_id):
-			var d_ref := dps_arma_referencia(armas[ref_id])
+			var d_ref: float = dps_arma_referencia(armas[ref_id])
 			if d_ref > 0.0:
 				ttk_refs.append(VIDA_CHEFE_PADRAO / d_ref)
 

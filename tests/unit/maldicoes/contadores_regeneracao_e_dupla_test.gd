@@ -3,17 +3,17 @@ extends GdUnitTestSuite
 
 func test_ac_ml_14_regenera_4_porcento_por_segundo_na_reserva_pronta_com_acumulador_fracionario() -> void:
 	var amb := FixtureMaldicoes.criar_ambiente(&"espreitador_da_fenda", &"vulto_mudo")
-	# Vulto Mudo na reserva tem 110 PV max; 4% de 110 = 4,4 PV/s -> 4 PV em 60 passos e +5 PV nos 60 seguintes (total +9 em 2 s)
+	# Vulto Mudo na reserva tem 110 PV max; 5% de 110 = 5,5 PV/s -> 5 PV em 60 passos e +6 PV nos 60 seguintes (total +11 em 2 s)
 	var m_res: MaldicaoRef = amb.modulo.ref_de(2)
 	m_res.vida = 80
 
 	for _i in range(60):
 		amb.avancar_passo(false)
-	assert_int(m_res.vida).is_equal(84)
+	assert_int(m_res.vida).is_equal(85)
 
 	for _i in range(60):
 		amb.avancar_passo(false)
-	assert_int(m_res.vida).is_equal(89)
+	assert_int(m_res.vida).is_equal(91)
 
 
 func test_recuperacao_exaustao_suporta_10s_600_passos_e_12s_720_passos_via_tuning() -> void:
@@ -40,8 +40,8 @@ func test_ac_ml_20_espelho_da_dupla_propaga_dano_e_velocidade_sem_propagar_gatil
 	var m_reserva: MaldicaoRef = amb.modulo.ref_de(2)
 
 	var fonte_bencao := FonteDeModificador.new(&"elo:dupla_forte", [
-		Modificador.new(Atributos.DANO_CAUSADO, Modificador.Operacao.PERCENTUAL, 0.25, Modificador.Slot.NENHUM),
-		Modificador.new(Atributos.VELOCIDADE, Modificador.Operacao.PERCENTUAL, 0.10, Modificador.Slot.NENHUM),
+		Modificador.new(Atributos.DANO_TODO, Modificador.Operacao.PERCENTUAL, 0.25),
+		Modificador.new(Atributos.VELOCIDADE, Modificador.Operacao.PERCENTUAL, 0.10),
 	])
 	amb.espelho_dupla.fonte_aplicada(0, fonte_bencao)
 

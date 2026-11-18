@@ -17,32 +17,32 @@ func _criar_camaras(seed_val: int) -> Dictionary:
 func test_ac_co_02_e_35_montagem_posiciona_jogador_maldicao_e_primeira_onda() -> void:
 	var ctx := _criar_camaras(0x3F9A07C2)
 	var cam: Camaras = ctx["camaras"]
-	var pos_jog := Vector2(100.0, 200.0)
-	var pos_mald := Vector2(400.0, 300.0)
+	var pos_jog: Array[Vector2] = [Vector2(100.0, 200.0)]
+	var pos_mald: Array[Vector2] = [Vector2(400.0, 300.0)]
 
-	cam.configurar_jogador(null, func() -> Vector2: return pos_jog, func(np: Vector2) -> void: pos_jog = np)
+	cam.configurar_jogador(null, func() -> Vector2: return pos_jog[0], func(np: Vector2) -> void: pos_jog[0] = np)
 	cam.configurar_pactos(
 		Callable(), Callable(), Callable(),
-		func(np: Vector2) -> void: pos_mald = np,
+		func(np: Vector2) -> void: pos_mald[0] = np,
 		func() -> float: return 30.0, # Baluarte de Cinza (raio 30)
 		105.0
 	)
 	cam.trocar(0, &"bencao", 0, true)
 
-	assert_that(pos_jog).is_equal(Vector2(960.0, 930.0))
-	assert_that(pos_mald).is_equal(Vector2(960.0, 1035.0))
+	assert_that(pos_jog[0]).is_equal(Vector2(960.0, 930.0))
+	assert_that(pos_mald[0]).is_equal(Vector2(960.0, 1035.0))
 	assert_int(cam.fase()).is_equal(Camaras.Fase.COMBATE)
 	assert_bool(cam.inimigos_vivos().size() >= 2).is_true()
 
 	# Com distancia_seguir_px = 150 -> min(930 + 150, 1080 - 30) = 1050
 	cam.configurar_pactos(
 		Callable(), Callable(), Callable(),
-		func(np: Vector2) -> void: pos_mald = np,
+		func(np: Vector2) -> void: pos_mald[0] = np,
 		func() -> float: return 30.0,
 		150.0
 	)
 	cam.trocar(1, &"fragmentos", 0, true)
-	assert_that(pos_mald).is_equal(Vector2(960.0, 1050.0))
+	assert_that(pos_mald[0]).is_equal(Vector2(960.0, 1050.0))
 
 
 func test_ac_co_36_e_41_encontro_nao_altera_layout_ondas_elites_nem_consumo_de_fluxos() -> void:
@@ -60,7 +60,7 @@ func test_ac_co_36_e_41_encontro_nao_altera_layout_ondas_elites_nem_consumo_de_f
 	cam_b.configurar_pactos(
 		func(idx: int) -> StringName: return &"espreitador_da_fenda" if idx == 2 else &"",
 		func(_idx: int, _esp: StringName, pedras: Array[ObstaculoCircular]) -> Vector2:
-			pedras_recebidas_pelo_vinculo = pedras.duplicate()
+			pedras_recebidas_pelo_vinculo.append_array(pedras)
 			return Vector2(960.0, 540.0),
 		func() -> bool: return true
 	)

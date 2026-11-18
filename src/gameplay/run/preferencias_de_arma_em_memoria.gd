@@ -1,6 +1,6 @@
 class_name PreferenciasDeArmaEmMemoria
-extends PreferenciasDeArma
-## Implementação de [PreferenciasDeArma] (ADR-0013 Key Interfaces) para lembrar a última
+extends RefCounted
+## Implementação em memória de preferências de arma (ADR-0013 Key Interfaces) para lembrar a última
 ## arma escolhida entre runs e sessões (TR-run-012, AC-RN-03).
 ## Também provê a variante nula para builds de playtest (AC-AR-39).
 

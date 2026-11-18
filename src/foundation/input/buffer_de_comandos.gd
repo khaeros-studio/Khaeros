@@ -109,3 +109,28 @@ func drenar_esquivas_congeladas() -> int:
 	var total := _esquivas_congeladas
 	_esquivas_congeladas = 0
 	return total
+
+
+## Atalho para registrar um toque de `acao` no buffer (sem descartar outras entradas) e reiniciar o prazo.
+func apertar(acao: StringName, passo: int = 0, epoca: int = 0, congelado: bool = false) -> void:
+	if not Acoes.NO_BUFFER.has(acao):
+		return
+	_entradas[acao] = Entrada.new(acao, passo, epoca, congelado)
+	if acao == Acoes.ESQUIVA and congelado:
+		_esquivas_congeladas += 1
+	_prazo = _buffer_passos
+
+
+## Atalho para avançar um passo sem novos toques (desconta 1 do prazo quando não está em hitstop).
+func avancar_passo(hitstop: bool = false) -> void:
+	atualizar([], 0, 0, hitstop)
+
+
+## Atalho para `contem(acao, epoca)` com `epoca = 0` por omissão.
+func tem(acao: StringName, epoca: int = 0) -> bool:
+	return contem(acao, epoca)
+
+
+## Atalho para `remover(acao, epoca)` com `epoca = 0` por omissão.
+func consumir(acao: StringName, epoca: int = 0) -> bool:
+	return remover(acao, epoca)

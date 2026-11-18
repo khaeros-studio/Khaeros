@@ -41,7 +41,7 @@ func test_ac_rn_02_e_27_ordem_de_inicio_com_lamina_e_com_pactos() -> void:
 
 
 func test_ac_rn_03_04_05_28_preferencia_arma_seed_debug_e_vidas_iniciais() -> void:
-	var prefs := PreferenciasDeArmaEmMemoria.new()
+	var prefs: PreferenciasDeArmaEmMemoria = PreferenciasDeArmaEmMemoria.new()
 	var ent := _EntropiaFixa.new()
 	var criador_sem_arg := CriadorDeSeed.new(ent, true, PackedStringArray(), RelatorDeErrosRng.new())
 	var run := Run.new(null, null, null, criador_sem_arg, null, null, prefs)

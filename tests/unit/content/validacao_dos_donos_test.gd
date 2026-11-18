@@ -120,7 +120,7 @@ func test_ac52_valores_fora_de_faixa_geram_codigo_do_dono() -> void:
 	assert_int(_diags(RegrasBn.new(), itens, &"BN1").size()).is_equal(1)
 
 	itens = FabricasDeCatalogo.itens_mvp()
-	(_def(itens, &"telemetria_tuning", &"tuning") as TelemetriaTuning).max_sessoes = 99
+	(_def(itens, &"telemetria_tuning", &"tuning") as TelemetriaTuning).max_sessoes = 101
 	assert_int(_diags(RegrasTl.new(), itens, &"TL1").size()).is_equal(1)
 
 	itens = FabricasDeCatalogo.itens_mvp()

@@ -33,11 +33,12 @@ func test_ac_rn_18_23_37_resumo_12_campos_imutavel_e_exemplos_f2_f3() -> void:
 	assert_bool(r_vit.dupla().is_read_only()).is_true()
 
 	# Exemplos F2: coletou 7 e morreu -> total 7; coletou 4 e abandonou -> total 4 (após limpar 0..3 -> 4 câmaras limpas)
-	var r_morte := ResumoDaRun.new(&"morte", "3F9A-07C2", &"lamina", 4, [], 7, 15, 10, 1200)
+	var bencaos_vazia: Array[StringName] = []
+	var r_morte := ResumoDaRun.new(&"morte", "3F9A-07C2", &"lamina", 4, bencaos_vazia, 7, 15, 10, 1200)
 	assert_int(r_morte.bonus_vitoria()).is_equal(0)
 	assert_int(r_morte.total()).is_equal(7)
 	assert_int(r_morte.camaras_limpas()).is_equal(4)
 
-	var r_aband := ResumoDaRun.new(&"abandono", "3F9A-07C2", &"lamina", 2, [], 4, 15, 5, 600)
+	var r_aband := ResumoDaRun.new(&"abandono", "3F9A-07C2", &"lamina", 2, bencaos_vazia, 4, 15, 5, 600)
 	assert_int(r_aband.total()).is_equal(4)
 	assert_int(r_aband.para_dicionario().size()).is_equal(12)

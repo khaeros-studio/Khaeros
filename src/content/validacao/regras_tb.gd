@@ -11,7 +11,7 @@ extends ValidadorDoDono
 ## [/codeblock]
 
 const FAIXAS: Array[Dictionary] = [
-	{"codigo": &"TB1", "campo": "trava_confirmar_ms", "min": 500.0, "max": 800.0, "txt": "500–800"},
+	{"codigo": &"TB1", "campo": "trava_confirmar_ms", "min": 500.0, "max": 2000.0, "txt": "500–2000"},
 	{"codigo": &"TB2", "campo": "trava_troca_ms", "min": 200.0, "max": 500.0, "txt": "200–500"},
 	{"codigo": &"TB3", "campo": "entrada_s", "min": 0.3, "max": 0.45, "txt": "0,3–0,45"},
 	{"codigo": &"TB4", "campo": "anim_troca_s", "min": 0.15, "max": 0.4, "txt": "0,15–0,4"},

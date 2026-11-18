@@ -47,7 +47,8 @@ func test_ac_rn_22_multiplas_regioes_reservadas() -> void:
 	rt.camaras_jogaveis = {&"limiar": 2, &"veio_instavel": 3}
 
 	var run := Run.new(rt, r0)
-	run.definir_regioes([r0, r1])
+	var lista_regioes: Array[RegionDef] = [r0, r1]
+	run.definir_regioes(lista_regioes)
 	run.iniciar_escolha_de_arma()
 	run.confirmar_arma(&"lamina")
 

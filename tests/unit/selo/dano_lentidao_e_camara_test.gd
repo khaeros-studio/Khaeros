@@ -98,13 +98,13 @@ func test_ac_sf_16_e_19_e_20_dois_selos_abate_e_pulo_de_morto() -> void:
 	s_eco.definir_recarga_para_teste(0)
 	b_eco.apertar(Acoes.SELO)
 	var eco: Dictionary = {&"id": 3, &"pos": Vector2(1140.0, 540.0), &"raio": 24.0, &"vida": 0.12}
-	var ferimentos: int = 0
+	var ferimentos: Array[int] = [0]
 	s_eco.passo_item_6(Vector2(960.0, 540.0), Vector2.RIGHT, CAMARA, b_eco, true, false, [eco],
 		func(_id: int, d: float) -> void:
-			ferimentos += 1
+			ferimentos[0] += 1
 			eco[&"vida"] = float(eco[&"vida"]) - d
 	)
-	assert_int(ferimentos).is_equal(1)
+	assert_int(ferimentos[0]).is_equal(1)
 	assert_float(float(eco[&"vida"])).is_equal_approx(0.0, 1e-6)
 
 

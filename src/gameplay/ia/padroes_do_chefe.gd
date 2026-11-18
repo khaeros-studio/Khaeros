@@ -45,12 +45,12 @@ static func iniciar_avanco_padrao_1(i: EstadoDeInimigoIA, _padrao: BossPatternDe
 
 ## Um passo de avanço do Padrão 1 (R5.2, AC-CH-05, AC-CH-06).
 static func passo_avanco_padrao_1(i: EstadoDeInimigoIA, padrao: BossPatternDef, ia: Object) -> void:
-	var ec := i.estado_chefe
-	var v_avanco_pxs := float(padrao.dimensoes.get(&"v_avanco_pxs", VELOCIDADE_AVANCO_P1_PXS)) if padrao != null else VELOCIDADE_AVANCO_P1_PXS
-	var passo_px := v_avanco_pxs / float(Unidades.TICK_RATE)
-	i.posicao = ia.conter(i.posicao + ec.direcao_avanco * passo_px, i.raio)
+	var ec: EstadoDoChefe = i.estado_chefe
+	var v_avanco_pxs: float = float(padrao.dimensoes.get(&"v_avanco_pxs", VELOCIDADE_AVANCO_P1_PXS)) if padrao != null else VELOCIDADE_AVANCO_P1_PXS
+	var passo_px: float = v_avanco_pxs / float(Unidades.TICK_RATE)
+	i.posicao = ia.conter(i.posicao + ec.direcao_avanco * passo_px, i.raio) as Vector2
 	if not ec.ja_feriu_no_avanco:
-		var dano := padrao.dano if padrao != null and padrao.dano > 0.0 else 18.0
+		var dano: float = padrao.dano if padrao != null and padrao.dano > 0.0 else 18.0
 		if ia.testar_e_ferir_contato_avanco(i, dano, &"soberano_p1_irrupcao"):
 			ec.ja_feriu_no_avanco = true
 

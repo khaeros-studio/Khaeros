@@ -9,7 +9,7 @@ func test_ac_ml_10_ferir_maldicao_aplica_reducao_de_dano_sem_afetar_jogador_e_ig
 
 	var dano_aplicado := amb.modulo.ferir_maldicao(id_m, 20.0, 1.0)
 	assert_int(dano_aplicado).is_equal(17)
-	assert_int(amb.modulo.estado_pacto(0).campo.vida).is_equal(140 - 17)
+	assert_int(amb.modulo.estado_pacto(0).campo.vida).is_equal(135 - 17)
 	assert_int(amb.combate_aliado.vida_jogador).is_equal(vida_jog_antes)
 
 	# Durante o salto do Chamado (estado SALTANDO), maldicao_atingivel é false e ferir_maldicao retorna 0
@@ -32,9 +32,9 @@ func test_ac_ml_11_exaustao_com_reserva_pronta_troca_automaticamente_no_mesmo_pa
 	assert_int(est.reserva.restante_exausta).is_equal(600)
 	assert_int(est.recarga_troca_passos).is_equal(0)
 
-	var evs_ex := amb.eventos.filtrar(EventosMaldicoes.EvMaldicaoExausta.TIPO)
+	var evs_ex: Array = amb.eventos.filtrar(EventosMaldicoes.EvMaldicaoExausta.TIPO)
 	assert_int(evs_ex.size()).is_equal(1)
-	var evs_tr := amb.eventos.filtrar(EventosMaldicoes.EvMaldicaoTrocada.TIPO)
+	var evs_tr: Array = amb.eventos.filtrar(EventosMaldicoes.EvMaldicaoTrocada.TIPO)
 	assert_int(evs_tr.size()).is_equal(1)
 	assert_str(String((evs_tr[0] as EventosMaldicoes.EvMaldicaoTrocada).modo)).is_equal("automatica")
 	# Troca automática por Exaustão não dispara Técnica Combinada

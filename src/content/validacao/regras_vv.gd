@@ -82,6 +82,10 @@ func validar(itens: Array[ItemDoCatalogo]) -> Array[Diagnostico]:
 		campos_com_erro.append("ciclo_veio_s")
 		out.append(Diagnostico.de_item(item, &"VV15", "ciclo_veio_s", t.ciclo_veio_s,
 			"VisualTuning: ciclo_veio_s < 2, amplitude_veio > 0,10 ou opacidade_max_feixes > 0,20"))
+	if t.teto_drawcalls_passes < 2 or t.teto_drawcalls_passes > 6:
+		campos_com_erro.append("teto_drawcalls_passes")
+		out.append(Diagnostico.de_item(item, &"VV15", "teto_drawcalls_passes", t.teto_drawcalls_passes,
+			"VisualTuning: teto_drawcalls_passes %d fora de 2–6" % t.teto_drawcalls_passes))
 	for f: Dictionary in FAIXAS_SEGURAS:
 		var campo: String = f["campo"]
 		if campos_com_erro.has(campo):

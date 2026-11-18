@@ -136,10 +136,10 @@ func test_pipeline_visual_unico_escritor_e_float32_ac_pv_44() -> void:
 	assert_float(VisualMath.ulp_float32(1800.0)).is_equal_approx(pow(2.0, -13.0), 1e-9)
 	assert_float(VisualMath.ulp_float32(4096.0)).is_equal_approx(pow(2.0, -11.0), 1e-9)
 
-	var ev := EstadoVisual.new()
+	var ev: EstadoVisual = EstadoVisual.new()
 	ev.configurar(FabricasDeCatalogo.visual_tuning())
-	var escritor := EscritorPorMaterial.new()
-	var pv := auto_free(PipelineVisual.new())
+	var escritor: EscritorPorMaterial = EscritorPorMaterial.new()
+	var pv: PipelineVisual = auto_free(PipelineVisual.new())
 	pv.configurar(ev, null, escritor)
 
 	ev.receber_relogios(245760.0 / 60.0, 10.0)

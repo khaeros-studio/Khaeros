@@ -70,7 +70,7 @@ static func sinergia_ativa(inimigo_id: int, ctx: ContextoDaTecnica) -> bool:
 		return false
 	if ctx.ia.esta_imobilizado(inimigo_id) or ctx.ia.esta_atraido(inimigo_id):
 		return true
-	if ctx.pacto != null and ctx.pacto.ids_marcados_saida.get(inimigo_id, false):
+	if ctx.pacto != null and bool(ctx.pacto.ids_marcados_saida.get(inimigo_id, false)):
 		return true
 	if ctx.status != null and ctx.status.tem_abalo(inimigo_id):
 		return true

@@ -92,8 +92,8 @@ func test_ac05_recarga_em_run_ou_em_release_e_recusada_com_aviso_e_preserva_cata
 	var consumidor := ConsumidorFalso.new()
 	c.registrar_consumidor(consumidor)
 	c.definir_debug_build(true)
-	var em_run := true
-	c.definir_consulta_em_run(func() -> bool: return em_run)
+	var em_run: Array[bool] = [true]
+	c.definir_consulta_em_run(func() -> bool: return em_run[0])
 
 	assert_bool(c.carregar("res://t/manifesto.tres")).is_true()
 	var cat_original := c.catalogo()
@@ -109,7 +109,7 @@ func test_ac05_recarga_em_run_ou_em_release_e_recusada_com_aviso_e_preserva_cata
 	assert_bool(c.diagnosticos().any(func(d: Diagnostico) -> bool: return d.regra == &"RECARGA" and d.e_aviso())).is_true()
 
 	# Em release (fora de run): também recusa com aviso
-	em_run = false
+	em_run[0] = false
 	c.definir_debug_build(false)
 	var recarregou_release := c.recarregar("res://t/manifesto.tres")
 	assert_bool(recarregou_release).is_false()

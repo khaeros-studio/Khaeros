@@ -43,12 +43,12 @@ static func montar(arma_def: WeaponDef, dupla_ids: Array[StringName], seed_da_ru
 	# 3. Bênçãos da run
 	var b_tun: BencaosTuning = bencaos_tuning if bencaos_tuning != null else _bencaos_tuning_padrao()
 	var r_tab: RarityTable = rarity_table if rarity_table != null else _rarity_table_padrao()
-	var doutrina_id: StringName = arma_def.doutrina if arma_def != null else &"lamina"
-	escopo.registro_bencaos = RegistroDeBencaos.new(boon_defs, doutrina_id)
-	var sorteio_b := SorteioDeOferta.new(b_tun, r_tab, escopo.portador_jogador)
+	escopo.registro_bencaos = RegistroDeBencaos.new(boon_defs)
+	var sorteio_b := SorteioDeOferta.new(r_tab, b_tun)
+	var mapa_regioes: Dictionary[StringName, int] = {region_def.id: 0}
 	escopo.bencaos = Bencaos.new(
 		escopo.registro_bencaos, sorteio_b, FluxosDeBencaos.new(escopo.fonte_fluxos),
-		escopo.portador_jogador, b_tun, {region_def.id: 0}, eventos
+		escopo.portador_jogador, b_tun, mapa_regioes, eventos
 	)
 
 	# 4. Portas e Câmaras da run
@@ -106,6 +106,6 @@ static func _bencaos_tuning_padrao() -> BencaosTuning:
 
 static func _rarity_table_padrao() -> RarityTable:
 	var r := RarityTable.new()
-	r.pesos = {&"comum": 60.0, &"raro": 30.0, &"epico": 10.0}
-	r.escalas = {&"comum": 1.0, &"raro": 1.25, &"epico": 1.5}
+	r.pesos = PackedFloat64Array([0.60, 0.30, 0.10])
+	r.escalas = PackedFloat64Array([1.0, 1.5, 2.0])
 	return r

@@ -8,8 +8,14 @@ extends GdUnitTestSuite
 class _MovFalso:
 	extends MovimentoParaCombate
 
+	func posicao(_player_id: int) -> Vector2:
+		return Vector2(960.0, 540.0)
+
 	func em_esquiva(_player_id: int) -> bool:
 		return false
+
+	func raio(_player_id: int) -> float:
+		return 27.0
 
 	func deslocar(_player_id: int, _delta: Vector2) -> void:
 		pass

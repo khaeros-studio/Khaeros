@@ -9,7 +9,7 @@ extends ValidadorDoDono
 ## var diags := RegrasPv.new().validar(itens)
 ## [/codeblock]
 
-const PRIMEIRAS_VALIDAS: Array[StringName] = [&"bencao", &"fragmentos", &"cura"]
+const PRIMEIRAS_VALIDAS: Array[StringName] = [&"bencao"]
 const SANTUARIO_CURA_PADRAO: float = 0.4
 
 

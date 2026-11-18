@@ -5,7 +5,7 @@ extends Comportamento
 
 func ao_surgir(i: EstadoDeInimigoIA, ia: Object) -> void:
 	i.fase = EstadoDeInimigoIA.Fase.APROXIMACAO
-	i.timer = ia.sortear_espera_inicial()
+	i.timer = int(ia.sortear_espera_inicial())
 
 
 func decidir(i: EstadoDeInimigoIA, alvo: AlvoDeInimigo, ia: Object) -> void:
@@ -14,9 +14,9 @@ func decidir(i: EstadoDeInimigoIA, alvo: AlvoDeInimigo, ia: Object) -> void:
 	match i.fase:
 		EstadoDeInimigoIA.Fase.APROXIMACAO:
 			i.timer -= 1
-			var delta := alvo.pos - i.posicao
-			var d := delta.length()
-			var dir := i.ultima_direcao if d == 0.0 else delta / d
+			var delta: Vector2 = alvo.pos - i.posicao
+			var d: float = delta.length()
+			var dir: Vector2 = i.ultima_direcao if d == 0.0 else delta / d
 			i.ultima_direcao = dir
 			if i.restante_imob <= 0 and d > tuning.charger_reaproxima_px + 1e-5:
 				var v_passo: float = ia.velocidade_andar_passo(i)
@@ -30,7 +30,7 @@ func decidir(i: EstadoDeInimigoIA, alvo: AlvoDeInimigo, ia: Object) -> void:
 
 		EstadoDeInimigoIA.Fase.PREPARO:
 			i.timer = telegrafos.restante_de(i.id) if telegrafos != null else maxi(0, i.timer - 1)
-			var disparou := telegrafos.disparou_neste_passo(i.id) if telegrafos != null else (i.timer == 0)
+			var disparou: bool = telegrafos.disparou_neste_passo(i.id) if telegrafos != null else (i.timer == 0)
 			if disparou:
 				i.direcao_avanco = telegrafos.mira_de(i.id) if telegrafos != null else i.ultima_direcao
 				i.ja_feriu_no_avanco = false
@@ -42,23 +42,23 @@ func decidir(i: EstadoDeInimigoIA, alvo: AlvoDeInimigo, ia: Object) -> void:
 			_passo_de_avanco(i, ia, tuning)
 
 		EstadoDeInimigoIA.Fase.RECUPERACAO:
-			var delta := alvo.pos - i.posicao
-			var d := delta.length()
+			var delta: Vector2 = alvo.pos - i.posicao
+			var d: float = delta.length()
 			if d > 0.0:
 				i.ultima_direcao = delta / d
 			if i.restante_imob <= 0 and d > tuning.recuperacao_dist_min_px + 1e-5:
-				var passo_rec: float = ia.velocidade_andar_passo(i) * tuning.fator_recuperacao_andar
+				var passo_rec: float = float(ia.velocidade_andar_passo(i)) * tuning.fator_recuperacao_andar
 				i.posicao += i.ultima_direcao * passo_rec
 			i.timer -= 1
 			if i.timer <= 0:
 				i.fase = EstadoDeInimigoIA.Fase.APROXIMACAO
-				i.timer = ia.sortear_espera_pos_recuperacao()
+				i.timer = int(ia.sortear_espera_pos_recuperacao())
 
 
 func _passo_de_avanco(i: EstadoDeInimigoIA, ia: Object, tuning: IATuning) -> void:
 	# R6 / R9: avanço ignora Selo, cambaleio, atração e imobilização em curso
-	var v_avanco_passo := (i.velocidade_base / float(Unidades.TICK_RATE)) * tuning.avanco_mult_velocidade
-	i.posicao = ia.conter(i.posicao + i.direcao_avanco * v_avanco_passo, i.raio)
+	var v_avanco_passo: float = (i.velocidade_base / float(Unidades.TICK_RATE)) * tuning.avanco_mult_velocidade
+	i.posicao = ia.conter(i.posicao + i.direcao_avanco * v_avanco_passo, i.raio) as Vector2
 	if not i.ja_feriu_no_avanco:
 		if ia.testar_e_ferir_contato_avanco(i, i.dano_base, &"charger_avanco"):
 			i.ja_feriu_no_avanco = true

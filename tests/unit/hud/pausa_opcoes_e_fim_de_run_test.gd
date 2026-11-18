@@ -49,7 +49,7 @@ func test_tela_de_opcoes_permuta_tecla_em_conflito_e_protege_reset_de_perfil() -
 
 func test_tela_fim_de_run_trava_500ms_painel_vinculo_e_estatisticas() -> void:
 	var fim: TelaFimDeRun = auto_free(TelaFimDeRun.new())
-	var resumo: TelaFimDeRun.ResumoDaRun = TelaFimDeRun.ResumoDaRun.new()
+	var resumo: TelaFimDeRun.DadosFimDeRun = TelaFimDeRun.DadosFimDeRun.new()
 	resumo.desfecho = &"vitoria"
 	resumo.tempo_run_s = 725.0
 	resumo.salas_limpas = 12

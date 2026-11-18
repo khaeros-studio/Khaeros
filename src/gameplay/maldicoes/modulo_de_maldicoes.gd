@@ -45,7 +45,7 @@ func configurar(p_tuning: MaldicoesTuning = null, p_especies: Dictionary[StringN
 		p_gerador_ids: GeradorDeIds = null, p_mod_tuning: ModifiersTuning = null,
 		p_espelho: EspelhoDaDupla = null, p_geometria: GeometriaDeMovimento = null) -> void:
 	_tuning = p_tuning.duplicate_deep(Resource.DEEP_DUPLICATE_ALL) as MaldicoesTuning if p_tuning != null else CatalogoMaldicoes.tuning_de_fabrica()
-	_mod_tuning = p_mod_tuning if p_mod_tuning != null else ModifiersTuning.new()
+	_mod_tuning = _normalizar_mod_tuning(p_mod_tuning)
 	_catalogo_especies = p_especies.duplicate() if not p_especies.is_empty() else CatalogoMaldicoes.especies_mvp()
 	_ia = p_ia
 	_combate_aliado = p_combate
@@ -82,14 +82,14 @@ func iniciar_dupla(player_id: int, especies_ids: Array[StringName],
 	pacto.ids_imobilizados.clear()
 	pacto.ids_marcados_saida.clear()
 
-	var pos_jog := _pos_jogadores.get(player_id, Vector2(960.0, 930.0))
+	var pos_jog: Vector2 = _pos_jogadores.get(player_id, Vector2(960.0, 930.0))
 	for idx in mini(TAMANHO_MAXIMO_DUPLA, especies_ids.size()):
-		var esp_id := especies_ids[idx]
-		var def := _catalogo_especies.get(esp_id, null)
+		var esp_id: StringName = especies_ids[idx]
+		var def: CurseDef = _catalogo_especies.get(esp_id, null)
 		if def == null:
 			continue
-		var nivel := int(niveis_vinculo.get(esp_id, 1))
-		var m_ref := _criar_maldicao_ref(player_id, def, nivel, vinculo_tuning)
+		var nivel: int = int(niveis_vinculo.get(esp_id, 1))
+		var m_ref: MaldicaoRef = _criar_maldicao_ref(player_id, def, nivel, vinculo_tuning)
 		pacto.todas.append(m_ref)
 		if idx == 0:
 			m_ref.estado = MaldicaoRef.Estado.SEGUINDO
@@ -346,7 +346,7 @@ func ferir_maldicao(maldicao_id: int, dano_base: float, m_atacante: float = 1.0)
 
 
 func descontar_vida(maldicao_id: int, dano: int) -> int:
-	var m := _por_id.get(maldicao_id, null)
+	var m: MaldicaoRef = _por_id.get(maldicao_id, null)
 	if m == null:
 		return 0
 	m.vida = maxi(0, m.vida - maxi(0, dano))
@@ -357,10 +357,10 @@ func descontar_vida(maldicao_id: int, dano: int) -> int:
 ## Zera Vida, fixa `total_exausta = restante_exausta`, avisa `maldicao_saiu_de_campo` à IA no mesmo passo
 ## e executa a troca automática para a reserva Pronta (sem técnica e sem gastar recarga).
 func exaurir(maldicao_id: int) -> void:
-	var m := _por_id.get(maldicao_id, null)
+	var m: MaldicaoRef = _por_id.get(maldicao_id, null)
 	if m == null:
 		return
-	var pacto := _garantir_pacto(m.player_id)
+	var pacto: EstadoDoPacto = _garantir_pacto(m.player_id)
 	m.vida = 0
 	m.estado = MaldicaoRef.Estado.EXAUSTA
 	m.alvo_id = -1
@@ -368,9 +368,9 @@ func exaurir(maldicao_id: int) -> void:
 	IADeAliado.limpar_passivas_condicionais(m)
 
 	# Passiva 2 Vínculo Inquebrável (Soberano): reduz tempo de Exausta em 20% (600 -> 480; nível >= 3: 540 / 432)
-	var red_esp := REDUCAO_EXAUSTA_VINCULO_INQUEBRAVEL if (m.def != null and m.def.passivas.has(&"vinculo_inquebravel")) else 0.0
-	var s_efetivo := _tuning.recuperacao_exausta_s * m.mult_recuperacao_vinculo * (1.0 - red_esp)
-	var passos_ex := Unidades.duracao_para_passos(s_efetivo)
+	var red_esp: float = REDUCAO_EXAUSTA_VINCULO_INQUEBRAVEL if (m.def != null and m.def.passivas.has(&"vinculo_inquebravel")) else 0.0
+	var s_efetivo: float = _tuning.recuperacao_exausta_s * m.mult_recuperacao_vinculo * (1.0 - red_esp)
+	var passos_ex: int = Unidades.duracao_para_passos(s_efetivo)
 	m.total_exausta = passos_ex
 	m.restante_exausta = passos_ex
 	pacto.seq_exaustao += 1
@@ -386,10 +386,10 @@ func exaurir(maldicao_id: int) -> void:
 
 	if pacto.campo == m:
 		if pacto.reserva != null and pacto.reserva.estado == MaldicaoRef.Estado.PRONTA:
-			var entra := pacto.reserva
+			var entra: MaldicaoRef = pacto.reserva
 			pacto.campo = entra
 			pacto.reserva = m
-			var pos_jog := _pos_jogadores.get(pacto.player_id, Vector2(960.0, 930.0))
+			var pos_jog: Vector2 = _pos_jogadores.get(pacto.player_id, Vector2(960.0, 930.0))
 			entra.pos = _ia.conter(pos_jog, entra.raio_px()) if _ia != null else pos_jog
 			entra.estado = MaldicaoRef.Estado.SEGUINDO
 			entra.alvo_id = -1
@@ -406,31 +406,31 @@ func exaurir(maldicao_id: int) -> void:
 # --- Implementação de ConsultaDaMaldicao (para a IA) --------------------------
 
 func maldicao_em_campo(player_id: int) -> int:
-	var pacto := _pacto_de(player_id)
+	var pacto: EstadoDoPacto = _pacto_de(player_id)
 	if pacto == null or pacto.campo == null or not pacto.campo.em_campo():
 		return -1
 	return pacto.campo.id
 
 
 func maldicao_atingivel(maldicao_id: int) -> bool:
-	var m := _por_id.get(maldicao_id, null)
+	var m: MaldicaoRef = _por_id.get(maldicao_id, null)
 	if m == null:
 		return false
-	var pacto := _pacto_de(m.player_id)
+	var pacto: EstadoDoPacto = _pacto_de(m.player_id)
 	if pacto == null or pacto.campo != m:
 		return false
 	return m.em_campo() and m.vida > 0 and m.estado != MaldicaoRef.Estado.SALTANDO
 
 
 func posicao_e_raio(maldicao_id: int) -> Vector3:
-	var m := _por_id.get(maldicao_id, null)
+	var m: MaldicaoRef = _por_id.get(maldicao_id, null)
 	if m == null:
 		return Vector3.ZERO
 	return Vector3(m.pos.x, m.pos.y, m.raio_px())
 
 
 func portador_de(maldicao_id: int) -> ConsultaDeAtributos:
-	var m := _por_id.get(maldicao_id, null)
+	var m: MaldicaoRef = _por_id.get(maldicao_id, null)
 	return m.portador if m != null else null
 
 
@@ -509,8 +509,8 @@ func estado_pacto(player_id: int = 0) -> EstadoPactoLeitura:
 func publicar_vista_apresentacao(player_id: int, saida: VistaDeMaldicao) -> void:
 	if saida == null:
 		return
-	var pacto := _pacto_de(player_id)
-	var pos_jog := _pos_jogadores.get(player_id, Vector2.ZERO)
+	var pacto: EstadoDoPacto = _pacto_de(player_id)
+	var pos_jog: Vector2 = _pos_jogadores.get(player_id, Vector2.ZERO)
 	saida.pos_jogador = pos_jog
 	saida.usa_telegrafo_de_chao = false
 	if pacto == null or pacto.campo == null or not pacto.campo.em_campo():
@@ -565,3 +565,24 @@ func _montar_contexto(pacto: EstadoDoPacto) -> ContextoDaTecnica:
 	ctx.mira_jogador = _mira_jogadores.get(pacto.player_id, Vector2.RIGHT)
 	ctx.respiro_atracao_passos = _respiro_atracao_passos
 	return ctx
+
+
+static func _normalizar_mod_tuning(p_mod: ModifiersTuning) -> ModifiersTuning:
+	var t := p_mod if p_mod != null else ModifiersTuning.new()
+	if t.piso_vida_jogador <= 0.0:
+		t.piso_vida_jogador = 20.0
+	if t.piso_vida_inimigo <= 0.0:
+		t.piso_vida_inimigo = 1.0
+	if t.piso_vida_maldicao <= 0.0:
+		t.piso_vida_maldicao = 20.0
+	if t.teto_reducao_dano <= 0.0:
+		t.teto_reducao_dano = 0.60
+	if t.teto_multiplicador_dano <= 0.0:
+		t.teto_multiplicador_dano = 4.0
+	if t.fator_empurrao_chefe <= 0.0:
+		t.fator_empurrao_chefe = 0.12
+	if t.tipos_propagados_maldicao.is_empty():
+		t.tipos_propagados_maldicao = [&"dano_todo_pct", &"velocidade_pct"]
+	if t.fator_propagacao_maldicao <= 0.0:
+		t.fator_propagacao_maldicao = 1.0
+	return t

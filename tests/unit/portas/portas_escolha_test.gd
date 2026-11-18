@@ -8,12 +8,12 @@ func test_ac_pr_12_15_16_36_vistas_quantidades_e_escolha_da_porta() -> void:
 	fonte.iniciar_run(0x778899AA, true)
 	var eventos := EventosDoPasso.new()
 	var conta := ContaFragmentos.new(FabricasDeCatalogo.economy_rates(), eventos)
-	var run := Run.new(null, null, fonte, null, conta, eventos)
+	var run: Run = Run.new(null, null, fonte, null, conta, eventos)
 	run.iniciar_escolha_de_arma()
 	run.confirmar_arma(&"lamina")
 
-	var cam := Camaras.new(FabricasDeCatalogo.wave_rules(), FabricasDeCatalogo.room_tuning(), Run._regiao_limiar_padrao())
-	var portas := Portas.new(FabricasDeCatalogo.reward_table(), FluxosDePortas.new(fonte), conta, BencaosNula.new(), eventos, FabricasDeCatalogo.room_tuning())
+	var cam: Camaras = Camaras.new(FabricasDeCatalogo.wave_rules(), FabricasDeCatalogo.room_tuning(), Run._regiao_limiar_padrao())
+	var portas: Portas = Portas.new(FabricasDeCatalogo.reward_table(), FluxosDePortas.new(fonte), conta, BencaosNula.new(), eventos, FabricasDeCatalogo.room_tuning())
 	portas.configurar_run(run)
 	portas.configurar_camaras(cam)
 

@@ -30,7 +30,7 @@ static func validar_completo(itens: Array[ItemDoCatalogo], ia_tuning_injetado: I
 	for i in itens:
 		if i == null or i.definicao == null:
 			continue
-		var s := i.definicao.get_script()
+		var s: Variant = i.definicao.get_script()
 		if s == IATuning:
 			item_ia = i
 		elif s == EliteRules:
@@ -161,7 +161,7 @@ static func validar_completo(itens: Array[ItemDoCatalogo], ia_tuning_injetado: I
 			continue
 		var w := item.definicao as WeaponDef
 		var t_min := t_min_morrer_passos(w.vida_max, dano_max_comum_elite, passos_invuln)
-		if t_min < 120:
+		if t_min < 120 or w.vida_max <= 40:
 			if not iv7_emitido:
 				out.append(_diag(item, &"IV7", "vida_max", t_min,
 					"WeaponDef %s: t_min_morrer %d passos (< 120 = 2,0 s)" % [w.id, t_min], Diagnostico.Nivel.AVISO))

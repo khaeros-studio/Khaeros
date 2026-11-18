@@ -9,7 +9,8 @@ class _BencaosDuble:
 	var pedidos: Array[Vector2i] = []
 
 	func _init() -> void:
-		super(null, null, null, null, null, {}, null)
+		var reg_vazio: Dictionary[StringName, int] = {}
+		super(null, null, null, null, null, reg_vazio, null)
 
 	func restantes() -> int:
 		return pool
@@ -25,10 +26,10 @@ func _setup_portas(seed_val: int = 0x11112222) -> Dictionary:
 	var eventos := EventosDoPasso.new()
 	var conta := ContaFragmentos.new(FabricasDeCatalogo.economy_rates(), eventos)
 	var benc := _BencaosDuble.new()
-	var run := Run.new(null, null, fonte, null, conta, eventos)
+	var run: Run = Run.new(null, null, fonte, null, conta, eventos)
 	run.iniciar_escolha_de_arma()
 	run.confirmar_arma(&"lamina")
-	var portas := Portas.new(FabricasDeCatalogo.reward_table(), FluxosDePortas.new(fonte), conta, benc, eventos)
+	var portas: Portas = Portas.new(FabricasDeCatalogo.reward_table(), FluxosDePortas.new(fonte), conta, benc, eventos)
 	portas.configurar_run(run)
 	return {"portas": portas, "run": run, "conta": conta, "bencaos": benc, "eventos": eventos}
 

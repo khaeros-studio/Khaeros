@@ -9,7 +9,7 @@ func test_ac_rn_19_20_26_36_recriacao_do_escopo_da_run_mantem_saldo_e_pactos_e_l
 	assert_bool(sessao.confirmar_arma(&"pactos")).is_true()
 
 	var escopo_1: EscopoDaRun = sessao.escopo_run
-	var weak_1 := weakref(escopo_1)
+	var weak_1: WeakRef = weakref(escopo_1)
 	var seed_1: int = sessao.run.seed_valor()
 
 	# Simula estado sujo na run 1: saldo 30, Fluxo gasto, selos, status, abates e pacto com o Soberano

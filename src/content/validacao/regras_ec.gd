@@ -9,7 +9,7 @@ extends ValidadorDoDono
 ## var diags := RegrasEc.new().validar(itens)
 ## [/codeblock]
 
-const PROVACAO_MIN: int = 0
+const PROVACAO_MIN: int = 1
 const PROVACAO_MAX: int = 10
 const SALDO_MAX_MIN: int = 9999
 const SALDO_MAX_MAX: int = 2147483647

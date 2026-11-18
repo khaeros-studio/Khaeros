@@ -66,6 +66,6 @@ func test_ac_ml_32_troca_no_mesmo_passo_do_chamado_eh_recusada_com_motivo_saltan
 
 	assert_str(String(amb.modulo.estado_pacto(0).campo.especie_id)).is_equal("vulto_mudo")
 	assert_int(amb.modulo.estado_pacto(0).recarga_troca_passos).is_equal(0)
-	var evs_rec := amb.eventos.filtrar(EventosMaldicoes.EvTrocaIndisponivel.TIPO)
+	var evs_rec: Array = amb.eventos.filtrar(EventosMaldicoes.EvTrocaIndisponivel.TIPO)
 	assert_int(evs_rec.size()).is_equal(1)
 	assert_str(String((evs_rec[0] as EventosMaldicoes.EvTrocaIndisponivel).motivo)).is_equal("saltando")

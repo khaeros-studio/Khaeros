@@ -203,8 +203,8 @@ static func _adicionar_borda_setor(
 
 	# 2. Duas faixas retangulares ao longo dos raios laterais (+alpha e -alpha), cobrindo o ápice
 	var recuo_apice := (w + margem) / sa + margem
-	for sgn in [-1.0, 1.0]:
-		var ang_lado := sgn * alpha
+	for sgn: float in [-1.0, 1.0]:
+		var ang_lado: float = sgn * alpha
 		var dir := Vector2(cos(ang_lado), sin(ang_lado))
 		var n_out := Vector2(sin(ang_lado) * sgn, -cos(ang_lado) * sgn) # normal apontando para fora do setor
 		var p0 := -dir * recuo_apice

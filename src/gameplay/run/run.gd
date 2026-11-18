@@ -48,7 +48,7 @@ var _fonte_fluxos: FonteDeFluxos
 var _criador_seed: CriadorDeSeed
 var _conta: ContaFragmentos
 var _eventos: EventosDoPasso
-var _preferencias_arma: PreferenciasDeArma
+var _preferencias_arma: PreferenciasDeArmaEmMemoria
 
 # Colaboradores opcionais de sessão/run
 var _orquestrador: Object = null
@@ -89,7 +89,7 @@ var _erros: Array[StringName] = []
 func _init(run_tuning: RunTuning = null, regiao_principal: RegionDef = null,
 		fonte_fluxos: FonteDeFluxos = null, criador_seed: CriadorDeSeed = null,
 		conta: ContaFragmentos = null, eventos: EventosDoPasso = null,
-		preferencias_arma: PreferenciasDeArma = null) -> void:
+		preferencias_arma: PreferenciasDeArmaEmMemoria = null) -> void:
 	_run_tuning = run_tuning if run_tuning != null else _run_tuning_padrao()
 	if regiao_principal != null:
 		_regioes.append(regiao_principal)
@@ -349,13 +349,16 @@ func confirmar_arma(id_arma: StringName = &"", texto_seed_debug: String = "") ->
 				var d: Array[StringName] = _vinculo.call("dupla_da_run")
 				var c_id: StringName = d[0] if d.size() > 0 else &""
 				var r_id: StringName = d[1] if d.size() > 1 else &""
-				return _concluir_inicio_da_run([c_id, r_id], texto_seed_debug)
+				var dupla_vinc: Array[StringName] = [c_id, r_id]
+				return _concluir_inicio_da_run(dupla_vinc, texto_seed_debug)
 		# Sem Vínculo real (dublê ausente): segue com dupla vazia
-		return _concluir_inicio_da_run([], texto_seed_debug)
+		var dupla_vazia: Array[StringName] = []
+		return _concluir_inicio_da_run(dupla_vazia, texto_seed_debug)
 
 	# Lâmina ou Ressonância: vai direto a ATIVA sem pedir dupla (AC-RN-27)
 	_dupla_inicial = []
-	return _concluir_inicio_da_run([], texto_seed_debug)
+	var sem_dupla: Array[StringName] = []
+	return _concluir_inicio_da_run(sem_dupla, texto_seed_debug)
 
 
 ## Recebe `dupla_confirmada(campo, reserva)` do Vínculo (R2-P 1b, AC-RN-27, AC-RN-29).
@@ -493,10 +496,9 @@ func ao_chefe_subjugado(chefe_id: StringName = &"soberano_do_limiar") -> bool:
 
 
 ## Recebe `chefe_escolhido(id, escolha)` de Vínculo e pactos (R4-P passo 3, AC-RN-33, AC-RN-37).
-## Ignorado se a run não está na câmara do chefe ou se não houve `chefe_subjugado` antes.
+## Ignorado se não houve `chefe_subjugado` antes.
 func ao_chefe_escolhido(_chefe_id: StringName, escolha: StringName) -> bool:
-	var n_jog: int = camaras_jogaveis_da_regiao()
-	if _fase != Fase.ATIVA or _indice_camara != n_jog - 1 or not _chefe_subjugado_pendente:
+	if _fase != Fase.ATIVA or not _chefe_subjugado_pendente:
 		return false
 	if escolha == &"pactuar":
 		_desfecho_chefe_registrado = ResumoDaRun.DESFECHO_PACTUADO

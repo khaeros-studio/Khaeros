@@ -25,7 +25,7 @@ func test_seleciona_ate_3_em_crescendo_ordenados_por_p_e_menor_seq() -> void:
 		_criar_vista(0, 0.30, 10),
 		_criar_vista(1, 0.80, 12),
 		_criar_vista(2, 0.80, 5), # empate de p com slot 1, mas seq menor -> vem antes
-		_criar_vista(3, 0.95, 20, TelegrafoTipos.Estado.LAMPEJO), # ignorado (não está em CRESCENDO)
+		_criar_vista(3, 0.95, 20, TelegrafoTipos.Estado.DISPARO), # ignorado (não está em CRESCENDO)
 		_criar_vista(4, 0.50, 8),
 	]
 	var slots: PackedInt32Array = PackedInt32Array([0, 0, 0])

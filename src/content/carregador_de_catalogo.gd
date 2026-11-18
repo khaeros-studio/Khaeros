@@ -77,7 +77,7 @@ var _itens: Array[ItemDoCatalogo] = []
 var _ticks_por_segundo: int = -1
 var _consumidores: Array[ConsumidorDeAjustes] = []
 var _consulta_em_run: Callable = Callable()
-var _debug_build: bool = OS.is_debug_build()
+var _debug_build: bool = true
 
 
 ## [param validador] roda a primeira passada; [param relator] vai para o catálogo

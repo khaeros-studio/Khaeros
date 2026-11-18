@@ -13,12 +13,12 @@ func test_ac_ia_15_17_30_curva_de_chance_e_sorteio_com_consumo_fixo() -> void:
 	assert_float(RegrasDeElite.chance_elite(12, regras)).is_equal_approx(0.25, 1e-9)
 
 	# AC-IA-15: onda de 4 em p 4 (chance 0.13): 4 reais consumidos; 1º (0.12) é elite; seguintes não, mesmo com < 0.13
-	var f := FixtureIA.FluxoRoteirizado.new()
+	var f := FixtureIA.FluxoIaRoteirizado.new()
 	f.reais_fila.assign([0.12, 0.05, 0.01, 0.13])
-	var ja_ha := false
+	var ja_ha: bool = false
 	var resultados: Array[bool] = []
 	for k in 4:
-		var eh_el := RegrasDeElite.sortear_elite(4, ja_ha, f, regras)
+		var eh_el: bool = RegrasDeElite.sortear_elite(4, ja_ha, f, regras)
 		if eh_el:
 			ja_ha = true
 		resultados.append(eh_el)

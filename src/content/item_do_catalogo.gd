@@ -12,6 +12,12 @@ extends RefCounted
 
 var tipo: StringName
 var caminho: String
+## Alias compatível de [member caminho].
+var arquivo: String:
+	get:
+		return caminho
+	set(valor):
+		caminho = valor
 var posicao: int
 var definicao: DefinicaoBase
 ## [code]true[/code] quando [member campos_gravados] veio do arquivo de origem.

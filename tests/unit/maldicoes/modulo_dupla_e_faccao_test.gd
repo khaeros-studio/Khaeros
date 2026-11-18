@@ -30,7 +30,7 @@ func test_ac_ml_02_sem_reserva_troca_eh_recusada_com_evento() -> void:
 	assert_str(String(est_depois.campo.especie_id)).is_equal("vulto_mudo")
 	assert_int(est_depois.recarga_troca_passos).is_equal(0)
 
-	var evs_rec := amb.eventos.filtrar(EventosMaldicoes.EvTrocaIndisponivel.TIPO)
+	var evs_rec: Array = amb.eventos.filtrar(EventosMaldicoes.EvTrocaIndisponivel.TIPO)
 	assert_int(evs_rec.size()).is_equal(1)
 	assert_str(String((evs_rec[0] as EventosMaldicoes.EvTrocaIndisponivel).motivo)).is_equal("sem_reserva")
 

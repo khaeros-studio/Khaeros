@@ -26,6 +26,7 @@ func test_ac_ch_08_09_e_tr_017_padrao_3_convergencia_puxa_jogador_e_maldicao_e_i
 	assert_int(amb.ia.contar_lacaios_vivos()).is_equal(2)
 
 	# TR-chefes-017: uma segunda Convergência respeita max_lacaios_vivos (3 no tuning de fábrica: só mais 1 vaga)
+	amb.telegrafos.cancelar_todos()
 	est.fase = EstadoDeInimigoIA.Fase.APROXIMACAO
 	est.estado_chefe.padrao = 3
 	est.timer = 1

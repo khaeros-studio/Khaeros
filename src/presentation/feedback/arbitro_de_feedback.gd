@@ -147,8 +147,8 @@ func _processar_um_evento(id_ev: StringName, ev: Dictionary) -> void:
 		if _reduzir_flashes:
 			aceito_f6 = false
 		elif _estado_visual != null:
-			var dur_s: float = float(resp.duracao_impacto_passos) / 60.0
-			aceito_f6 = _estado_visual.solicitar_impacto(dur_s, eh_chefe)
+			var modo_ev: EstadoVisual.ModoImpacto = EstadoVisual.ModoImpacto.CHEFE if eh_chefe else EstadoVisual.ModoImpacto.RECUSA
+			aceito_f6 = _estado_visual.pedir_impacto(modo_ev, resp.duracao_impacto_passos)
 		if aceito_f6:
 			if _saida.pedido_impacto == null or resp.modo_impacto > _saida.pedido_impacto.modo:
 				_saida.pedido_impacto = PedidosDeFeedback.PedidoImpacto.new(
@@ -166,7 +166,8 @@ func _processar_um_evento(id_ev: StringName, ev: Dictionary) -> void:
 		var area_norm: float = float(ev.get("area_norm", 0.12))
 		var flash_ok: bool = not _reduzir_flashes
 		if flash_ok and _estado_visual != null:
-			flash_ok = _estado_visual.limitador_flashes().avaliar_pedido(0.20, area_norm, _t_camera) <= 0.20
+			var area_canvas2: float = area_norm * LimitadorDeFlashes.AREA_TELA_1080P
+			flash_ok = _estado_visual.pedir_flash_telegrafo(area_canvas2, 1.0)
 		_saida.flashes_telegrafo.append(PedidosDeFeedback.PedidoFlashTelegrafo.new(slot_tel, area_norm, flash_ok))
 
 	# 8. VFX de entidade / estrela de acerto com limitador de 20 passos para maldicao_atingida

@@ -14,7 +14,7 @@ const BOTAO_JOGAR_NOVAMENTE: int = 0
 const BOTAO_MENU_PRINCIPAL: int = 1
 const BOTAO_COPIAR_SEED: int = 2
 
-class ResumoDaRun extends RefCounted:
+class DadosFimDeRun extends RefCounted:
 	var desfecho: StringName = &"derrota" # &"vitoria", &"derrota", &"abandono"
 	var tempo_run_s: float = 0.0
 	var salas_limpas: int = 0
@@ -32,7 +32,7 @@ class ResumoDaRun extends RefCounted:
 	var chefe_destino_pacto: StringName = &"" # &"", &"pactuado", &"exorcizado"
 
 
-var _resumo: ResumoDaRun = null
+var _resumo: DadosFimDeRun = null
 var _trava_restante_s: float = 0.0
 var _foco_botao: int = BOTAO_JOGAR_NOVAMENTE
 var _aviso_seed_copiada: bool = false
@@ -46,11 +46,11 @@ func _ready() -> void:
 
 
 func abrir(
-	resumo: ResumoDaRun,
+	resumo: DadosFimDeRun,
 	fila_sons_ui: FilaDeSonsDeInterface = null,
 	copiador_clipboard: Callable = Callable()
 ) -> void:
-	_resumo = resumo if resumo != null else ResumoDaRun.new()
+	_resumo = resumo if resumo != null else DadosFimDeRun.new()
 	_fila_sons_ui = fila_sons_ui
 	_copiador_clipboard = copiador_clipboard
 	_trava_restante_s = TRAVA_ABERTURA_S
@@ -92,7 +92,7 @@ func painel_vinculo_visivel() -> bool:
 
 
 func estatisticas_formatadas() -> Dictionary:
-	var r: ResumoDaRun = _resumo if _resumo != null else ResumoDaRun.new()
+	var r: DadosFimDeRun = _resumo if _resumo != null else DadosFimDeRun.new()
 	return {
 		"tempo": FormatoNumerico.formatar_tempo_mm_ss(r.tempo_run_s),
 		"salas": FormatoNumerico.formatar_inteiro(r.salas_limpas),

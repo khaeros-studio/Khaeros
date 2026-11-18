@@ -166,7 +166,7 @@ static func aplicar_f5(c: Color, saturacao_bencao: float, valor_bencao: float) -
 static func ulp_float32(t: float) -> float:
 	if t <= 0.0:
 		return pow(2.0, -23.0)
-	var e := floor(log(t) / log(2.0))
+	var e: float = floor(log(t) / log(2.0))
 	return pow(2.0, e - 23.0)
 
 

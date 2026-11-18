@@ -7,8 +7,14 @@ extends GdUnitTestSuite
 class _MovFalso:
 	extends MovimentoParaCombate
 
+	func posicao(_player_id: int) -> Vector2:
+		return Vector2(960.0, 540.0)
+
 	func em_esquiva(_player_id: int) -> bool:
 		return false
+
+	func raio(_player_id: int) -> float:
+		return 27.0
 
 	func deslocar(_player_id: int, _delta: Vector2) -> void:
 		pass
@@ -91,8 +97,8 @@ func test_ac_ar_45_e_46_chamado_dispara_salto_e_recusa_nao_gasta_recarga() -> vo
 	assert_float(ponto_pad.y).is_equal_approx(960.0, 0.01)
 
 	c.definir_mira(0, Vector2.RIGHT, ponto_alvo)
-	buffer.apertar(Acoes.ESPECIAL)
-	c.golpe_do_jogador([ComandosDoPasso.new(0, buffer, {Acoes.ESPECIAL: true})])
+	buffer.atualizar([Acoes.ESPECIAL], 0, 0, false)
+	c.golpe_do_jogador([ComandosDoPasso.new(buffer, [Acoes.ESPECIAL], 0, 0)])
 	assert_int(mald.pedidos.size()).is_equal(1)
 	assert_int(c.recursos(0).recarga[1]).is_equal(120)
 	assert_int(c.hitstop_restante()).is_equal(0)
@@ -104,8 +110,8 @@ func test_ac_ar_45_e_46_chamado_dispara_salto_e_recusa_nao_gasta_recarga() -> vo
 	var c_rec: Combate = _criar_combate(FabricaDeArmas.pactos(), mald_indisp)
 	var buf_rec := BufferDeComandos.new(10)
 	var eventos := EventosDoPasso.new()
-	buf_rec.apertar(Acoes.ESPECIAL)
-	c_rec.golpe_do_jogador([ComandosDoPasso.new(0, buf_rec, {Acoes.ESPECIAL: true, Acoes.ATAQUE: true})])
+	buf_rec.atualizar([Acoes.ESPECIAL], 0, 0, false)
+	c_rec.golpe_do_jogador([ComandosDoPasso.new(buf_rec, [Acoes.ESPECIAL, Acoes.ATAQUE], 0, 0)])
 	assert_int(BestaDoVinculo.emitir_recusas_do_passo(c_rec, eventos)).is_equal(1)
 	assert_int(c_rec.recursos(0).recarga[1]).is_equal(0)
 	# Virote disparou no mesmo passo (recarga do Ataque foi a 15)
@@ -114,7 +120,8 @@ func test_ac_ar_45_e_46_chamado_dispara_salto_e_recusa_nao_gasta_recarga() -> vo
 	# Segurar Especial por mais 5 passos sem novo toque não repete chamado_indisponivel
 	for p: int in range(1, 6):
 		c_rec.inicio_do_passo()
-		c_rec.golpe_do_jogador([ComandosDoPasso.new(p, buf_rec, {Acoes.ESPECIAL: true})])
+		buf_rec.atualizar([], p, 0, false)
+		c_rec.golpe_do_jogador([ComandosDoPasso.new(buf_rec, [Acoes.ESPECIAL], p, 0)])
 		assert_int(BestaDoVinculo.emitir_recusas_do_passo(c_rec, eventos)).is_equal(0)
 
 
@@ -151,9 +158,13 @@ func _simular_dps_600_passos(arma: WeaponDef) -> Dictionary:
 		c.inicio_do_passo()
 		var r: RecursosDoJogador = c.recursos(0)
 		var quer_esp: bool = (r.recarga[1] == 0) and ultimo_vivo_teve_ataque and (r.investida == 0)
+		var apertados: Array[StringName] = []
+		var segurados: Array[StringName] = [Acoes.ATAQUE]
 		if quer_esp:
-			buffer.apertar(Acoes.ESPECIAL)
-		var cmd := ComandosDoPasso.new(p, buffer, {Acoes.ATAQUE: true, Acoes.ESPECIAL: quer_esp})
+			apertados.append(Acoes.ESPECIAL)
+			segurados.append(Acoes.ESPECIAL)
+		buffer.atualizar(apertados, p, 0, false)
+		var cmd := ComandosDoPasso.new(buffer, segurados, p, 0)
 		c.golpe_do_jogador([cmd])
 		ultimo_vivo_teve_ataque = false
 		for d: EstadoDeGolpe in c.disparos_do_passo():

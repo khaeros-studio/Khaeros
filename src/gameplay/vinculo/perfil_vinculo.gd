@@ -87,10 +87,14 @@ func _init(especies_catalogo: Array[CurseDef] = [], tuning: VinculoTuning = null
 func _registrar_especies_padrao_mvp() -> void:
 	const IDS_MVP: Array[String] = ["vulto_mudo", "espreitador_da_fenda", "baluarte_de_cinza", "soberano_do_limiar"]
 	const RARS_MVP: Array[StringName] = [&"comum", &"refinado", &"raro", &"primordial"]
+	const VIDAS_MVP: Array[float] = [110.0, 95.0, 125.0, 115.0]
+	const RAIOS_MVP: Array[float] = [24.0, 22.5, 30.0, 27.0]
 	for i: int in IDS_MVP.size():
 		var c := CurseDef.new()
 		c.id = StringName(IDS_MVP[i])
 		c.raridade = RARS_MVP[i]
+		c.vida_max = VIDAS_MVP[i]
+		c.raio_px = RAIOS_MVP[i]
 		_ordem_manifesto.append(IDS_MVP[i])
 		_defs_por_id[IDS_MVP[i]] = c
 

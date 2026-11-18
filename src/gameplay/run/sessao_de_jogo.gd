@@ -15,7 +15,7 @@ var perfil_vinculo: PerfilVinculo
 var vinculo: Vinculo
 var repositorio_perfil: RepositorioDePerfil
 var save: Save
-var preferencias_arma: PreferenciasDeArma
+var preferencias_arma: PreferenciasDeArmaEmMemoria
 
 var conta: ContaFragmentos
 var eventos: EventosDoPasso

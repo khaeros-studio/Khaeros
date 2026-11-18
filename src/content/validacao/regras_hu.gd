@@ -23,10 +23,10 @@ const FAIXAS: Array[Dictionary] = [
 	{"codigo": &"HU11", "campo": "fio_elite_escala", "min": 1.0, "max": 2.0, "txt": "1–2"},
 	{"codigo": &"HU12", "campo": "esquiva_tremor_ms", "min": 0.0, "max": 200.0, "txt": "0–200"},
 	{"codigo": &"HU13", "campo": "fade_estado_s", "min": 0.1, "max": 0.3, "txt": "0,1–0,3"},
-	{"codigo": &"HU14", "campo": "margem_segura_px", "min": 32.0, "max": 64.0, "txt": "32–64"},
-	{"codigo": &"HU15", "campo": "pacto_tremor_px", "min": 0.0, "max": 8.0, "txt": "0–8"},
-	{"codigo": &"HU16", "campo": "pacto_tremor_s", "min": 0.05, "max": 0.30, "txt": "0,05–0,30"},
-	{"codigo": &"HU17", "campo": "pacto_intervalo_px", "min": 8.0, "max": 24.0, "txt": "8–24"},
+	{"codigo": &"HU14", "campo": "margem_segura_px", "min": 24.0, "max": 64.0, "txt": "24–64"},
+	{"codigo": &"HU15", "campo": "pacto_tremor_px", "min": 1.0, "max": 8.0, "txt": "1–8"},
+	{"codigo": &"HU16", "campo": "pacto_tremor_s", "min": 0.05, "max": 0.40, "txt": "0.05–0.40"},
+	{"codigo": &"HU17", "campo": "pacto_intervalo_px", "min": 4.0, "max": 24.0, "txt": "4–24"},
 ]
 
 
@@ -47,7 +47,8 @@ func validar(itens: Array[ItemDoCatalogo]) -> Array[Diagnostico]:
 		var mn: float = f["min"]
 		var mx: float = f["max"]
 		if v < mn - 1e-9 or v > mx + 1e-9 or not is_finite(v):
-			var val_str := str(raw).replace(".", ",") if typeof(raw) == TYPE_FLOAT else str(raw)
-			out.append(Diagnostico.de_item(item, f["codigo"], campo, raw,
+			var codigo: StringName = f["codigo"]
+			var val_str := str(raw) if codigo == &"HU16" else (str(raw).replace(".", ",") if typeof(raw) == TYPE_FLOAT else str(raw))
+			out.append(Diagnostico.de_item(item, codigo, campo, raw,
 				"HudTuning: %s %s fora da faixa %s" % [campo, val_str, f["txt"]]))
 	return out

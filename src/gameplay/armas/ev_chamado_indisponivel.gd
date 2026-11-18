@@ -8,11 +8,18 @@ const TIPO: StringName = &"chamado_indisponivel"
 
 var player_id: int
 var passo: int
+## &"sem_maldicao" ou &"saltando".
+var motivo: StringName
 
 
-func _init(p_player_id: int = 0, p_passo: int = 0) -> void:
+func _init(p_player_id: int = 0, p_segundo: Variant = 0, p_motivo: StringName = &"sem_maldicao") -> void:
 	player_id = p_player_id
-	passo = p_passo
+	if p_segundo is StringName or p_segundo is String:
+		motivo = StringName(p_segundo)
+		passo = 0
+	else:
+		passo = int(p_segundo)
+		motivo = p_motivo
 
 
 func tipo() -> StringName:

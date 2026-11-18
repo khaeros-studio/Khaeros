@@ -96,10 +96,10 @@ func test_ac_ia_23_24_25_29_validacao_iv_e_ia_fabrica_e_erros() -> void:
 	t_def.avanco_passos = 20
 	t_def.margem_visivel_px = 250.0
 	t_def.execucao_melee_passos = 99
-	var diags_av := ValidadorIA.validar_completo([
+	var diags_av: Array[Diagnostico] = ValidadorIA.validar_completo([
 		ItemDoCatalogo.new(&"enemy", "res://r.tres", 0, in_rapido),
 		ItemDoCatalogo.new(&"weapon", "res://af.tres", 1, arma_fragil),
 	], t_def)
-	var cods := diags_av.map(func(d: Diagnostico) -> StringName: return d.regra)
+	var cods: Array = diags_av.map(func(d: Diagnostico) -> StringName: return d.regra)
 	for c_esp: StringName in [&"IV5", &"IV6", &"IV7", &"IV8", &"IV9"]:
 		assert_bool(cods.has(c_esp)).is_true()

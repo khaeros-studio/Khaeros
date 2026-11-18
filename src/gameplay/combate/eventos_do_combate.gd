@@ -326,18 +326,7 @@ class EvChamado extends EventoDoPasso:
 		return TIPO
 
 
-class EvChamadoIndisponivel extends EventoDoPasso:
-	const TIPO: StringName = &"chamado_indisponivel"
-	var player_id: int
-	## &"sem_maldicao" ou &"saltando".
-	var motivo: StringName
-
-	func _init(p_player_id: int, p_motivo: StringName) -> void:
-		player_id = p_player_id
-		motivo = p_motivo
-
-	func tipo() -> StringName:
-		return TIPO
+const EvChamadoIndisponivel := preload("res://src/gameplay/armas/ev_chamado_indisponivel.gd")
 
 
 class EvChefeVencido extends EventoDoPasso:

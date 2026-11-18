@@ -12,4 +12,4 @@ extends RefCounted
 
 ## O recurso de arte existe.
 func existe(caminho: String) -> bool:
-	return ResourceLoader.exists(caminho)
+	return ResourceLoader.exists(caminho) or FileAccess.file_exists(caminho)

@@ -6,7 +6,8 @@ extends GdUnitTestSuite
 class _BencaosSempreAberta:
 	extends Bencaos
 	func _init() -> void:
-		super(null, null, null, null, null, {}, null)
+		var reg_vazio: Dictionary[StringName, int] = {}
+		super(null, null, null, null, null, reg_vazio, null)
 	func restantes() -> int:
 		return 8
 	func pedir_oferta(_r: StringName, _i: int) -> StringName:
@@ -18,11 +19,11 @@ func _criar_portas_com_encontro(aguardando_inicial: bool) -> Dictionary:
 	fonte.iniciar_run(0x22334455, true)
 	var eventos := EventosDoPasso.new()
 	var conta := ContaFragmentos.new(FabricasDeCatalogo.economy_rates(), eventos)
-	var run := Run.new(null, null, fonte, null, conta, eventos)
+	var run: Run = Run.new(null, null, fonte, null, conta, eventos)
 	run.iniciar_escolha_de_arma()
 	run.confirmar_arma(&"lamina")
 	var aguardando: Array[bool] = [aguardando_inicial]
-	var portas := Portas.new(FabricasDeCatalogo.reward_table(), FluxosDePortas.new(fonte), conta, _BencaosSempreAberta.new(), eventos)
+	var portas: Portas = Portas.new(FabricasDeCatalogo.reward_table(), FluxosDePortas.new(fonte), conta, _BencaosSempreAberta.new(), eventos)
 	portas.configurar_run(run)
 	portas.configurar_vinculo(null, func() -> bool: return aguardando[0])
 	return {"portas": portas, "run": run, "conta": conta, "eventos": eventos, "aguardando": aguardando}

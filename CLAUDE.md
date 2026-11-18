@@ -46,6 +46,9 @@ after it runs `project.yaml` holds the real values.
 
 ## Collaboration Protocol
 
+**Idioma obrigatório (PT-BR):**
+- Todas as respostas, perguntas, opções, resumos de ferramentas (`toolSummary`) e mensagens de subagentes DEVEM ser sempre em **português (PT-BR)**. Nunca misture inglês nas mensagens ou perguntas ao usuário.
+
 **User-driven collaboration, not autonomous execution.**
 Every task follows: **Question -> Options -> Decision -> Draft -> Approval**
 

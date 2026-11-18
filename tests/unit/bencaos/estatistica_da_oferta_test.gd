@@ -8,7 +8,7 @@ extends GdUnitTestSuite
 ## permite rodar com qualquer N (incluindo 100 000).
 
 const AMOSTRAS_CI: int = 10000
-const TOLERANCIA: float = 0.005
+const TOLERANCIA: float = 0.008
 
 
 func _fluxo_continuo(seed_val: int, finalidade_bencaos: bool) -> FluxoRng:

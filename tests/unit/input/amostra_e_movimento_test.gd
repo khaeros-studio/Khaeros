@@ -13,6 +13,8 @@ const GATILHO_SOLTA := 0.4
 const TOL := 1e-6
 ## Arquivo legado da fatia, ainda usado por src/app/main.gd; sai quando a integração do orquestrador o trocar.
 const LEGADO_PERMITIDO := "res://src/foundation/game_input.gd"
+## Exceção do modo "Sem catálogo" (ADR-0006, story conteudo-009): opera apenas com eventos digitais quando o catálogo falha.
+const TELA_SEM_CATALOGO := "res://src/presentation/tela_de_erros_do_catalogo.gd"
 
 
 class FonteRoteirizada:
@@ -87,7 +89,7 @@ func _varrer(pasta: String, achados: Array[String]) -> void:
 			_varrer(pasta.path_join(sub), achados)
 	for nome: String in DirAccess.get_files_at(pasta):
 		var caminho := pasta.path_join(nome)
-		if not nome.ends_with(".gd") or caminho == LEGADO_PERMITIDO:
+		if not nome.ends_with(".gd") or caminho == LEGADO_PERMITIDO or caminho == TELA_SEM_CATALOGO:
 			continue
 		for linha: String in FileAccess.get_file_as_string(caminho).split("\n"):
 			var codigo := linha.strip_edges()

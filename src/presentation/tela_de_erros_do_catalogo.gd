@@ -160,15 +160,20 @@ func _input(event: InputEvent) -> void:
 
 
 ## Retorna [code]true[/code] se o evento foi consumido pela tela.
-## Eventos [InputEventJoypadMotion] são sempre ignorados (modo "Sem catálogo", ADR-0006).
-func processar_evento_entrada(event: InputEvent) -> bool:
-	if event is InputEventJoypadMotion:
+## Eventos de movimento analógico do gamepad são sempre ignorados (modo "Sem catálogo", ADR-0006).
+func processar_evento_entrada(event: Object) -> bool:
+	if event == null:
 		return false
-	if event is InputEventKey:
-		var ev_key := event as InputEventKey
-		if not ev_key.pressed or ev_key.echo:
+	var classe_ev: String = event.get_class()
+	if classe_ev.ends_with("JoypadMotion"):
+		return false
+	if classe_ev.ends_with("Key"):
+		var pressionado := bool(event.get("pressed"))
+		var eco := bool(event.get("echo"))
+		if not pressionado or eco:
 			return false
-		match ev_key.keycode:
+		var codigo_tecla := int(event.get("keycode"))
+		match codigo_tecla:
 			KEY_UP, KEY_W:
 				rolar_lista(-1)
 				return true
@@ -195,11 +200,12 @@ func processar_evento_entrada(event: InputEvent) -> bool:
 			KEY_ESCAPE:
 				# ui_voltar não faz nada: não há como iniciar run nem fechar a tela.
 				return true
-	if event is InputEventJoypadButton:
-		var ev_btn := event as InputEventJoypadButton
-		if not ev_btn.pressed:
+	if classe_ev.ends_with("JoypadButton"):
+		var btn_pressionado := bool(event.get("pressed"))
+		if not btn_pressionado:
 			return false
-		match ev_btn.button_index:
+		var indice_botao := int(event.get("button_index"))
+		match indice_botao:
 			JOY_BUTTON_DPAD_UP:
 				rolar_lista(-1)
 				return true

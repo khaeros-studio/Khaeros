@@ -210,8 +210,8 @@ func definir_profundidade(p: int) -> void:
 	if p == _profundidade_atual:
 		return
 	_profundidade_atual = p
-	var passo := _tuning.passo_profundidade if _tuning != null else 0.03
-	var piso := _tuning.piso_profundidade if _tuning != null else 0.85
+	var passo: float = _tuning.passo_profundidade if _tuning != null else 0.03
+	var piso: float = _tuning.piso_profundidade if _tuning != null else 0.85
 	_fator_profundidade = VisualMath.fator_profundidade(p, passo, piso)
 	_marcar_sujo(&"fator_profundidade", _fator_profundidade)
 
@@ -243,7 +243,7 @@ func escala_traco_atual() -> float:
 
 
 func definir_intensidade_vinheta(intensidade: float) -> void:
-	var teto := _tuning.vinheta_opacidade_max if _tuning != null else 0.40
+	var teto: float = _tuning.vinheta_opacidade_max if _tuning != null else 0.40
 	_intensidade_vinheta = clampf(intensidade, 0.0, teto)
 
 
@@ -276,8 +276,8 @@ func t_apres() -> float:
 func avancar_apres(dt_apres: float, pausado: bool = false) -> void:
 	if pausado:
 		return
-	var dt_max := _tuning.dt_max_apres if _tuning != null else 0.10
-	var dt := minf(maxf(dt_apres, 0.0), dt_max)
+	var dt_max: float = _tuning.dt_max_apres if _tuning != null else 0.10
+	var dt: float = minf(maxf(dt_apres, 0.0), dt_max)
 	if _passe.ativo():
 		var antes := _passe.progresso()
 		_passe.avancar(dt)
@@ -327,11 +327,11 @@ static func _dentro_semiaberto(r: Rect2, p: Vector2) -> bool:
 func atualizar_oclusao_passo(p_pe: Vector2, p_corpo: Vector2, y_jogador: float, pausado: bool = false) -> void:
 	if pausado:
 		return
-	var margem := _tuning.margem_histerese_oclusao_px if _tuning != null else 8.0
-	var op_alvo := _tuning.opacidade_oclusao if _tuning != null else 0.40
-	var dur_s := _tuning.duracao_transicao_oclusao_s if _tuning != null else 0.10
-	var n_oc := maxi(1, int(round(dur_s * 60.0)))
-	var passo_alfa := (1.0 - op_alvo) / float(n_oc)
+	var margem: float = _tuning.margem_histerese_oclusao_px if _tuning != null else 8.0
+	var op_alvo: float = _tuning.opacidade_oclusao if _tuning != null else 0.40
+	var dur_s: float = _tuning.duracao_transicao_oclusao_s if _tuning != null else 0.10
+	var n_oc: int = maxi(1, int(round(dur_s * 60.0)))
+	var passo_alfa: float = (1.0 - op_alvo) / float(n_oc)
 
 	for id: int in _oclusores:
 		var oc: PropOclusor = _oclusores[id]

@@ -75,6 +75,23 @@ func do_tipo(tipo: StringName) -> Array[EventoDoPasso]:
 	return r
 
 
+## Filtra os eventos já emitidos no passo por tipo ([code]StringName[/code] / [code]String[/code])
+## ou por um [code]Callable[/code] predicado.
+func filtrar(criterio: Variant) -> Array[EventoDoPasso]:
+	if criterio is StringName:
+		return do_tipo(criterio as StringName)
+	if criterio is String:
+		return do_tipo(StringName(criterio as String))
+	if criterio is Callable:
+		var pred: Callable = criterio as Callable
+		var r: Array[EventoDoPasso] = []
+		for e: EventoDoPasso in _lista:
+			if bool(pred.call(e)):
+				r.append(e)
+		return r
+	return []
+
+
 ## Cópia nova de todos os eventos já emitidos, na ordem de emissão.
 func todos() -> Array[EventoDoPasso]:
 	var r: Array[EventoDoPasso] = []

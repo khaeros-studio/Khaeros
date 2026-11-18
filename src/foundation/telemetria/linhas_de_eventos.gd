@@ -17,7 +17,7 @@ static func montar_oferta(evento: EventoDoPasso, indice_camara_atual: int,
 		avisos: RelatorDeAvisosTelemetria) -> Dictionary:
 	var ind: Variant = evento.get("indice_camara")
 	var indice_out: int = int(ind) if ind != null else indice_camara_atual
-	var cartas := _extrair_cartas(evento, &"oferta", avisos)
+	var cartas: Variant = _extrair_cartas(evento, &"oferta", avisos)
 	var trocas: Variant = evento.get("trocas")
 	if trocas == null and avisos != null:
 		avisos.registrar_tl3(&"oferta", "trocas")
@@ -30,7 +30,7 @@ static func montar_oferta(evento: EventoDoPasso, indice_camara_atual: int,
 
 ## Monta a linha `oferta_trocada` a partir de `EvOfertaTrocada` ou evento equivalente (AC-TL-08).
 static func montar_oferta_trocada(evento: EventoDoPasso, avisos: RelatorDeAvisosTelemetria) -> Dictionary:
-	var cartas := _extrair_cartas(evento, &"oferta_trocada", avisos)
+	var cartas: Variant = _extrair_cartas(evento, &"oferta_trocada", avisos)
 	var trocas: Variant = evento.get("trocas")
 	if trocas == null and avisos != null:
 		avisos.registrar_tl3(&"oferta_trocada", "trocas")

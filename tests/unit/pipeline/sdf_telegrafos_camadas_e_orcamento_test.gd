@@ -67,15 +67,15 @@ func test_malha_de_borda_area_e_tracejado_f7_ac_pv_28_61_62() -> void:
 
 
 func test_pool_de_telegrafos_24_slots_estados_e_contorno_secundario_ac_pv_24_25_49_84_85() -> void:
-	var camadas := auto_free(CamadasDoMundo.new())
-	var tuning := FabricasDeCatalogo.visual_tuning()
-	var ev := EstadoVisual.new()
+	var camadas: CamadasDoMundo = auto_free(CamadasDoMundo.new())
+	var tuning: VisualTuning = FabricasDeCatalogo.visual_tuning()
+	var ev: EstadoVisual = EstadoVisual.new()
 	ev.configurar(tuning, func() -> int: return 100_000)
-	var pool := PoolDeTelegrafos.new(tuning, ev)
+	var pool: PoolDeTelegrafos = PoolDeTelegrafos.new(tuning, ev)
 	pool.pre_instanciar(camadas)
 
 	# AC-PV-25: 24 slots pré-instanciados e nó de anéis de área anterior aos preenchimentos
-	var raiz_pre := camadas.raiz(CamadasDoMundo.Camada.TELEGRAFO_PREENCHIMENTO)
+	var raiz_pre: Node = camadas.raiz(CamadasDoMundo.Camada.TELEGRAFO_PREENCHIMENTO)
 	assert_int(raiz_pre.get_child(0).get_index()).is_equal(pool.no_aneis_area().get_index())
 	assert_int(pool.no_preenchimento(0).z_index).is_equal(0) # herda z = -5 da camada
 
@@ -143,8 +143,8 @@ func test_validador_de_familia_oclusao_f9_traco_e_orcamento_ac_pv_05_33_80_83_86
 	assert_bool(corpo.contorno_tracejado_ativo()).is_true()
 
 	# AC-PV-83, 86, 87, 88: imagens residuais, fio de vínculo, marca do Virote e validador
-	var camadas := auto_free(CamadasDoMundo.new())
-	var vfx_m := TracoEVfxMaldicoes.new(FabricasDeCatalogo.visual_tuning())
+	var camadas: CamadasDoMundo = auto_free(CamadasDoMundo.new())
+	var vfx_m: TracoEVfxMaldicoes = TracoEVfxMaldicoes.new(FabricasDeCatalogo.visual_tuning())
 	vfx_m.montar_vfx_maldicoes_em_z_menos_5(camadas)
 	vfx_m.atualizar_fio_de_vinculo(true, Vector2.ZERO, Vector2(300, 0), 0.0)
 	assert_str(String(vfx_m.estado_do_fio())).is_equal("normal")

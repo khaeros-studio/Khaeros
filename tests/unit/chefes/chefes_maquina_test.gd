@@ -31,6 +31,8 @@ func test_ac_ch_01_10_13_surgimento_700_hp_4_pilares_e_rotacao_deterministica_0_
 			amb.ia.definir_jogador(0, est.posicao + Vector2(0.0, 80.0), 27.0)
 			amb.avancar_passo()
 			seguranca += 1
+		# Remove lacaios invocados pelo Padrão 3 para isolar a medição de RNG do chefe
+		amb.ia.limpar_lacaios_invocados()
 		# Avança o tempo de RECUPERACAO até voltar a APROXIMACAO
 		while est.fase == EstadoDeInimigoIA.Fase.RECUPERACAO and seguranca < 400:
 			amb.avancar_passo()

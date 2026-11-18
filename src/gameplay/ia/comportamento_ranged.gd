@@ -5,7 +5,7 @@ extends Comportamento
 
 func ao_surgir(i: EstadoDeInimigoIA, ia: Object) -> void:
 	i.fase = EstadoDeInimigoIA.Fase.APROXIMACAO
-	i.timer = ia.sortear_espera_inicial()
+	i.timer = int(ia.sortear_espera_inicial())
 
 
 func decidir(i: EstadoDeInimigoIA, alvo: AlvoDeInimigo, ia: Object) -> void:
@@ -14,9 +14,9 @@ func decidir(i: EstadoDeInimigoIA, alvo: AlvoDeInimigo, ia: Object) -> void:
 	match i.fase:
 		EstadoDeInimigoIA.Fase.APROXIMACAO:
 			i.timer -= 1
-			var delta := alvo.pos - i.posicao
-			var d := delta.length()
-			var dir := i.ultima_direcao if d == 0.0 else delta / d
+			var delta: Vector2 = alvo.pos - i.posicao
+			var d: float = delta.length()
+			var dir: Vector2 = i.ultima_direcao if d == 0.0 else delta / d
 			i.ultima_direcao = dir
 			var visivel: bool = ia.esta_na_vista(i.posicao)
 			if i.restante_imob <= 0:
@@ -29,11 +29,11 @@ func decidir(i: EstadoDeInimigoIA, alvo: AlvoDeInimigo, ia: Object) -> void:
 				elif d > tuning.ranged_longe_px + 1e-5:
 					i.posicao += dir * v_passo
 				else:
-					var perp := Vector2(-dir.y, dir.x)
+					var perp: Vector2 = Vector2(-dir.y, dir.x)
 					i.posicao += perp * (v_passo * tuning.fator_contorno)
 				delta = alvo.pos - i.posicao
 				d = delta.length()
-				visivel = ia.esta_na_vista(i.posicao)
+				visivel = bool(ia.esta_na_vista(i.posicao))
 
 			if i.restante_imob <= 0 and i.timer <= 0 and visivel and d < tuning.ranged_ataque_px - 1e-5:
 				if ia.tentar_iniciar_preparo(i, alvo):
@@ -42,7 +42,7 @@ func decidir(i: EstadoDeInimigoIA, alvo: AlvoDeInimigo, ia: Object) -> void:
 
 		EstadoDeInimigoIA.Fase.PREPARO:
 			i.timer = telegrafos.restante_de(i.id) if telegrafos != null else maxi(0, i.timer - 1)
-			var disparou := telegrafos.disparou_neste_passo(i.id) if telegrafos != null else (i.timer == 0)
+			var disparou: bool = telegrafos.disparou_neste_passo(i.id) if telegrafos != null else (i.timer == 0)
 			if disparou:
 				ia.disparar_projetil_travado(i)
 				i.fase = EstadoDeInimigoIA.Fase.EXECUCAO
@@ -59,4 +59,4 @@ func decidir(i: EstadoDeInimigoIA, alvo: AlvoDeInimigo, ia: Object) -> void:
 			i.timer -= 1
 			if i.timer <= 0:
 				i.fase = EstadoDeInimigoIA.Fase.APROXIMACAO
-				i.timer = ia.sortear_espera_pos_recuperacao()
+				i.timer = int(ia.sortear_espera_pos_recuperacao())

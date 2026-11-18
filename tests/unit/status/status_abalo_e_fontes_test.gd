@@ -5,8 +5,19 @@ extends GdUnitTestSuite
 ## chefe abalável e fontes de status da arma vs Maldição (`AC-ST-09..11, 17, 18, 27..30`).
 
 
+func _tuning_mod() -> ModifiersTuning:
+	var t := ModifiersTuning.new()
+	t.piso_vida_jogador = 20.0
+	t.piso_vida_inimigo = 1.0
+	t.teto_reducao_dano = 0.6
+	t.teto_multiplicador_dano = 4.0
+	t.fator_empurrao_chefe = 0.12
+	t.piso_vida_maldicao = 20.0
+	return t
+
+
 func test_ac_st_09_10_11_abalo_preserva_maior_duracao_entre_240_90_e_30_passos() -> void:
-	var mod_tuning := ModifiersTuning.new()
+	var mod_tuning := _tuning_mod()
 	var portador := Portador.new(301, -1, Atributos.Especie.INIMIGO,
 			{Atributos.VIDA_MAX: 100.0}, mod_tuning)
 	var m := ModuloDeStatus.new()
@@ -48,7 +59,7 @@ func test_ac_st_09_10_11_abalo_preserva_maior_duracao_entre_240_90_e_30_passos()
 
 
 func test_ac_st_17_18_reducao_30_pct_vale_para_corpo_a_corpo_projetil_em_voo_e_chefe() -> void:
-	var mod_tuning := ModifiersTuning.new()
+	var mod_tuning := _tuning_mod()
 	var p_inimigo := Portador.new(302, -1, Atributos.Especie.INIMIGO,
 			{Atributos.VIDA_MAX: 75.0}, mod_tuning)
 	var p_chefe := Portador.new(303, -1, Atributos.Especie.INIMIGO,
@@ -77,13 +88,13 @@ func test_ac_st_17_18_reducao_30_pct_vale_para_corpo_a_corpo_projetil_em_voo_e_c
 
 
 func test_ac_st_27_28_29_30_fontes_da_arma_somam_com_bencao_e_maldicao_nao_herda_gatilhos_da_arma() -> void:
-	var mod_tuning := ModifiersTuning.new()
+	var mod_tuning := _tuning_mod()
 	var p_jogador := Portador.new(1, 0, Atributos.Especie.JOGADOR,
 			{Atributos.VIDA_MAX: 130.0}, mod_tuning)
 
-	# Arma base com gatilho acerto_ataque de sangramento (+1) + bênção Toque Carmesim (comum +2,0 -> +2)
-	var g_arma := GatilhoAtivo.new(&"acerto_ataque", 1.0, {"status": "sangramento"})
-	var g_bencao := GatilhoAtivo.new(&"acerto_ataque", 2.0, {"status": "sangramento"})
+	# Arma base com gatilho golpe_sangramento (+1) + bênção Toque Carmesim (comum +2,0 -> +2)
+	var g_arma := GatilhoAtivo.new(&"golpe_sangramento", 1.0)
+	var g_bencao := GatilhoAtivo.new(&"golpe_sangramento", 2.0)
 	p_jogador.aplicar_fonte(FonteDeModificador.new(&"arma:base", [], [g_arma]))
 	p_jogador.aplicar_fonte(FonteDeModificador.new(&"bencao:ferro_1", [], [g_bencao]))
 

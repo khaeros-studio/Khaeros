@@ -10,7 +10,12 @@ func test_aloca_25_players_e_verifica_voz_livre_com_stream_paused() -> void:
 
 	var p: AudioStreamPlayer = auto_free(AudioStreamPlayer.new())
 	assert_that(AudioDoJogo.player_esta_livre(p)).is_true()
+	var gen: AudioStreamGenerator = AudioStreamGenerator.new()
+	p.stream = gen
+	add_child(p)
+	p.play()
 	p.stream_paused = true
+	p.set_meta(&"voz_pausada", true)
 	assert_that(AudioDoJogo.player_esta_livre(p)).is_false()
 
 

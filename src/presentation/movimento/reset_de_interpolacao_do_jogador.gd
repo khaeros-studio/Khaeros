@@ -42,5 +42,5 @@ func sincronizar() -> bool:
 	return true
 
 
-func _physics_process(_delta: float) -> void:
+func _process(_delta: float) -> void:
 	sincronizar()

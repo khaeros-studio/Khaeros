@@ -181,19 +181,19 @@ func estado_de(id: int) -> EstadoDeInimigoIA:
 
 
 func ref_de(id: int) -> InimigoRef:
-	var e := _por_id.get(id, null)
+	var e: EstadoDeInimigoIA = _por_id.get(id, null)
 	return e.ref if e != null else null
 
 
 func vivo(inimigo_id: int) -> bool:
-	var e := _por_id.get(inimigo_id, null)
+	var e: EstadoDeInimigoIA = _por_id.get(inimigo_id, null)
 	if e == null:
 		return false
 	return e.vida > 0.0 and e.fase != EstadoDeInimigoIA.Fase.SUBJUGADO and e.fase != EstadoDeInimigoIA.Fase.MORTO
 
 
 func atingivel(inimigo_id: int) -> bool:
-	var e := _por_id.get(inimigo_id, null)
+	var e: EstadoDeInimigoIA = _por_id.get(inimigo_id, null)
 	if e == null:
 		return false
 	return e.vida > 0.0 \
@@ -220,7 +220,7 @@ func executar_item_7() -> void:
 	for id_in: int in retrato_ids:
 		if not vivo(id_in):
 			continue
-		var e := _por_id[id_in]
+		var e: EstadoDeInimigoIA = _por_id[id_in]
 		if e.ref != null and e.ref.portador is Portador:
 			(e.ref.portador as Portador).avancar(1)
 		if _telegrafos != null:
@@ -233,7 +233,7 @@ func executar_item_7() -> void:
 func passo(inimigo_id: int) -> void:
 	if _jogador_morto:
 		return
-	var i := _por_id.get(inimigo_id, null)
+	var i: EstadoDeInimigoIA = _por_id.get(inimigo_id, null)
 	if i == null:
 		return
 	# 1. Vida <= 0 ou SUBJUGADO: morto não age (R2, R21)
@@ -247,7 +247,8 @@ func passo(inimigo_id: int) -> void:
 		i.sincronizar_ref()
 		return
 	# 3. Lê o alvo efetivo ANTES de descer atração, respiro e imobilização (R16, R17, R18, ADR-0018 §3 passo 3)
-	var alvo := alvo_efetivo(inimigo_id)
+	var alvo: AlvoDeInimigo = alvo_efetivo(inimigo_id)
+	var imobilizado_neste_passo: bool = i.restante_imob > 0
 	if i.restante_atracao > 0:
 		i.restante_atracao -= 1
 		if i.restante_atracao == 0:
@@ -258,12 +259,17 @@ func passo(inimigo_id: int) -> void:
 	if i.restante_imob > 0:
 		i.restante_imob -= 1
 
-	# 4. Decisão por comportamento
-	var era_avanco := (i.fase == EstadoDeInimigoIA.Fase.EXECUCAO) and (
+	# 4. Decisão por comportamento (se estava imobilizado neste passo, comporta-se como imobilizado no passo inteiro, AC-IA-37)
+	var imob_apos_decremento: int = i.restante_imob
+	if imobilizado_neste_passo:
+		i.restante_imob = maxi(1, i.restante_imob)
+	var era_avanco: bool = (i.fase == EstadoDeInimigoIA.Fase.EXECUCAO) and (
 		i.def.comportamento == &"arremetida" or i.def.comportamento == &"charger" \
 		or (i.chefe and i.estado_chefe != null and i.estado_chefe.padrao == 1)
 	)
 	_comportamento_de(i).decidir(i, alvo, self)
+	if imobilizado_neste_passo:
+		i.restante_imob = imob_apos_decremento
 
 	# 5. Conter contra obstáculos e retângulo da câmara (R9)
 	if not era_avanco:
@@ -312,12 +318,12 @@ func fim_do_item_7() -> void:
 # --- Seleção de alvo, atração, imobilização e puxar (R16–R20, R22; ADR-0018 §4, §5) -
 
 func alvo_efetivo(inimigo_id: int) -> AlvoDeInimigo:
-	var i := _por_id.get(inimigo_id, null)
-	var out := i.alvo_cache if i != null else AlvoDeInimigo.new()
+	var i: EstadoDeInimigoIA = _por_id.get(inimigo_id, null)
+	var out: AlvoDeInimigo = i.alvo_cache if i != null else AlvoDeInimigo.new()
 	if i != null and i.restante_atracao > 0 and _maldicoes != null:
-		var m_campo := _maldicoes.maldicao_em_campo(i.player_atracao_id)
+		var m_campo: int = _maldicoes.maldicao_em_campo(i.player_atracao_id)
 		if m_campo != -1 and (i.maldicao_atracao_id == -1 or m_campo == i.maldicao_atracao_id):
-			var pr := _maldicoes.posicao_e_raio(m_campo)
+			var pr: Vector3 = _maldicoes.posicao_e_raio(m_campo)
 			out.faccao = TelegrafoTipos.FaccaoAlvo.ALIADO
 			out.id = m_campo
 			out.player_id = i.player_atracao_id
@@ -325,10 +331,10 @@ func alvo_efetivo(inimigo_id: int) -> AlvoDeInimigo:
 			out.raio = pr.z if pr.z > 0.0 else 24.0
 			return out
 	# R22: mesmo sem ter nascido antes, se ordem é par (>= 0) e a acuada está em Acuada, alvo_padrao é ACUADA
-	var usa_acuada := i != null and not i.chefe and i.ordem >= 0 and (i.ordem % 2) == 0 \
+	var usa_acuada: bool = i != null and not i.chefe and i.ordem >= 0 and (i.ordem % 2) == 0 \
 		and _acuada != null and _acuada.acuada_atingivel()
 	if usa_acuada:
-		var pa := _acuada.posicao_e_raio_acuada()
+		var pa: Vector3 = _acuada.posicao_e_raio_acuada()
 		out.faccao = TelegrafoTipos.FaccaoAlvo.ACUADA
 		out.id = 0
 		out.player_id = 0
@@ -347,12 +353,12 @@ func alvo_efetivo(inimigo_id: int) -> AlvoDeInimigo:
 func atrair(id: int, passos: int, passos_respiro: int = 30, player_id: int = 0) -> bool:
 	if passos <= 0 or not atingivel(id):
 		return false
-	var i := _por_id[id]
+	var i: EstadoDeInimigoIA = _por_id[id]
 	if i.chefe and i.fase == EstadoDeInimigoIA.Fase.TRANSICAO_FASE:
 		return false
 	if _maldicoes == null:
 		return false
-	var m_id := _maldicoes.maldicao_em_campo(player_id)
+	var m_id: int = _maldicoes.maldicao_em_campo(player_id)
 	if m_id == -1:
 		return false
 	if i.restante_atracao > 0 or i.restante_respiro > 0:
@@ -366,7 +372,7 @@ func atrair(id: int, passos: int, passos_respiro: int = 30, player_id: int = 0) 
 
 ## R16 / R21: Chamado síncrono quando a Maldição sai de campo (Troca, Exaustão ou troca de câmara).
 func maldicao_saiu_de_campo(player_id: int = 0) -> void:
-	_epoca_campo[player_id] = _epoca_campo.get(player_id, 0) + 1
+	_epoca_campo[player_id] = int(_epoca_campo.get(player_id, 0)) + 1
 	for e: EstadoDeInimigoIA in _inimigos:
 		if e.restante_atracao > 0 and e.player_atracao_id == player_id:
 			e.restante_atracao = 0
@@ -378,7 +384,7 @@ func maldicao_saiu_de_campo(player_id: int = 0) -> void:
 func imobilizar(id: int, passos: int) -> bool:
 	if passos <= 0 or not atingivel(id):
 		return false
-	var i := _por_id[id]
+	var i: EstadoDeInimigoIA = _por_id[id]
 	if i.elite or i.chefe or i.armadura_ativa:
 		return false
 	i.restante_imob = maxi(i.restante_imob, passos)
@@ -389,10 +395,10 @@ func imobilizar(id: int, passos: int) -> bool:
 func puxar(id: int, centro: Vector2, distancia_px: float, parar_a_px: float) -> bool:
 	if distancia_px <= 0.0 or not atingivel(id):
 		return false
-	var i := _por_id[id]
+	var i: EstadoDeInimigoIA = _por_id[id]
 	if i.chefe:
 		return false
-	var d := (centro - i.posicao).length()
+	var d: float = (centro - i.posicao).length()
 	if d <= parar_a_px + 1e-6:
 		return false
 	i.posicao = FormulasDoChefe.calcular_posicao_puxada(
@@ -402,7 +408,7 @@ func puxar(id: int, centro: Vector2, distancia_px: float, parar_a_px: float) -> 
 
 
 func esta_atraido(id: int) -> bool:
-	var i := _por_id.get(id, null)
+	var i: EstadoDeInimigoIA = _por_id.get(id, null)
 	if i == null or i.restante_atracao <= 0:
 		return false
 	if _maldicoes == null or _maldicoes.maldicao_em_campo(i.player_atracao_id) == -1:
@@ -411,7 +417,7 @@ func esta_atraido(id: int) -> bool:
 
 
 func esta_imobilizado(id: int) -> bool:
-	var i := _por_id.get(id, null)
+	var i: EstadoDeInimigoIA = _por_id.get(id, null)
 	return i != null and i.restante_imob > 0
 
 
@@ -496,7 +502,7 @@ func _preencher_vista(e: EstadoDeInimigoIA, v: VistaDeInimigo) -> void:
 func remover_morto(id: int) -> void:
 	if not _por_id.has(id):
 		return
-	var e := _por_id[id]
+	var e: EstadoDeInimigoIA = _por_id[id]
 	e.vida = 0.0
 	e.fase = EstadoDeInimigoIA.Fase.MORTO
 	e.sincronizar_ref()
@@ -510,7 +516,7 @@ func remover_morto(id: int) -> void:
 ## Se for Elite com Armadura de Elite quebrável por hits (`armadura_hits_restantes > 0`), absorve até zerar e então quebra com `"Quebrou!"` + hitstop.
 ## Elites de armadura permanente e chefes nunca quebram nem cambaleiam (AC-IA-11, AC-IA-18, AC-CH-02).
 func pedir_recuperacao(id: int, passos: int = -1, hitstop_quebra: int = 6) -> bool:
-	var i := _por_id.get(id, null)
+	var i: EstadoDeInimigoIA = _por_id.get(id, null)
 	if i == null or not vivo(id):
 		return false
 	if i.chefe:
@@ -524,7 +530,7 @@ func pedir_recuperacao(id: int, passos: int = -1, hitstop_quebra: int = 6) -> bo
 		i.armadura_ativa = false
 	if i.fase != EstadoDeInimigoIA.Fase.PREPARO:
 		return false
-	var p_rec := passos if passos > 0 else Unidades.duracao_para_passos(_tuning.quebrou_recuperacao_s)
+	var p_rec: int = passos if passos > 0 else Unidades.duracao_para_passos(_tuning.quebrou_recuperacao_s)
 	if _telegrafos != null:
 		_telegrafos.quebrar(id)
 	i.fase = EstadoDeInimigoIA.Fase.RECUPERACAO
@@ -539,10 +545,10 @@ func pedir_recuperacao(id: int, passos: int = -1, hitstop_quebra: int = 6) -> bo
 
 ## Aplica empurrão/cambaleio de um impacto no inimigo, respeitando Armadura de Elite/Chefe (R8, R9, R10).
 func aplicar_impacto_combate(id: int, deslocamento_empurrao: Vector2, passos_cambaleio: int = 0) -> void:
-	var i := _por_id.get(id, null)
+	var i: EstadoDeInimigoIA = _por_id.get(id, null)
 	if i == null or not vivo(id) or invulneravel_por_fase(id):
 		return
-	var desl := deslocamento_empurrao * i.fator_empurrao
+	var desl: Vector2 = deslocamento_empurrao * i.fator_empurrao
 	if desl != Vector2.ZERO:
 		i.posicao = conter(i.posicao + desl, i.raio)
 	if passos_cambaleio > 0 and not i.armadura_ativa and not i.chefe and not i.elite and i.ref != null:
@@ -552,7 +558,7 @@ func aplicar_impacto_combate(id: int, deslocamento_empurrao: Vector2, passos_cam
 
 ## R21 / Chefes R9: Põe Vida 0, para a IA do chefe e mantém-no na lista em `SUBJUGADO` (fora de `atingiveis()` e da separação).
 func subjugar(inimigo_id: int) -> void:
-	var i := _por_id.get(inimigo_id, null)
+	var i: EstadoDeInimigoIA = _por_id.get(inimigo_id, null)
 	if i == null:
 		return
 	i.vida = 0.0
@@ -568,7 +574,7 @@ func subjugar(inimigo_id: int) -> void:
 
 func limpar_lacaios_invocados() -> Array[int]:
 	var removidos: Array[int] = []
-	var copia := _inimigos.duplicate()
+	var copia: Array[EstadoDeInimigoIA] = _inimigos.duplicate()
 	for e: EstadoDeInimigoIA in copia:
 		if e.invocado_pelo_chefe:
 			removidos.append(e.id)
@@ -581,27 +587,27 @@ func limpar_lacaios_invocados() -> Array[int]:
 
 ## Chefes R7 / F4 / ADR-0018 §8: Chamado pelo Combate sempre que o chefe perde Vida.
 func notificar_dano_no_chefe(id: int) -> void:
-	var i := _por_id.get(id, null)
+	var i: EstadoDeInimigoIA = _por_id.get(id, null)
 	if i == null or not i.chefe or i.estado_chefe == null:
 		return
-	var ec := i.estado_chefe
+	var ec: EstadoDoChefe = i.estado_chefe
 	if ec.em_furia or ec.transicao_ja_ocorreu or i.fase == EstadoDeInimigoIA.Fase.TRANSICAO_FASE:
 		return
 	if i.vida <= 0.0:
 		# AC-CH-14: dano letal direto de > 350 para <= 0 pula a TransicaoFase!
 		return
-	var frac := _chefes_tuning.limiar_furia_frac if _chefes_tuning != null else 0.50
-	var limiar := FormulasDoChefe.limiar_vida_furia(i.vida_max, frac)
+	var frac: float = _chefes_tuning.limiar_furia_frac if _chefes_tuning != null else 0.50
+	var limiar: int = FormulasDoChefe.limiar_vida_furia(i.vida_max, frac)
 	if i.vida <= float(limiar) + 1e-5:
 		if i.fase == EstadoDeInimigoIA.Fase.EXECUCAO:
 			ec.transicao_pendente = true
 		else:
-			var avancar_padrao := (i.fase == EstadoDeInimigoIA.Fase.PREPARO)
+			var avancar_padrao: bool = (i.fase == EstadoDeInimigoIA.Fase.PREPARO)
 			entrar_em_transicao_fase_chefe(i, avancar_padrao)
 
 
 func entrar_em_transicao_fase_chefe(i: EstadoDeInimigoIA, avancar_padrao_ao_sair: bool) -> void:
-	var ec := i.estado_chefe
+	var ec: EstadoDoChefe = i.estado_chefe
 	ec.transicao_ja_ocorreu = true
 	ec.avancar_padrao_ao_sair = avancar_padrao_ao_sair
 	ec.pulso_pendente = true
@@ -612,14 +618,14 @@ func entrar_em_transicao_fase_chefe(i: EstadoDeInimigoIA, avancar_padrao_ao_sair
 		i.restante_atracao = 0
 		i.restante_respiro = i.respiro_guardado
 		i.maldicao_atracao_id = -1
-	var dur_s := _chefes_tuning.transicao_fase_s if _chefes_tuning != null else 0.50
+	var dur_s: float = _chefes_tuning.transicao_fase_s if _chefes_tuning != null else 0.50
 	i.fase = EstadoDeInimigoIA.Fase.TRANSICAO_FASE
 	i.timer = Unidades.duracao_para_passos(dur_s)
 	i.sincronizar_ref()
 
 
 func invulneravel_por_fase(id: int) -> bool:
-	var i := _por_id.get(id, null)
+	var i: EstadoDeInimigoIA = _por_id.get(id, null)
 	return i != null and i.fase == EstadoDeInimigoIA.Fase.TRANSICAO_FASE
 
 
@@ -676,7 +682,7 @@ func tentar_iniciar_preparo(i: EstadoDeInimigoIA, alvo: AlvoDeInimigo) -> bool:
 	i.alvo_travado_id = alvo.id
 	i.alvo_travado_player_id = alvo.player_id
 	i.alvo_travado_raio = alvo.raio
-	i.epoca_campo_travada = _epoca_campo.get(alvo.player_id, 0)
+	i.epoca_campo_travada = int(_epoca_campo.get(alvo.player_id, 0))
 	if _telegrafos == null:
 		return true
 	return _telegrafos.iniciar_telegrafo(i.id, i.def, alvo.id, alvo.faccao)
@@ -687,7 +693,7 @@ func tentar_iniciar_preparo_chefe(i: EstadoDeInimigoIA, padrao: BossPatternDef, 
 	i.alvo_travado_id = alvo.id
 	i.alvo_travado_player_id = alvo.player_id
 	i.alvo_travado_raio = alvo.raio
-	i.epoca_campo_travada = _epoca_campo.get(alvo.player_id, 0)
+	i.epoca_campo_travada = int(_epoca_campo.get(alvo.player_id, 0))
 	if _telegrafos == null:
 		return true
 	return _telegrafos.iniciar_telegrafo_chefe(i.id, padrao, i.raio, alvo.id, alvo.faccao)
@@ -696,7 +702,7 @@ func tentar_iniciar_preparo_chefe(i: EstadoDeInimigoIA, padrao: BossPatternDef, 
 func _alvo_travado_valido(i: EstadoDeInimigoIA) -> bool:
 	match i.alvo_travado_faccao:
 		TelegrafoTipos.FaccaoAlvo.ALIADO:
-			if _epoca_campo.get(i.alvo_travado_player_id, 0) != i.epoca_campo_travada:
+			if int(_epoca_campo.get(i.alvo_travado_player_id, 0)) != i.epoca_campo_travada:
 				return false
 			return _maldicoes != null and _maldicoes.maldicao_atingivel(i.alvo_travado_id) \
 				and _maldicoes.maldicao_em_campo(i.alvo_travado_player_id) == i.alvo_travado_id
@@ -801,79 +807,79 @@ func disparar_projetil_radial_chefe(i: EstadoDeInimigoIA, pos_saida: Vector2, di
 
 
 func aplicar_puxao_convergencia(pos_chefe: Vector2, raio_chefe: float) -> void:
-	var raio_puxao := _chefes_tuning.raio_puxao_px if _chefes_tuning != null else 420.0
-	var passo_puxao := _chefes_tuning.puxao_convergencia_px if _chefes_tuning != null else 75.0
+	var raio_puxao: float = _chefes_tuning.raio_puxao_px if _chefes_tuning != null else 420.0
+	var passo_puxao: float = _chefes_tuning.puxao_convergencia_px if _chefes_tuning != null else 75.0
 	# Puxa o jogador se dentro de raio_puxao e não imune
-	var pos_jog := _jogadores_pos.get(0, Vector2.ZERO)
-	var r_jog := _jogadores_raios.get(0, 27.0)
-	var d_jog := (pos_jog - pos_chefe).length()
+	var pos_jog: Vector2 = _jogadores_pos.get(0, Vector2.ZERO)
+	var r_jog: float = _jogadores_raios.get(0, 27.0)
+	var d_jog: float = (pos_jog - pos_chefe).length()
 	if d_jog > 0.0 and d_jog <= raio_puxao + 1e-5:
 		if _deslocamentos == null or not _deslocamentos.imune(TelegrafoTipos.FaccaoAlvo.JOGADOR, 0):
-			var nova_jog := FormulasDoChefe.calcular_posicao_puxada(
+			var nova_jog: Vector2 = FormulasDoChefe.calcular_posicao_puxada(
 				pos_jog, r_jog, pos_chefe, passo_puxao, raio_chefe + r_jog, _geometria)
-			var delta_jog := nova_jog - pos_jog
+			var delta_jog: Vector2 = nova_jog - pos_jog
 			_jogadores_pos[0] = nova_jog
 			if _deslocamentos != null and delta_jog != Vector2.ZERO:
 				_deslocamentos.deslocar(TelegrafoTipos.FaccaoAlvo.JOGADOR, 0, delta_jog)
 
 	# Puxa a Maldição em campo se existir, dentro de raio_puxao e não imune (ex.: não Saltando)
 	if _maldicoes != null:
-		var m_id := _maldicoes.maldicao_em_campo(0)
+		var m_id: int = _maldicoes.maldicao_em_campo(0)
 		if m_id != -1 and _maldicoes.maldicao_atingivel(m_id):
-			var pr := _maldicoes.posicao_e_raio(m_id)
-			var pos_m := Vector2(pr.x, pr.y)
-			var r_m := pr.z if pr.z > 0.0 else 24.0
-			var d_m := (pos_m - pos_chefe).length()
+			var pr: Vector3 = _maldicoes.posicao_e_raio(m_id)
+			var pos_m: Vector2 = Vector2(pr.x, pr.y)
+			var r_m: float = pr.z if pr.z > 0.0 else 24.0
+			var d_m: float = (pos_m - pos_chefe).length()
 			if d_m > 0.0 and d_m <= raio_puxao + 1e-5:
 				if _deslocamentos == null or not _deslocamentos.imune(TelegrafoTipos.FaccaoAlvo.ALIADO, m_id):
-					var nova_m := FormulasDoChefe.calcular_posicao_puxada(
+					var nova_m: Vector2 = FormulasDoChefe.calcular_posicao_puxada(
 						pos_m, r_m, pos_chefe, passo_puxao, raio_chefe + r_m, _geometria)
-					var delta_m := nova_m - pos_m
+					var delta_m: Vector2 = nova_m - pos_m
 					if _deslocamentos != null and delta_m != Vector2.ZERO:
 						_deslocamentos.deslocar(TelegrafoTipos.FaccaoAlvo.ALIADO, m_id, delta_m)
 
 
 func aplicar_pulso_transicao_furia(i: EstadoDeInimigoIA) -> void:
-	var raio_pulso := _chefes_tuning.raio_pulso_furia_px if _chefes_tuning != null else 240.0
-	var emp_pulso := _chefes_tuning.empurrao_pulso_furia_px if _chefes_tuning != null else 120.0
-	var pos_jog := _jogadores_pos.get(0, Vector2.ZERO)
-	var r_jog := _jogadores_raios.get(0, 27.0)
+	var raio_pulso: float = _chefes_tuning.raio_pulso_furia_px if _chefes_tuning != null else 240.0
+	var emp_pulso: float = _chefes_tuning.empurrao_pulso_furia_px if _chefes_tuning != null else 120.0
+	var pos_jog: Vector2 = _jogadores_pos.get(0, Vector2.ZERO)
+	var r_jog: float = _jogadores_raios.get(0, 27.0)
 	if (pos_jog - i.posicao).length() < raio_pulso:
 		if _deslocamentos == null or not _deslocamentos.imune(TelegrafoTipos.FaccaoAlvo.JOGADOR, 0):
-			var nova_jog := FormulasDoChefe.calcular_posicao_repelida_furia(
+			var nova_jog: Vector2 = FormulasDoChefe.calcular_posicao_repelida_furia(
 				pos_jog, r_jog, i.posicao, raio_pulso, emp_pulso, _geometria)
-			var delta_jog := nova_jog - pos_jog
+			var delta_jog: Vector2 = nova_jog - pos_jog
 			_jogadores_pos[0] = nova_jog
 			if _deslocamentos != null and delta_jog != Vector2.ZERO:
 				_deslocamentos.deslocar(TelegrafoTipos.FaccaoAlvo.JOGADOR, 0, delta_jog)
 
 	if _maldicoes != null:
-		var m_id := _maldicoes.maldicao_em_campo(0)
+		var m_id: int = _maldicoes.maldicao_em_campo(0)
 		if m_id != -1 and _maldicoes.maldicao_atingivel(m_id):
-			var pr := _maldicoes.posicao_e_raio(m_id)
-			var pos_m := Vector2(pr.x, pr.y)
-			var r_m := pr.z if pr.z > 0.0 else 24.0
+			var pr: Vector3 = _maldicoes.posicao_e_raio(m_id)
+			var pos_m: Vector2 = Vector2(pr.x, pr.y)
+			var r_m: float = pr.z if pr.z > 0.0 else 24.0
 			if (pos_m - i.posicao).length() < raio_pulso:
 				if _deslocamentos == null or not _deslocamentos.imune(TelegrafoTipos.FaccaoAlvo.ALIADO, m_id):
-					var nova_m := FormulasDoChefe.calcular_posicao_repelida_furia(
+					var nova_m: Vector2 = FormulasDoChefe.calcular_posicao_repelida_furia(
 						pos_m, r_m, i.posicao, raio_pulso, emp_pulso, _geometria)
-					var delta_m := nova_m - pos_m
+					var delta_m: Vector2 = nova_m - pos_m
 					if _deslocamentos != null and delta_m != Vector2.ZERO:
 						_deslocamentos.deslocar(TelegrafoTipos.FaccaoAlvo.ALIADO, m_id, delta_m)
 
 
 func enfileirar_invocacao_convergencia(pos_chefe: Vector2) -> void:
-	var max_lac := _chefes_tuning.max_lacaios_vivos if _chefes_tuning != null else 3
-	var por_conv := _chefes_tuning.lacaios_por_convergencia if _chefes_tuning != null else 2
-	var dist_sp := _chefes_tuning.dist_spawn_lacaio_px if _chefes_tuning != null else 135.0
-	var lac_vivos := contar_lacaios_vivos()
-	var tot_vivos := contar_vivos()
-	var n_inv := FormulasDoChefe.quantidade_lacaios_para_invocar(
+	var max_lac: int = _chefes_tuning.max_lacaios_vivos if _chefes_tuning != null else 3
+	var por_conv: int = _chefes_tuning.lacaios_por_convergencia if _chefes_tuning != null else 2
+	var dist_sp: float = _chefes_tuning.dist_spawn_lacaio_px if _chefes_tuning != null else 135.0
+	var lac_vivos: int = contar_lacaios_vivos()
+	var tot_vivos: int = contar_vivos()
+	var n_inv: int = FormulasDoChefe.quantidade_lacaios_para_invocar(
 		lac_vivos, tot_vivos, max_lac, por_conv, _max_inimigos_onda)
 	if n_inv <= 0:
 		return
-	var r_lac := _def_lacaio.raio_px if _def_lacaio != null else 24.0
-	var pts := FormulasDoChefe.posicoes_spawn_lacaios(pos_chefe, n_inv, dist_sp, r_lac, 12.0, _geometria)
+	var r_lac: float = _def_lacaio.raio_px if _def_lacaio != null else 24.0
+	var pts: Array[Vector2] = FormulasDoChefe.posicoes_spawn_lacaios(pos_chefe, n_inv, dist_sp, r_lac, 12.0, _geometria)
 	for p: Vector2 in pts:
 		_invocacoes_pendentes.append(p)
 
@@ -887,7 +893,7 @@ func _processar_invocacoes_do_chefe() -> void:
 
 
 func contar_lacaios_vivos() -> int:
-	var n := 0
+	var n: int = 0
 	for e: EstadoDeInimigoIA in _inimigos:
 		if e.invocado_pelo_chefe and vivo(e.id):
 			n += 1
@@ -895,7 +901,7 @@ func contar_lacaios_vivos() -> int:
 
 
 func contar_vivos() -> int:
-	var n := 0
+	var n: int = 0
 	for e: EstadoDeInimigoIA in _inimigos:
 		if vivo(e.id):
 			n += 1
@@ -925,7 +931,7 @@ func dono_vivo(inimigo_id: int) -> bool:
 
 
 func posicao_dono(inimigo_id: int) -> Vector2:
-	var e := _por_id.get(inimigo_id, null)
+	var e: EstadoDeInimigoIA = _por_id.get(inimigo_id, null)
 	return e.posicao if e != null else Vector2.ZERO
 
 
@@ -942,23 +948,23 @@ func posicao_alvo(faccao: TelegrafoTipos.FaccaoAlvo, alvo_id: int) -> Vector2:
 				return Vector2(pa.x, pa.y)
 			return Vector2.ZERO
 		_:
-			return _jogadores_pos.get(alvo_id, Vector2.ZERO)
+			return _jogadores_pos.get(alvo_id, Vector2.ZERO) as Vector2
 
 
 func raio_alvo(faccao: TelegrafoTipos.FaccaoAlvo, alvo_id: int) -> float:
 	match faccao:
 		TelegrafoTipos.FaccaoAlvo.ALIADO:
 			if _maldicoes != null:
-				var pr := _maldicoes.posicao_e_raio(alvo_id)
+				var pr: Vector3 = _maldicoes.posicao_e_raio(alvo_id)
 				return pr.z if pr.z > 0.0 else 24.0
 			return 24.0
 		TelegrafoTipos.FaccaoAlvo.ACUADA:
 			if _acuada != null:
-				var pa := _acuada.posicao_e_raio_acuada()
+				var pa: Vector3 = _acuada.posicao_e_raio_acuada()
 				return pa.z if pa.z > 0.0 else 22.5
 			return 22.5
 		_:
-			return _jogadores_raios.get(alvo_id, 27.0)
+			return float(_jogadores_raios.get(alvo_id, 27.0))
 
 
 func alvo_atingivel(faccao: TelegrafoTipos.FaccaoAlvo, alvo_id: int) -> bool:

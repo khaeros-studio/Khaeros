@@ -53,6 +53,21 @@ func eh_erro() -> bool:
 	return nivel == Nivel.ERRO
 
 
+## Alias compatível de [method eh_erro].
+func e_erro() -> bool:
+	return nivel == Nivel.ERRO
+
+
+## [code]true[/code] se o nível é aviso.
+func eh_aviso() -> bool:
+	return nivel == Nivel.AVISO
+
+
+## Alias compatível de [method eh_aviso].
+func e_aviso() -> bool:
+	return nivel == Nivel.AVISO
+
+
 ## Linha legível: [code][V2] erro arquivo campo: mensagem (valor: x)[/code].
 func texto() -> String:
 	var n := "erro" if eh_erro() else "aviso"

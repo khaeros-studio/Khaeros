@@ -54,8 +54,8 @@ func pre_instanciar(camadas: CamadasDoMundo) -> void:
 	_mats_contorno.clear()
 
 	var sh_tel := load(CAMINHO_SHADER_TEL) as Shader
-	var raiz_pre := camadas.raiz(CamadasDoMundo.Camada.TELEGRAFO_PREENCHIMENTO)
-	var raiz_cont := camadas.raiz(CamadasDoMundo.Camada.TELEGRAFO_CONTORNO)
+	var raiz_pre: Node = camadas.raiz(CamadasDoMundo.Camada.TELEGRAFO_PREENCHIMENTO)
+	var raiz_cont: Node = camadas.raiz(CamadasDoMundo.Camada.TELEGRAFO_CONTORNO)
 
 	# Nó irmão anterior para anéis de área e explosão em z = -5 (R6, AC-PV-25)
 	_no_aneis_area = Node2D.new()
@@ -114,7 +114,7 @@ func avisos_acima_teto() -> int:
 
 
 func passos_flash_disparo() -> int:
-	var dur := _tuning.duracao_flash_telegrafo_s if _tuning != null else (2.0 / 60.0)
+	var dur: float = _tuning.duracao_flash_telegrafo_s if _tuning != null else (2.0 / 60.0)
 	return maxi(1, int(round(dur * 60.0)))
 
 

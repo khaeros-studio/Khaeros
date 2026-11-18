@@ -37,14 +37,23 @@ func limpar() -> void:
 	passos_janela = 0
 
 
+func _formatar_acumulos(ac: float, rest: int) -> Variant:
+	if rest <= 0 or ac <= 0.0:
+		return 0
+	var iv: int = int(round(ac))
+	if absf(ac - float(iv)) <= 1e-6:
+		return iv
+	return ac
+
+
 func para_dicionario() -> Dictionary:
 	return {
 		&"sangramento": {
-			&"acumulos": sangramento_acumulos if sangramento_restante > 0 else 0.0,
+			&"acumulos": _formatar_acumulos(sangramento_acumulos, sangramento_restante),
 			&"restante": sangramento_restante,
 		},
 		&"queimadura": {
-			&"acumulos": queimadura_acumulos if queimadura_restante > 0 else 0.0,
+			&"acumulos": _formatar_acumulos(queimadura_acumulos, queimadura_restante),
 			&"restante": queimadura_restante,
 		},
 		&"abalo": {

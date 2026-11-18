@@ -447,8 +447,8 @@ static func _nome_curto_golpe(w: WeaponDef, eh_ataque: bool) -> StringName:
 static func validar_nome_canonico(chave: StringName, texto_resolvido: String) -> Diagnostico:
 	if not FabricaDeArmas.NOMES_CANONICOS.has(chave):
 		return Diagnostico.novo(&"V5", String(chave), texto_resolvido, "chave %s fora da tabela canônica R8" % chave)
-	var esperado: String = String(FabricaDeArmas.NOMES_CANONICOS[chave]).unicode_normalize_nfc()
-	var normalizado: String = texto_resolvido.unicode_normalize_nfc()
+	var esperado: String = V5NomesCanonicos.normalizar_nfc(String(FabricaDeArmas.NOMES_CANONICOS[chave]))
+	var normalizado: String = V5NomesCanonicos.normalizar_nfc(texto_resolvido)
 	if normalizado != esperado:
 		return Diagnostico.novo(&"V5", String(chave), texto_resolvido,
 			"V5: chave %s resolve para '%s' (esperado '%s')" % [chave, normalizado, esperado])
@@ -461,12 +461,12 @@ static func validar_corte_vs_corte_da_esquiva(tabela_traducao: Dictionary) -> Ar
 	var out: Array[Diagnostico] = []
 	for chave: Variant in tabela_traducao.keys():
 		var chave_sn := StringName(String(chave))
-		var texto: String = String(tabela_traducao[chave]).strip_edges().unicode_normalize_nfc()
+		var texto: String = V5NomesCanonicos.normalizar_nfc(String(tabela_traducao[chave]).strip_edges())
 		if texto == "Corte" and chave_sn != &"WEAPON_LAMINA_ATK":
 			out.append(Diagnostico.novo(&"V5", String(chave_sn), texto,
 				"R8: chave %s não pode resolver para 'Corte' solto" % chave_sn))
 	if tabela_traducao.has(&"TRAD_BLADE_CORTE_FANTASMA_NAME"):
-		var nome_bencao: String = String(tabela_traducao[&"TRAD_BLADE_CORTE_FANTASMA_NAME"]).unicode_normalize_nfc()
+		var nome_bencao: String = V5NomesCanonicos.normalizar_nfc(String(tabela_traducao[&"TRAD_BLADE_CORTE_FANTASMA_NAME"]))
 		if nome_bencao != "O Corte Fantasma":
 			out.append(Diagnostico.novo(&"V5", "TRAD_BLADE_CORTE_FANTASMA_NAME", nome_bencao,
 				"R8: bênção de esquiva deve resolver para 'O Corte Fantasma'"))

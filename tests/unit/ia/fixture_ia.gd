@@ -3,7 +3,7 @@ extends RefCounted
 ## Fábricas e dublês em memória para as suítes unitárias do épico `ia-de-inimigos-e-elites`.
 
 
-class FluxoRoteirizado extends FluxoRng:
+class FluxoIaRoteirizado extends FluxoRng:
 	var inteiros_fila: Array[int] = []
 	var reais_fila: Array[float] = []
 	var chamadas_inteiro: int = 0
@@ -131,7 +131,7 @@ class ContextoTeste extends RefCounted:
 	var maldicao: MaldicaoDublê
 	var acuada: AcuadaDublê
 	var deslocamentos: DeslocamentosDublê
-	var fluxo_ia: FluxoRoteirizado
+	var fluxo_ia: FluxoIaRoteirizado
 	var eventos: EventosDoPasso
 	var geometria: GeometriaDeMovimento
 	var vista: ConsultaDeVista.Fixa
@@ -145,7 +145,7 @@ class ContextoTeste extends RefCounted:
 		acuada = AcuadaDublê.new()
 		deslocamentos = DeslocamentosDublê.new()
 		deslocamentos.maldicao_duble = maldicao
-		fluxo_ia = FluxoRoteirizado.new()
+		fluxo_ia = FluxoIaRoteirizado.new()
 		ia = ModuloDeIA.new()
 		telegrafos = Telegrafos.new()
 		ia.configurar(IATuning.de_fabrica(), RegrasDeElite.de_fabrica(), FabricasDeCatalogo.chefes_tuning(),

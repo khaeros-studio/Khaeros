@@ -127,12 +127,15 @@ func parar_tudo() -> void:
 	_inicializar_pools_se_necessario()
 	for p: AudioStreamPlayer in _players_efeitos:
 		p.stream_paused = false
+		p.set_meta(&"voz_pausada", false)
 		p.stop()
 	for p: AudioStreamPlayer in _players_tons:
 		p.stream_paused = false
+		p.set_meta(&"voz_pausada", false)
 		p.stop()
 	for p: AudioStreamPlayer in _players_interface:
 		p.stream_paused = false
+		p.set_meta(&"voz_pausada", false)
 		p.stop()
 	_mixador.zerar()
 	_tons_ativos_ultimo_passo = 0
@@ -143,7 +146,8 @@ func parar_tudo() -> void:
 static func player_esta_livre(player: AudioStreamPlayer) -> bool:
 	if player == null:
 		return true
-	return (not player.playing) and (not player.stream_paused)
+	var pausado_meta: bool = bool(player.get_meta(&"voz_pausada", false))
+	return (not player.playing) and (not player.stream_paused) and (not pausado_meta)
 
 
 func consumir_passo(
@@ -224,27 +228,34 @@ func _aplicar_transicao_de_estado(novo_estado: int) -> void:
 		for p: AudioStreamPlayer in _players_efeitos:
 			if p.playing:
 				p.stream_paused = true
+				p.set_meta(&"voz_pausada", true)
 		for p: AudioStreamPlayer in _players_tons:
 			if p.playing:
 				p.stream_paused = true
+				p.set_meta(&"voz_pausada", true)
 	elif _estado_anterior == EstadoDeJogo.Valor.PAUSA and novo_estado == EstadoDeJogo.Valor.JOGO:
 		for p: AudioStreamPlayer in _players_efeitos:
-			if p.stream_paused:
+			if p.stream_paused or bool(p.get_meta(&"voz_pausada", false)):
 				p.stream_paused = false
+				p.set_meta(&"voz_pausada", false)
 		for p: AudioStreamPlayer in _players_tons:
-			if p.stream_paused:
+			if p.stream_paused or bool(p.get_meta(&"voz_pausada", false)):
 				p.stream_paused = false
+				p.set_meta(&"voz_pausada", false)
 	elif novo_estado == EstadoDeJogo.Valor.BENCAO:
 		for p: AudioStreamPlayer in _players_tons:
 			p.stream_paused = false
+			p.set_meta(&"voz_pausada", false)
 			p.stop()
 		_tons_ativos_ultimo_passo = 0
 	elif novo_estado == EstadoDeJogo.Valor.TRANSICAO:
 		for p: AudioStreamPlayer in _players_efeitos:
 			p.stream_paused = false
+			p.set_meta(&"voz_pausada", false)
 			p.stop()
 		for p: AudioStreamPlayer in _players_tons:
 			p.stream_paused = false
+			p.set_meta(&"voz_pausada", false)
 			p.stop()
 		_mixador.zerar()
 		_tons_ativos_ultimo_passo = 0
