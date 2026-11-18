@@ -228,11 +228,11 @@ func activate(index: int) -> void:
 				camera.cut(session.player.pos)
 				_tocar_sfx(&"sfx_carta_confirmar")
 			elif index == 1:
-				var pos_idx: int = weapon_order.find(selected_weapon)
-				selected_weapon = weapon_order[(pos_idx + 1) % weapon_order.size()]
+				reduced_motion = not reduced_motion
 				_tocar_sfx(&"sfx_carta_foco")
 			elif index == 2:
-				reduced_motion = not reduced_motion
+				var pos_idx: int = weapon_order.find(selected_weapon)
+				selected_weapon = weapon_order[(pos_idx + 1) % weapon_order.size()]
 				_tocar_sfx(&"sfx_carta_foco")
 		"pausa":
 			if index == 0:
@@ -379,7 +379,7 @@ func _aplicar_arma_na_sessao() -> void:
 		return
 	catalog.data.jogador.vida_max = w_def.vida_max
 	catalog.data.jogador.velocidade = w_def.velocidade
-	var atk: AttackDef = w_def.basico
+	var atk: AttackDef = w_def.ataque
 	if atk != null:
 		catalog.data.corte.dano = atk.dano
 		catalog.data.corte.alcance_px = float(atk.params.get(&"alcance_px", catalog.data.corte.alcance_px))

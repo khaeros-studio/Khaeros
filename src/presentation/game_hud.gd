@@ -101,8 +101,8 @@ func _draw() -> void:
 				_center(_nome_doutrina(),445,30,BONE,width)
 				_center("Atravesse as câmaras do Limiar. Escolha arma, bênçãos e pactos.",490,22,MUTED,width)
 				_button(action_rects()[0],"Entrar no Limiar",0)
-				_button(action_rects()[1],"Doutrina: "+_nome_doutrina(),1,true)
-				_button(action_rects()[2],"Redução de movimento: "+("ligada" if app.reduced_motion else "desligada"),2,true)
+				_button(action_rects()[1],"Redução de movimento: "+("ligada" if app.reduced_motion else "desligada"),1,true)
+				_button(action_rects()[2],"Doutrina: "+_nome_doutrina(),2,true)
 				var cat_ok := app.get("catalogo_real") != null
 				_center("MVP KHAEROS • CATÁLOGO .TRES %s • 11 ATORES • ÁUDIO P0" % ["ATIVO" if cat_ok else "FALLBACK"],900,18,MUTED,width)
 				_controls(width)
