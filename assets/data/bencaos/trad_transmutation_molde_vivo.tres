@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BoonDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/boon_def.gd" id="1_b"]
+[ext_resource type="Script" path="res://src/content/effect_def.gd" id="2_e"]
+
+[sub_resource type="Resource" id="EffectDef_0"]
+script = ExtResource("2_e")
+tipo = &"golpe_queimadura"
+valor = 1.0
+escala_com_raridade = true
+params = {}
+[resource]
+script = ExtResource("1_b")
+id = &"trad_transmutation_molde_vivo"
+obsoleto = false
+doutrina = &"transmutacao"
+chave_nome = &"TRAD_TRANSMUTATION_MOLDE_VIVO_NAME"
+chave_descricao = &"TRAD_TRANSMUTATION_MOLDE_VIVO_DESC"
+efeitos = Array[ExtResource("2_e")]([SubResource("EffectDef_0")])
+glifo = &"glifo_transmutacao"
+icone_ganho = "res://assets/art/export/glifo_transmutacao.png"
+chave_preco = &""

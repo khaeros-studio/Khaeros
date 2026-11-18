@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ChefesTuning" format=3]
+
+[ext_resource type="Script" path="res://src/content/chefes_tuning.gd" id="1_cht"]
+
+[resource]
+script = ExtResource("1_cht")
+id = &"chefes_tuning"
+obsoleto = false
+espera_inicial_chefe_s = 0.5
+espera_entre_padroes_chefe_s = 0.25
+limiar_furia_frac = 0.5
+fator_recarga_furia = 0.6
+mult_velocidade_furia = 1.15
+transicao_fase_s = 0.5
+raio_pulso_furia_px = 240.0
+empurrao_pulso_furia_px = 120.0
+raio_puxao_px = 420.0
+puxao_convergencia_px = 75.0
+max_lacaios_vivos = 3
+lacaios_por_convergencia = 2
+dist_spawn_lacaio_px = 135.0

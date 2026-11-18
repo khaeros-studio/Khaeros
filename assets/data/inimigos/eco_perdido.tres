@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="EnemyDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/enemy_def.gd" id="1_e"]
+[ext_resource type="Script" path="res://src/content/boss_pattern_def.gd" id="2_bp"]
+
+[resource]
+script = ExtResource("1_e")
+id = &"eco_perdido"
+obsoleto = false
+chave_nome = &"ENEMY_ECO_PERDIDO_NAME"
+comportamento = &"corpo_a_corpo"
+vida = 30.0
+velocidade = 153.0
+raio_px = 24.0
+dano = 9.0
+alcance_px = 45.0
+preparo_s = 0.43333333333333335
+recarga_s = 1.0
+velocidade_projetil = 0.0
+custo_onda = 1
+padroes = Array[ExtResource("2_bp")]([])

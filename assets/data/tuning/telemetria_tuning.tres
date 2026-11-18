@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="TelemetriaTuning" format=3]
+
+[ext_resource type="Script" path="res://src/content/telemetria_tuning.gd" id="1_tlt"]
+
+[resource]
+script = ExtResource("1_tlt")
+id = &"telemetria_tuning"
+obsoleto = false
+max_bytes_sessao = 2097152
+max_sessoes = 20
+orcamento_linha_ms = 1.0
+orcamento_passo_ms = 3.0
+casas_decimais_duracao = 2

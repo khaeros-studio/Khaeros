@@ -1,0 +1,52 @@
+[gd_resource type="Resource" script_class="WeaponDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/weapon_def.gd" id="1_w"]
+[ext_resource type="Script" path="res://src/content/attack_def.gd" id="2_a"]
+
+[sub_resource type="Resource" id="AttackDef_atk"]
+script = ExtResource("2_a")
+chave_nome = &"WEAPON_RESSONANCIA_ATK"
+forma = &"projetil"
+params = {
+&"raio_px": 15.0,
+&"velocidade_pxs": 990.0,
+&"vida_s": 0.8333333333333334
+}
+leque = PackedFloat64Array(0)
+atravessa = false
+dano = 12.0
+recarga_s = 0.23333333333333334
+preparo_s = 0.0
+empurrao = 540.0
+status = &""
+multiplicadores_combo = PackedFloat64Array()
+guarda_s = 0.0
+
+[sub_resource type="Resource" id="AttackDef_esp"]
+script = ExtResource("2_a")
+chave_nome = &"WEAPON_RESSONANCIA_ESP"
+forma = &"circulo"
+params = {
+&"deslocamento_px": 0.0,
+&"raio_px": 195.0
+}
+leque = PackedFloat64Array()
+atravessa = false
+dano = 30.0
+recarga_s = 1.5
+preparo_s = 0.0
+empurrao = 1260.0
+status = &""
+multiplicadores_combo = PackedFloat64Array()
+guarda_s = 0.0
+
+[resource]
+script = ExtResource("1_w")
+id = &"ressonancia"
+obsoleto = false
+doutrina = &"ressonancia"
+chave_nome = &"WEAPON_RESSONANCIA_NAME"
+vida_max = 80
+velocidade = 378.0
+ataque = SubResource("AttackDef_atk")
+especial = SubResource("AttackDef_esp")

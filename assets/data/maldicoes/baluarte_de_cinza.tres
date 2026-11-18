@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="CurseDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/curse_def.gd" id="1_c"]
+
+[resource]
+script = ExtResource("1_c")
+id = &"baluarte_de_cinza"
+obsoleto = false
+chave_nome = &"CURSE_BALUARTE_DE_CINZA_NAME"
+raridade = &"raro"
+vida_max = 135.0
+velocidade = 360.0
+raio_px = 30.0
+forma_basica = &"circulo"
+alcance_basico_px = 96.0
+dano_basico = 12.6
+empurrao_basico = 900.0
+preparo_s = 0.2
+execucao_s = 0.13333333333333333
+recuperacao_s = 0.36666666666666664
+efeito_saida = &"saida_padrao"
+efeito_entrada = &"entrada_padrao"
+bonus_sinergia_pct = 0.0
+passivas = Array[StringName]([&"carapaca_ancorada"])
+efeito_chamado = &"eco_de_muralha"
+habilidade_unica = &""
+chefe_origem_id = &""
+memorias = PackedStringArray("CURSE_BAL_MEM_1", "CURSE_BAL_MEM_2", "CURSE_BAL_MEM_3")

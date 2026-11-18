@@ -1,0 +1,39 @@
+categoria,id_godot,chave,nome_pt
+weapon,lamina,WEAPON_LAMINA_NAME,Lâmina do Juramento
+weapon_attack,lamina,WEAPON_LAMINA_ATK,Corte
+weapon_special,lamina,WEAPON_LAMINA_ESP,Investida
+weapon,ressonancia,WEAPON_RESSONANCIA_NAME,Foco Ressonante
+weapon_attack,ressonancia,WEAPON_RESSONANCIA_ATK,Pulso
+weapon_special,ressonancia,WEAPON_RESSONANCIA_ESP,Onda de Ressonância
+weapon,pactos,WEAPON_PACTOS_NAME,Besta do Vínculo
+weapon_attack,pactos,WEAPON_PACTOS_ATK,Virote
+weapon_special,pactos,WEAPON_PACTOS_ESP,Chamado do Pacto
+enemy,eco_perdido,ENEMY_ECO_PERDIDO_NAME,Eco Perdido
+enemy,anomalia_menor,ENEMY_ANOMALIA_MENOR_NAME,Anomalia Menor
+enemy,fenda_errante,ENEMY_FENDA_ERRANTE_NAME,Fenda Errante
+enemy,anomalia_maior,ENEMY_ANOMALIA_MAIOR_NAME,Anomalia Maior
+enemy,soberano_do_limiar,ENEMY_SOBERANO_DO_LIMIAR_NAME,Soberano do Limiar
+curse,vulto_mudo,CURSE_VULTO_MUDO_NAME,Vulto Mudo
+curse,espreitador_da_fenda,CURSE_ESPREITADOR_DA_FENDA_NAME,Espreitador da Fenda
+curse,baluarte_de_cinza,CURSE_BALUARTE_DE_CINZA_NAME,Baluarte de Cinza
+curse,soberano_do_limiar,CURSE_SOBERANO_DO_LIMIAR_NAME,Soberano do Limiar
+curse_category,maldicoes,CURSE_CATEGORY_NAME,Maldições
+region,limiar,REGION_LIMIAR_NAME,Limiar da Beira
+boon,trad_blade_traco_unico,TRAD_BLADE_TRACO_UNICO_NAME,O Traço Único
+boon,trad_blade_lamina_pesada,TRAD_BLADE_LAMINA_PESADA_NAME,A Lâmina Pesada
+boon,trad_blade_corte_fantasma,TRAD_BLADE_CORTE_FANTASMA_NAME,O Corte Fantasma
+boon,trad_resonance_fundo_poco,TRAD_RESONANCE_FUNDO_POCO_NAME,O Fundo do Poço
+boon,trad_resonance_linha_contada,TRAD_RESONANCE_LINHA_CONTADA_NAME,A Linha Contada
+boon,trad_resonance_preco_nome,TRAD_RESONANCE_PRECO_NOME_NAME,O Preço com Nome
+boon,trad_guardian_muro_pedras,TRAD_GUARDIAN_MURO_PEDRAS_NAME,O Muro de Pedras
+boon,trad_guardian_voo_escudo,TRAD_GUARDIAN_VOO_ESCUDO_NAME,O Voo do Escudo
+boon,trad_guardian_armadura_vazia,TRAD_GUARDIAN_ARMADURA_VAZIA_NAME,A Armadura Vazia
+boon,trad_veil_penumbra,TRAD_VEIL_PENUMBRA_NAME,A Penumbra
+boon,trad_veil_sombra_viva,TRAD_VEIL_SOMBRA_VIVA_NAME,A Sombra Viva
+boon,trad_veil_fio_invisivel,TRAD_VEIL_FIO_INVISIVEL_NAME,O Fio Invisível
+boon,trad_transmutation_molde_vivo,TRAD_TRANSMUTATION_MOLDE_VIVO_NAME,O Molde Vivo
+boon,trad_transmutation_forma_fixa,TRAD_TRANSMUTATION_FORMA_FIXA_NAME,A Forma Fixa
+boon,trad_transmutation_materia_residual,TRAD_TRANSMUTATION_MATERIA_RESIDUAL_NAME,A Matéria Residual
+boon,trad_pacts_primeiro_vinculo,TRAD_PACTS_PRIMEIRO_VINCULO_NAME,O Primeiro Vínculo
+boon,trad_pacts_os_que_ficam,TRAD_PACTS_OS_QUE_FICAM_NAME,Os Que Ficam
+boon,trad_pacts_fardo_repartido,TRAD_PACTS_FARDO_REPARTIDO_NAME,O Fardo Repartido

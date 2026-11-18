@@ -1,0 +1,3 @@
+id,doctrine,name_pt,maxHp,moveSpeed,attack_name_pt,attack_shape,attack_damage,attack_cooldownTicks,attack_knockback,attack_range,attack_dot,attack_projectileSpeed,attack_radius,attack_rangeTicks,special_name_pt,special_shape,special_damage,special_cooldownTicks,special_knockback,special_distance,special_durationTicks,special_radius
+BLADE,BLADE,Lâmina do Juramento,100,4.3,Corte,arc,14,16,5,95,0.35,0,0,0,Investida,lunge,26,70,12,220,10,46
+RESONANCE,RESONANCE,Foco Ressonante,80,4.2,Pulso,projectile,12,14,6,0,0,11,10,50,Onda de Ressonância,circle,30,90,14,0,0,130

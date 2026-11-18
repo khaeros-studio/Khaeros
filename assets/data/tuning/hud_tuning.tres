@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="HudTuning" format=3]
+
+[ext_resource type="Script" path="res://src/content/hud_tuning.gd" id="1_ht"]
+
+[resource]
+script = ExtResource("1_ht")
+id = &"hud_tuning"
+obsoleto = false
+vida_por_segmento = 10
+segmento_px = 32
+barra_max_frac = 0.25
+vida_baixa_pct = 0.25
+vida_baixa_histerese = 0.05
+vinheta_max_borda = 0.08
+vinheta_opacidade_max = 0.4
+janela_ganho_s = 1.5
+fio_visivel_s = 2.0
+largura_fio = 48
+fio_elite_escala = 1.5
+esquiva_tremor_ms = 80
+fade_estado_s = 0.25
+margem_segura_px = 48
+pacto_tremor_px = 4
+pacto_tremor_s = 0.15
+pacto_intervalo_px = 12

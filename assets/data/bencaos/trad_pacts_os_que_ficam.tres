@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="BoonDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/boon_def.gd" id="1_b"]
+[ext_resource type="Script" path="res://src/content/effect_def.gd" id="2_e"]
+
+[sub_resource type="Resource" id="EffectDef_0"]
+script = ExtResource("2_e")
+tipo = &"recusas_morte"
+valor = 1.0
+escala_com_raridade = false
+params = {
+&"vida_ao_voltar": 0.4,
+&"invuln_s": 2.0
+}
+[resource]
+script = ExtResource("1_b")
+id = &"trad_pacts_os_que_ficam"
+obsoleto = false
+doutrina = &"pactos"
+chave_nome = &"TRAD_PACTS_OS_QUE_FICAM_NAME"
+chave_descricao = &"TRAD_PACTS_OS_QUE_FICAM_DESC"
+efeitos = Array[ExtResource("2_e")]([SubResource("EffectDef_0")])
+glifo = &"glifo_pactos"
+icone_ganho = "res://assets/art/export/glifo_pactos.png"
+chave_preco = &""

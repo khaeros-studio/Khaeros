@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="CombatTuning" format=3]
+
+[ext_resource type="Script" path="res://src/content/defs/combat_tuning.gd" id="1_ct"]
+
+[resource]
+script = ExtResource("1_ct")
+id = &"combat_tuning"
+obsoleto = false
+hitstop_leve_s = 0.05
+hitstop_pesado_s = 0.1
+hitstop_abate_s = 0.06666666666666667
+hitstop_atingido_s = 0.1
+hitstop_abate_chefe_s = 0.6
+hitstop_recusa_s = 0.3
+empurrao_pesado = 900.0
+limiar_finalizador = 1.2
+janela_combo_s = 0.5666666666666667
+recuperacao_max_s = 0.2
+fator_recuperacao_golpe = 0.5
+passo_apoio_px = 10.5
+folga_encostado_px = 6.0
+nascimento_projetil_px = 36.0
+invuln_extra_investida_s = 0.03333333333333333
+cambaleio_s = 0.13333333333333333
+fator_cambaleio = 0.4
+quebrou_recuperacao_s = 0.4
+parede_vel_min = 630.0
+parede_dano = 8.0
+queda_empurrao = 0.78
+empurrao_zero = 4.5
+invuln_atingido_s = 0.6666666666666666
+passes_varredura = 4
+fator_guarda = 0.5
+giro_leque_graus = 12.0
+fator_raio_obstaculo_projetil = 0.5
+flash_acerto_s = 0.08333333333333333
+extra_inversao_s = 0.06666666666666667
+impact_chefe_s = 0.2

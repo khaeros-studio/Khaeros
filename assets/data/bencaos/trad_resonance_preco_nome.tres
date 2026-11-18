@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="BoonDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/boon_def.gd" id="1_b"]
+[ext_resource type="Script" path="res://src/content/effect_def.gd" id="2_e"]
+
+[sub_resource type="Resource" id="EffectDef_0"]
+script = ExtResource("2_e")
+tipo = &"dano_todo_pct"
+valor = 0.2
+escala_com_raridade = true
+params = {}
+[sub_resource type="Resource" id="EffectDef_1"]
+script = ExtResource("2_e")
+tipo = &"vida_max_plano"
+valor = -10.0
+escala_com_raridade = false
+params = {}
+[resource]
+script = ExtResource("1_b")
+id = &"trad_resonance_preco_nome"
+obsoleto = false
+doutrina = &"ressonancia"
+chave_nome = &"TRAD_RESONANCE_PRECO_NOME_NAME"
+chave_descricao = &"TRAD_RESONANCE_PRECO_NOME_DESC"
+efeitos = Array[ExtResource("2_e")]([SubResource("EffectDef_0"), SubResource("EffectDef_1")])
+glifo = &"glifo_ressonancia"
+icone_ganho = "res://assets/art/export/glifo_ressonancia.png"
+chave_preco = &"TRAD_RESONANCE_PRECO_NOME_PRICE"

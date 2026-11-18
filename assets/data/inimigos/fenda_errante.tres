@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="EnemyDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/enemy_def.gd" id="1_e"]
+[ext_resource type="Script" path="res://src/content/boss_pattern_def.gd" id="2_bp"]
+
+[resource]
+script = ExtResource("1_e")
+id = &"fenda_errante"
+obsoleto = false
+chave_nome = &"ENEMY_FENDA_ERRANTE_NAME"
+comportamento = &"arremetida"
+vida = 46.0
+velocidade = 126.0
+raio_px = 30.0
+dano = 13.0
+alcance_px = 240.0
+preparo_s = 0.7
+recarga_s = 1.5
+velocidade_projetil = 0.0
+custo_onda = 2
+padroes = Array[ExtResource("2_bp")]([])

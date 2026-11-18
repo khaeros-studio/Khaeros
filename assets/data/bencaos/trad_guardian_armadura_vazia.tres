@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BoonDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/boon_def.gd" id="1_b"]
+[ext_resource type="Script" path="res://src/content/effect_def.gd" id="2_e"]
+
+[sub_resource type="Resource" id="EffectDef_0"]
+script = ExtResource("2_e")
+tipo = &"escudo_sala"
+valor = 15.0
+escala_com_raridade = true
+params = {}
+[resource]
+script = ExtResource("1_b")
+id = &"trad_guardian_armadura_vazia"
+obsoleto = false
+doutrina = &"guardiao"
+chave_nome = &"TRAD_GUARDIAN_ARMADURA_VAZIA_NAME"
+chave_descricao = &"TRAD_GUARDIAN_ARMADURA_VAZIA_DESC"
+efeitos = Array[ExtResource("2_e")]([SubResource("EffectDef_0")])
+glifo = &"glifo_guardiao"
+icone_ganho = "res://assets/art/export/glifo_guardiao.png"
+chave_preco = &""

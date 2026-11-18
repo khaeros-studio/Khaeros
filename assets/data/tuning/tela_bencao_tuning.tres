@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TelaBencaoTuning" format=3]
+
+[ext_resource type="Script" path="res://src/content/tela_bencao_tuning.gd" id="1_tbt"]
+
+[resource]
+script = ExtResource("1_tbt")
+id = &"tela_bencao_tuning"
+obsoleto = false
+trava_confirmar_ms = 500
+trava_troca_ms = 300
+entrada_s = 0.45
+anim_troca_s = 0.3
+anim_confirmar_s = 0.6
+foco_escala = 1.06
+foco_sobe_px = 12
+valor_nao_focada = 0.7
+intervalo_cartas_px = 48
+tremor_botao_ms = 80

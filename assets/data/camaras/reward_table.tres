@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="RewardTable" format=3]
+
+[ext_resource type="Script" path="res://src/content/reward_table.gd" id="1_rw"]
+
+[resource]
+script = ExtResource("1_rw")
+id = &"reward_table"
+obsoleto = false
+pesos_portas = {
+&"bencao": 3.0,
+&"cura": 1.0,
+&"fragmentos": 2.0,
+&"provacao": 0.0
+}
+chance_tres_portas = 0.3
+primeira_recompensa = &"bencao"
+profundidade_min_provacao = 2
+cura_porta = 0.3
+fragmentos_porta_base = 2
+fragmentos_porta_passo = 3

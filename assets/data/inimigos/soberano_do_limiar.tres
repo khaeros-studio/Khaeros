@@ -1,0 +1,77 @@
+[gd_resource type="Resource" script_class="EnemyDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/enemy_def.gd" id="1_e"]
+[ext_resource type="Script" path="res://src/content/boss_pattern_def.gd" id="2_bp"]
+
+[sub_resource type="Resource" id="BossPatternDef_1"]
+script = ExtResource("2_bp")
+chave_nome = &"BOSS_SOBERANO_P1"
+forma_telegrafo = &"setor"
+dimensoes = {
+&"raio_px": 165.0
+}
+preparo_s = 0.5
+execucao_s = 0.16666666666666666
+recarga_s = 1.0
+dano = 16.0
+efeitos = {}
+raio_secundario_px = 0.0
+
+[sub_resource type="Resource" id="BossPatternDef_2"]
+script = ExtResource("2_bp")
+chave_nome = &"BOSS_SOBERANO_P2"
+forma_telegrafo = &"retangulo"
+dimensoes = {
+&"raio_px": 207.0
+}
+preparo_s = 0.6
+execucao_s = 0.4
+recarga_s = 1.25
+dano = 18.0
+efeitos = {}
+raio_secundario_px = 0.0
+
+[sub_resource type="Resource" id="BossPatternDef_3"]
+script = ExtResource("2_bp")
+chave_nome = &"BOSS_SOBERANO_P3"
+forma_telegrafo = &"anel"
+dimensoes = {
+&"r_ext": 210.0
+}
+preparo_s = 0.6
+execucao_s = 0.2
+recarga_s = 1.5
+dano = 15.0
+efeitos = {}
+raio_secundario_px = 0.0
+
+[sub_resource type="Resource" id="BossPatternDef_4"]
+script = ExtResource("2_bp")
+chave_nome = &"BOSS_SOBERANO_P4"
+forma_telegrafo = &"circulo"
+dimensoes = {
+&"raio_px": 225.0
+}
+preparo_s = 0.7
+execucao_s = 0.2
+recarga_s = 1.75
+dano = 14.0
+efeitos = {}
+raio_secundario_px = 420.0
+
+[resource]
+script = ExtResource("1_e")
+id = &"soberano_do_limiar"
+obsoleto = false
+chave_nome = &"ENEMY_SOBERANO_DO_LIMIAR_NAME"
+comportamento = &"chefe"
+vida = 700.0
+velocidade = 162.0
+raio_px = 45.0
+dano = 16.0
+alcance_px = 45.0
+preparo_s = 0.43333333333333335
+recarga_s = 1.0
+velocidade_projetil = 0.0
+custo_onda = 1
+padroes = Array[ExtResource("2_bp")]([SubResource("BossPatternDef_1"), SubResource("BossPatternDef_2"), SubResource("BossPatternDef_3"), SubResource("BossPatternDef_4")])

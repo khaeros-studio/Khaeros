@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="BencaosTuning" format=3]
+
+[ext_resource type="Script" path="res://src/content/bencaos_tuning.gd" id="1_bt"]
+
+[resource]
+script = ExtResource("1_bt")
+id = &"bencaos_tuning"
+obsoleto = false
+tamanho_oferta = 3
+trocas_iniciais = 0
+raridade_bonus = 0.0

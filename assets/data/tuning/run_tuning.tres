@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RunTuning" format=3]
+
+[ext_resource type="Script" path="res://src/content/run_tuning.gd" id="1_rt"]
+
+[resource]
+script = ExtResource("1_rt")
+id = &"run_tuning"
+obsoleto = false
+camaras_jogaveis = {
+&"limiar": 7
+}
+fragmentos_vitoria = 15
+arma_padrao = &"pactos"

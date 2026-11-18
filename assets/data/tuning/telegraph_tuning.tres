@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="TelegraphTuning" format=3]
+
+[ext_resource type="Script" path="res://src/gameplay/telegrafos/telegraph_tuning.gd" id="1_tgt"]
+
+[resource]
+script = ExtResource("1_tgt")
+id = &"telegraph_tuning"
+obsoleto = false
+preparo_min_s = 0.4
+teto_telegrafos = 24
+reacao_ref_s = 0.25
+folga_min = 8
+avanco_passos = 26

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="AudioTuning" format=3]
+
+[ext_resource type="Script" path="res://src/presentation/audio/audio_tuning.gd" id="1_aut"]
+
+[resource]
+script = ExtResource("1_aut")
+id = &"audio_tuning"
+obsoleto = false
+vozes_max_gancho = 4
+vozes_max_total = 16
+vozes_interface = 4
+teto_tons_telegrafo = 3
+tom_pitch_min = 1.0
+tom_pitch_max = 2.0
+tom_maldicao_fator_pitch = 0.85

@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="CurseDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/curse_def.gd" id="1_c"]
+
+[resource]
+script = ExtResource("1_c")
+id = &"vulto_mudo"
+obsoleto = false
+chave_nome = &"CURSE_VULTO_MUDO_NAME"
+raridade = &"comum"
+vida_max = 110.0
+velocidade = 405.0
+raio_px = 24.0
+forma_basica = &"arco"
+alcance_basico_px = 105.0
+dano_basico = 9.0
+empurrao_basico = 360.0
+preparo_s = 0.13333333333333333
+execucao_s = 0.1
+recuperacao_s = 0.26666666666666666
+efeito_saida = &"saida_padrao"
+efeito_entrada = &"entrada_padrao"
+bonus_sinergia_pct = 0.0
+passivas = Array[StringName]([])
+efeito_chamado = &""
+habilidade_unica = &""
+chefe_origem_id = &""
+memorias = PackedStringArray("CURSE_VULTO_MEM_1")

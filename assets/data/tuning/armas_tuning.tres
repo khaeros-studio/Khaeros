@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ArmasTuning" format=3]
+
+[ext_resource type="Script" path="res://src/content/armas_tuning.gd" id="1_at"]
+
+[resource]
+script = ExtResource("1_at")
+id = &"armas_tuning"
+obsoleto = false
+meta_paridade = 0.15
+margem_fragil = 2
+g_max_fragil = 3
+periodos_trava = 2
+f_esp_min = 0.15
+f_esp_max = 0.4
+vel_media_min = 360.0
+vel_media_max = 400.0
+p_max = 4

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="FeedbackTuning" format=3]
+
+[ext_resource type="Script" path="res://src/content/feedback_tuning.gd" id="1_ft"]
+
+[resource]
+script = ExtResource("1_ft")
+id = &"feedback_tuning"
+obsoleto = false
+janela_soma_s = 0.3
+teto_numeros = 6
+limiar_degradacao = 0.9
+limiar_retorno = 0.75
+limiar_nivel2 = 0.95
+retorno_nivel2 = 0.85
+vozes_max_gancho = 4
+vozes_max_total = 16
+assenta_camara_s = 1.0

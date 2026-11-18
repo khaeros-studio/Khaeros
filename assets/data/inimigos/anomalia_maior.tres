@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="EnemyDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/enemy_def.gd" id="1_e"]
+[ext_resource type="Script" path="res://src/content/boss_pattern_def.gd" id="2_bp"]
+
+[resource]
+script = ExtResource("1_e")
+id = &"anomalia_maior"
+obsoleto = false
+chave_nome = &"ENEMY_ANOMALIA_MAIOR_NAME"
+comportamento = &"chefe"
+vida = 700.0
+velocidade = 108.0
+raio_px = 63.0
+dano = 16.0
+alcance_px = 165.0
+preparo_s = 0.6666666666666666
+recarga_s = 1.0
+velocidade_projetil = 0.0
+custo_onda = 5
+padroes = Array[ExtResource("2_bp")]([])

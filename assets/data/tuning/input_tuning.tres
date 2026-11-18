@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="InputTuning" format=3]
+
+[ext_resource type="Script" path="res://src/content/input_tuning.gd" id="1_it"]
+
+[resource]
+script = ExtResource("1_it")
+id = &"input_tuning"
+obsoleto = false
+buffer_passos = 10
+zona_morta_interna = 0.2
+zona_morta_externa = 0.05
+raio_mira_px = 540.0
+limiar_mouse_px = 4.0
+gatilho_aperta = 0.5
+gatilho_solta = 0.4

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BoonDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/boon_def.gd" id="1_b"]
+[ext_resource type="Script" path="res://src/content/effect_def.gd" id="2_e"]
+
+[sub_resource type="Resource" id="EffectDef_0"]
+script = ExtResource("2_e")
+tipo = &"golpe_sangramento"
+valor = 1.0
+escala_com_raridade = true
+params = {}
+[resource]
+script = ExtResource("1_b")
+id = &"trad_veil_sombra_viva"
+obsoleto = false
+doutrina = &"veu"
+chave_nome = &"TRAD_VEIL_SOMBRA_VIVA_NAME"
+chave_descricao = &"TRAD_VEIL_SOMBRA_VIVA_DESC"
+efeitos = Array[ExtResource("2_e")]([SubResource("EffectDef_0")])
+glifo = &"glifo_veu"
+icone_ganho = "res://assets/art/export/glifo_veu.png"
+chave_preco = &""

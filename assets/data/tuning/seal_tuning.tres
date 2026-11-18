@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SealTuning" format=3]
+
+[ext_resource type="Script" path="res://src/gameplay/selo/seal_tuning.gd" id="1_slt"]
+
+[resource]
+script = ExtResource("1_slt")
+id = &"seal_tuning"
+obsoleto = false
+fluxo_max = 100.0
+regen_fluxo_s = 3.6
+fluxo_por_acerto = 3.0
+custo_fluxo = 40.0
+recarga_s = 0.5
+raio_px = 142.5
+duracao_s = 3.3333333333333335
+dano_selo_s = 7.2
+fator_lentidao = 0.5
+distancia_px = 180.0
+margem_borda_px = 30.0

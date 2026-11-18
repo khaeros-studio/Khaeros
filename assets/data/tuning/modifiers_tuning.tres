@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ModifiersTuning" format=3]
+
+[ext_resource type="Script" path="res://src/gameplay/modificadores/modifiers_tuning.gd" id="1_mdt"]
+
+[resource]
+script = ExtResource("1_mdt")
+id = &"modifiers_tuning"
+obsoleto = false
+piso_vida_jogador = 20.0
+piso_vida_inimigo = 1.0
+teto_reducao_dano = 0.6
+teto_multiplicador_dano = 4.0
+fator_empurrao_chefe = 0.12
+piso_vida_maldicao = 20.0
+tipos_propagados_maldicao = Array[StringName]([&"dano_todo_pct", &"velocidade_pct"])
+fator_propagacao_maldicao = 1.0

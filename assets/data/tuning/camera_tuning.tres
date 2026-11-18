@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CameraTuning" format=3]
+
+[ext_resource type="Script" path="res://src/content/camera_tuning.gd" id="1_cam"]
+
+[resource]
+script = ExtResource("1_cam")
+id = &"camera_tuning"
+obsoleto = false
+meia_vida = 0.12
+lookahead_max = 120.0
+raio_mouse = 480.0
+teto_deslocamento = 40.0
+teto_zoom = 1.15
+limiar_descarte = 0.05
+max_impulsos = 16
+parallax_primeiro_plano = 1.2

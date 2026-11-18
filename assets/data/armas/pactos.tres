@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="WeaponDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/weapon_def.gd" id="1_w"]
+[ext_resource type="Script" path="res://src/content/attack_def.gd" id="2_a"]
+
+[sub_resource type="Resource" id="AttackDef_atk"]
+script = ExtResource("2_a")
+chave_nome = &"WEAPON_PACTOS_ATK"
+forma = &"projetil"
+params = {
+&"raio_px": 12.0,
+&"velocidade_pxs": 1170.0,
+&"vida_s": 0.75
+}
+leque = PackedFloat64Array(0)
+atravessa = false
+dano = 10.0
+recarga_s = 0.25
+preparo_s = 0.0
+empurrao = 360.0
+status = &""
+multiplicadores_combo = PackedFloat64Array()
+guarda_s = 0.0
+
+[sub_resource type="Resource" id="AttackDef_esp"]
+script = ExtResource("2_a")
+chave_nome = &"WEAPON_PACTOS_ESP"
+forma = &"chamado"
+params = {}
+leque = PackedFloat64Array()
+atravessa = false
+dano = 17.0
+recarga_s = 2.0
+preparo_s = 0.0
+empurrao = 0.0
+status = &""
+multiplicadores_combo = PackedFloat64Array()
+guarda_s = 0.0
+
+[resource]
+script = ExtResource("1_w")
+id = &"pactos"
+obsoleto = false
+doutrina = &"pactos"
+chave_nome = &"WEAPON_PACTOS_NAME"
+vida_max = 90
+velocidade = 382.5
+ataque = SubResource("AttackDef_atk")
+especial = SubResource("AttackDef_esp")

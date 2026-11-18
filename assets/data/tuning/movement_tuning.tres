@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="MovementTuning" format=3]
+
+[ext_resource type="Script" path="res://src/gameplay/movimento/movement_tuning.gd" id="1_mvt"]
+
+[resource]
+script = ExtResource("1_mvt")
+id = &"movement_tuning"
+obsoleto = false
+cargas_base = 1
+duracao_esquiva_s = 0.15
+velocidade_esquiva_pxs = 1140.0
+invuln_extra_s = 0.05
+recarga_s = 0.6333333333333333
+fator_recuperacao = 0.4
+raio_jogador_px = 21.0
+alvos_max_corte = 0

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SomDef" format=3]
+
+[ext_resource type="Script" path="res://src/presentation/audio/som_def.gd" id="1_sd"]
+
+[resource]
+script = ExtResource("1_sd")
+id = &"sfx_chefe_surgimento"
+obsoleto = false
+caminho_stream = "res://assets/audio/sfx/sfx_chefe_surgimento.wav"
+ganho_db = 0.0
+variacoes = Array[String]([])
+pitch_min = 0.95
+pitch_max = 1.05
+barramento = &"Efeitos"

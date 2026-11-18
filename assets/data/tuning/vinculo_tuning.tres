@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="VinculoTuning" format=3]
+
+[ext_resource type="Script" path="res://src/content/vinculo_tuning.gd" id="1_vnt"]
+
+[resource]
+script = ExtResource("1_vnt")
+id = &"vinculo_tuning"
+obsoleto = false
+especie_primeiro_pacto = &"vulto_mudo"
+chance_encontro = 0.6
+pity_runs = 2
+indices_encontro = PackedInt64Array(1, 2)
+chance_nao_pactuada = 0.75
+peso_raridade = PackedFloat64Array(3, 2, 1, 1)
+pontos_acuada = 5
+frac_vida_acuada = 1.2
+encontros_para_consentir = PackedInt64Array(1, 1, 2, 2, 1)
+pts_camara = 2
+pts_abate = 1
+pts_tecnica = 1
+pts_vitoria = 8
+teto_abates_run = 12
+teto_tecnicas_run = 6
+pts_reafirmar = 6
+pts_reafirmar_chefe = 10
+limiares_nivel = PackedInt64Array(20, 50, 90, 140)
+nivel_max = 5
+pontos_teto = 9999
+bonus_vida = 0.05
+mult_recuperacao = 0.9
+bonus_dano_basico = 0.05
+memorias_por_raridade = PackedInt64Array(1, 2, 3, 4, 4)

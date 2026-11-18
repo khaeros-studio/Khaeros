@@ -1,0 +1,103 @@
+keys,pt_BR
+WEAPON_LAMINA_NAME,Lâmina do Juramento
+WEAPON_LAMINA_NAME_DESC,Corpo a corpo de combo que quebra a preparação.
+WEAPON_LAMINA_ATK,Corte
+WEAPON_LAMINA_ATK_DESC,Arco curto em três golpes; o último quebra o preparo.
+WEAPON_LAMINA_ESP,Investida
+WEAPON_LAMINA_ESP_DESC,Avanço rápido invulnerável que atravessa a linha.
+WEAPON_RESSONANCIA_NAME,Foco Ressonante
+WEAPON_RESSONANCIA_NAME_DESC,Distância e controle de área com menos Vida.
+WEAPON_RESSONANCIA_ATK,Pulso
+WEAPON_RESSONANCIA_ATK_DESC,Projétil rápido e contínuo que empurra sem congelar.
+WEAPON_RESSONANCIA_ESP,Onda de Ressonância
+WEAPON_RESSONANCIA_ESP_DESC,Anel de área ao redor do Iniciado que afasta a multidão.
+WEAPON_PACTOS_NAME,Besta do Vínculo
+WEAPON_PACTOS_NAME_DESC,Distância em dupla com a Maldição pactuada.
+WEAPON_PACTOS_ATK,Virote
+WEAPON_PACTOS_ATK_DESC,Virote rápido que marca o alvo prioritário da Maldição.
+WEAPON_PACTOS_ESP,Chamado do Pacto
+WEAPON_PACTOS_ESP_DESC,Ordena que a Maldição em campo salte, segure e atraia.
+WEAPON_GUARDIAO_NAME,Escudo-Bastião
+WEAPON_GUARDIAO_NAME_DESC,Defesa ancorada e contra-ataque pesado.
+WEAPON_GUARDIAO_ATK,Golpe de Escudo
+WEAPON_GUARDIAO_ESP,Muralha
+WEAPON_VEU_NAME,Adagas do Véu
+WEAPON_VEU_NAME_DESC,Velocidade furtiva entre as fendas.
+WEAPON_VEU_ATK,Estocada
+WEAPON_VEU_ESP,Leque de Lâminas
+WEAPON_TRANSMUTACAO_NAME,Cálice da Transmutação
+WEAPON_TRANSMUTACAO_NAME_DESC,Alquimia de Fluxo e matéria instável.
+WEAPON_TRANSMUTACAO_ATK,Gota Corrosiva
+WEAPON_TRANSMUTACAO_ESP,Transmutar
+ENEMY_ECO_PERDIDO_NAME,Eco Perdido
+ENEMY_ANOMALIA_MENOR_NAME,Anomalia Menor
+ENEMY_FENDA_ERRANTE_NAME,Fenda Errante
+ENEMY_ANOMALIA_MAIOR_NAME,Anomalia Maior
+ENEMY_SOBERANO_DO_LIMIAR_NAME,Soberano do Limiar
+BOSS_ANOMALIA_MAIOR_NAME,Anomalia Maior
+BOSS_SOBERANO_DO_LIMIAR_NAME,Soberano do Limiar
+BOSS_SOBERANO_P1,Varredura do Limiar
+BOSS_SOBERANO_P2,Fenda Retangular
+BOSS_SOBERANO_P3,Anel de Cinza
+BOSS_SOBERANO_P4,Convergência do Soberano
+REGION_LIMIAR_NAME,Limiar da Beira
+REGION_VEIO_NAME,Veio Instável
+CURSE_CATEGORY_NAME,Maldições
+CURSE_VULTO_MUDO_NAME,Vulto Mudo
+CURSE_VULTO_MEM_1,O Vulto Mudo guarda silêncio onde antes havia um nome.
+CURSE_ESPREITADOR_DA_FENDA_NAME,Espreitador da Fenda
+CURSE_ESP_MEM_1,Olhos abertos na fenda seguem o fio antes do disparo.
+CURSE_ESP_MEM_2,Quem espreita da fenda conhece o peso da espera.
+CURSE_BALUARTE_DE_CINZA_NAME,Baluarte de Cinza
+CURSE_BAL_MEM_1,Cinza compactada em muralha que não recua.
+CURSE_BAL_MEM_2,Cada impacto no Baluarte ecoa um juramento antigo.
+CURSE_BAL_MEM_3,Sob a carapaça de cinza ainda pulsa o rito da Beira.
+CURSE_SOBERANO_DO_LIMIAR_NAME,Soberano do Limiar
+CURSE_SOB_MEM_1,O Soberano vigiava a primeira passagem da Beira.
+CURSE_SOB_MEM_2,Nenhuma travessia ocorria sem o tributo do Limiar.
+CURSE_SOB_MEM_3,Quando o rito partiu a pedra, a coroa permaneceu.
+CURSE_SOB_MEM_4,Agora o próprio Limiar caminha ao lado do Iniciado.
+TRAD_BLADE_TRACO_UNICO_NAME,O Traço Único
+TRAD_BLADE_TRACO_UNICO_DESC,Ataque causa +{valor:pct} de dano.
+TRAD_BLADE_LAMINA_PESADA_NAME,A Lâmina Pesada
+TRAD_BLADE_LAMINA_PESADA_DESC,Especial causa +{valor:pct} de dano.
+TRAD_BLADE_CORTE_FANTASMA_NAME,O Corte Fantasma
+TRAD_BLADE_CORTE_FANTASMA_DESC,A esquiva corta inimigos por {valor:int} de dano e aplica {sangramento:int} de Sangramento.
+TRAD_RESONANCE_FUNDO_POCO_NAME,O Fundo do Poço
+TRAD_RESONANCE_FUNDO_POCO_DESC,Com Vida abaixo de {limiar_vida:pct}, causa +{valor:pct} de dano.
+TRAD_RESONANCE_LINHA_CONTADA_NAME,A Linha Contada
+TRAD_RESONANCE_LINHA_CONTADA_DESC,Cada {a_cada:int}º acerto causa +{valor:pct} de dano.
+TRAD_RESONANCE_PRECO_NOME_NAME,O Preço com Nome
+TRAD_RESONANCE_PRECO_NOME_DESC,Causa +{dano_todo_pct.valor:pct} de dano em todos os golpes.
+TRAD_RESONANCE_PRECO_NOME_PRICE,Custa {vida_max_plano.valor:int} de Vida máxima.
+TRAD_GUARDIAN_MURO_PEDRAS_NAME,O Muro de Pedras
+TRAD_GUARDIAN_MURO_PEDRAS_DESC,+{valor:int} de Vida máxima.
+TRAD_GUARDIAN_VOO_ESCUDO_NAME,O Voo do Escudo
+TRAD_GUARDIAN_VOO_ESCUDO_DESC,Recebe -{valor:pct} de dano.
+TRAD_GUARDIAN_ARMADURA_VAZIA_NAME,A Armadura Vazia
+TRAD_GUARDIAN_ARMADURA_VAZIA_DESC,Entra em cada câmara com {valor:int} de escudo.
+TRAD_VEIL_PENUMBRA_NAME,A Penumbra
+TRAD_VEIL_PENUMBRA_DESC,Após esquivar, o próximo golpe em {janela_s:num} s causa +{valor:pct} de dano.
+TRAD_VEIL_SOMBRA_VIVA_NAME,A Sombra Viva
+TRAD_VEIL_SOMBRA_VIVA_DESC,Golpes de arma aplicam {valor:num} de Sangramento.
+TRAD_VEIL_FIO_INVISIVEL_NAME,O Fio Invisível
+TRAD_VEIL_FIO_INVISIVEL_DESC,+{velocidade_pct.valor:pct} de velocidade e +{cargas_esquiva.valor:int} carga de esquiva.
+TRAD_TRANSMUTATION_MOLDE_VIVO_NAME,O Molde Vivo
+TRAD_TRANSMUTATION_MOLDE_VIVO_DESC,Golpes de arma aplicam {valor:num} de Queimadura.
+TRAD_TRANSMUTATION_FORMA_FIXA_NAME,A Forma Fixa
+TRAD_TRANSMUTATION_FORMA_FIXA_DESC,O Selo causa +{dano_selo_pct.valor:pct} de dano e aplica Abalo de -{status.abalo.reducao_dano_causado:pct} por {selo_abala.duracao_s:num} s.
+TRAD_TRANSMUTATION_MATERIA_RESIDUAL_NAME,A Matéria Residual
+TRAD_TRANSMUTATION_MATERIA_RESIDUAL_DESC,Inimigos abatidos explodem causando {valor:int} de dano em raio de {raio_px:int} px.
+TRAD_PACTS_PRIMEIRO_VINCULO_NAME,O Primeiro Vínculo
+TRAD_PACTS_PRIMEIRO_VINCULO_DESC,Abater inimigos cura {valor:int} de Vida.
+TRAD_PACTS_OS_QUE_FICAM_NAME,Os Que Ficam
+TRAD_PACTS_OS_QUE_FICAM_DESC,Recusa a morte {valor:int} vez e retorna com {vida_ao_voltar:pct} de Vida por {invuln_s:num} s.
+TRAD_PACTS_FARDO_REPARTIDO_NAME,O Fardo Repartido
+TRAD_PACTS_FARDO_REPARTIDO_DESC,Devolve {valor:pct} do dano corpo a corpo recebido.
+CATALOGO_ERRO_TITULO,Catálogo de dados inválido — a partida não pode começar.
+CATALOGO_ERRO_CONTAGEM,%d erros · %d avisos
+CATALOGO_ERRO_COPIAR,Copiar relatório
+CATALOGO_ERRO_COPIADO,Copiado
+CATALOGO_ERRO_RECARREGAR,Recarregar catálogo
+CATALOGO_ERRO_SAIR,Sair
+CATALOGO_ERRO_VAZIO,Falha ao abrir o manifesto do catálogo.

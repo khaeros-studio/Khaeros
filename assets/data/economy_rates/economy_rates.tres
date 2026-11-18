@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EconomyRates" format=3]
+
+[ext_resource type="Script" path="res://src/content/economy_rates.gd" id="1_ec"]
+
+[resource]
+script = ExtResource("1_ec")
+id = &"economy_rates"
+obsoleto = false
+fragmentos_provacao = 3
+saldo_max = 999999

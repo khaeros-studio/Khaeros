@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="MaldicoesTuning" format=3]
+
+[ext_resource type="Script" path="res://src/content/maldicoes_tuning.gd" id="1_mt"]
+
+[resource]
+script = ExtResource("1_mt")
+id = &"maldicoes_tuning"
+obsoleto = false
+alcance_fio_px = 480.0
+distancia_seguir_px = 105.0
+alcance_chamado_px = 420.0
+duracao_salto_s = 0.2
+raio_chamado_px = 135.0
+raio_atracao_px = 210.0
+duracao_imobilizar_s = 1.5
+duracao_atracao_s = 1.5
+recarga_troca_s = 4.0
+recuperacao_exausta_s = 10.0
+vida_retorno_frac = 0.5
+regen_reserva_frac_s = 0.05

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="RoomTuning" format=3]
+
+[ext_resource type="Script" path="res://src/content/room_tuning.gd" id="1_rmt"]
+
+[resource]
+script = ExtResource("1_rmt")
+id = &"room_tuning"
+obsoleto = false
+camara_largura_px = 1920.0
+camara_altura_px = 1080.0
+obstaculos_min = 2
+obstaculos_var = 3
+obstaculo_raio_min_px = 42.0
+obstaculo_passos = 26
+folga_obstaculo_px = 105.0
+obstaculo_tentativas = 10
+spawn_candidatos = 14
+spawn_dist_jogador_px = 390.0
+spawn_margem_px = 111.0
+spawn_folga_pedra_px = 12.0
+portas_espaco_px = 450.0
+portas_y_px = 177.0
+porta_raio_px = 69.0
+entrada_px = PackedFloat64Array(960, 930)
+interagir_folga_px = 15.0
+santuario_cura = 0.4
+spawn_dist_acuada_px = 240.0

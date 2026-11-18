@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="BoonDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/boon_def.gd" id="1_b"]
+[ext_resource type="Script" path="res://src/content/effect_def.gd" id="2_e"]
+
+[sub_resource type="Resource" id="EffectDef_0"]
+script = ExtResource("2_e")
+tipo = &"velocidade_pct"
+valor = 0.12
+escala_com_raridade = true
+params = {}
+[sub_resource type="Resource" id="EffectDef_1"]
+script = ExtResource("2_e")
+tipo = &"cargas_esquiva"
+valor = 1.0
+escala_com_raridade = false
+params = {}
+[resource]
+script = ExtResource("1_b")
+id = &"trad_veil_fio_invisivel"
+obsoleto = false
+doutrina = &"veu"
+chave_nome = &"TRAD_VEIL_FIO_INVISIVEL_NAME"
+chave_descricao = &"TRAD_VEIL_FIO_INVISIVEL_DESC"
+efeitos = Array[ExtResource("2_e")]([SubResource("EffectDef_0"), SubResource("EffectDef_1")])
+glifo = &"glifo_veu"
+icone_ganho = "res://assets/art/export/glifo_veu.png"
+chave_preco = &""

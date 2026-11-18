@@ -1,0 +1,5 @@
+id,name_pt,familia,ataque_Manifestado_dano,ataque_Manifestado_recarga_s,ataque_Manifestado_alcance_px,duracao_manifestacao_s,recarga_invocacao_s,custo_sacrificio_vida_pct,eco_dano_base,eco_raio_px
+vulto_mudo,Vulto Mudo,corpo_a_corpo,18.0,0.85,96.0,8.0,12.0,15.0,28.0,140.0
+espreitador_da_fenda,Espreitador da Fenda,distancia,14.0,0.75,480.0,8.0,12.0,15.0,24.0,140.0
+baluarte_de_cinza,Baluarte de Cinza,guardiao,22.0,1.20,120.0,10.0,14.0,20.0,36.0,168.0
+soberano_do_limiar,Soberano do Limiar,chefe,34.0,1.00,180.0,10.0,16.0,25.0,52.0,200.0

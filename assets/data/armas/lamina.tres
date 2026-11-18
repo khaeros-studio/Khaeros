@@ -1,0 +1,52 @@
+[gd_resource type="Resource" script_class="WeaponDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/weapon_def.gd" id="1_w"]
+[ext_resource type="Script" path="res://src/content/attack_def.gd" id="2_a"]
+
+[sub_resource type="Resource" id="AttackDef_atk"]
+script = ExtResource("2_a")
+chave_nome = &"WEAPON_LAMINA_ATK"
+forma = &"arco"
+params = {
+&"alcance_px": 142.5,
+&"meio_angulo_graus": 69.51
+}
+leque = PackedFloat64Array()
+atravessa = false
+dano = 14.0
+recarga_s = 0.26666666666666666
+preparo_s = 0.0
+empurrao = 450.0
+status = &""
+multiplicadores_combo = PackedFloat64Array(1, 1, 1.8)
+guarda_s = 0.0
+
+[sub_resource type="Resource" id="AttackDef_esp"]
+script = ExtResource("2_a")
+chave_nome = &"WEAPON_LAMINA_ESP"
+forma = &"avanco"
+params = {
+&"distancia_px": 330.0,
+&"duracao_s": 0.16666666666666666,
+&"raio_px": 69.0
+}
+leque = PackedFloat64Array()
+atravessa = false
+dano = 26.0
+recarga_s = 1.1666666666666667
+preparo_s = 0.0
+empurrao = 1080.0
+status = &""
+multiplicadores_combo = PackedFloat64Array()
+guarda_s = 0.0
+
+[resource]
+script = ExtResource("1_w")
+id = &"lamina"
+obsoleto = false
+doutrina = &"lamina"
+chave_nome = &"WEAPON_LAMINA_NAME"
+vida_max = 100
+velocidade = 387.0
+ataque = SubResource("AttackDef_atk")
+especial = SubResource("AttackDef_esp")

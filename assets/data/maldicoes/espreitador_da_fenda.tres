@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="CurseDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/curse_def.gd" id="1_c"]
+
+[resource]
+script = ExtResource("1_c")
+id = &"espreitador_da_fenda"
+obsoleto = false
+chave_nome = &"CURSE_ESPREITADOR_DA_FENDA_NAME"
+raridade = &"refinado"
+vida_max = 95.0
+velocidade = 435.0
+raio_px = 22.5
+forma_basica = &"arco"
+alcance_basico_px = 112.5
+dano_basico = 7.65
+empurrao_basico = 300.0
+preparo_s = 0.1
+execucao_s = 0.08333333333333333
+recuperacao_s = 0.23333333333333334
+efeito_saida = &"saida_padrao"
+efeito_entrada = &"entrada_padrao"
+bonus_sinergia_pct = 0.5
+passivas = Array[StringName]([&"faro_do_vinculo"])
+efeito_chamado = &""
+habilidade_unica = &""
+chefe_origem_id = &""
+memorias = PackedStringArray("CURSE_ESP_MEM_1", "CURSE_ESP_MEM_2")

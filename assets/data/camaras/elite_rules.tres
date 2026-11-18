@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="EliteRules" format=3]
+
+[ext_resource type="Script" path="res://src/content/elite_rules.gd" id="1_er"]
+[ext_resource type="Script" path="res://src/content/linear_curve_def.gd" id="2_lc"]
+
+[sub_resource type="Resource" id="LinearCurveDef_1"]
+script = ExtResource("2_lc")
+x_min = 3.0
+base = 0.05
+slope = 0.02
+y_floor = 0.0
+y_cap = 0.25
+sem_teto = false
+
+[resource]
+script = ExtResource("1_er")
+id = &"elite_rules"
+obsoleto = false
+mult_vida = 2.4
+mult_dano = 1.25
+mult_raio = 1.2
+resistencia_empurrao = 0.4
+profundidade_minima = 3
+max_elites_onda = 2
+curva_chance = SubResource("LinearCurveDef_1")

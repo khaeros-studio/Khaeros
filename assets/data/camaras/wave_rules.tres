@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="WaveRules" format=3]
+
+[ext_resource type="Script" path="res://src/content/wave_rules.gd" id="1_wr"]
+
+[resource]
+script = ExtResource("1_wr")
+id = &"wave_rules"
+obsoleto = false
+orcamento_base = 3.0
+orcamento_por_prof = 0.9
+orcamento_por_regiao = 2.0
+ondas_limites = PackedInt64Array(2, 6)
+max_inimigos_onda = 9
+intervalo_onda_s = 0.0

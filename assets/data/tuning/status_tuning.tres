@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="StatusTuning" format=3]
+
+[ext_resource type="Script" path="res://src/content/status_tuning.gd" id="1_st"]
+
+[resource]
+script = ExtResource("1_st")
+id = &"status_tuning"
+obsoleto = false
+duracao_sangramento_s = 3.0
+dano_sangramento_s = 2.4
+max_acumulos_sangramento = 5
+duracao_queimadura_s = 2.5
+dano_queimadura_s = 4.8
+max_acumulos_queimadura = 5
+duracao_abalo_s = 3.0
+reducao_dano_causado = 0.3
+intervalo_numero_s = 0.5
