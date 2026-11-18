@@ -172,6 +172,23 @@ func _pillar(pos: Vector2, radius: float, index: int = 0) -> void:
 	draw_line(pos + Vector2(13, -58), pos + Vector2(4, -35), Color("171c28"), 3)
 	draw_arc(pos, radius, 0, PI, 18, Color("53515b"), 3, true)
 
+func _draw_cetro_magico(pos: Vector2, aim: Vector2, time_sec: float, casting: bool) -> void:
+	var dir := aim.normalized() if aim != Vector2.ZERO else Vector2.RIGHT
+	var hand := pos + Vector2(0, -34) + dir * 14.0
+	var base := hand - dir * 18.0
+	var ponta := hand + dir * 38.0
+	var perp := dir.orthogonal()
+	draw_line(base, ponta, INK, 9.0, true)
+	draw_line(base, ponta, Color("494356"), 4.5, true)
+	draw_line(ponta - dir * 7.0 - perp * 7.0, ponta - dir * 7.0 + perp * 7.0, GOLD, 4.0, true)
+	var orb_pos := ponta + dir * (6.0 + sin(time_sec * 6.0) * 1.5)
+	var orb_r := 8.0 if casting else 6.0
+	var cyan := Color("7dd3fc")
+	draw_circle(orb_pos, orb_r + 5.0, Color(cyan, 0.35 if casting else 0.22))
+	draw_circle(orb_pos, orb_r + 2.0, INK)
+	draw_circle(orb_pos, orb_r, cyan)
+	draw_circle(orb_pos, orb_r * 0.45, GOLD)
+
 func _companion(pos: Vector2) -> void:
 	var sp := String(app.get("companion_species") if app.get("companion_species") != null else &"vulto_mudo")
 	if _frames_by_actor.has(sp):
@@ -196,7 +213,10 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 	if dash:
 		for i in range(1, 4):
 			draw_line(pos - facing * i * 18 + Vector2(-12, -20), pos - facing * i * 18 + Vector2(12, -45), Color(BONE, 0.32 / float(i)), 4, true)
-	var player_actor := "iniciado_pactos" if app.get("selected_weapon") == &"pactos" and _frames_by_actor.has("iniciado_pactos") else "iniciado_lamina"
+	var w_id: StringName = app.get("selected_weapon") if app.get("selected_weapon") != null else &"lamina"
+	var player_actor := "iniciado_lamina"
+	if (w_id == &"pactos" or w_id == &"ressonancia") and _frames_by_actor.has("iniciado_pactos"):
+		player_actor = "iniciado_pactos"
 	if _frames_by_actor.has(player_actor):
 		var dir_suffix := "costas34" if facing.y < -0.15 else "frente34"
 		var flip_x := -1.0 if facing.x < -0.05 else 1.0
@@ -213,7 +233,7 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 			action = "lunge"
 			var l_total := maxf(1.0, roundf(float(data.investida.duracao_s) * 60.0))
 			progress = clampf(1.0 - float(player.lunge_remaining) / l_total, 0.0, 0.999)
-		elif int(player.get("attack_cd", 0)) > 0:
+		elif int(player.get("attack_cd", 0)) > 0 and w_id == &"lamina":
 			var combo_idx := int(player.get("combo", 1))
 			action = "attack1" if combo_idx == 1 else ("attack2" if combo_idx == 2 else "attack3")
 			var a_total := maxf(1.0, roundf(float(data.corte.recarga_s) * 60.0))
@@ -226,8 +246,12 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 		var anim_name := action + "_" + dir_suffix
 		if not _frames_by_actor[player_actor].has_animation(anim_name):
 			anim_name = "idle_" + dir_suffix
-		var modulate := BONE if int(player.get("flash", 0)) > 0 else Color.WHITE
+		var modulate := Color(0.84, 0.94, 1.05, 1.0) if w_id == &"ressonancia" else Color.WHITE
+		if int(player.get("flash", 0)) > 0:
+			modulate = BONE
 		_draw_actor_sprite(player_actor, anim_name, pos, flip_x, 1.0, session.presentation_time, progress, modulate)
+		if w_id == &"ressonancia":
+			_draw_cetro_magico(pos, aim, session.presentation_time, int(player.get("attack_cd", 0)) > 0)
 		draw_arc(pos, 34, 0, TAU, 40, Color(BONE, 0.35), 1.5, true)
 		if int(player.get("inv", 0)) > 0 and not dash:
 			draw_arc(pos, 39, -PI * 0.8, -PI * 0.2, 15, Color(BONE, 0.65), 2, true)
