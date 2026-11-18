@@ -1,0 +1,77 @@
+[gd_resource type="Resource" script_class="EnemyDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/enemy_def.gd" id="1_e"]
+[ext_resource type="Script" path="res://src/content/boss_pattern_def.gd" id="2_bp"]
+
+[sub_resource type="Resource" id="BossPatternDef_1"]
+script = ExtResource("2_bp")
+chave_nome = &"BOSS_GUARDIAO_RITO_P1"
+forma_telegrafo = &"setor"
+dimensoes = {
+&"raio_px": 180.0
+}
+preparo_s = 0.55
+execucao_s = 0.2
+recarga_s = 1.1
+dano = 20.0
+efeitos = Array[StringName]([])
+raio_secundario_px = 0.0
+
+[sub_resource type="Resource" id="BossPatternDef_2"]
+script = ExtResource("2_bp")
+chave_nome = &"BOSS_GUARDIAO_RITO_P2"
+forma_telegrafo = &"retangulo"
+dimensoes = {
+&"raio_px": 230.0
+}
+preparo_s = 0.65
+execucao_s = 0.35
+recarga_s = 1.3
+dano = 22.0
+efeitos = Array[StringName]([])
+raio_secundario_px = 0.0
+
+[sub_resource type="Resource" id="BossPatternDef_3"]
+script = ExtResource("2_bp")
+chave_nome = &"BOSS_GUARDIAO_RITO_P3"
+forma_telegrafo = &"anel"
+dimensoes = {
+&"r_ext": 240.0
+}
+preparo_s = 0.65
+execucao_s = 0.25
+recarga_s = 1.5
+dano = 18.0
+efeitos = Array[StringName]([])
+raio_secundario_px = 0.0
+
+[sub_resource type="Resource" id="BossPatternDef_4"]
+script = ExtResource("2_bp")
+chave_nome = &"BOSS_GUARDIAO_RITO_P4"
+forma_telegrafo = &"circulo"
+dimensoes = {
+&"raio_px": 245.0
+}
+preparo_s = 0.75
+execucao_s = 0.25
+recarga_s = 1.8
+dano = 20.0
+efeitos = Array[StringName]([])
+raio_secundario_px = 450.0
+
+[resource]
+script = ExtResource("1_e")
+id = &"guardiao_do_rito"
+obsoleto = false
+chave_nome = &"ENEMY_GUARDIAO_RITO_NAME"
+comportamento = &"chefe"
+vida = 950.0
+velocidade = 135.0
+raio_px = 50.0
+dano = 20.0
+alcance_px = 55.0
+preparo_s = 0.5
+recarga_s = 1.1
+velocidade_projetil = 0.0
+custo_onda = 9
+padroes = Array[ExtResource("2_bp")]([SubResource("BossPatternDef_1"), SubResource("BossPatternDef_2"), SubResource("BossPatternDef_3"), SubResource("BossPatternDef_4")])

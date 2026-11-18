@@ -38,6 +38,8 @@ var observed_wave := -1
 var selected_weapon: StringName = &"lamina"
 var weapon_order: Array[StringName] = [&"lamina", &"ressonancia", &"pactos", &"guardiao", &"veu"]
 var oficina := OficinaDeReforja.new()
+var campus := CampusHub.new()
+var falar_mestre_ativo: bool = false
 var conta_meta: ContaFragmentos = null
 var _prev_kills: int = 0
 var _prev_state_for_meta: String = "menu"
@@ -203,7 +205,9 @@ func _process(delta: float) -> void:
 		observed_wave = session.wave_index
 		camera.cut(session.player.pos)
 	sync_context()
-	if not session.player.is_empty():
+	if session.state in ["campus", "mestres"]:
+		camera.cut(Vector2(960.0, 540.0))
+	elif not session.player.is_empty():
 		camera.reduced_motion = reduced_motion
 		camera.aim_intensity = last_sample.get("aim_intensity", 0.0)
 		camera.update(presentation_delta, session.player.prev, session.player.pos,
@@ -251,6 +255,11 @@ func activate(index: int) -> void:
 			elif index == 3:
 				session.state = "oficina"
 				_tocar_sfx(&"sfx_carta_foco")
+			elif index == 4:
+				campus.resetar_posicao()
+				falar_mestre_ativo = false
+				session.state = "campus"
+				_tocar_sfx(&"sfx_carta_foco")
 		"oficina":
 			var ids := OficinaDeReforja.ids_melhorias()
 			if index >= 0 and index < ids.size():
@@ -291,6 +300,9 @@ func _handle_ui(sample: Dictionary) -> void:
 		else:
 			session.pause()
 		return
+	if session.state in ["campus", "mestres"]:
+		_handle_campus_ui(sample, pressed)
+		return
 	var boxes: Array[Rect2] = hud.action_rects()
 	if boxes.is_empty():
 		return
@@ -323,6 +335,48 @@ func _handle_ui(sample: Dictionary) -> void:
 	elif pressed.get("ui_voltar", false) and session.state == "pausa":
 		# B does not close the pause root; Esc/Start use pausar above.
 		selected = old_selected
+
+func _handle_campus_ui(sample: Dictionary, pressed: Dictionary) -> void:
+	if pressed.get("ui_voltar", false) or pressed.get("pausar", false):
+		if falar_mestre_ativo:
+			falar_mestre_ativo = false
+			_tocar_sfx(&"sfx_carta_foco")
+			return
+		session.state = "menu"
+		_tocar_sfx(&"sfx_carta_foco")
+		_espelhar_estado()
+		sync_context()
+		return
+	if falar_mestre_ativo:
+		if pressed.get("ui_aceitar", false) or pressed.get("ui_right", false) or pressed.get("ui_down", false):
+			campus.avancar_mestre()
+			_tocar_sfx(&"sfx_carta_foco")
+		return
+	var mov: Vector2 = sample.get("move", Vector2.ZERO)
+	campus.atualizar_movimento(mov, 1.0 / float(OrquestradorDoPasso.PASSOS_POR_SEGUNDO))
+	if pressed.get("ui_aceitar", false) or pressed.get("interagir", false):
+		match campus.interagir():
+			CampusHub.ZONA_OFICINA:
+				session.state = "oficina"
+				_tocar_sfx(&"sfx_carta_foco")
+				_espelhar_estado()
+				sync_context()
+			CampusHub.ZONA_DOUTRINAS:
+				var pos_idx: int = weapon_order.find(selected_weapon)
+				selected_weapon = weapon_order[(pos_idx + 1) % weapon_order.size()]
+				_tocar_sfx(&"sfx_carta_foco")
+			CampusHub.ZONA_MESTRES:
+				falar_mestre_ativo = true
+				_tocar_sfx(&"sfx_carta_foco")
+			CampusHub.ZONA_PORTAL:
+				_aplicar_arma_na_sessao()
+				session.start()
+				_reiniciar_aliado_mvp()
+				observed_wave = -1
+				camera.cut(session.player.pos)
+				_tocar_sfx(&"sfx_carta_confirmar")
+				_espelhar_estado()
+				sync_context()
 
 func _on_resize() -> void:
 	if ready_to_play:

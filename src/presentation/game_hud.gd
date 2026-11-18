@@ -24,6 +24,9 @@ func _garantir_texturas_ui() -> void:
 		"silhueta_vulto": "res://assets/art/ui/maldicoes/silhueta_vulto_mudo_72.png",
 		"icone_fragmento": "res://assets/art/ui/hud/icone_fragmento.png",
 		"gota_fluxo": "res://assets/art/ui/hud/gota_fluxo.png",
+		"mestre_halvar": "res://assets/art/ui/mestres/halvar.png",
+		"mestre_maren": "res://assets/art/ui/mestres/maren.png",
+		"mestre_oreth": "res://assets/art/ui/mestres/oreth.png",
 	}
 	for k: String in mapas.keys():
 		var path: String = mapas[k]
@@ -66,6 +69,7 @@ func action_rects() -> Array[Rect2]:
 				Rect2(center-240,648,480,62),
 				Rect2(center-240,726,480,62),
 				Rect2(center-240,804,480,62),
+				Rect2(center-240,882,480,62),
 			]
 		"oficina":
 			for i in range(5):
@@ -91,10 +95,12 @@ func _draw() -> void:
 	_garantir_texturas_ui()
 	var width: float = app.camera.width
 	var state: String = app.session.state
-	if state != "menu":
+	if not state in ["menu", "campus", "mestres"]:
 		_status(width)
 	if state == "jogo":
 		_controls(width)
+	elif state in ["campus", "mestres"]:
+		_draw_campus_hud(width)
 	elif state == "transicao":
 		var progress: float = app.session.get("transition_progress")
 		var opacity := 1.0-absf(progress*2-1)
@@ -114,8 +120,9 @@ func _draw() -> void:
 				_button(action_rects()[1],"Redução de movimento: "+("ligada" if app.reduced_motion else "desligada"),1,true)
 				_button(action_rects()[2],"Doutrina: "+_nome_doutrina(),2,true)
 				_button(action_rects()[3],"Oficina de Reforja (%d Frag.)" % frag_saldo,3,true)
+				_button(action_rects()[4],"Explorar Campus (Hub)",4,true)
 				var cat_ok := app.get("catalogo_real") != null
-				_center("MVP KHAEROS • CATÁLOGO .TRES %s • 11 ATORES • ÁUDIO P0" % ["ATIVO" if cat_ok else "FALLBACK"],915,18,MUTED,width)
+				_center("MVP KHAEROS • CATÁLOGO .TRES %s • 11 ATORES • ÁUDIO P0" % ["ATIVO" if cat_ok else "FALLBACK"],980,18,MUTED,width)
 				_controls(width)
 			"oficina":
 				_center("OFICINA DE REFORJA", 160, 48, BONE, width)
@@ -168,6 +175,43 @@ func _draw() -> void:
 				_button(action_rects()[1],"Voltar ao início",1,true)
 		if state != "bencao" and state != "menu":
 			_center("Setas / direcional para escolher  •  Enter / A para confirmar",950,20,MUTED,width)
+
+func _draw_campus_hud(width: float) -> void:
+	draw_rect(Rect2(0, 0, width, 96), Color(0.035, 0.04, 0.065, 0.88))
+	_text("CAMPUS DE KHAEROS", Vector2(60, 42), 24, GOLD)
+	_text("Doutrina: " + _nome_doutrina(), Vector2(60, 74), 19, BONE)
+	var frag_saldo: int = app.saldo_fragmentos() if app.has_method("saldo_fragmentos") else 0
+	_text("Fragmentos: %d" % frag_saldo, Vector2(width - 260, 56), 22, GOLD)
+	var campus: CampusHub = app.get("campus") as CampusHub
+	if campus == null:
+		return
+	if bool(app.get("falar_mestre_ativo")):
+		var fala: Dictionary = campus.fala_mestre_atual()
+		var box := Rect2(width / 2.0 - 460.0, 690.0, 920.0, 260.0)
+		draw_rect(box, Color(PANEL.r, PANEL.g, PANEL.b, 0.94))
+		draw_rect(box, GOLD, false, 2.5)
+		var m_id := String(fala.get("id", "halvar"))
+		var m_tex: Texture2D = _ui_tex.get("mestre_" + m_id, null)
+		var text_x := 36.0
+		if m_tex != null:
+			draw_texture_rect(m_tex, Rect2(box.position + Vector2(24, 24), Vector2(180, 180)), false)
+			text_x = 224.0
+		_text(String(fala.get("nome", "")), box.position + Vector2(text_x, 48), 30, GOLD)
+		_text(String(fala.get("titulo", "")), box.position + Vector2(text_x, 80), 19, MUTED)
+		_wrapped("\"%s\"" % String(fala.get("fala", "")), Rect2(box.position + Vector2(text_x, 108), Vector2(box.size.x - text_x - 36, 100)), 24, BONE)
+		_center_in("[E / Enter] Próximo Mestre   •   [Esc] Fechar", box.end.y - 24, 18, MUTED, box)
+	else:
+		var focada := campus.zona_focada()
+		if focada != &"":
+			var nome_z := campus.nome_zona(focada)
+			var prompt := "[E / Enter] Interagir: %s" % nome_z
+			var p_box := Rect2(width / 2.0 - 280.0, 885.0, 560.0, 58.0)
+			draw_rect(p_box, Color(PANEL.r, PANEL.g, PANEL.b, 0.92))
+			draw_rect(p_box, GOLD, false, 2.0)
+			_center_in(prompt, p_box.position.y + 38, 22, GOLD, p_box)
+	draw_rect(Rect2(0, 1013, width, 67), Color(0.035, 0.04, 0.065, 0.93))
+	_center("WASD / Setas  Mover     E / Enter  Interagir     Esc  Voltar ao Menu", 1054, 20, MUTED, width)
+
 
 func _status(width: float) -> void:
 	var player: Dictionary = app.session.player

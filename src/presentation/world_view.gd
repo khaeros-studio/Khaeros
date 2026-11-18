@@ -9,7 +9,7 @@ const MAGENTA_BRIGHT := Color("f070c0")
 const GOLD := Color("e3b23c")
 const PIVOT := Vector2(200, 320)
 const ACTOR_IDS := [
-	"iniciado_lamina", "iniciado_pactos", "eco_perdido", "anomalia_menor", "fenda_errante", "elite_pecas",
+	"iniciado_lamina", "iniciado_pactos", "iniciado_ressonancia", "eco_perdido", "anomalia_menor", "fenda_errante", "elite_pecas",
 	"vulto_mudo", "espreitador_da_fenda", "baluarte_de_cinza", "soberano_do_limiar", "chefe_soberano_limiar"
 ]
 
@@ -46,7 +46,8 @@ func _ensure_atlases() -> void:
 	for env_name: String in [
 		"chao_laje_01", "chao_laje_02", "chao_laje_03", "chao_laje_04",
 		"obstaculo_rocha_01", "obstaculo_rocha_02", "obstaculo_rocha_03", "obstaculo_coluna_04",
-		"porta_fechada", "porta_aberta", "porta_chefe", "altar_santuario"
+		"porta_fechada", "porta_aberta", "porta_chefe", "altar_santuario",
+		"pedestal_pacto", "totem_bencao"
 	]:
 		var tex := _carregar_tex("res://assets/art/environment/limiar/%s.png" % env_name)
 		if tex != null:
@@ -59,6 +60,9 @@ func _draw() -> void:
 	var session = app.session
 	var data: Dictionary = app.catalog.data
 	var room := Rect2(0, 0, data.arena.largura, data.arena.altura)
+	if session.state in ["campus", "mestres"]:
+		_draw_campus(room)
+		return
 	draw_rect(room.grow(1000), Color("0e101a"))
 	draw_rect(room.grow(36), INK)
 	draw_rect(room, Color("1d212b"))
@@ -156,6 +160,69 @@ func _draw() -> void:
 	for effect in session.effects:
 		_effect(effect)
 
+func _draw_campus(room: Rect2) -> void:
+	draw_rect(room.grow(1000), Color("0e101a"))
+	draw_rect(room.grow(36), INK)
+	draw_rect(room, Color("1a1e28"))
+	for x in range(120, int(room.size.x), 240):
+		for y in range(120, int(room.size.y), 240):
+			var tile_idx := ((x / 240) + (y / 240)) % 4 + 1
+			var tile_tex: Texture2D = _env_textures.get("chao_laje_0%d" % tile_idx, null)
+			if tile_tex != null:
+				draw_texture_rect(tile_tex, Rect2(x - 110, y - 110, 220, 220), false, Color(1, 1, 1, 0.35))
+	draw_rect(CampusHub.LIMITE_CAMPUS, Color("383b46"), false, 3.0)
+	var center := room.get_center()
+	draw_arc(center, 220, 0, TAU, 96, Color("2b303d"), 2, true)
+	var campus: CampusHub = app.get("campus") as CampusHub
+	var focada := campus.zona_focada() if campus != null else &""
+	var zonas_visuais: Array[Dictionary] = [
+		{"id": CampusHub.ZONA_PORTAL, "pos": Vector2(960, 190), "tex": "porta_aberta", "size": Vector2(180, 170), "offset": Vector2(-90, -135)},
+		{"id": CampusHub.ZONA_MESTRES, "pos": Vector2(960, 320), "tex": "altar_santuario", "size": Vector2(190, 160), "offset": Vector2(-95, -105)},
+		{"id": CampusHub.ZONA_OFICINA, "pos": Vector2(420, 420), "tex": "pedestal_pacto", "size": Vector2(160, 140), "offset": Vector2(-80, -90)},
+		{"id": CampusHub.ZONA_DOUTRINAS, "pos": Vector2(1500, 420), "tex": "totem_bencao", "size": Vector2(140, 160), "offset": Vector2(-70, -115)},
+	]
+	for z: Dictionary in zonas_visuais:
+		var z_pos: Vector2 = z["pos"]
+		var is_focused: bool = (z["id"] == focada)
+		draw_circle(z_pos, CampusHub.RAIO_INTERACAO_PX, Color(GOLD, 0.14 if is_focused else 0.04))
+		draw_arc(z_pos, CampusHub.RAIO_INTERACAO_PX, 0, TAU, 48, GOLD if is_focused else Color("3a3e4d"), 3.0 if is_focused else 1.5, true)
+		var tex: Texture2D = _env_textures.get(String(z["tex"]), null)
+		if tex != null:
+			draw_texture_rect(tex, Rect2(z_pos + z["offset"], z["size"]), false)
+		else:
+			draw_circle(z_pos, 42.0, STONE)
+			draw_arc(z_pos, 42.0, 0, TAU, 32, GOLD if is_focused else BONE, 3.0, true)
+	# Três Mestres junto ao Altar dos Mestres (Halvar, Maren, Oreth)
+	var mestres_pos: Array[Dictionary] = [
+		{"pos": Vector2(885, 315), "cor": Color("e09f5a")},
+		{"pos": Vector2(960, 295), "cor": Color("7dd3fc")},
+		{"pos": Vector2(1035, 315), "cor": Color("b388eb")},
+	]
+	for m: Dictionary in mestres_pos:
+		var mp: Vector2 = m["pos"]
+		draw_circle(mp, 16.0, INK)
+		draw_circle(mp + Vector2(0, -18), 11.0, m["cor"])
+		draw_arc(mp + Vector2(0, -18), 13.0, 0, TAU, 20, BONE, 1.5, true)
+	if campus != null:
+		var interp := Engine.get_physics_interpolation_fraction()
+		var p_pos: Vector2 = campus.prev_pos.lerp(campus.pos, interp)
+		draw_set_transform(p_pos, 0, Vector2(1, 0.38))
+		draw_circle(Vector2(3, 8), 38.0, Color(INK.r, INK.g, INK.b, 0.68))
+		draw_set_transform(Vector2.ZERO)
+		var campus_player := {
+			"pos": campus.pos,
+			"prev": campus.prev_pos,
+			"aim": campus.aim,
+			"hp": 100.0,
+			"dash_remaining": 0,
+			"lunge_remaining": 0,
+			"attack_cd": 0,
+			"flash": 0,
+			"inv": 0,
+		}
+		_player(p_pos, campus_player)
+
+
 func _pillar(pos: Vector2, radius: float, index: int = 0) -> void:
 	var rock_keys := ["obstaculo_rocha_01", "obstaculo_rocha_02", "obstaculo_rocha_03", "obstaculo_coluna_04"]
 	var tex: Texture2D = _env_textures.get(rock_keys[index % rock_keys.size()], null)
@@ -215,7 +282,9 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 			draw_line(pos - facing * i * 18 + Vector2(-12, -20), pos - facing * i * 18 + Vector2(12, -45), Color(BONE, 0.32 / float(i)), 4, true)
 	var w_id: StringName = app.get("selected_weapon") if app.get("selected_weapon") != null else &"lamina"
 	var player_actor := "iniciado_lamina"
-	if (w_id == &"pactos" or w_id == &"ressonancia") and _frames_by_actor.has("iniciado_pactos"):
+	if w_id == &"ressonancia" and _frames_by_actor.has("iniciado_ressonancia"):
+		player_actor = "iniciado_ressonancia"
+	elif w_id == &"pactos" and _frames_by_actor.has("iniciado_pactos"):
 		player_actor = "iniciado_pactos"
 	if _frames_by_actor.has(player_actor):
 		var dir_suffix := "costas34" if facing.y < -0.15 else "frente34"
@@ -233,9 +302,9 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 			action = "lunge"
 			var l_total := maxf(1.0, roundf(float(data.investida.duracao_s) * 60.0))
 			progress = clampf(1.0 - float(player.lunge_remaining) / l_total, 0.0, 0.999)
-		elif int(player.get("attack_cd", 0)) > 0 and w_id == &"lamina":
+		elif int(player.get("attack_cd", 0)) > 0 and (w_id == &"lamina" or w_id == &"ressonancia"):
 			var combo_idx := int(player.get("combo", 1))
-			action = "attack1" if combo_idx == 1 else ("attack2" if combo_idx == 2 else "attack3")
+			action = "attack1" if (w_id == &"ressonancia" or combo_idx == 1) else ("attack2" if combo_idx == 2 else "attack3")
 			var a_total := maxf(1.0, roundf(float(data.corte.recarga_s) * 60.0))
 			progress = clampf(1.0 - float(player.attack_cd) / a_total, 0.0, 0.999)
 		elif int(player.get("flash", 0)) > 0:

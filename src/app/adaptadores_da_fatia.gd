@@ -249,7 +249,7 @@ static func vida_dos_inimigos(inimigos: Array) -> float:
 ## ADR-0001 §6: "MENU←JOGO (vitória)").
 static func estado_de(texto: String) -> EstadoDeJogo.Valor:
 	match texto:
-		"menu", "vitoria", "oficina": return EstadoDeJogo.Valor.MENU
+		"menu", "vitoria", "oficina", "campus", "mestres": return EstadoDeJogo.Valor.MENU
 		"jogo": return EstadoDeJogo.Valor.JOGO
 		"pausa": return EstadoDeJogo.Valor.PAUSA
 		"bencao": return EstadoDeJogo.Valor.BENCAO

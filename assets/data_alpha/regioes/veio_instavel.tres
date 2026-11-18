@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RegionDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/region_def.gd" id="1_r"]
+
+[resource]
+script = ExtResource("1_r")
+id = &"veio_instavel"
+obsoleto = false
+chave_nome = &"REGION_VEIO_INSTAVEL_NAME"
+camaras = Array[StringName]([&"combate", &"combate", &"combate", &"santuario", &"combate", &"combate", &"chefe"])
+pool_inimigos = Array[StringName]([&"eco_perdido", &"anomalia_menor", &"fenda_errante"])
+chefe = &"guardiao_do_rito"
+fragmentos_chefe = 32
