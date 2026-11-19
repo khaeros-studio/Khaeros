@@ -10,6 +10,8 @@ var shake_strength := 1.0
 var aim_intensity := 1.0
 var offset := Vector2.ZERO
 var zoom := 1.0
+var top_margin := 0.0
+var bottom_margin := 0.0
 var _tuning: Dictionary = {}
 var _room := Rect2()
 var _impulses: Array[Dictionary] = []
@@ -102,7 +104,9 @@ func _clamp(value: Vector2) -> Vector2:
 	if _room.size == Vector2.ZERO: return value
 	var extra := maxf(0.0,(width-1920.0)/2.0)
 	var x := _room.get_center().x if _room.size.x+2*extra <= width else clampf(value.x,_room.position.x-extra+width/2,_room.end.x+extra-width/2)
-	var y := _room.get_center().y if _room.size.y <= 1080 else clampf(value.y,_room.position.y+540,_room.end.y-540)
+	var min_y := _room.position.y + 540.0 - top_margin
+	var max_y := _room.end.y - 540.0 + bottom_margin
+	var y := _room.get_center().y if min_y >= max_y else clampf(value.y, min_y, max_y)
 	return Vector2(x,y)
 
 func _apply_transform() -> void:

@@ -75,38 +75,76 @@ func _draw() -> void:
 	var floor_col: Color = _cor_regiao(reg, "floor", Color("1d212b"))
 	var border_col: Color = _cor_regiao(reg, "border", Color("383b46"))
 	var accent_col: Color = _cor_regiao(reg, "accent", Color("2b303d"))
-	draw_rect(room.grow(1000), bg_col)
-	draw_rect(room.grow(36), INK)
-	draw_rect(room, floor_col)
-	draw_rect(room.grow(-18), border_col, false, 3)
-	draw_rect(room.grow(-36), Color(border_col.r, border_col.g, border_col.b, 0.55), false, 2)
-	# Quiet geometric floor + biome-specific floor slabs; detail remains below danger indicators.
 	var reg_id: String = String(reg.get("id", "limiar"))
-	for x in range(120, int(room.size.x), 240):
-		for y in range(120, int(room.size.y), 240):
+	var t_pres: float = float(session.presentation_time)
+	draw_rect(room.grow(1000), bg_col)
+	# Arquitetura de parede superior com profundidade 2.5D
+	var wall_h: float = 128.0
+	var wall_rect := Rect2(room.position.x - 42.0, room.position.y - wall_h, room.size.x + 84.0, wall_h + 6.0)
+	draw_rect(wall_rect, border_col.darkened(0.42))
+	draw_rect(Rect2(wall_rect.position.x, wall_rect.position.y, wall_rect.size.x, 16.0), border_col.lightened(0.08))
+	draw_rect(Rect2(wall_rect.position.x, wall_rect.end.y - 12.0, wall_rect.size.x, 12.0), INK)
+	for wx in range(int(room.position.x), int(room.end.x), 160):
+		draw_line(Vector2(wx, wall_rect.position.y + 16.0), Vector2(wx, wall_rect.end.y - 12.0), Color(INK.r, INK.g, INK.b, 0.45), 3.0)
+	draw_rect(room.grow(34), INK)
+	draw_rect(room, floor_col)
+	# Lajes contínuas cobrindo 100% do piso sem frestas, com leve variação orgânica de luz
+	for gx in range(0, int(room.size.x), 240):
+		for gy in range(0, int(room.size.y), 240):
 			var tile_tex: Texture2D = null
+			var col_i: int = gx / 240
+			var row_i: int = gy / 240
+			var hash_v: int = (col_i * 7 + row_i * 13) % 4
 			if reg_id != "limiar":
-				var b_idx := ((x / 240) + (y / 240)) % 2 + 1
+				var b_idx: int = (col_i + row_i) % 2 + 1
 				tile_tex = _env_textures.get("%s_chao_0%d" % [reg_id, b_idx], null)
 			if tile_tex == null:
-				var tile_idx := ((x / 240) + (y / 240)) % 4 + 1
+				var tile_idx: int = (col_i + row_i) % 4 + 1
 				tile_tex = _env_textures.get("chao_laje_0%d" % tile_idx, null)
+			var tile_rect := Rect2(gx, gy, 242, 242)
 			if tile_tex != null:
-				draw_texture_rect(tile_tex, Rect2(x - 110, y - 110, 220, 220), false, Color(1, 1, 1, 0.34))
+				var shade: float = 0.86 + float(hash_v) * 0.045
+				var tile_alpha: float = 0.72 if reg_id != "limiar" else 0.58
+				draw_texture_rect(tile_tex, tile_rect, false, Color(shade, shade, shade, tile_alpha))
 			else:
-				var offset := float((x / 240 + y / 240) % 3) * 12
-				draw_line(Vector2(x - 45, y + offset), Vector2(x + 45, y + offset), Color("272c37"), 1)
-				draw_line(Vector2(x, y - 45 + offset), Vector2(x, y + 45 + offset), Color("272c37"), 1)
+				draw_rect(tile_rect, floor_col.darkened(0.06 if hash_v % 2 == 0 else 0.0))
+				draw_rect(tile_rect, Color(border_col.r, border_col.g, border_col.b, 0.16), false, 1.5)
+	# Iluminação atmosférica suave no centro + sombra de oclusão nas 4 paredes
 	var center := room.get_center()
-	draw_arc(center, 220, 0, TAU, 96, Color(accent_col.r, accent_col.g, accent_col.b, 0.65), 2, true)
-	draw_arc(center, 236, 0, TAU, 96, Color(border_col.r, border_col.g, border_col.b, 0.45), 2, true)
+	draw_circle(center, 620.0, Color(accent_col.r, accent_col.g, accent_col.b, 0.09))
+	draw_circle(center, 360.0, Color(accent_col.r, accent_col.g, accent_col.b, 0.07))
+	draw_rect(Rect2(room.position.x, room.position.y, room.size.x, 58.0), Color(INK.r, INK.g, INK.b, 0.52))
+	draw_rect(Rect2(room.position.x, room.end.y - 44.0, room.size.x, 44.0), Color(INK.r, INK.g, INK.b, 0.42))
+	draw_rect(Rect2(room.position.x, room.position.y, 44.0, room.size.y), Color(INK.r, INK.g, INK.b, 0.42))
+	draw_rect(Rect2(room.end.x - 44.0, room.position.y, 44.0, room.size.y), Color(INK.r, INK.g, INK.b, 0.42))
+	draw_rect(room.grow(-14), border_col, false, 4.0)
+	draw_rect(room.grow(-28), Color(border_col.r, border_col.g, border_col.b, 0.42), false, 2.0)
+	# 4 Pilastras de canto ancorando a arquitetura da câmara
+	for corner: Vector2 in [room.position, Vector2(room.end.x, room.position.y), Vector2(room.position.x, room.end.y), room.end]:
+		draw_rect(Rect2(corner - Vector2(26, 26), Vector2(52, 52)), INK)
+		draw_rect(Rect2(corner - Vector2(20, 20), Vector2(40, 40)), border_col.darkened(0.2))
+		draw_rect(Rect2(corner - Vector2(20, 20), Vector2(40, 40)), border_col.lightened(0.15), false, 2.0)
+	draw_arc(center, 220, 0, TAU, 96, Color(accent_col.r, accent_col.g, accent_col.b, 0.48), 2.5, true)
+	draw_arc(center, 238, 0, TAU, 96, Color(border_col.r, border_col.g, border_col.b, 0.36), 2.0, true)
 	for i in range(12):
 		var direction := Vector2.RIGHT.rotated(i * TAU / 12)
-		draw_line(center + direction * 205, center + direction * 250, Color(border_col.r, border_col.g, border_col.b, 0.55), 3)
+		draw_line(center + direction * 206, center + direction * 246, Color(border_col.r, border_col.g, border_col.b, 0.42), 2.5)
 	if not reg.is_empty():
-		_draw_region_details(room, reg, accent_col, float(session.presentation_time))
+		_draw_region_details(room, reg, accent_col, t_pres)
+	# Partículas ambientais discretas por bioma
+	var part_col: Color = Color("ff9e44") if reg_id.contains("cinza") or reg_id.contains("fosso") else (
+		MAGENTA_BRIGHT if reg_id.contains("veio") else (Color("7dd3fc") if reg_id.contains("santuario") else BONE)
+	)
+	for p_i: int in range(18):
+		var seed_x: float = fmod(float(p_i * 317 + 140), room.size.x - 160.0) + 80.0
+		var seed_y: float = fmod(float(p_i * 193 + 90) - t_pres * (14.0 + float(p_i % 4) * 5.0), room.size.y - 120.0)
+		if seed_y < 0.0:
+			seed_y += room.size.y - 120.0
+		var drift_x: float = sin(t_pres * 1.3 + float(p_i)) * 16.0
+		var p_alpha: float = 0.14 + 0.10 * sin(t_pres * 2.1 + float(p_i) * 0.9)
+		draw_circle(Vector2(seed_x + drift_x, seed_y + 60.0), 2.2 + float(p_i % 3) * 0.9, Color(part_col.r, part_col.g, part_col.b, p_alpha))
 	# Door motif: biome ritual gate beyond the far wall.
-	var gate := Vector2(room.size.x / 2, 15)
+	var gate := Vector2(room.size.x / 2, 18)
 	var gate_tex: Texture2D = null
 	if reg_id != "limiar":
 		gate_tex = _env_textures.get("%s_portal" % reg_id, null)
@@ -114,6 +152,7 @@ func _draw() -> void:
 		var gate_key := "porta_aberta" if session.enemies.is_empty() else "porta_fechada"
 		gate_tex = _env_textures.get(gate_key, null)
 	if gate_tex != null:
+		draw_circle(gate + Vector2(0, -45), 96.0, Color(accent_col.r, accent_col.g, accent_col.b, 0.22))
 		draw_texture_rect(gate_tex, Rect2(gate + Vector2(-95, -165), Vector2(190, 180)), false)
 	else:
 		draw_rect(Rect2(gate + Vector2(-90, -150), Vector2(180, 160)), INK)
@@ -321,8 +360,12 @@ func _pillar(pos: Vector2, radius: float, index: int = 0) -> void:
 		var rock_keys := ["obstaculo_rocha_01", "obstaculo_rocha_02", "obstaculo_rocha_03", "obstaculo_coluna_04"]
 		tex = _env_textures.get(rock_keys[index % rock_keys.size()], null)
 	if tex != null:
-		var w := radius * 2.6
-		var h := radius * 3.4
+		draw_set_transform(pos, 0.0, Vector2(1.0, 0.42))
+		draw_circle(Vector2(0, 6), radius * 1.18, Color(INK.r, INK.g, INK.b, 0.45))
+		draw_arc(Vector2(0, 4), radius * 1.12, 0, TAU, 24, Color(0.55, 0.52, 0.58, 0.25), 2.0, true)
+		draw_set_transform(Vector2.ZERO)
+		var w := radius * 2.65
+		var h := radius * 3.45
 		draw_texture_rect(tex, Rect2(pos + Vector2(-w * 0.5, -h * 0.78), Vector2(w, h)), false)
 		return
 	var base := PackedVector2Array([pos + Vector2(-radius, 0), pos + Vector2(-radius - 7, -105), pos + Vector2(-18, -145), pos + Vector2(radius, -124), pos + Vector2(radius + 8, -12), pos + Vector2(radius * 0.5, 14)])
@@ -534,41 +577,58 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 		if not _frames_by_actor[sprite_kind].has_animation(anim_name):
 			anim_name = "idle_" + dir_suffix
 		var elite_scale := (1.15 if is_elite else 1.0) * boss_scale
-		var modulate: Color = boss_modulate if is_boss else Color.WHITE
+		var modulate: Color = boss_modulate if is_boss else (Color(1.08, 1.02, 0.90, 1.0) if is_elite else Color.WHITE)
 		if spawning:
 			modulate.a = 0.65
 		if int(enemy.get("flash", 0)) > 0:
 			modulate = Color(1.6, 1.55, 1.42, modulate.a)
 		var phase_time: float = session.presentation_time + float(int(enemy.get("id", 0))) * 0.19
-		_draw_actor_sprite(sprite_kind, anim_name, pos, flip_x, elite_scale, phase_time, progress, modulate)
+		var draw_pos: Vector2 = pos
+		var squash := Vector2.ONE
+		# Marretada com peso fisico real para o Colosso de Cinza (ergue no windup, esmaga no impacto)
+		if kind == "colosso_de_cinza":
+			if enemy.phase == "windup" and progress >= 0.0:
+				var lift: float = clampf(progress, 0.0, 1.0)
+				squash = Vector2(1.0 - 0.11 * lift, 1.0 + 0.18 * lift)
+				draw_pos.y -= 22.0 * lift
+				if lift > 0.65:
+					draw_pos.x += sin(phase_time * 55.0) * 3.5
+				modulate = modulate.lerp(Color(1.35, 0.92, 0.68, modulate.a), lift * 0.55)
+			elif enemy.phase == "recover" and action == "attack" and progress >= 0.0:
+				var slam_t: float = clampf(1.0 - progress, 0.0, 1.0)
+				squash = Vector2(1.0 + 0.26 * slam_t, 1.0 - 0.24 * slam_t)
+				draw_pos += look_vec * (26.0 * slam_t)
+				draw_pos.y += 10.0 * slam_t
+		if is_elite and not is_boss:
+			# Selo rúnico giratório discreto ancorado no chão (substitui escudo/coroa flutuantes)
+			draw_set_transform(pos, 0.0, Vector2(1.0, 0.42))
+			draw_arc(Vector2.ZERO, radius + 12.0, 0, TAU, 36, Color(GOLD.r, GOLD.g, GOLD.b, 0.62), 2.5, true)
+			draw_arc(Vector2.ZERO, radius + 19.0, 0, TAU, 36, Color(GOLD.r, GOLD.g, GOLD.b, 0.22), 1.5, true)
+			for m_i: int in range(4):
+				var m_ang: float = phase_time * 0.9 + float(m_i) * (TAU * 0.25)
+				var m_dir: Vector2 = Vector2.RIGHT.rotated(m_ang)
+				draw_line(m_dir * (radius + 6.0), m_dir * (radius + 20.0), Color(GOLD.r, GOLD.g, GOLD.b, 0.72), 2.5, true)
+			draw_set_transform(Vector2.ZERO)
 		if is_boss:
-			draw_arc(pos, radius + 14.0, 0, TAU, 48, Color(boss_aura.r, boss_aura.g, boss_aura.b, 0.52), 3.5, true)
-			draw_arc(pos, radius + 24.0, 0, TAU, 48, Color(boss_aura.r, boss_aura.g, boss_aura.b, 0.22), 2.0, true)
-			var crown_y: float = -112.0 * (boss_scale / 1.55)
-			var crown := PackedVector2Array([
-				pos + Vector2(-28, crown_y),
-				pos + Vector2(-22, crown_y - 20),
-				pos + Vector2(0, crown_y - 8),
-				pos + Vector2(22, crown_y - 20),
-				pos + Vector2(28, crown_y)
-			])
-			draw_polyline(crown, INK, 7.0, true)
-			draw_polyline(crown, boss_aura, 3.5, true)
-		if is_elite:
-			_draw_elite_part(kind, "placas_", pos, flip_x, dir_suffix, elite_scale, action, progress, modulate)
+			draw_set_transform(pos, 0.0, Vector2(1.0, 0.42))
+			draw_arc(Vector2.ZERO, radius + 14.0, 0, TAU, 48, Color(boss_aura.r, boss_aura.g, boss_aura.b, 0.55), 3.5, true)
+			draw_arc(Vector2.ZERO, radius + 26.0, 0, TAU, 48, Color(boss_aura.r, boss_aura.g, boss_aura.b, 0.22), 2.0, true)
+			draw_set_transform(Vector2.ZERO)
+		_draw_actor_sprite(sprite_kind, anim_name, draw_pos, flip_x, elite_scale, phase_time, progress, modulate, squash)
 		# Art Bible §3.2 & Lote 02 §3: Anomalia Menor has Magenta emitter ring & dorsal crystal accents
 		if kind == "anomalia_menor":
 			var emitter_pos := pos + Vector2(0, -26 * elite_scale) + look_vec * (22.0 * elite_scale)
 			var emitter_r := (6.5 if enemy.phase == "windup" else 4.0) * elite_scale
 			draw_circle(emitter_pos, emitter_r + 2.5, INK)
 			draw_circle(emitter_pos, emitter_r, MAGENTA_BRIGHT if enemy.phase == "windup" else MAGENTA)
-		if is_elite:
-			_draw_elite_part(kind, "coroa_", pos, flip_x, dir_suffix, elite_scale, action, progress, modulate)
 		if enemy.hp < enemy.max_hp:
-			var bar_y := (-128.0 if is_boss else (-108.0 if kind == "eco_perdido" else -82.0)) - (10.0 if is_elite else 0.0)
-			var bar_w := 96.0 if is_boss else 56.0
+			var bar_y := (-128.0 if is_boss else (-108.0 if kind == "eco_perdido" else -82.0)) - (8.0 if is_elite else 0.0)
+			var bar_w := 96.0 if is_boss else (66.0 if is_elite else 56.0)
 			draw_rect(Rect2(pos + Vector2(-bar_w * 0.5, bar_y), Vector2(bar_w, 6 if is_boss else 5)), INK)
 			draw_rect(Rect2(pos + Vector2(-bar_w * 0.5, bar_y), Vector2(bar_w * maxf(0, enemy.hp / enemy.max_hp), 6 if is_boss else 5)), boss_aura if is_boss else tint)
+			if is_elite and not is_boss:
+				var d_pos := pos + Vector2(-bar_w * 0.5 - 9.0, bar_y + 2.5)
+				draw_colored_polygon(PackedVector2Array([d_pos + Vector2(0, -5), d_pos + Vector2(5, 0), d_pos + Vector2(0, 5), d_pos + Vector2(-5, 0)]), GOLD)
 		return
 	# Procedural fallback
 	var flesh := Color("6a596e") if kind == "eco_perdido" else Color("5c4b65")
@@ -595,7 +655,7 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 		draw_rect(Rect2(pos + Vector2(-28, -91), Vector2(56, 5)), INK)
 		draw_rect(Rect2(pos + Vector2(-28, -91), Vector2(56 * maxf(0, enemy.hp / enemy.max_hp), 5)), tint)
 
-func _draw_actor_sprite(actor_id: String, anim_name: String, pos: Vector2, flip_x: float, scale_mult: float, time_sec: float, norm_progress: float, modulate: Color) -> void:
+func _draw_actor_sprite(actor_id: String, anim_name: String, pos: Vector2, flip_x: float, scale_mult: float, time_sec: float, norm_progress: float, modulate: Color, extra_scale: Vector2 = Vector2.ONE) -> void:
 	var frames: SpriteFrames = _frames_by_actor.get(actor_id)
 	var manifest: Dictionary = _manifests_by_actor.get(actor_id, {})
 	if frames == null or not frames.has_animation(anim_name):
@@ -622,7 +682,7 @@ func _draw_actor_sprite(actor_id: String, anim_name: String, pos: Vector2, flip_
 		return
 	var anim_meta: Dictionary = manifest.get("animations", {}).get(anim_name, {})
 	var base_scale := float(anim_meta.get("scale", 0.4)) * scale_mult
-	draw_set_transform(pos, 0.0, Vector2(flip_x * base_scale, base_scale))
+	draw_set_transform(pos, 0.0, Vector2(flip_x * base_scale * extra_scale.x, base_scale * extra_scale.y))
 	tex.draw_rect(get_canvas_item(), Rect2(-PIVOT, Vector2(400, 400)), false, modulate)
 	draw_set_transform(Vector2.ZERO)
 
@@ -675,6 +735,21 @@ func _telegraph(enemy: Dictionary, fill: bool) -> void:
 	var kind_str: String = String(enemy.get("kind", ""))
 	var data: Dictionary = app.session.enemy_def(kind_str) if app.session.has_method("enemy_def") else app.catalog.data.inimigos.get(kind_str, {})
 	var color := Color(MAGENTA, 0.13) if fill else Color(MAGENTA, 0.95)
+	if kind_str == "colosso_de_cinza":
+		var brasa_col: Color = Color("e86a2c")
+		var slam_prog := clampf(1.0 - float(enemy.timer) / maxf(1.0, roundf(float(data.get("preparo_s", 0.72)) * 60.0)), 0.01, 1.0)
+		var angle := deg_to_rad(float(data.get("tele_meio_angulo_graus", 120.0)))
+		var slam_r := float(data.get("tele_raio_px", 260.0))
+		var poly := _sector(pos, direction.angle(), angle, slam_r)
+		var impact_pt: Vector2 = pos + direction * 96.0
+		if fill:
+			draw_colored_polygon(poly, Color(brasa_col.r, brasa_col.g, brasa_col.b, 0.14 + 0.12 * slam_prog))
+			draw_circle(impact_pt, 56.0 * (1.35 - 0.55 * slam_prog), Color(Color("ff9e44"), 0.22 * slam_prog))
+		else:
+			draw_polyline(_closed(poly), Color(brasa_col, 0.92), 3.5, true)
+			draw_arc(impact_pt, maxf(18.0, 92.0 * (1.0 - slam_prog * 0.75)), 0, TAU, 32, Color("ff9e44"), 3.5, true)
+			draw_arc(pos, enemy.radius + 12, -PI / 2, -PI / 2 + TAU * slam_prog, 30, Color("ff9e44"), 4.5, true)
+		return
 	if kind_str == "anomalia_menor" or String(data.get("comportamento", "")) == "ranged":
 		var side := direction.orthogonal() * float(data.get("tele_largura_px", 81.0)) / 2
 		var end := pos + direction * float(data.get("tele_comprimento_max_px", 1728.0))
@@ -728,9 +803,6 @@ func _effect(effect: Dictionary) -> void:
 				var elite_scale := 1.15 if is_elite_death else 1.0
 				var death_mod := Color(1, 1, 1, alpha)
 				_draw_actor_sprite(actor_kind, "death_" + dir_suffix, pos, flip_x, elite_scale, 0.0, progress, death_mod)
-				if is_elite_death:
-					_draw_elite_part(actor_kind, "placas_", pos, flip_x, dir_suffix, elite_scale, "death", progress, death_mod)
-					_draw_elite_part(actor_kind, "coroa_", pos, flip_x, dir_suffix, elite_scale, "death", progress, death_mod)
 			for i in range(7):
 				var ray := Vector2.RIGHT.rotated(i * TAU / 7 + 0.3)
 				draw_line(pos + ray * (8 + 30 * (1 - alpha)), pos + ray * (19 + 40 * (1 - alpha)), Color(BONE, alpha), 3, true)
@@ -770,6 +842,38 @@ func _effect(effect: Dictionary) -> void:
 			draw_circle(pos, shock_r, Color(INK, alpha * 0.45))
 			draw_arc(pos, shock_r, 0, TAU, 32, Color(INK, alpha), 7.0, true)
 			draw_arc(pos, shock_r * 0.88, 0, TAU, 32, Color(BONE, alpha), 3.5, true)
+		"colosso_slam":
+			var max_r: float = float(effect.get("radius", 260.0))
+			var brasa := Color("e86a2c")
+			var brasa_clara := Color("ffae52")
+			var wave_t: float = clampf(progress * 2.2, 0.0, 1.0)
+			var wave_a: float = clampf(1.0 - wave_t, 0.0, 1.0)
+			# Cratera central + fissuras radiais de magma rachando o chão
+			draw_set_transform(pos, 0.0, Vector2(1.0, 0.52))
+			draw_circle(Vector2.ZERO, 44.0, Color(INK.r, INK.g, INK.b, alpha * 0.72))
+			draw_circle(Vector2.ZERO, 28.0, Color(brasa.r, brasa.g, brasa.b, alpha * 0.65))
+			draw_circle(Vector2.ZERO, 14.0, Color(brasa_clara.r, brasa_clara.g, brasa_clara.b, alpha * 0.85))
+			draw_set_transform(Vector2.ZERO)
+			for c_i: int in range(8):
+				var ang: float = float(c_i) * (TAU / 8.0) + 0.22
+				var c_dir: Vector2 = Vector2.RIGHT.rotated(ang)
+				var len_c: float = (85.0 + float(c_i % 3) * 32.0) * clampf(progress * 5.0, 0.25, 1.0)
+				var mid: Vector2 = pos + c_dir * (len_c * 0.55) + c_dir.orthogonal() * (12.0 if c_i % 2 == 0 else -12.0)
+				var tip: Vector2 = pos + c_dir * len_c
+				draw_line(pos, mid, Color(INK.r, INK.g, INK.b, alpha * 0.9), 7.0, true)
+				draw_line(mid, tip, Color(INK.r, INK.g, INK.b, alpha * 0.8), 4.5, true)
+				draw_line(pos, mid, Color(brasa.r, brasa.g, brasa.b, alpha), 3.5, true)
+				draw_line(mid, tip, Color(brasa_clara.r, brasa_clara.g, brasa_clara.b, alpha * 0.9), 2.0, true)
+			# Duas ondas de choque sísmicas expandindo rapidamente
+			if wave_a > 0.01:
+				var r1: float = maxf(24.0, max_r * (0.22 + 0.78 * wave_t))
+				draw_arc(pos, r1, 0, TAU, 48, Color(brasa.r, brasa.g, brasa.b, wave_a * 0.95), 9.0, true)
+				draw_arc(pos, r1 * 0.84, 0, TAU, 40, Color(BONE.r, BONE.g, BONE.b, wave_a * 0.75), 4.5, true)
+				for s_i: int in range(10):
+					var s_ang: float = float(s_i) * (TAU / 10.0) + 0.1
+					var s_dir: Vector2 = Vector2.RIGHT.rotated(s_ang)
+					var s_pos: Vector2 = pos + s_dir * (22.0 + 130.0 * wave_t) + Vector2(0, -42.0 * sin(wave_t * PI))
+					draw_circle(s_pos, 4.5 * wave_a, Color(brasa_clara.r, brasa_clara.g, brasa_clara.b, wave_a))
 		"enemy_attack":
 			draw_arc(pos, float(effect.get("radius", 90)), direction.angle() - 1.2, direction.angle() + 1.2, 24, Color(MAGENTA, alpha), 5, true)
 

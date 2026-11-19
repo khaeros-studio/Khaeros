@@ -724,7 +724,7 @@ func _spawn_wave() -> void:
 		if region_wave_index >= 2:
 			var boss_ids: Array[String] = ["soberano_do_limiar", "guardiao_do_rito", "colosso_de_cinza", "arconte_da_fenda"]
 			var boss_id: String = boss_ids[clampi(region_index, 0, boss_ids.size() - 1)]
-			_append_enemy(boss_id, Vector2(cx, 240.0), false, 1.0)
+			_append_enemy(boss_id, Vector2(cx, 360.0), false, 1.0)
 			if region_index == 0:
 				_append_enemy("eco_perdido", Vector2(cx - 320.0, 320.0), false, hp_mult)
 				_append_enemy("eco_perdido", Vector2(cx + 320.0, 320.0), false, hp_mult)
@@ -795,7 +795,19 @@ func _enemy_step(enemy: Dictionary) -> void:
 		enemy.aim = direction if direction != Vector2.ZERO else Vector2.DOWN
 		return
 	if definition.comportamento == "ranged":
-		if distance < float(data.ia.ranged_perto_px): direction = -direction
+		if distance < float(data.ia.ranged_perto_px):
+			var arena_w: float = float(data.arena.largura)
+			var arena_h: float = float(data.arena.altura)
+			var arena_m: float = float(data.arena.margem)
+			var perto_borda: bool = enemy.pos.y < arena_m + 210.0 or enemy.pos.y > arena_h - arena_m - 170.0 or enemy.pos.x < arena_m + 210.0 or enemy.pos.x > arena_w - arena_m - 210.0
+			if perto_borda:
+				var centro: Vector2 = Vector2(arena_w * 0.5, arena_h * 0.5)
+				var para_centro: Vector2 = (centro - enemy.pos).normalized()
+				var lado: float = 1.0 if (int(enemy.id) % 2 == 0) else -1.0
+				var tangente: Vector2 = Vector2(-direction.y, direction.x) * lado
+				direction = (tangente * 0.72 + para_centro * 0.68).normalized()
+			else:
+				direction = -direction
 		elif distance <= float(data.ia.ranged_longe_px): direction = Vector2.ZERO
 	enemy.pos = Movement.resolve(enemy.pos+direction*float(definition.velocidade)/TICK_RATE,enemy.radius,data.arena)
 
@@ -822,9 +834,15 @@ func _enemy_fire(enemy: Dictionary, definition: Dictionary) -> void:
 		projectiles.append({"pos":position,"prev":position,"radius":float(definition.proj_raio_px),"velocity":enemy.aim*float(definition.proj_velocidade_pxs),"remaining":int(definition.proj_vida_passos),"damage":damage})
 	else:
 		var delta: Vector2 = player.pos-enemy.pos
-		var effect := _effect("enemy_attack",enemy.pos,enemy.aim,float(definition.execucao_passos)/TICK_RATE)
-		effect["radius"] = float(definition.tele_raio_px)
-		effect["angle"] = deg_to_rad(float(definition.tele_meio_angulo_graus))
+		if String(enemy.kind) == "colosso_de_cinza":
+			var impact_pos: Vector2 = Movement.resolve(enemy.pos + enemy.aim * 96.0, 24.0, data.arena)
+			var slam_fx := _effect("colosso_slam", impact_pos, enemy.aim, 0.72)
+			slam_fx["radius"] = float(definition.tele_raio_px)
+			slam_fx["origin"] = enemy.pos
+		else:
+			var effect := _effect("enemy_attack",enemy.pos,enemy.aim,float(definition.execucao_passos)/TICK_RATE)
+			effect["radius"] = float(definition.tele_raio_px)
+			effect["angle"] = deg_to_rad(float(definition.tele_meio_angulo_graus))
 		if delta.length() <= float(definition.tele_raio_px)+player.radius and (delta == Vector2.ZERO or enemy.aim.dot(delta.normalized()) >= cos(deg_to_rad(float(definition.tele_meio_angulo_graus)))):
 			_hurt_player(damage,enemy.pos)
 

@@ -121,6 +121,8 @@ func _ready() -> void:
 	if controls.has_signal("device_disconnected"):
 		controls.connect("device_disconnected", _on_device_disconnected)
 	camera.configure(catalog.data.camera, Rect2(0, 0, catalog.data.arena.largura, catalog.data.arena.altura))
+	camera.top_margin = 185.0
+	camera.bottom_margin = 75.0
 	camera.resize(get_window())
 	camera.cut(Vector2(catalog.data.jogador.spawn[0], catalog.data.jogador.spawn[1]))
 	get_window().size_changed.connect(_on_resize)
@@ -540,6 +542,9 @@ func _tocar_sfx_dos_efeitos() -> void:
 					_tocar_sfx(&"sfx_acerto_leve")
 				"hit", "special", "magic_pulse", "guardiao_bastion", "veu_blink":
 					_tocar_sfx(&"sfx_acerto_pesado")
+				"colosso_slam":
+					_tocar_sfx(&"sfx_acerto_pesado")
+					camera.impulse(Vector2.DOWN, 2.2)
 				"pact_call":
 					_tocar_sfx(&"sfx_acerto_pesado")
 					var target_pos: Vector2 = ef.get("target_pos", ef.get("pos", companion_pos))

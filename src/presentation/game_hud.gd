@@ -228,26 +228,27 @@ func _status(width: float) -> void:
 	var player: Dictionary = app.session.player
 	if player.is_empty():
 		return
-	draw_rect(Rect2(0,0,width,145),Color(0.035,0.04,0.065,0.94))
-	_text(_nome_doutrina().to_upper(),Vector2(60,43),20,BONE)
+	draw_rect(Rect2(0,0,width,116),Color(0.035,0.04,0.065,0.84))
+	draw_line(Vector2(0,116),Vector2(width,116),Color(GOLD.r,GOLD.g,GOLD.b,0.28),1.5)
+	_text(_nome_doutrina().to_upper(),Vector2(54,32),19,BONE)
 	if app.get("selected_weapon") == &"pactos" and _ui_tex.has("silhueta_vulto"):
-		draw_texture_rect(_ui_tex["silhueta_vulto"], Rect2(540, 32, 64, 64), false)
-		_text("VULTO MUDO (ALIADO)", Vector2(614, 70), 16, GOLD)
-	_text("VIDA",Vector2(60,83),17,MUTED)
-	draw_rect(Rect2(125,65,310,19),Color("34313f"))
-	draw_rect(Rect2(125,65,310*clampf(float(player.hp)/float(player.max_hp),0,1),19),PINK)
+		draw_texture_rect(_ui_tex["silhueta_vulto"], Rect2(500, 22, 54, 54), false)
+		_text("VULTO MUDO (ALIADO)", Vector2(562, 56), 15, GOLD)
+	_text("VIDA",Vector2(54,66),16,MUTED)
+	draw_rect(Rect2(114,49,290,18),Color("34313f"))
+	draw_rect(Rect2(114,49,290*clampf(float(player.hp)/float(player.max_hp),0,1),18),PINK)
 	var escudo: float = float(app.session.get("player_shield")) if app.session.get("player_shield") != null else 0.0
 	if escudo > 0.0:
 		var esc_ratio: float = clampf(escudo / maxf(1.0, float(player.max_hp)), 0.0, 1.0)
-		draw_rect(Rect2(125, 65, 310.0 * esc_ratio, 6), Color("7dd3fc"))
-		draw_rect(Rect2(125, 65, 310.0 * esc_ratio, 19), Color(0.49, 0.83, 0.99, 0.25))
-		_text("%d / %d (+%d)" % [ceili(float(player.hp)), roundi(float(player.max_hp)), ceili(escudo)], Vector2(451, 83), 20, Color("7dd3fc"))
+		draw_rect(Rect2(114, 49, 290.0 * esc_ratio, 5), Color("7dd3fc"))
+		draw_rect(Rect2(114, 49, 290.0 * esc_ratio, 18), Color(0.49, 0.83, 0.99, 0.25))
+		_text("%d / %d (+%d)" % [ceili(float(player.hp)), roundi(float(player.max_hp)), ceili(escudo)], Vector2(418, 66), 18, Color("7dd3fc"))
 	else:
-		_text("%d / %d" % [ceili(float(player.hp)), roundi(float(player.max_hp))],Vector2(451,83),20,BONE)
-	_text("ESQUIVA",Vector2(60,123),17,MUTED)
+		_text("%d / %d" % [ceili(float(player.hp)), roundi(float(player.max_hp))],Vector2(418,66),18,BONE)
+	_text("ESQUIVA",Vector2(54,99),16,MUTED)
 	for i in range(mini(int(player.charge_max),10)):
-		var pos := Vector2(165+i*30,115)
-		var shape := PackedVector2Array([pos+Vector2(-10,-8),pos+Vector2(0,4),pos+Vector2(10,-8),pos+Vector2(10,0),pos+Vector2(0,12),pos+Vector2(-10,0)])
+		var pos := Vector2(154+i*28,92)
+		var shape := PackedVector2Array([pos+Vector2(-9,-7),pos+Vector2(0,4),pos+Vector2(9,-7),pos+Vector2(9,0),pos+Vector2(0,11),pos+Vector2(-9,0)])
 		draw_colored_polygon(shape,BONE if i<int(player.charges) else Color("3e404d"))
 	var reg: Dictionary = app.session.current_region if app.session.get("current_region") is Dictionary else {}
 	if bool(app.session.get("extended_campaign")) and not reg.is_empty():
@@ -255,12 +256,12 @@ func _status(width: float) -> void:
 		var reg_nome: String = String(reg.get("nome", "O Limiar")).to_upper()
 		var rw: int = int(app.session.get("region_wave_index"))
 		var camara_txt: String = "CHEFE DA REGIÃO" if rw >= 2 else ("CÂMARA %d / 3" % (rw + 1))
-		_text("REGIÃO %d/4 • %s" % [reg_num, reg_nome], Vector2(width - 420, 44), 21, GOLD)
-		_text(camara_txt, Vector2(width - 420, 78), 22, PINK if rw >= 2 else BONE)
-		_text("%d inimigos restantes" % app.session.enemies.size(), Vector2(width - 420, 110), 19, MUTED)
+		_text("REGIÃO %d/4 • %s" % [reg_num, reg_nome], Vector2(width - 420, 34), 19, GOLD)
+		_text(camara_txt, Vector2(width - 420, 64), 20, PINK if rw >= 2 else BONE)
+		_text("%d inimigos restantes" % app.session.enemies.size(), Vector2(width - 420, 94), 17, MUTED)
 	else:
-		_text("ONDA %d / %d" % [mini(app.session.wave_index+1,app.catalog.data.ondas.size()),app.catalog.data.ondas.size()],Vector2(width-270,53),25,GOLD)
-		_text("%d inimigos restantes" % app.session.enemies.size(),Vector2(width-270,91),20,MUTED)
+		_text("ONDA %d / %d" % [mini(app.session.wave_index+1,app.catalog.data.ondas.size()),app.catalog.data.ondas.size()],Vector2(width-270,46),24,GOLD)
+		_text("%d inimigos restantes" % app.session.enemies.size(),Vector2(width-270,82),19,MUTED)
 	# Barra de Vida do Chefe no topo central quando houver chefe vivo
 	var boss: Dictionary = {}
 	for e: Dictionary in app.session.enemies:
@@ -269,23 +270,23 @@ func _status(width: float) -> void:
 			break
 	if not boss.is_empty():
 		var b_center: float = width * 0.5
-		var b_w: float = 520.0
+		var b_w: float = 500.0
 		var b_x: float = b_center - b_w * 0.5
 		var b_nome: String = String(boss.get("boss_name", "Chefe")).to_upper()
 		var b_hp: float = float(boss.get("hp", 0.0))
 		var b_max: float = maxf(1.0, float(boss.get("max_hp", 1.0)))
-		_center(b_nome, 44, 22, GOLD, width)
-		draw_rect(Rect2(b_x - 3, 56, b_w + 6, 26), Color("0d0e14"))
-		draw_rect(Rect2(b_x, 59, b_w, 20), Color("2d2233"))
-		draw_rect(Rect2(b_x, 59, b_w * clampf(b_hp / b_max, 0.0, 1.0), 20), PINK)
-		draw_rect(Rect2(b_x - 2, 57, b_w + 4, 24), GOLD, false, 1.5)
-		_center("%d / %d" % [ceili(b_hp), roundi(b_max)], 103, 18, BONE, width)
+		_center(b_nome, 34, 20, GOLD, width)
+		draw_rect(Rect2(b_x - 3, 45, b_w + 6, 24), Color("0d0e14"))
+		draw_rect(Rect2(b_x, 48, b_w, 18), Color("2d2233"))
+		draw_rect(Rect2(b_x, 48, b_w * clampf(b_hp / b_max, 0.0, 1.0), 18), PINK)
+		draw_rect(Rect2(b_x - 2, 46, b_w + 4, 22), GOLD, false, 1.5)
+		_center("%d / %d" % [ceili(b_hp), roundi(b_max)], 91, 17, BONE, width)
 	var recharge: float = float(player.recharge)/maxf(1,roundf(app.catalog.data.esquiva.recarga_s*60))
 	if player.charges < player.charge_max:
-		draw_rect(Rect2(154,132,120*recharge,3),GOLD)
+		draw_rect(Rect2(146,107,114*recharge,3),GOLD)
 	for effect in app.session.effects:
 		if effect.kind == "dash_denied":
-			_text("Esquiva recarregando",Vector2(330,123),18,PINK)
+			_text("Esquiva recarregando",Vector2(315,99),17,PINK)
 			break
 
 func _controls(width: float) -> void:
