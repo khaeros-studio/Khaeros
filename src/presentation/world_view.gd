@@ -9,8 +9,10 @@ const MAGENTA_BRIGHT := Color("f070c0")
 const GOLD := Color("e3b23c")
 const PIVOT := Vector2(200, 320)
 const ACTOR_IDS := [
-	"iniciado_lamina", "iniciado_pactos", "iniciado_ressonancia", "eco_perdido", "anomalia_menor", "fenda_errante", "elite_pecas",
-	"vulto_mudo", "espreitador_da_fenda", "baluarte_de_cinza", "soberano_do_limiar", "chefe_soberano_limiar"
+	"iniciado_lamina", "iniciado_pactos", "iniciado_ressonancia", "iniciado_guardiao", "iniciado_veu",
+	"eco_perdido", "anomalia_menor", "fenda_errante", "elite_pecas",
+	"vulto_mudo", "espreitador_da_fenda", "baluarte_de_cinza", "soberano_do_limiar",
+	"chefe_soberano_limiar", "chefe_guardiao_rito", "chefe_colosso_cinza", "chefe_arconte_fenda"
 ]
 
 var app: Node
@@ -52,6 +54,11 @@ func _ensure_atlases() -> void:
 		var tex := _carregar_tex("res://assets/art/environment/limiar/%s.png" % env_name)
 		if tex != null:
 			_env_textures[env_name] = tex
+	for bioma: String in ["veio_instavel", "fosso_das_cinzas", "santuario_partido"]:
+		for peca: String in ["chao_01", "chao_02", "portal", "obstaculo_01", "obstaculo_02", "obstaculo_03"]:
+			var b_tex := _carregar_tex("res://assets/art/environment/%s/%s.png" % [bioma, peca])
+			if b_tex != null:
+				_env_textures["%s_%s" % [bioma, peca]] = b_tex
 
 func _draw() -> void:
 	if app == null or not app.ready_to_play:
@@ -73,13 +80,19 @@ func _draw() -> void:
 	draw_rect(room, floor_col)
 	draw_rect(room.grow(-18), border_col, false, 3)
 	draw_rect(room.grow(-36), Color(border_col.r, border_col.g, border_col.b, 0.55), false, 2)
-	# Quiet geometric floor + real Limiar floor slabs; detail remains below danger indicators.
+	# Quiet geometric floor + biome-specific floor slabs; detail remains below danger indicators.
+	var reg_id: String = String(reg.get("id", "limiar"))
 	for x in range(120, int(room.size.x), 240):
 		for y in range(120, int(room.size.y), 240):
-			var tile_idx := ((x / 240) + (y / 240)) % 4 + 1
-			var tile_tex: Texture2D = _env_textures.get("chao_laje_0%d" % tile_idx, null)
+			var tile_tex: Texture2D = null
+			if reg_id != "limiar":
+				var b_idx := ((x / 240) + (y / 240)) % 2 + 1
+				tile_tex = _env_textures.get("%s_chao_0%d" % [reg_id, b_idx], null)
+			if tile_tex == null:
+				var tile_idx := ((x / 240) + (y / 240)) % 4 + 1
+				tile_tex = _env_textures.get("chao_laje_0%d" % tile_idx, null)
 			if tile_tex != null:
-				draw_texture_rect(tile_tex, Rect2(x - 110, y - 110, 220, 220), false, Color(1, 1, 1, 0.30))
+				draw_texture_rect(tile_tex, Rect2(x - 110, y - 110, 220, 220), false, Color(1, 1, 1, 0.34))
 			else:
 				var offset := float((x / 240 + y / 240) % 3) * 12
 				draw_line(Vector2(x - 45, y + offset), Vector2(x + 45, y + offset), Color("272c37"), 1)
@@ -92,10 +105,14 @@ func _draw() -> void:
 		draw_line(center + direction * 205, center + direction * 250, Color(border_col.r, border_col.g, border_col.b, 0.55), 3)
 	if not reg.is_empty():
 		_draw_region_details(room, reg, accent_col, float(session.presentation_time))
-	# Door motif: Limiar ritual gate beyond the far wall.
+	# Door motif: biome ritual gate beyond the far wall.
 	var gate := Vector2(room.size.x / 2, 15)
-	var gate_key := "porta_aberta" if session.enemies.is_empty() else "porta_fechada"
-	var gate_tex: Texture2D = _env_textures.get(gate_key, null)
+	var gate_tex: Texture2D = null
+	if reg_id != "limiar":
+		gate_tex = _env_textures.get("%s_portal" % reg_id, null)
+	if gate_tex == null:
+		var gate_key := "porta_aberta" if session.enemies.is_empty() else "porta_fechada"
+		gate_tex = _env_textures.get(gate_key, null)
 	if gate_tex != null:
 		draw_texture_rect(gate_tex, Rect2(gate + Vector2(-95, -165), Vector2(190, 180)), false)
 	else:
@@ -294,8 +311,15 @@ func _draw_campus(room: Rect2) -> void:
 
 
 func _pillar(pos: Vector2, radius: float, index: int = 0) -> void:
-	var rock_keys := ["obstaculo_rocha_01", "obstaculo_rocha_02", "obstaculo_rocha_03", "obstaculo_coluna_04"]
-	var tex: Texture2D = _env_textures.get(rock_keys[index % rock_keys.size()], null)
+	var reg: Dictionary = app.session.current_region if app != null and app.session != null and app.session.get("current_region") is Dictionary else {}
+	var reg_id: String = String(reg.get("id", "limiar"))
+	var tex: Texture2D = null
+	if reg_id != "limiar":
+		var b_key := "%s_obstaculo_0%d" % [reg_id, (index % 3) + 1]
+		tex = _env_textures.get(b_key, null)
+	if tex == null:
+		var rock_keys := ["obstaculo_rocha_01", "obstaculo_rocha_02", "obstaculo_rocha_03", "obstaculo_coluna_04"]
+		tex = _env_textures.get(rock_keys[index % rock_keys.size()], null)
 	if tex != null:
 		var w := radius * 2.6
 		var h := radius * 3.4
@@ -356,6 +380,10 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 		player_actor = "iniciado_ressonancia"
 	elif w_id == &"pactos" and _frames_by_actor.has("iniciado_pactos"):
 		player_actor = "iniciado_pactos"
+	elif w_id == &"guardiao" and _frames_by_actor.has("iniciado_guardiao"):
+		player_actor = "iniciado_guardiao"
+	elif w_id == &"veu" and _frames_by_actor.has("iniciado_veu"):
+		player_actor = "iniciado_veu"
 	if _frames_by_actor.has(player_actor):
 		var dir_suffix := "costas34" if facing.y < -0.15 else "frente34"
 		var flip_x := -1.0 if facing.x < -0.05 else 1.0
@@ -372,9 +400,9 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 			action = "lunge"
 			var l_total := maxf(1.0, roundf(float(data.investida.duracao_s) * 60.0))
 			progress = clampf(1.0 - float(player.lunge_remaining) / l_total, 0.0, 0.999)
-		elif int(player.get("attack_cd", 0)) > 0 and (w_id == &"lamina" or w_id == &"ressonancia"):
+		elif int(player.get("attack_cd", 0)) > 0 and w_id != &"pactos":
 			var combo_idx := int(player.get("combo", 1))
-			action = "attack1" if (w_id == &"ressonancia" or combo_idx == 1) else ("attack2" if combo_idx == 2 else "attack3")
+			action = "attack1" if (w_id != &"lamina" or combo_idx == 1) else ("attack2" if combo_idx == 2 else "attack3")
 			var a_total := maxf(1.0, roundf(float(data.corte.recarga_s) * 60.0))
 			progress = clampf(1.0 - float(player.attack_cd) / a_total, 0.0, 0.999)
 		elif int(player.get("flash", 0)) > 0:
@@ -385,27 +413,14 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 		var anim_name := action + "_" + dir_suffix
 		if not _frames_by_actor[player_actor].has_animation(anim_name):
 			anim_name = "idle_" + dir_suffix
-		var modulate := Color(0.84, 0.94, 1.05, 1.0) if w_id == &"ressonancia" else Color.WHITE
-		if w_id == &"guardiao":
-			modulate = Color(1.08, 0.98, 0.80, 1.0)
-		elif w_id == &"veu":
-			modulate = Color(0.76, 0.64, 0.96, 1.0)
+		var modulate := Color.WHITE
 		if int(player.get("flash", 0)) > 0:
 			modulate = BONE
 		_draw_actor_sprite(player_actor, anim_name, pos, flip_x, 1.0, session.presentation_time, progress, modulate)
-		if w_id == &"ressonancia":
-			_draw_cetro_magico(pos, aim, session.presentation_time, int(player.get("attack_cd", 0)) > 0)
-		elif w_id == &"guardiao":
-			var shield_pos := pos + Vector2(0, -34) + aim * 26.0
-			var perp := aim.orthogonal()
-			draw_line(shield_pos - perp * 16.0, shield_pos + perp * 16.0, INK, 11.0, true)
-			draw_line(shield_pos - perp * 14.0, shield_pos + perp * 14.0, Color("8a8272"), 6.5, true)
-			draw_line(shield_pos - perp * 10.0, shield_pos + perp * 10.0, GOLD, 2.5, true)
-			draw_arc(pos, 40.0, 0, TAU, 36, Color(GOLD, 0.35), 2.5, true)
+		if w_id == &"guardiao":
+			draw_arc(pos, 40.0, 0, TAU, 36, Color(GOLD, 0.30), 2.0, true)
 		elif w_id == &"veu":
-			var shadow_col := Color("5b2d8a")
-			draw_circle(pos + Vector2(0, -28), 26.0, Color(shadow_col, 0.22))
-			draw_arc(pos, 38.0, 0, TAU, 36, Color(shadow_col, 0.45), 2.0, true)
+			draw_arc(pos, 38.0, 0, TAU, 36, Color(Color("5b2d8a"), 0.40), 2.0, true)
 		draw_arc(pos, 34, 0, TAU, 40, Color(BONE, 0.35), 1.5, true)
 		if int(player.get("inv", 0)) > 0 and not dash:
 			draw_arc(pos, 39, -PI * 0.8, -PI * 0.2, 15, Color(BONE, 0.65), 2, true)
@@ -455,25 +470,28 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 				boss_scale = 1.55
 				boss_modulate = Color.WHITE
 				boss_aura = GOLD
+				sprite_kind = "chefe_soberano_limiar"
 			"guardiao_do_rito":
-				boss_scale = 1.60
-				boss_modulate = Color(1.0, 0.82, 0.95)
+				boss_scale = 1.18
+				boss_modulate = Color.WHITE
 				boss_aura = MAGENTA
+				sprite_kind = "chefe_guardiao_rito" if _frames_by_actor.has("chefe_guardiao_rito") else "chefe_soberano_limiar"
 			"colosso_de_cinza":
-				boss_scale = 1.85
-				boss_modulate = Color(1.0, 0.85, 0.72)
+				boss_scale = 1.25
+				boss_modulate = Color.WHITE
 				boss_aura = Color("e86a2c")
+				sprite_kind = "chefe_colosso_cinza" if _frames_by_actor.has("chefe_colosso_cinza") else "chefe_soberano_limiar"
 			"arconte_da_fenda":
-				boss_scale = 1.70
-				boss_modulate = Color(0.82, 0.92, 1.15)
+				boss_scale = 1.22
+				boss_modulate = Color.WHITE
 				boss_aura = Color("7dd3fc")
+				sprite_kind = "chefe_arconte_fenda" if _frames_by_actor.has("chefe_arconte_fenda") else "chefe_soberano_limiar"
 			_:
 				boss_scale = 1.55
 				boss_modulate = Color(1.05, 0.78, 1.0, 1.0)
 				boss_aura = MAGENTA
-		if _frames_by_actor.has("chefe_soberano_limiar"):
-			sprite_kind = "chefe_soberano_limiar"
-		elif _frames_by_actor.has("anomalia_menor"):
+				sprite_kind = "chefe_soberano_limiar"
+		if not _frames_by_actor.has(sprite_kind) and _frames_by_actor.has("anomalia_menor"):
 			sprite_kind = "anomalia_menor"
 	if _frames_by_actor.has(sprite_kind):
 		var def: Dictionary = session.enemy_def(kind) if session.has_method("enemy_def") else data.inimigos.get(kind, {})

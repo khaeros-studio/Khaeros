@@ -1,0 +1,103 @@
+﻿[gd_resource type="SpriteFrames" load_steps=10 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/art/runtime/iniciado_guardiao/iniciado_guardiao_atlas_v01.png" id="1_atlas"]
+
+[sub_resource type="AtlasTexture" id="Atlas_0_0"]
+atlas = ExtResource("1_atlas")
+region = Rect2(0, 0, 400, 400)
+
+[sub_resource type="AtlasTexture" id="Atlas_1_0"]
+atlas = ExtResource("1_atlas")
+region = Rect2(400, 0, 400, 400)
+
+[sub_resource type="AtlasTexture" id="Atlas_2_0"]
+atlas = ExtResource("1_atlas")
+region = Rect2(800, 0, 400, 400)
+
+[sub_resource type="AtlasTexture" id="Atlas_3_0"]
+atlas = ExtResource("1_atlas")
+region = Rect2(1200, 0, 400, 400)
+
+[sub_resource type="AtlasTexture" id="Atlas_0_1"]
+atlas = ExtResource("1_atlas")
+region = Rect2(0, 400, 400, 400)
+
+[sub_resource type="AtlasTexture" id="Atlas_1_1"]
+atlas = ExtResource("1_atlas")
+region = Rect2(400, 400, 400, 400)
+
+[sub_resource type="AtlasTexture" id="Atlas_2_1"]
+atlas = ExtResource("1_atlas")
+region = Rect2(800, 400, 400, 400)
+
+[sub_resource type="AtlasTexture" id="Atlas_3_1"]
+atlas = ExtResource("1_atlas")
+region = Rect2(1200, 400, 400, 400)
+
+[resource]
+animations = [{
+"frames": [{"duration": 1.0, "texture": SubResource("Atlas_0_0")}],
+"loop": true,
+"name": &"idle_frente34",
+"speed": 6.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("Atlas_1_0")}, {"duration": 1.0, "texture": SubResource("Atlas_0_0")}],
+"loop": true,
+"name": &"run_frente34",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("Atlas_2_0")}],
+"loop": false,
+"name": &"attack1_frente34",
+"speed": 10.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("Atlas_2_0")}],
+"loop": false,
+"name": &"attack_frente34",
+"speed": 10.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("Atlas_2_0")}],
+"loop": false,
+"name": &"windup_frente34",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("Atlas_3_0")}],
+"loop": false,
+"name": &"hurt_frente34",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("Atlas_0_1")}],
+"loop": true,
+"name": &"idle_costas34",
+"speed": 6.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("Atlas_1_1")}, {"duration": 1.0, "texture": SubResource("Atlas_0_1")}],
+"loop": true,
+"name": &"run_costas34",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("Atlas_2_1")}],
+"loop": false,
+"name": &"attack1_costas34",
+"speed": 10.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("Atlas_2_1")}],
+"loop": false,
+"name": &"attack_costas34",
+"speed": 10.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("Atlas_2_1")}],
+"loop": false,
+"name": &"windup_costas34",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("Atlas_3_1")}],
+"loop": false,
+"name": &"death_frente34",
+"speed": 6.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("Atlas_3_1")}],
+"loop": false,
+"name": &"death_costas34",
+"speed": 6.0
+}]

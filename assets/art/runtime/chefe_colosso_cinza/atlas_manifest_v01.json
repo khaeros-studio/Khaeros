@@ -1,0 +1,21 @@
+﻿{
+  "actor": "chefe_colosso_cinza",
+  "cell_size": 400,
+  "columns": 4,
+  "rows": 2,
+  "animations": {
+    "idle_frente34": {"scale": 0.66},
+    "run_frente34": {"scale": 0.66},
+    "attack1_frente34": {"scale": 0.66},
+    "attack_frente34": {"scale": 0.66},
+    "windup_frente34": {"scale": 0.66},
+    "hurt_frente34": {"scale": 0.66},
+    "idle_costas34": {"scale": 0.66},
+    "run_costas34": {"scale": 0.66},
+    "attack1_costas34": {"scale": 0.66},
+    "attack_costas34": {"scale": 0.66},
+    "windup_costas34": {"scale": 0.66},
+    "death_frente34": {"scale": 0.66},
+    "death_costas34": {"scale": 0.66}
+  }
+}

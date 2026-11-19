@@ -1,0 +1,21 @@
+﻿{
+  "actor": "iniciado_guardiao",
+  "cell_size": 400,
+  "columns": 4,
+  "rows": 2,
+  "animations": {
+    "idle_frente34": {"scale": 0.42},
+    "run_frente34": {"scale": 0.42},
+    "attack1_frente34": {"scale": 0.42},
+    "attack_frente34": {"scale": 0.42},
+    "windup_frente34": {"scale": 0.42},
+    "hurt_frente34": {"scale": 0.42},
+    "idle_costas34": {"scale": 0.42},
+    "run_costas34": {"scale": 0.42},
+    "attack1_costas34": {"scale": 0.42},
+    "attack_costas34": {"scale": 0.42},
+    "windup_costas34": {"scale": 0.42},
+    "death_frente34": {"scale": 0.42},
+    "death_costas34": {"scale": 0.42}
+  }
+}

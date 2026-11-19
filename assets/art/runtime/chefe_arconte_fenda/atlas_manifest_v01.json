@@ -1,0 +1,21 @@
+﻿{
+  "actor": "chefe_arconte_fenda",
+  "cell_size": 400,
+  "columns": 4,
+  "rows": 2,
+  "animations": {
+    "idle_frente34": {"scale": 0.64},
+    "run_frente34": {"scale": 0.64},
+    "attack1_frente34": {"scale": 0.64},
+    "attack_frente34": {"scale": 0.64},
+    "windup_frente34": {"scale": 0.64},
+    "hurt_frente34": {"scale": 0.64},
+    "idle_costas34": {"scale": 0.64},
+    "run_costas34": {"scale": 0.64},
+    "attack1_costas34": {"scale": 0.64},
+    "attack_costas34": {"scale": 0.64},
+    "windup_costas34": {"scale": 0.64},
+    "death_frente34": {"scale": 0.64},
+    "death_costas34": {"scale": 0.64}
+  }
+}

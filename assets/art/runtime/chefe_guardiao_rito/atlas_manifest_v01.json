@@ -1,0 +1,21 @@
+﻿{
+  "actor": "chefe_guardiao_rito",
+  "cell_size": 400,
+  "columns": 4,
+  "rows": 2,
+  "animations": {
+    "idle_frente34": {"scale": 0.62},
+    "run_frente34": {"scale": 0.62},
+    "attack1_frente34": {"scale": 0.62},
+    "attack_frente34": {"scale": 0.62},
+    "windup_frente34": {"scale": 0.62},
+    "hurt_frente34": {"scale": 0.62},
+    "idle_costas34": {"scale": 0.62},
+    "run_costas34": {"scale": 0.62},
+    "attack1_costas34": {"scale": 0.62},
+    "attack_costas34": {"scale": 0.62},
+    "windup_costas34": {"scale": 0.62},
+    "death_frente34": {"scale": 0.62},
+    "death_costas34": {"scale": 0.62}
+  }
+}
