@@ -202,24 +202,30 @@ func _draw() -> void:
 		var vel: Vector2 = projectile.get("velocity", Vector2.RIGHT)
 		var dir: Vector2 = vel.normalized() if vel != Vector2.ZERO else Vector2.RIGHT
 		if p_kind == "magic_orb":
+			var orb_pos: Vector2 = pos + Vector2(0, -44.0)
 			var cyan := Color("7dd3fc")
-			draw_line(pos - dir * (projectile.radius * 2.4), pos, Color(cyan, 0.45), projectile.radius * 0.9, true)
-			draw_circle(pos, projectile.radius + 7, Color(cyan, 0.28))
-			draw_circle(pos, projectile.radius + 3, INK)
-			draw_circle(pos, projectile.radius, cyan)
-			draw_circle(pos, projectile.radius * 0.55, GOLD)
-			draw_circle(pos - Vector2(3, 3), projectile.radius * 0.28, BONE)
+			draw_circle(pos, projectile.radius * 0.55, Color(INK.r, INK.g, INK.b, 0.35))
+			draw_line(orb_pos - dir * (projectile.radius * 2.4), orb_pos, Color(cyan, 0.45), projectile.radius * 0.9, true)
+			draw_circle(orb_pos, projectile.radius + 7, Color(cyan, 0.28))
+			draw_circle(orb_pos, projectile.radius + 3, INK)
+			draw_circle(orb_pos, projectile.radius, cyan)
+			draw_circle(orb_pos, projectile.radius * 0.55, GOLD)
+			draw_circle(orb_pos - Vector2(3, 3), projectile.radius * 0.28, BONE)
 		elif p_kind == "bolt":
+			var bolt_pos: Vector2 = pos + Vector2(0, -44.0)
 			var r_bolt: float = float(projectile.radius)
-			var tail: Vector2 = pos - dir * (r_bolt * 1.8)
-			var tip: Vector2 = pos + dir * (r_bolt * 1.5)
+			var tail: Vector2 = bolt_pos - dir * (r_bolt * 1.8)
+			var tip: Vector2 = bolt_pos + dir * (r_bolt * 1.5)
+			draw_circle(pos, r_bolt * 0.5, Color(INK.r, INK.g, INK.b, 0.32))
 			draw_line(tail, tip, INK, 10.0, true)
-			draw_line(tail, pos + dir * (r_bolt * 0.6), BONE, 5.0, true)
-			draw_line(pos + dir * (r_bolt * 0.4), tip, GOLD, 5.0, true)
+			draw_line(tail, bolt_pos + dir * (r_bolt * 0.6), BONE, 5.0, true)
+			draw_line(bolt_pos + dir * (r_bolt * 0.4), tip, GOLD, 5.0, true)
 		else:
-			draw_circle(pos, projectile.radius + 5, INK)
-			draw_circle(pos, projectile.radius, MAGENTA)
-			draw_circle(pos - Vector2(3, 3), projectile.radius * 0.35, BONE)
+			var ep_pos: Vector2 = pos + Vector2(0, -34.0)
+			draw_circle(pos, projectile.radius * 0.55, Color(INK.r, INK.g, INK.b, 0.32))
+			draw_circle(ep_pos, projectile.radius + 5, INK)
+			draw_circle(ep_pos, projectile.radius, MAGENTA)
+			draw_circle(ep_pos - Vector2(3, 3), projectile.radius * 0.35, BONE)
 	for effect in session.effects:
 		_effect(effect)
 
@@ -818,10 +824,11 @@ func _effect(effect: Dictionary) -> void:
 		"special":
 			draw_line(pos - direction * 45, pos + direction * 45, Color(BONE, alpha * .6), 8, true)
 		"magic_cast":
+			var cast_pos: Vector2 = pos + Vector2(0, -44.0)
 			var cyan := Color("7dd3fc")
-			draw_circle(pos, 14.0 * (1.0 - progress * 0.4), Color(cyan, alpha * 0.35))
-			draw_arc(pos, 10.0 + 18.0 * progress, 0, TAU, 24, Color(cyan, alpha), 3.0, true)
-			draw_arc(pos, 6.0 + 10.0 * progress, direction.angle() - 0.9, direction.angle() + 0.9, 16, Color(GOLD, alpha), 3.0, true)
+			draw_circle(cast_pos, 14.0 * (1.0 - progress * 0.4), Color(cyan, alpha * 0.35))
+			draw_arc(cast_pos, 10.0 + 18.0 * progress, 0, TAU, 24, Color(cyan, alpha), 3.0, true)
+			draw_arc(cast_pos, 6.0 + 10.0 * progress, direction.angle() - 0.9, direction.angle() + 0.9, 16, Color(GOLD, alpha), 3.0, true)
 		"magic_pulse":
 			var max_r: float = float(effect.get("radius", 195.0))
 			var cur_r := maxf(18.0, max_r * (0.25 + 0.75 * progress))
@@ -833,10 +840,11 @@ func _effect(effect: Dictionary) -> void:
 				var a := i * TAU / 6.0 + progress * 0.8
 				draw_arc(pos, cur_r * 0.91, a - 0.18, a + 0.18, 8, Color(GOLD, alpha), 4.0, true)
 		"bolt_shot":
+			var shot_pos: Vector2 = pos + Vector2(0, -44.0)
 			var perp := direction.orthogonal()
-			draw_line(pos, pos + direction * (26.0 * (0.4 + 0.6 * progress)), Color(GOLD, alpha), 4.0, true)
-			draw_line(pos + perp * 8.0, pos + direction * 18.0 + perp * 14.0 * progress, Color(BONE, alpha), 2.5, true)
-			draw_line(pos - perp * 8.0, pos + direction * 18.0 - perp * 14.0 * progress, Color(BONE, alpha), 2.5, true)
+			draw_line(shot_pos, shot_pos + direction * (26.0 * (0.4 + 0.6 * progress)), Color(GOLD, alpha), 4.0, true)
+			draw_line(shot_pos + perp * 8.0, shot_pos + direction * 18.0 + perp * 14.0 * progress, Color(BONE, alpha), 2.5, true)
+			draw_line(shot_pos - perp * 8.0, shot_pos + direction * 18.0 - perp * 14.0 * progress, Color(BONE, alpha), 2.5, true)
 		"pact_call":
 			var shock_r := 20.0 + 75.0 * progress
 			draw_circle(pos, shock_r, Color(INK, alpha * 0.45))

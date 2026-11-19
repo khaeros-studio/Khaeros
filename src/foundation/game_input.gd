@@ -304,7 +304,8 @@ func sample(hitstop: bool, camera) -> Dictionary:
 			buffer_remaining -= 1
 			if buffer_remaining == 0: _buffer.clear()
 	else:
-		move = Vector2.ZERO
+		if context != "campus":
+			move = Vector2.ZERO
 		_buffer.clear()
 		buffer_remaining = 0
 	var wants: Dictionary = {}
