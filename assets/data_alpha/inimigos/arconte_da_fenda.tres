@@ -1,0 +1,77 @@
+[gd_resource type="Resource" script_class="EnemyDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/enemy_def.gd" id="1_e"]
+[ext_resource type="Script" path="res://src/content/boss_pattern_def.gd" id="2_bp"]
+
+[sub_resource type="Resource" id="BossPatternDef_1"]
+script = ExtResource("2_bp")
+chave_nome = &"BOSS_ARCONTE_FENDA_P1"
+forma_telegrafo = &"setor"
+dimensoes = {
+&"raio_px": 200.0
+}
+preparo_s = 0.5
+execucao_s = 0.2
+recarga_s = 1.0
+dano = 26.0
+efeitos = Array[StringName]([])
+raio_secundario_px = 0.0
+
+[sub_resource type="Resource" id="BossPatternDef_2"]
+script = ExtResource("2_bp")
+chave_nome = &"BOSS_ARCONTE_FENDA_P2"
+forma_telegrafo = &"retangulo"
+dimensoes = {
+&"raio_px": 280.0
+}
+preparo_s = 0.55
+execucao_s = 0.3
+recarga_s = 1.15
+dano = 28.0
+efeitos = Array[StringName]([])
+raio_secundario_px = 0.0
+
+[sub_resource type="Resource" id="BossPatternDef_3"]
+script = ExtResource("2_bp")
+chave_nome = &"BOSS_ARCONTE_FENDA_P3"
+forma_telegrafo = &"anel"
+dimensoes = {
+&"r_ext": 290.0
+}
+preparo_s = 0.6
+execucao_s = 0.25
+recarga_s = 1.35
+dano = 24.0
+efeitos = Array[StringName]([])
+raio_secundario_px = 0.0
+
+[sub_resource type="Resource" id="BossPatternDef_4"]
+script = ExtResource("2_bp")
+chave_nome = &"BOSS_ARCONTE_FENDA_P4"
+forma_telegrafo = &"circulo"
+dimensoes = {
+&"raio_px": 265.0
+}
+preparo_s = 0.65
+execucao_s = 0.25
+recarga_s = 1.55
+dano = 30.0
+efeitos = Array[StringName]([])
+raio_secundario_px = 480.0
+
+[resource]
+script = ExtResource("1_e")
+id = &"arconte_da_fenda"
+obsoleto = false
+chave_nome = &"ENEMY_ARCONTE_FENDA_NAME"
+comportamento = &"chefe"
+vida = 1400.0
+velocidade = 148.0
+raio_px = 52.0
+dano = 26.0
+alcance_px = 62.0
+preparo_s = 0.45
+recarga_s = 1.0
+velocidade_projetil = 0.0
+custo_onda = 13
+padroes = Array[ExtResource("2_bp")]([SubResource("BossPatternDef_1"), SubResource("BossPatternDef_2"), SubResource("BossPatternDef_3"), SubResource("BossPatternDef_4")])

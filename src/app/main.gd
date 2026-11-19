@@ -37,6 +37,7 @@ var data_error := ""
 var observed_wave := -1
 var selected_weapon: StringName = &"lamina"
 var weapon_order: Array[StringName] = [&"lamina", &"ressonancia", &"pactos", &"guardiao", &"veu"]
+var selected_region_index: int = 0
 var oficina := OficinaDeReforja.new()
 var campus := CampusHub.new()
 var falar_mestre_ativo: bool = false
@@ -128,6 +129,7 @@ func _ready() -> void:
 	_registrar_dados_base_e_chefe()
 	_inicializar_meta()
 	session.include_boss_in_final_wave = true
+	session.extended_campaign = DisplayServer.get_name() != "headless"
 	_preparar_audio_p0()
 	_compor_passo()
 	ready_to_play = true
@@ -240,6 +242,7 @@ func activate(index: int) -> void:
 		"menu":
 			if index == 0:
 				_aplicar_arma_na_sessao()
+				session.start_region_index = selected_region_index
 				session.start()
 				_reiniciar_aliado_mvp()
 				observed_wave = -1
@@ -259,6 +262,10 @@ func activate(index: int) -> void:
 				campus.resetar_posicao()
 				falar_mestre_ativo = false
 				session.state = "campus"
+				_tocar_sfx(&"sfx_carta_foco")
+			elif index == 5:
+				var total_regioes: int = maxi(1, CatalogoCampanha.regioes().size())
+				selected_region_index = (selected_region_index + 1) % total_regioes
 				_tocar_sfx(&"sfx_carta_foco")
 		"oficina":
 			var ids := OficinaDeReforja.ids_melhorias()
@@ -283,6 +290,7 @@ func activate(index: int) -> void:
 		"morte", "vitoria":
 			if index == 0:
 				_aplicar_arma_na_sessao()
+				session.start_region_index = selected_region_index
 				session.start()
 				_reiniciar_aliado_mvp()
 				observed_wave = -1
@@ -370,6 +378,7 @@ func _handle_campus_ui(sample: Dictionary, pressed: Dictionary) -> void:
 				_tocar_sfx(&"sfx_carta_foco")
 			CampusHub.ZONA_PORTAL:
 				_aplicar_arma_na_sessao()
+				session.start_region_index = selected_region_index
 				session.start()
 				_reiniciar_aliado_mvp()
 				observed_wave = -1

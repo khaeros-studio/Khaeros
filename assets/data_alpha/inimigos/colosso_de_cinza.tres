@@ -1,0 +1,77 @@
+[gd_resource type="Resource" script_class="EnemyDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/enemy_def.gd" id="1_e"]
+[ext_resource type="Script" path="res://src/content/boss_pattern_def.gd" id="2_bp"]
+
+[sub_resource type="Resource" id="BossPatternDef_1"]
+script = ExtResource("2_bp")
+chave_nome = &"BOSS_COLOSSO_CINZA_P1"
+forma_telegrafo = &"circulo"
+dimensoes = {
+&"raio_px": 210.0
+}
+preparo_s = 0.65
+execucao_s = 0.25
+recarga_s = 1.2
+dano = 24.0
+efeitos = Array[StringName]([])
+raio_secundario_px = 0.0
+
+[sub_resource type="Resource" id="BossPatternDef_2"]
+script = ExtResource("2_bp")
+chave_nome = &"BOSS_COLOSSO_CINZA_P2"
+forma_telegrafo = &"retangulo"
+dimensoes = {
+&"raio_px": 260.0
+}
+preparo_s = 0.7
+execucao_s = 0.35
+recarga_s = 1.35
+dano = 26.0
+efeitos = Array[StringName]([])
+raio_secundario_px = 0.0
+
+[sub_resource type="Resource" id="BossPatternDef_3"]
+script = ExtResource("2_bp")
+chave_nome = &"BOSS_COLOSSO_CINZA_P3"
+forma_telegrafo = &"anel"
+dimensoes = {
+&"r_ext": 270.0
+}
+preparo_s = 0.7
+execucao_s = 0.3
+recarga_s = 1.5
+dano = 22.0
+efeitos = Array[StringName]([])
+raio_secundario_px = 0.0
+
+[sub_resource type="Resource" id="BossPatternDef_4"]
+script = ExtResource("2_bp")
+chave_nome = &"BOSS_COLOSSO_CINZA_P4"
+forma_telegrafo = &"setor"
+dimensoes = {
+&"raio_px": 230.0
+}
+preparo_s = 0.75
+execucao_s = 0.25
+recarga_s = 1.7
+dano = 28.0
+efeitos = Array[StringName]([])
+raio_secundario_px = 420.0
+
+[resource]
+script = ExtResource("1_e")
+id = &"colosso_de_cinza"
+obsoleto = false
+chave_nome = &"ENEMY_COLOSSO_CINZA_NAME"
+comportamento = &"chefe"
+vida = 1150.0
+velocidade = 120.0
+raio_px = 58.0
+dano = 24.0
+alcance_px = 68.0
+preparo_s = 0.6
+recarga_s = 1.25
+velocidade_projetil = 0.0
+custo_onda = 11
+padroes = Array[ExtResource("2_bp")]([SubResource("BossPatternDef_1"), SubResource("BossPatternDef_2"), SubResource("BossPatternDef_3"), SubResource("BossPatternDef_4")])

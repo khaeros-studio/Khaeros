@@ -63,28 +63,35 @@ func _draw() -> void:
 	if session.state in ["campus", "mestres"]:
 		_draw_campus(room)
 		return
-	draw_rect(room.grow(1000), Color("0e101a"))
+	var reg: Dictionary = session.current_region if session.get("current_region") is Dictionary else {}
+	var bg_col: Color = _cor_regiao(reg, "bg", Color("0e101a"))
+	var floor_col: Color = _cor_regiao(reg, "floor", Color("1d212b"))
+	var border_col: Color = _cor_regiao(reg, "border", Color("383b46"))
+	var accent_col: Color = _cor_regiao(reg, "accent", Color("2b303d"))
+	draw_rect(room.grow(1000), bg_col)
 	draw_rect(room.grow(36), INK)
-	draw_rect(room, Color("1d212b"))
-	draw_rect(room.grow(-18), Color("383b46"), false, 3)
-	draw_rect(room.grow(-36), Color("282d39"), false, 2)
+	draw_rect(room, floor_col)
+	draw_rect(room.grow(-18), border_col, false, 3)
+	draw_rect(room.grow(-36), Color(border_col.r, border_col.g, border_col.b, 0.55), false, 2)
 	# Quiet geometric floor + real Limiar floor slabs; detail remains below danger indicators.
 	for x in range(120, int(room.size.x), 240):
 		for y in range(120, int(room.size.y), 240):
 			var tile_idx := ((x / 240) + (y / 240)) % 4 + 1
 			var tile_tex: Texture2D = _env_textures.get("chao_laje_0%d" % tile_idx, null)
 			if tile_tex != null:
-				draw_texture_rect(tile_tex, Rect2(x - 110, y - 110, 220, 220), false, Color(1, 1, 1, 0.35))
+				draw_texture_rect(tile_tex, Rect2(x - 110, y - 110, 220, 220), false, Color(1, 1, 1, 0.30))
 			else:
 				var offset := float((x / 240 + y / 240) % 3) * 12
 				draw_line(Vector2(x - 45, y + offset), Vector2(x + 45, y + offset), Color("272c37"), 1)
 				draw_line(Vector2(x, y - 45 + offset), Vector2(x, y + 45 + offset), Color("272c37"), 1)
 	var center := room.get_center()
-	draw_arc(center, 220, 0, TAU, 96, Color("2b303d"), 2, true)
-	draw_arc(center, 236, 0, TAU, 96, Color("262b36"), 2, true)
+	draw_arc(center, 220, 0, TAU, 96, Color(accent_col.r, accent_col.g, accent_col.b, 0.65), 2, true)
+	draw_arc(center, 236, 0, TAU, 96, Color(border_col.r, border_col.g, border_col.b, 0.45), 2, true)
 	for i in range(12):
 		var direction := Vector2.RIGHT.rotated(i * TAU / 12)
-		draw_line(center + direction * 205, center + direction * 250, Color("303541"), 3)
+		draw_line(center + direction * 205, center + direction * 250, Color(border_col.r, border_col.g, border_col.b, 0.55), 3)
+	if not reg.is_empty():
+		_draw_region_details(room, reg, accent_col, float(session.presentation_time))
 	# Door motif: Limiar ritual gate beyond the far wall.
 	var gate := Vector2(room.size.x / 2, 15)
 	var gate_key := "porta_aberta" if session.enemies.is_empty() else "porta_fechada"
@@ -159,6 +166,69 @@ func _draw() -> void:
 			draw_circle(pos - Vector2(3, 3), projectile.radius * 0.35, BONE)
 	for effect in session.effects:
 		_effect(effect)
+
+func _cor_regiao(reg: Dictionary, key: String, fallback: Color) -> Color:
+	if reg.is_empty():
+		return fallback
+	var fonte: Variant = reg.get("paleta", {})
+	var val: Variant = null
+	if fonte is Dictionary and (fonte as Dictionary).has(key):
+		val = (fonte as Dictionary)[key]
+	elif reg.has(key):
+		val = reg[key]
+	if val is Color:
+		return val as Color
+	if val is String and not String(val).is_empty():
+		return Color(String(val))
+	return fallback
+
+func _draw_region_details(room: Rect2, reg: Dictionary, accent: Color, t: float) -> void:
+	var reg_id: String = String(reg.get("id", reg.get("tema", ""))).to_lower()
+	var center: Vector2 = room.get_center()
+	if reg_id.contains("veio"):
+		# Fissuras diagonais brilhantes em magenta/ouro
+		var fissuras: Array[Array] = [
+			[Vector2(260, 220), Vector2(540, 410), Vector2(690, 360)],
+			[Vector2(1740, 260), Vector2(2040, 510), Vector2(2190, 470)],
+			[Vector2(340, 960), Vector2(640, 1140), Vector2(820, 1080)],
+			[Vector2(1620, 940), Vector2(1920, 1160), Vector2(2140, 1110)],
+		]
+		var pulso: float = 0.24 + 0.08 * sin(t * 2.2)
+		for f: Array in fissuras:
+			var p0: Vector2 = f[0]
+			var p1: Vector2 = f[1]
+			var p2: Vector2 = f[2]
+			draw_line(p0, p1, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, pulso), 5.0, true)
+			draw_line(p1, p2, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, pulso), 4.0, true)
+			draw_line(p0, p1, Color(GOLD.r, GOLD.g, GOLD.b, pulso * 0.9), 2.0, true)
+			draw_line(p1, p2, Color(GOLD.r, GOLD.g, GOLD.b, pulso * 0.9), 1.5, true)
+	elif reg_id.contains("cinza") or reg_id.contains("fosso"):
+		# Manchas de cinza e brasas alaranjadas suaves
+		var manchas: Array[Vector2] = [
+			Vector2(420, 340), Vector2(1980, 360), Vector2(520, 980),
+			Vector2(1880, 1000), Vector2(1200, 340), Vector2(1200, 1020),
+		]
+		var brasa: Color = Color("e86a2c")
+		var brasa_clara: Color = Color("ff9e44")
+		for idx: int in range(manchas.size()):
+			var mp: Vector2 = manchas[idx]
+			draw_circle(mp, 92.0, Color(0.08, 0.07, 0.09, 0.28))
+			draw_circle(mp + Vector2(18, -12), 54.0, Color(0.14, 0.12, 0.14, 0.22))
+			var glow: float = 0.16 + 0.07 * sin(t * 2.6 + float(idx) * 1.1)
+			draw_circle(mp + Vector2(-14, 8), 18.0, Color(brasa.r, brasa.g, brasa.b, glow))
+			draw_circle(mp + Vector2(-14, 8), 7.0, Color(brasa_clara.r, brasa_clara.g, brasa_clara.b, glow * 1.3))
+			draw_circle(mp + Vector2(26, -16), 11.0, Color(brasa.r, brasa.g, brasa.b, glow * 0.85))
+	elif reg_id.contains("santuario"):
+		# Anéis geométricos dourados/ciano no centro
+		var cyan: Color = Color("7dd3fc")
+		draw_arc(center, 310.0, 0, TAU, 96, Color(GOLD.r, GOLD.g, GOLD.b, 0.28), 2.5, true)
+		draw_arc(center, 150.0, 0, TAU, 72, Color(cyan.r, cyan.g, cyan.b, 0.30), 2.0, true)
+		draw_arc(center, 96.0, 0, TAU, 48, Color(GOLD.r, GOLD.g, GOLD.b, 0.35), 2.0, true)
+		for i: int in range(8):
+			var ang: float = float(i) * TAU / 8.0 + t * 0.06
+			var d: Vector2 = Vector2.RIGHT.rotated(ang)
+			draw_line(center + d * 96.0, center + d * 150.0, Color(cyan.r, cyan.g, cyan.b, 0.24), 2.0, true)
+			draw_line(center + d * 240.0, center + d * 310.0, Color(accent.r, accent.g, accent.b, 0.32), 2.5, true)
 
 func _draw_campus(room: Rect2) -> void:
 	draw_rect(room.grow(1000), Color("0e101a"))
@@ -373,15 +443,40 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 	if spawning:
 		draw_arc(pos, radius + 18, 0, TAU, 30, Color(tint, 0.55), 2, true)
 	var sprite_kind := kind
-	var boss_scale := 1.0
-	if kind == "anomalia_maior":
-		boss_scale = 1.55
+	var boss_scale: float = 1.0
+	var is_boss: bool = bool(enemy.get("is_boss", false)) or kind in [
+		"anomalia_maior", "soberano_do_limiar", "guardiao_do_rito", "colosso_de_cinza", "arconte_da_fenda"
+	]
+	var boss_modulate: Color = Color.WHITE
+	var boss_aura: Color = MAGENTA
+	if is_boss:
+		match kind:
+			"soberano_do_limiar":
+				boss_scale = 1.55
+				boss_modulate = Color.WHITE
+				boss_aura = GOLD
+			"guardiao_do_rito":
+				boss_scale = 1.60
+				boss_modulate = Color(1.0, 0.82, 0.95)
+				boss_aura = MAGENTA
+			"colosso_de_cinza":
+				boss_scale = 1.85
+				boss_modulate = Color(1.0, 0.85, 0.72)
+				boss_aura = Color("e86a2c")
+			"arconte_da_fenda":
+				boss_scale = 1.70
+				boss_modulate = Color(0.82, 0.92, 1.15)
+				boss_aura = Color("7dd3fc")
+			_:
+				boss_scale = 1.55
+				boss_modulate = Color(1.05, 0.78, 1.0, 1.0)
+				boss_aura = MAGENTA
 		if _frames_by_actor.has("chefe_soberano_limiar"):
 			sprite_kind = "chefe_soberano_limiar"
 		elif _frames_by_actor.has("anomalia_menor"):
 			sprite_kind = "anomalia_menor"
 	if _frames_by_actor.has(sprite_kind):
-		var def: Dictionary = data.inimigos.get(kind, {})
+		var def: Dictionary = session.enemy_def(kind) if session.has_method("enemy_def") else data.inimigos.get(kind, {})
 		var move_delta: Vector2 = enemy.pos - enemy.get("prev", enemy.pos)
 		var look_vec: Vector2 = enemy.get("aim", Vector2.DOWN)
 		if enemy.phase == "chase" and not session.player.is_empty():
@@ -421,16 +516,17 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 		if not _frames_by_actor[sprite_kind].has_animation(anim_name):
 			anim_name = "idle_" + dir_suffix
 		var elite_scale := (1.15 if is_elite else 1.0) * boss_scale
-		var modulate := Color(1.05, 0.78, 1.0, 1.0) if kind == "anomalia_maior" else Color.WHITE
+		var modulate: Color = boss_modulate if is_boss else Color.WHITE
 		if spawning:
 			modulate.a = 0.65
 		if int(enemy.get("flash", 0)) > 0:
 			modulate = Color(1.6, 1.55, 1.42, modulate.a)
 		var phase_time: float = session.presentation_time + float(int(enemy.get("id", 0))) * 0.19
 		_draw_actor_sprite(sprite_kind, anim_name, pos, flip_x, elite_scale, phase_time, progress, modulate)
-		if kind == "anomalia_maior":
-			draw_arc(pos, radius + 14.0, 0, TAU, 48, Color(MAGENTA, 0.45), 3.0, true)
-			var crown_y := -112.0
+		if is_boss:
+			draw_arc(pos, radius + 14.0, 0, TAU, 48, Color(boss_aura.r, boss_aura.g, boss_aura.b, 0.52), 3.5, true)
+			draw_arc(pos, radius + 24.0, 0, TAU, 48, Color(boss_aura.r, boss_aura.g, boss_aura.b, 0.22), 2.0, true)
+			var crown_y: float = -112.0 * (boss_scale / 1.55)
 			var crown := PackedVector2Array([
 				pos + Vector2(-28, crown_y),
 				pos + Vector2(-22, crown_y - 20),
@@ -439,7 +535,7 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 				pos + Vector2(28, crown_y)
 			])
 			draw_polyline(crown, INK, 7.0, true)
-			draw_polyline(crown, MAGENTA_BRIGHT, 3.5, true)
+			draw_polyline(crown, boss_aura, 3.5, true)
 		if is_elite:
 			_draw_elite_part(kind, "placas_", pos, flip_x, dir_suffix, elite_scale, action, progress, modulate)
 		# Art Bible §3.2 & Lote 02 §3: Anomalia Menor has Magenta emitter ring & dorsal crystal accents
@@ -451,10 +547,10 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 		if is_elite:
 			_draw_elite_part(kind, "coroa_", pos, flip_x, dir_suffix, elite_scale, action, progress, modulate)
 		if enemy.hp < enemy.max_hp:
-			var bar_y := (-128.0 if kind == "anomalia_maior" else (-108.0 if kind == "eco_perdido" else -82.0)) - (10.0 if is_elite else 0.0)
-			var bar_w := 96.0 if kind == "anomalia_maior" else 56.0
-			draw_rect(Rect2(pos + Vector2(-bar_w * 0.5, bar_y), Vector2(bar_w, 6 if kind == "anomalia_maior" else 5)), INK)
-			draw_rect(Rect2(pos + Vector2(-bar_w * 0.5, bar_y), Vector2(bar_w * maxf(0, enemy.hp / enemy.max_hp), 6 if kind == "anomalia_maior" else 5)), tint)
+			var bar_y := (-128.0 if is_boss else (-108.0 if kind == "eco_perdido" else -82.0)) - (10.0 if is_elite else 0.0)
+			var bar_w := 96.0 if is_boss else 56.0
+			draw_rect(Rect2(pos + Vector2(-bar_w * 0.5, bar_y), Vector2(bar_w, 6 if is_boss else 5)), INK)
+			draw_rect(Rect2(pos + Vector2(-bar_w * 0.5, bar_y), Vector2(bar_w * maxf(0, enemy.hp / enemy.max_hp), 6 if is_boss else 5)), boss_aura if is_boss else tint)
 		return
 	# Procedural fallback
 	var flesh := Color("6a596e") if kind == "eco_perdido" else Color("5c4b65")
@@ -558,9 +654,10 @@ func _draw_elite_part(kind: String, part_prefix: String, pos: Vector2, flip_x: f
 func _telegraph(enemy: Dictionary, fill: bool) -> void:
 	var pos: Vector2 = enemy.pos
 	var direction: Vector2 = enemy.aim
-	var data: Dictionary = app.catalog.data.inimigos.get(enemy.kind, {})
+	var kind_str: String = String(enemy.get("kind", ""))
+	var data: Dictionary = app.session.enemy_def(kind_str) if app.session.has_method("enemy_def") else app.catalog.data.inimigos.get(kind_str, {})
 	var color := Color(MAGENTA, 0.13) if fill else Color(MAGENTA, 0.95)
-	if enemy.kind == "anomalia_menor":
+	if kind_str == "anomalia_menor" or String(data.get("comportamento", "")) == "ranged":
 		var side := direction.orthogonal() * float(data.get("tele_largura_px", 81.0)) / 2
 		var end := pos + direction * float(data.get("tele_comprimento_max_px", 1728.0))
 		var poly := PackedVector2Array([pos + side, end + side, end - side, pos - side])
@@ -619,6 +716,10 @@ func _effect(effect: Dictionary) -> void:
 			for i in range(7):
 				var ray := Vector2.RIGHT.rotated(i * TAU / 7 + 0.3)
 				draw_line(pos + ray * (8 + 30 * (1 - alpha)), pos + ray * (19 + 40 * (1 - alpha)), Color(BONE, alpha), 3, true)
+		"crit":
+			for i in range(9):
+				var ray := Vector2.RIGHT.rotated(i * TAU / 9 + 0.15)
+				draw_line(pos + ray * (10 + 38 * (1 - alpha)), pos + ray * (26 + 52 * (1 - alpha)), Color(GOLD, alpha), 4, true)
 		"hit", "hurt":
 			var tint := MAGENTA if effect.kind == "hurt" else BONE
 			for i in range(7):

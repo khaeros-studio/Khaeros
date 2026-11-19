@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RegionDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/region_def.gd" id="1_r"]
+
+[resource]
+script = ExtResource("1_r")
+id = &"santuario_partido"
+obsoleto = false
+chave_nome = &"REGION_SANTUARIO_PARTIDO_NAME"
+camaras = Array[StringName]([&"combate", &"combate", &"combate", &"santuario", &"combate", &"combate", &"chefe"])
+pool_inimigos = Array[StringName]([&"eco_perdido", &"anomalia_menor", &"fenda_errante"])
+chefe = &"arconte_da_fenda"
+fragmentos_chefe = 48

@@ -18,6 +18,7 @@ func _garantir_texturas_ui() -> void:
 	var mapas: Dictionary = {
 		"moldura_comum": "res://assets/art/ui/cartas/moldura_comum.png",
 		"moldura_rara": "res://assets/art/ui/cartas/moldura_rara.png",
+		"moldura_epica": "res://assets/art/ui/cartas/moldura_epica.png",
 		"coroa_lamina": "res://assets/art/ui/cartas/coroa_lamina.png",
 		"coroa_ressonancia": "res://assets/art/ui/cartas/coroa_ressonancia.png",
 		"coroa_pactos": "res://assets/art/ui/cartas/coroa_pactos.png",
@@ -56,6 +57,13 @@ func _nome_doutrina() -> String:
 		_:
 			return "Lâmina do Juramento"
 
+func _nome_regiao_inicial() -> String:
+	var idx: int = int(app.get("selected_region_index")) if app != null and app.get("selected_region_index") != null else 0
+	var regioes: Array[Dictionary] = CatalogoCampanha.regioes()
+	if idx >= 0 and idx < regioes.size():
+		return String(regioes[idx].get("nome", "O Limiar"))
+	return "O Limiar"
+
 ## Logical viewport rectangles shared by drawing, hover and confirmation.
 func action_rects() -> Array[Rect2]:
 	var result: Array[Rect2] = []
@@ -65,11 +73,12 @@ func action_rects() -> Array[Rect2]:
 	match app.session.state:
 		"menu":
 			result = [
-				Rect2(center-240,560,480,72),
-				Rect2(center-240,648,480,62),
-				Rect2(center-240,726,480,62),
-				Rect2(center-240,804,480,62),
-				Rect2(center-240,882,480,62),
+				Rect2(center-240,500,480,54),
+				Rect2(center-240,562,480,50),
+				Rect2(center-240,620,480,50),
+				Rect2(center-240,678,480,50),
+				Rect2(center-240,736,480,50),
+				Rect2(center-240,794,480,50),
 			]
 		"oficina":
 			for i in range(5):
@@ -113,16 +122,18 @@ func _draw() -> void:
 				_center("K H A E R O S",270,80,BONE,width)
 				_rule(center,312,300)
 				_center("O LIMIAR",368,22,GOLD,width)
-				_center(_nome_doutrina(),445,30,BONE,width)
-				_center("Atravesse as câmaras do Limiar. Escolha arma, bênçãos e pactos.",490,22,MUTED,width)
+				_center(_nome_doutrina(),430,28,BONE,width)
+				_center("Atravesse as câmaras das 4 Regiões. Escolha arma, bênçãos e pactos.",468,21,MUTED,width)
 				var frag_saldo: int = app.saldo_fragmentos() if app.has_method("saldo_fragmentos") else 0
-				_button(action_rects()[0],"Entrar no Limiar",0)
-				_button(action_rects()[1],"Redução de movimento: "+("ligada" if app.reduced_motion else "desligada"),1,true)
-				_button(action_rects()[2],"Doutrina: "+_nome_doutrina(),2,true)
-				_button(action_rects()[3],"Oficina de Reforja (%d Frag.)" % frag_saldo,3,true)
-				_button(action_rects()[4],"Explorar Campus (Hub)",4,true)
+				var menu_boxes: Array[Rect2] = action_rects()
+				_button(menu_boxes[0],"Entrar no Limiar",0)
+				_button(menu_boxes[1],"Redução de movimento: "+("ligada" if app.reduced_motion else "desligada"),1,true)
+				_button(menu_boxes[2],"Doutrina: "+_nome_doutrina(),2,true)
+				_button(menu_boxes[3],"Oficina de Reforja (%d Frag.)" % frag_saldo,3,true)
+				_button(menu_boxes[4],"Explorar Campus (Hub)",4,true)
+				_button(menu_boxes[5],"Região Inicial: " + _nome_regiao_inicial(),5,true)
 				var cat_ok := app.get("catalogo_real") != null
-				_center("MVP KHAEROS • CATÁLOGO .TRES %s • 11 ATORES • ÁUDIO P0" % ["ATIVO" if cat_ok else "FALLBACK"],980,18,MUTED,width)
+				_center("MVP KHAEROS • CATÁLOGO .TRES %s • 4 REGIÕES • 15 BÊNÇÃOS" % ["ATIVO" if cat_ok else "FALLBACK"],980,18,MUTED,width)
 				_controls(width)
 			"oficina":
 				_center("OFICINA DE REFORJA", 160, 48, BONE, width)
@@ -167,9 +178,9 @@ func _draw() -> void:
 				_button(action_rects()[0],"Tentar novamente",0)
 				_button(action_rects()[1],"Voltar ao início",1,true)
 			"vitoria":
-				_center("O LIMIAR FOI ATRAVESSADO",320,49,BONE,width)
+				_center("O SANTUÁRIO FOI ATRAVESSADO" if bool(app.session.get("extended_campaign")) else "O LIMIAR FOI ATRAVESSADO",320,49,BONE,width)
 				_rule(center,370,250)
-				_center("Você venceu as três ondas desta travessia.",440,25,GOLD,width)
+				_center("Você venceu os 4 Chefes desta campanha." if bool(app.session.get("extended_campaign")) else "Você venceu as três ondas desta travessia.",440,25,GOLD,width)
 				_summary(width)
 				_button(action_rects()[0],"Jogar novamente",0)
 				_button(action_rects()[1],"Voltar ao início",1,true)
@@ -225,14 +236,50 @@ func _status(width: float) -> void:
 	_text("VIDA",Vector2(60,83),17,MUTED)
 	draw_rect(Rect2(125,65,310,19),Color("34313f"))
 	draw_rect(Rect2(125,65,310*clampf(float(player.hp)/float(player.max_hp),0,1),19),PINK)
-	_text("%d / %d" % [player.hp,player.max_hp],Vector2(451,83),20,BONE)
+	var escudo: float = float(app.session.get("player_shield")) if app.session.get("player_shield") != null else 0.0
+	if escudo > 0.0:
+		var esc_ratio: float = clampf(escudo / maxf(1.0, float(player.max_hp)), 0.0, 1.0)
+		draw_rect(Rect2(125, 65, 310.0 * esc_ratio, 6), Color("7dd3fc"))
+		draw_rect(Rect2(125, 65, 310.0 * esc_ratio, 19), Color(0.49, 0.83, 0.99, 0.25))
+		_text("%d / %d (+%d)" % [ceili(float(player.hp)), roundi(float(player.max_hp)), ceili(escudo)], Vector2(451, 83), 20, Color("7dd3fc"))
+	else:
+		_text("%d / %d" % [ceili(float(player.hp)), roundi(float(player.max_hp))],Vector2(451,83),20,BONE)
 	_text("ESQUIVA",Vector2(60,123),17,MUTED)
 	for i in range(mini(int(player.charge_max),10)):
 		var pos := Vector2(165+i*30,115)
 		var shape := PackedVector2Array([pos+Vector2(-10,-8),pos+Vector2(0,4),pos+Vector2(10,-8),pos+Vector2(10,0),pos+Vector2(0,12),pos+Vector2(-10,0)])
 		draw_colored_polygon(shape,BONE if i<int(player.charges) else Color("3e404d"))
-	_text("ONDA %d / %d" % [mini(app.session.wave_index+1,app.catalog.data.ondas.size()),app.catalog.data.ondas.size()],Vector2(width-270,53),25,GOLD)
-	_text("%d inimigos restantes" % app.session.enemies.size(),Vector2(width-270,91),20,MUTED)
+	var reg: Dictionary = app.session.current_region if app.session.get("current_region") is Dictionary else {}
+	if bool(app.session.get("extended_campaign")) and not reg.is_empty():
+		var reg_num: int = int(app.session.get("region_index")) + 1
+		var reg_nome: String = String(reg.get("nome", "O Limiar")).to_upper()
+		var rw: int = int(app.session.get("region_wave_index"))
+		var camara_txt: String = "CHEFE DA REGIÃO" if rw >= 2 else ("CÂMARA %d / 3" % (rw + 1))
+		_text("REGIÃO %d/4 • %s" % [reg_num, reg_nome], Vector2(width - 420, 44), 21, GOLD)
+		_text(camara_txt, Vector2(width - 420, 78), 22, PINK if rw >= 2 else BONE)
+		_text("%d inimigos restantes" % app.session.enemies.size(), Vector2(width - 420, 110), 19, MUTED)
+	else:
+		_text("ONDA %d / %d" % [mini(app.session.wave_index+1,app.catalog.data.ondas.size()),app.catalog.data.ondas.size()],Vector2(width-270,53),25,GOLD)
+		_text("%d inimigos restantes" % app.session.enemies.size(),Vector2(width-270,91),20,MUTED)
+	# Barra de Vida do Chefe no topo central quando houver chefe vivo
+	var boss: Dictionary = {}
+	for e: Dictionary in app.session.enemies:
+		if bool(e.get("is_boss", false)) and float(e.get("hp", 0.0)) > 0.0:
+			boss = e
+			break
+	if not boss.is_empty():
+		var b_center: float = width * 0.5
+		var b_w: float = 520.0
+		var b_x: float = b_center - b_w * 0.5
+		var b_nome: String = String(boss.get("boss_name", "Chefe")).to_upper()
+		var b_hp: float = float(boss.get("hp", 0.0))
+		var b_max: float = maxf(1.0, float(boss.get("max_hp", 1.0)))
+		_center(b_nome, 44, 22, GOLD, width)
+		draw_rect(Rect2(b_x - 3, 56, b_w + 6, 26), Color("0d0e14"))
+		draw_rect(Rect2(b_x, 59, b_w, 20), Color("2d2233"))
+		draw_rect(Rect2(b_x, 59, b_w * clampf(b_hp / b_max, 0.0, 1.0), 20), PINK)
+		draw_rect(Rect2(b_x - 2, 57, b_w + 4, 24), GOLD, false, 1.5)
+		_center("%d / %d" % [ceili(b_hp), roundi(b_max)], 103, 18, BONE, width)
 	var recharge: float = float(player.recharge)/maxf(1,roundf(app.catalog.data.esquiva.recarga_s*60))
 	if player.charges < player.charge_max:
 		draw_rect(Rect2(154,132,120*recharge,3),GOLD)
@@ -250,12 +297,33 @@ func _controls(width: float) -> void:
 
 func _card(rect: Rect2,index: int) -> void:
 	var chosen: bool = app.selected == index
-	var mold_tex: Texture2D = _ui_tex.get("moldura_rara" if chosen else "moldura_comum", null)
+	var use_offer: bool = bool(app.session.get("extended_campaign")) and app.session.current_offer.size() > index
+	var item: Dictionary = app.session.current_offer[index] if use_offer else app.catalog.data.bencaos[index]
+	var raridade: String = String(item.get("raridade", "comum")).to_lower() if use_offer else ("rara" if chosen else "comum")
+	var mold_key: String = "moldura_comum"
+	var badge_txt: String = "[COMUM]"
+	var badge_col: Color = MUTED
+	if raridade == "epica":
+		mold_key = "moldura_epica" if _ui_tex.has("moldura_epica") else "moldura_rara"
+		badge_txt = "[ÉPICA]"
+		badge_col = Color("c084fc")
+	elif raridade == "rara":
+		mold_key = "moldura_rara"
+		badge_txt = "[RARA]"
+		badge_col = GOLD
+	var mold_tex: Texture2D = _ui_tex.get(mold_key, null)
 	if mold_tex != null:
-		draw_texture_rect(mold_tex, rect, false, Color.WHITE if chosen else Color(0.75, 0.75, 0.8, 0.95))
+		var mod_c: Color = Color.WHITE if chosen else Color(0.78, 0.78, 0.84, 0.95)
+		if raridade == "epica" and not _ui_tex.has("moldura_epica"):
+			mod_c = Color(0.95, 0.78, 1.0, 1.0) if chosen else Color(0.80, 0.65, 0.90, 0.95)
+		draw_texture_rect(mold_tex, rect, false, mod_c)
+		if chosen:
+			draw_rect(rect, GOLD if raridade != "epica" else Color("c084fc"), false, 3.0)
 	else:
 		draw_rect(rect,Color("242532") if chosen else PANEL)
-		draw_rect(rect,GOLD if chosen else Color("45404b"),false,3 if chosen else 1)
+		draw_rect(rect,badge_col if use_offer else (GOLD if chosen else Color("45404b")),false,3 if chosen else 1)
+	if use_offer:
+		_center_in(badge_txt, rect.position.y + 34, 18, badge_col, rect)
 	var center := Vector2(rect.get_center().x,rect.position.y+95)
 	match index:
 		0:
@@ -267,9 +335,10 @@ func _card(rect: Rect2,index: int) -> void:
 		2:
 			draw_arc(center,35,-2.8,0.8,30,BONE,4,true)
 			draw_line(center+Vector2(-25,27),center+Vector2(35,-30),GOLD,3,true)
-	var item: Dictionary = app.catalog.data.bencaos[index]
-	_center_in(item.nome,rect.position.y+198,27,BONE,rect)
-	_wrapped(item.texto,Rect2(rect.position+Vector2(34,230),Vector2(rect.size.x-68,100)),23,MUTED)
+	var item_nome: String = String(item.get("nome", ""))
+	var item_texto: String = String(item.get("texto", item.get("descricao", "")))
+	_center_in(item_nome,rect.position.y+198,26,BONE,rect)
+	_wrapped(item_texto,Rect2(rect.position+Vector2(34,230),Vector2(rect.size.x-68,110)),22,MUTED)
 	_center_in("[ %d ]   %s" % [index+1,"SELECIONADA" if chosen else "BÊNÇÃO"],rect.end.y-32,18,GOLD if chosen else MUTED,rect)
 
 func _button(rect:Rect2,label:String,index:int,secondary:bool=false) -> void:
