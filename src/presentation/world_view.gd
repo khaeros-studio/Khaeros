@@ -59,6 +59,10 @@ func _ensure_atlases() -> void:
 			var b_tex := _carregar_tex("res://assets/art/environment/%s/%s.png" % [bioma, peca])
 			if b_tex != null:
 				_env_textures["%s_%s" % [bioma, peca]] = b_tex
+	for arena_id: String in ["limiar", "veio_instavel", "fosso_das_cinzas", "santuario_partido", "campus"]:
+		var bg_tex := _carregar_tex("res://assets/art/environment/%s/arena_bg.png" % arena_id)
+		if bg_tex != null:
+			_env_textures["%s_arena_bg" % arena_id] = bg_tex
 
 func _draw() -> void:
 	if app == null or not app.ready_to_play:
@@ -78,72 +82,78 @@ func _draw() -> void:
 	var reg_id: String = String(reg.get("id", "limiar"))
 	var t_pres: float = float(session.presentation_time)
 	draw_rect(room.grow(1000), bg_col)
-	_draw_abyss_backdrop(room, bg_col, accent_col, border_col, t_pres)
-	# Arquitetura de parede superior com profundidade 2.5D, contrafortes e nichos
-	var wall_h: float = 136.0
-	_draw_north_wall(room, wall_h, border_col, accent_col, reg_id, t_pres)
-	draw_rect(room.grow(34), INK)
-	# Falésia / paredão frontal de pedra 2.5D mergulhando no abismo (borda sul)
-	_draw_south_cliff(room, border_col, accent_col, reg_id, t_pres)
-	draw_rect(room, floor_col)
-	# Lajes contínuas cobrindo 100% do piso sem frestas, com leve variação orgânica de luz
-	for gx in range(0, int(room.size.x), 240):
-		for gy in range(0, int(room.size.y), 240):
-			var tile_tex: Texture2D = null
-			var col_i: int = gx / 240
-			var row_i: int = gy / 240
-			var hash_v: int = (col_i * 7 + row_i * 13) % 4
-			if reg_id != "limiar":
-				var b_idx: int = (col_i + row_i) % 2 + 1
-				tile_tex = _env_textures.get("%s_chao_0%d" % [reg_id, b_idx], null)
-			if tile_tex == null:
-				var tile_idx: int = (col_i + row_i) % 4 + 1
-				tile_tex = _env_textures.get("chao_laje_0%d" % tile_idx, null)
-			var tile_rect := Rect2(gx, gy, 242, 242)
-			if tile_tex != null:
-				var shade: float = 0.86 + float(hash_v) * 0.045
-				var tile_alpha: float = 0.72 if reg_id != "limiar" else 0.58
-				draw_texture_rect(tile_tex, tile_rect, false, Color(shade, shade, shade, tile_alpha))
-			else:
-				draw_rect(tile_rect, floor_col.darkened(0.06 if hash_v % 2 == 0 else 0.0))
-				draw_rect(tile_rect, Color(border_col.r, border_col.g, border_col.b, 0.16), false, 1.5)
-	# Quebra orgânica da grade do piso: manchas de desgaste, rachaduras sutis e sombras direcionais
-	_draw_floor_organic_layers(room, floor_col, border_col)
-	# Iluminação atmosférica suave no centro + vinheta emoldurando as 4 bordas internas
-	var center := room.get_center()
-	draw_circle(center, 620.0, Color(accent_col.r, accent_col.g, accent_col.b, 0.09))
-	draw_circle(center, 360.0, Color(accent_col.r, accent_col.g, accent_col.b, 0.07))
-	# Sombras projetadas direcionais das paredes norte e oeste (luz vinda do topo-esquerda)
-	draw_rect(Rect2(room.position.x, room.position.y, room.size.x, 86.0), Color(INK.r, INK.g, INK.b, 0.22))
-	draw_rect(Rect2(room.position.x, room.position.y, room.size.x, 48.0), Color(INK.r, INK.g, INK.b, 0.30))
-	draw_rect(Rect2(room.position.x, room.position.y, 76.0, room.size.y), Color(INK.r, INK.g, INK.b, 0.20))
-	draw_rect(Rect2(room.position.x, room.position.y, 38.0, room.size.y), Color(INK.r, INK.g, INK.b, 0.28))
-	# Vinheta atmosférica suave nas 4 bordas internas da arena
-	var vig_bands: Array[Array] = [[96.0, 0.10], [52.0, 0.16], [24.0, 0.24]]
-	for vb: Array in vig_bands:
-		var bw: float = float(vb[0])
-		var ba: float = float(vb[1])
-		var vcol := Color(INK.r, INK.g, INK.b, ba)
-		draw_rect(Rect2(room.position.x, room.position.y, room.size.x, bw), vcol)
-		draw_rect(Rect2(room.position.x, room.end.y - bw, room.size.x, bw), vcol)
-		draw_rect(Rect2(room.position.x, room.position.y, bw, room.size.y), vcol)
-		draw_rect(Rect2(room.end.x - bw, room.position.y, bw, room.size.y), vcol)
-	# 4 Braseiros acesos na muralha norte com halos banhando parede e chão abaixo
-	_draw_north_braziers(room, border_col, reg_id, t_pres)
-	draw_rect(room.grow(-14), border_col, false, 4.0)
-	draw_rect(room.grow(-28), Color(border_col.r, border_col.g, border_col.b, 0.42), false, 2.0)
-	# 4 Pilastras de canto ancorando a arquitetura da câmara
-	for corner: Vector2 in [room.position, Vector2(room.end.x, room.position.y), Vector2(room.position.x, room.end.y), room.end]:
-		draw_rect(Rect2(corner - Vector2(26, 26), Vector2(52, 52)), INK)
-		draw_rect(Rect2(corner - Vector2(20, 20), Vector2(40, 40)), border_col.darkened(0.2))
-		draw_rect(Rect2(corner - Vector2(20, 20), Vector2(40, 40)), border_col.lightened(0.15), false, 2.0)
-	draw_arc(center, 220, 0, TAU, 96, Color(accent_col.r, accent_col.g, accent_col.b, 0.48), 2.5, true)
-	draw_arc(center, 238, 0, TAU, 96, Color(border_col.r, border_col.g, border_col.b, 0.36), 2.0, true)
-	for i in range(12):
-		var direction := Vector2.RIGHT.rotated(i * TAU / 12)
-		draw_line(center + direction * 206, center + direction * 246, Color(border_col.r, border_col.g, border_col.b, 0.42), 2.5)
-	if not reg.is_empty():
-		_draw_region_details(room, reg, accent_col, t_pres)
+	var arena_bg: Texture2D = _env_textures.get("%s_arena_bg" % reg_id, null)
+	if arena_bg != null:
+		# Ilustração pintada completa da câmara (piso + muralha norte + braseiros + falésia sul sobre o abismo)
+		var bg_rect := Rect2(room.position.x - 240.0, room.position.y - 520.0, room.size.x + 480.0, room.size.y + 1430.0)
+		draw_texture_rect(arena_bg, bg_rect, false)
+	else:
+		_draw_abyss_backdrop(room, bg_col, accent_col, border_col, t_pres)
+		# Arquitetura de parede superior com profundidade 2.5D, contrafortes e nichos
+		var wall_h: float = 136.0
+		_draw_north_wall(room, wall_h, border_col, accent_col, reg_id, t_pres)
+		draw_rect(room.grow(34), INK)
+		# Falésia / paredão frontal de pedra 2.5D mergulhando no abismo (borda sul)
+		_draw_south_cliff(room, border_col, accent_col, reg_id, t_pres)
+		draw_rect(room, floor_col)
+		# Lajes contínuas cobrindo 100% do piso sem frestas, com leve variação orgânica de luz
+		for gx in range(0, int(room.size.x), 240):
+			for gy in range(0, int(room.size.y), 240):
+				var tile_tex: Texture2D = null
+				var col_i: int = gx / 240
+				var row_i: int = gy / 240
+				var hash_v: int = (col_i * 7 + row_i * 13) % 4
+				if reg_id != "limiar":
+					var b_idx: int = (col_i + row_i) % 2 + 1
+					tile_tex = _env_textures.get("%s_chao_0%d" % [reg_id, b_idx], null)
+				if tile_tex == null:
+					var tile_idx: int = (col_i + row_i) % 4 + 1
+					tile_tex = _env_textures.get("chao_laje_0%d" % tile_idx, null)
+				var tile_rect := Rect2(gx, gy, 242, 242)
+				if tile_tex != null:
+					var shade: float = 0.86 + float(hash_v) * 0.045
+					var tile_alpha: float = 0.72 if reg_id != "limiar" else 0.58
+					draw_texture_rect(tile_tex, tile_rect, false, Color(shade, shade, shade, tile_alpha))
+				else:
+					draw_rect(tile_rect, floor_col.darkened(0.06 if hash_v % 2 == 0 else 0.0))
+					draw_rect(tile_rect, Color(border_col.r, border_col.g, border_col.b, 0.16), false, 1.5)
+		# Quebra orgânica da grade do piso: manchas de desgaste, rachaduras sutis e sombras direcionais
+		_draw_floor_organic_layers(room, floor_col, border_col)
+		# Iluminação atmosférica suave no centro + vinheta emoldurando as 4 bordas internas
+		var center := room.get_center()
+		draw_circle(center, 620.0, Color(accent_col.r, accent_col.g, accent_col.b, 0.09))
+		draw_circle(center, 360.0, Color(accent_col.r, accent_col.g, accent_col.b, 0.07))
+		# Sombras projetadas direcionais das paredes norte e oeste (luz vinda do topo-esquerda)
+		draw_rect(Rect2(room.position.x, room.position.y, room.size.x, 86.0), Color(INK.r, INK.g, INK.b, 0.22))
+		draw_rect(Rect2(room.position.x, room.position.y, room.size.x, 48.0), Color(INK.r, INK.g, INK.b, 0.30))
+		draw_rect(Rect2(room.position.x, room.position.y, 76.0, room.size.y), Color(INK.r, INK.g, INK.b, 0.20))
+		draw_rect(Rect2(room.position.x, room.position.y, 38.0, room.size.y), Color(INK.r, INK.g, INK.b, 0.28))
+		# Vinheta atmosférica suave nas 4 bordas internas da arena
+		var vig_bands: Array[Array] = [[96.0, 0.10], [52.0, 0.16], [24.0, 0.24]]
+		for vb: Array in vig_bands:
+			var bw: float = float(vb[0])
+			var ba: float = float(vb[1])
+			var vcol := Color(INK.r, INK.g, INK.b, ba)
+			draw_rect(Rect2(room.position.x, room.position.y, room.size.x, bw), vcol)
+			draw_rect(Rect2(room.position.x, room.end.y - bw, room.size.x, bw), vcol)
+			draw_rect(Rect2(room.position.x, room.position.y, bw, room.size.y), vcol)
+			draw_rect(Rect2(room.end.x - bw, room.position.y, bw, room.size.y), vcol)
+		# 4 Braseiros acesos na muralha norte com halos banhando parede e chão abaixo
+		_draw_north_braziers(room, border_col, reg_id, t_pres)
+		draw_rect(room.grow(-14), border_col, false, 4.0)
+		draw_rect(room.grow(-28), Color(border_col.r, border_col.g, border_col.b, 0.42), false, 2.0)
+		# 4 Pilastras de canto ancorando a arquitetura da câmara
+		for corner: Vector2 in [room.position, Vector2(room.end.x, room.position.y), Vector2(room.position.x, room.end.y), room.end]:
+			draw_rect(Rect2(corner - Vector2(26, 26), Vector2(52, 52)), INK)
+			draw_rect(Rect2(corner - Vector2(20, 20), Vector2(40, 40)), border_col.darkened(0.2))
+			draw_rect(Rect2(corner - Vector2(20, 20), Vector2(40, 40)), border_col.lightened(0.15), false, 2.0)
+		draw_arc(center, 220, 0, TAU, 96, Color(accent_col.r, accent_col.g, accent_col.b, 0.48), 2.5, true)
+		draw_arc(center, 238, 0, TAU, 96, Color(border_col.r, border_col.g, border_col.b, 0.36), 2.0, true)
+		for i in range(12):
+			var direction := Vector2.RIGHT.rotated(i * TAU / 12)
+			draw_line(center + direction * 206, center + direction * 246, Color(border_col.r, border_col.g, border_col.b, 0.42), 2.5)
+		if not reg.is_empty():
+			_draw_region_details(room, reg, accent_col, t_pres)
 	# Partículas ambientais discretas por bioma
 	var part_col: Color = Color("ff9e44") if reg_id.contains("cinza") or reg_id.contains("fosso") else (
 		MAGENTA_BRIGHT if reg_id.contains("veio") else (Color("7dd3fc") if reg_id.contains("santuario") else BONE)
@@ -156,21 +166,22 @@ func _draw() -> void:
 		var drift_x: float = sin(t_pres * 1.3 + float(p_i)) * 16.0
 		var p_alpha: float = 0.14 + 0.10 * sin(t_pres * 2.1 + float(p_i) * 0.9)
 		draw_circle(Vector2(seed_x + drift_x, seed_y + 60.0), 2.2 + float(p_i % 3) * 0.9, Color(part_col.r, part_col.g, part_col.b, p_alpha))
-	# Door motif: biome ritual gate beyond the far wall.
-	var gate := Vector2(room.size.x / 2, 18)
-	var gate_tex: Texture2D = null
-	if reg_id != "limiar":
-		gate_tex = _env_textures.get("%s_portal" % reg_id, null)
-	if gate_tex == null:
-		var gate_key := "porta_aberta" if session.enemies.is_empty() else "porta_fechada"
-		gate_tex = _env_textures.get(gate_key, null)
-	if gate_tex != null:
-		draw_circle(gate + Vector2(0, -45), 96.0, Color(accent_col.r, accent_col.g, accent_col.b, 0.22))
-		draw_texture_rect(gate_tex, Rect2(gate + Vector2(-95, -165), Vector2(190, 180)), false)
-	else:
-		draw_rect(Rect2(gate + Vector2(-90, -150), Vector2(180, 160)), INK)
-		draw_line(gate + Vector2(-95, 10), gate + Vector2(-95, -150), Color("55505a"), 8)
-		draw_line(gate + Vector2(95, 10), gate + Vector2(95, -150), Color("55505a"), 8)
+	# Door motif: biome ritual gate beyond the far wall (omitido quando arena_bg já pinta o portão).
+	if arena_bg == null:
+		var gate := Vector2(room.size.x / 2, 18)
+		var gate_tex: Texture2D = null
+		if reg_id != "limiar":
+			gate_tex = _env_textures.get("%s_portal" % reg_id, null)
+		if gate_tex == null:
+			var gate_key := "porta_aberta" if session.enemies.is_empty() else "porta_fechada"
+			gate_tex = _env_textures.get(gate_key, null)
+		if gate_tex != null:
+			draw_circle(gate + Vector2(0, -45), 96.0, Color(accent_col.r, accent_col.g, accent_col.b, 0.22))
+			draw_texture_rect(gate_tex, Rect2(gate + Vector2(-95, -165), Vector2(190, 180)), false)
+		else:
+			draw_rect(Rect2(gate + Vector2(-90, -150), Vector2(180, 160)), INK)
+			draw_line(gate + Vector2(-95, 10), gate + Vector2(-95, -150), Color("55505a"), 8)
+			draw_line(gate + Vector2(95, 10), gate + Vector2(95, -150), Color("55505a"), 8)
 	for enemy in session.enemies:
 		if enemy.get("phase", "") == "windup":
 			_telegraph(enemy, true)
