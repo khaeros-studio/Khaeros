@@ -438,6 +438,10 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 		var flip_x := -1.0 if facing.x < -0.05 else 1.0
 		var action := "idle"
 		var progress := -1.0
+		var attack_cd_now: int = int(player.get("attack_cd", 0))
+		var atk_draw_pos: Vector2 = pos
+		var atk_squash := Vector2.ONE
+		var atk_rot: float = 0.0
 		if session.state == "morte" or float(player.get("hp", 1.0)) <= 0.0:
 			action = "death"
 			progress = clampf(session.presentation_time / 0.8, 0.0, 0.999)
@@ -445,15 +449,53 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 			action = "dash"
 			var d_total := maxf(1.0, roundf(float(data.esquiva.duracao_s) * 60.0))
 			progress = clampf(1.0 - float(player.dash_remaining) / d_total, 0.0, 0.999)
+			atk_squash = Vector2(1.16, 0.88)
+			atk_rot = flip_x * 0.14
 		elif lunge:
 			action = "lunge"
 			var l_total := maxf(1.0, roundf(float(data.investida.duracao_s) * 60.0))
 			progress = clampf(1.0 - float(player.lunge_remaining) / l_total, 0.0, 0.999)
-		elif int(player.get("attack_cd", 0)) > 0 and w_id != &"pactos":
+			atk_squash = Vector2(1.20, 0.86)
+			atk_rot = flip_x * 0.20
+		elif attack_cd_now > 0:
 			var combo_idx := int(player.get("combo", 1))
-			action = "attack1" if (w_id != &"lamina" or combo_idx == 1) else ("attack2" if combo_idx == 2 else "attack3")
-			var a_total := maxf(1.0, roundf(float(data.corte.recarga_s) * 60.0))
-			progress = clampf(1.0 - float(player.attack_cd) / a_total, 0.0, 0.999)
+			var base_cd_s: float = float(data.corte.recarga_s)
+			if w_id == &"guardiao":
+				base_cd_s = 0.45
+			elif w_id == &"veu":
+				base_cd_s = 0.16
+			elif w_id == &"ressonancia":
+				base_cd_s = 0.233
+			elif w_id == &"pactos":
+				base_cd_s = 0.25
+			var cd_mult: float = float(session.get("attack_cd_mult")) if session.get("attack_cd_mult") != null else 1.0
+			var a_total := maxf(1.0, roundf(base_cd_s * 60.0 * cd_mult))
+			var atk_prog := clampf(1.0 - float(attack_cd_now) / a_total, 0.0, 0.999)
+			if w_id != &"pactos":
+				action = "attack1" if (w_id != &"lamina" or combo_idx == 1) else ("attack2" if combo_idx == 2 else "attack3")
+				progress = atk_prog
+			# Movimento corporal real do golpe (anticipation + avanco + peso + retorno)
+			var swing_env: float = sin(clampf(atk_prog * 1.45, 0.0, 1.0) * PI)
+			if w_id == &"guardiao":
+				var thrust: float = -0.35 if atk_prog < 0.22 else swing_env
+				atk_draw_pos += aim * (24.0 * thrust)
+				atk_squash = Vector2(1.0 + 0.18 * maxf(0.0, thrust), 1.0 - 0.12 * maxf(0.0, thrust))
+				atk_rot = flip_x * (0.22 * thrust)
+			elif w_id == &"veu":
+				var side_sign: float = 1.0 if (combo_idx % 2 == 0) else -0.75
+				atk_draw_pos += aim * (20.0 * swing_env) + aim.orthogonal() * (8.0 * side_sign * swing_env)
+				atk_squash = Vector2(1.0 + 0.16 * swing_env, 1.0 - 0.10 * swing_env)
+				atk_rot = flip_x * (0.24 * side_sign * swing_env)
+			elif w_id == &"lamina":
+				atk_draw_pos += aim * (16.0 * swing_env)
+				atk_squash = Vector2(1.0 + 0.12 * swing_env, 1.0 - 0.08 * swing_env)
+				atk_rot = flip_x * (0.16 * swing_env)
+			else:
+				# Recuo tátil ao disparar magia ou besta
+				var recoil: float = clampf(1.0 - atk_prog * 2.2, 0.0, 1.0)
+				atk_draw_pos -= aim * (8.0 * recoil)
+				atk_squash = Vector2(1.0 - 0.07 * recoil, 1.0 + 0.08 * recoil)
+				atk_rot = -flip_x * (0.08 * recoil)
 		elif int(player.get("flash", 0)) > 0:
 			action = "hurt"
 			progress = 0.0
@@ -461,11 +503,11 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 			action = "run"
 		var anim_name := action + "_" + dir_suffix
 		if not _frames_by_actor[player_actor].has_animation(anim_name):
-			anim_name = "idle_" + dir_suffix
+			anim_name = "attack_" + dir_suffix if action.begins_with("attack") and _frames_by_actor[player_actor].has_animation("attack_" + dir_suffix) else ("idle_" + dir_suffix)
 		var modulate := Color.WHITE
 		if int(player.get("flash", 0)) > 0:
 			modulate = BONE
-		_draw_actor_sprite(player_actor, anim_name, pos, flip_x, 1.0, session.presentation_time, progress, modulate)
+		_draw_actor_sprite(player_actor, anim_name, atk_draw_pos, flip_x, 1.0, session.presentation_time, progress, modulate, atk_squash, atk_rot)
 		if w_id == &"guardiao":
 			draw_arc(pos, 40.0, 0, TAU, 36, Color(GOLD, 0.30), 2.0, true)
 		elif w_id == &"veu":
@@ -591,12 +633,14 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 		var phase_time: float = session.presentation_time + float(int(enemy.get("id", 0))) * 0.19
 		var draw_pos: Vector2 = pos
 		var squash := Vector2.ONE
-		# Marretada com peso fisico real para o Colosso de Cinza (ergue no windup, esmaga no impacto)
+		var rot_angle: float = 0.0
+		# Peso fisico de ataque para todos os chefes (ergue no windup, avanca/esmaga no golpe)
 		if kind == "colosso_de_cinza":
 			if enemy.phase == "windup" and progress >= 0.0:
 				var lift: float = clampf(progress, 0.0, 1.0)
 				squash = Vector2(1.0 - 0.11 * lift, 1.0 + 0.18 * lift)
 				draw_pos.y -= 22.0 * lift
+				rot_angle = -flip_x * 0.12 * lift
 				if lift > 0.65:
 					draw_pos.x += sin(phase_time * 55.0) * 3.5
 				modulate = modulate.lerp(Color(1.35, 0.92, 0.68, modulate.a), lift * 0.55)
@@ -605,6 +649,29 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 				squash = Vector2(1.0 + 0.26 * slam_t, 1.0 - 0.24 * slam_t)
 				draw_pos += look_vec * (26.0 * slam_t)
 				draw_pos.y += 10.0 * slam_t
+				rot_angle = flip_x * 0.18 * slam_t
+		elif is_boss:
+			var is_ranged_boss: bool = String(def.get("comportamento", "")) == "ranged"
+			if enemy.phase == "windup" and progress >= 0.0:
+				var w_p: float = clampf(progress, 0.0, 1.0)
+				if is_ranged_boss:
+					draw_pos.y -= 14.0 * w_p
+					squash = Vector2(1.0 - 0.08 * w_p, 1.0 + 0.12 * w_p)
+					modulate = modulate.lerp(Color(1.25, 1.05, 1.35, modulate.a), w_p * 0.45)
+				else:
+					draw_pos -= look_vec * (12.0 * w_p)
+					draw_pos.y -= 10.0 * w_p
+					squash = Vector2(1.0 - 0.08 * w_p, 1.0 + 0.12 * w_p)
+					rot_angle = -flip_x * 0.14 * w_p
+			elif enemy.phase == "recover" and action == "attack" and progress >= 0.0:
+				var a_t: float = clampf(1.0 - progress, 0.0, 1.0)
+				if is_ranged_boss:
+					draw_pos -= look_vec * (10.0 * a_t)
+					squash = Vector2(1.0 + 0.14 * a_t, 1.0 - 0.08 * a_t)
+				else:
+					draw_pos += look_vec * (28.0 * a_t)
+					squash = Vector2(1.0 + 0.18 * a_t, 1.0 - 0.12 * a_t)
+					rot_angle = flip_x * 0.20 * a_t
 		if is_elite and not is_boss:
 			# Selo rúnico giratório discreto ancorado no chão (substitui escudo/coroa flutuantes)
 			draw_set_transform(pos, 0.0, Vector2(1.0, 0.42))
@@ -620,7 +687,7 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 			draw_arc(Vector2.ZERO, radius + 14.0, 0, TAU, 48, Color(boss_aura.r, boss_aura.g, boss_aura.b, 0.55), 3.5, true)
 			draw_arc(Vector2.ZERO, radius + 26.0, 0, TAU, 48, Color(boss_aura.r, boss_aura.g, boss_aura.b, 0.22), 2.0, true)
 			draw_set_transform(Vector2.ZERO)
-		_draw_actor_sprite(sprite_kind, anim_name, draw_pos, flip_x, elite_scale, phase_time, progress, modulate, squash)
+		_draw_actor_sprite(sprite_kind, anim_name, draw_pos, flip_x, elite_scale, phase_time, progress, modulate, squash, rot_angle)
 		# Art Bible §3.2 & Lote 02 §3: Anomalia Menor has Magenta emitter ring & dorsal crystal accents
 		if kind == "anomalia_menor":
 			var emitter_pos := pos + Vector2(0, -26 * elite_scale) + look_vec * (22.0 * elite_scale)
@@ -661,7 +728,7 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 		draw_rect(Rect2(pos + Vector2(-28, -91), Vector2(56, 5)), INK)
 		draw_rect(Rect2(pos + Vector2(-28, -91), Vector2(56 * maxf(0, enemy.hp / enemy.max_hp), 5)), tint)
 
-func _draw_actor_sprite(actor_id: String, anim_name: String, pos: Vector2, flip_x: float, scale_mult: float, time_sec: float, norm_progress: float, modulate: Color, extra_scale: Vector2 = Vector2.ONE) -> void:
+func _draw_actor_sprite(actor_id: String, anim_name: String, pos: Vector2, flip_x: float, scale_mult: float, time_sec: float, norm_progress: float, modulate: Color, extra_scale: Vector2 = Vector2.ONE, rot: float = 0.0) -> void:
 	var frames: SpriteFrames = _frames_by_actor.get(actor_id)
 	var manifest: Dictionary = _manifests_by_actor.get(actor_id, {})
 	if frames == null or not frames.has_animation(anim_name):
@@ -688,7 +755,7 @@ func _draw_actor_sprite(actor_id: String, anim_name: String, pos: Vector2, flip_
 		return
 	var anim_meta: Dictionary = manifest.get("animations", {}).get(anim_name, {})
 	var base_scale := float(anim_meta.get("scale", 0.4)) * scale_mult
-	draw_set_transform(pos, 0.0, Vector2(flip_x * base_scale * extra_scale.x, base_scale * extra_scale.y))
+	draw_set_transform(pos, rot, Vector2(flip_x * base_scale * extra_scale.x, base_scale * extra_scale.y))
 	tex.draw_rect(get_canvas_item(), Rect2(-PIVOT, Vector2(400, 400)), false, modulate)
 	draw_set_transform(Vector2.ZERO)
 
@@ -781,15 +848,52 @@ func _effect(effect: Dictionary) -> void:
 	var direction: Vector2 = effect.get("dir", Vector2.RIGHT)
 	match effect.get("kind", ""):
 		"attack":
-			var radius: float = effect.get("radius", 142.5)
-			var angle: float = effect.get("angle", 1.21)
+			var radius: float = float(effect.get("radius", 142.5))
+			var angle: float = float(effect.get("angle", 1.21))
+			var w_tag: String = String(effect.get("weapon", "lamina"))
+			var is_heavy: bool = bool(effect.get("heavy", false))
+			var slash_pos: Vector2 = pos + Vector2(0, -38.0)
+			var base_ang: float = direction.angle()
+			var sweep: float = clampf(progress * 1.65, 0.08, 1.0)
+			var a_start: float = base_ang - angle
+			var a_end: float = a_start + (angle * 2.0) * sweep
 			var atk_col := BONE
-			if String(effect.get("weapon", "")) == "guardiao":
+			var core_col := GOLD
+			if w_tag == "guardiao":
 				atk_col = GOLD
-			elif String(effect.get("weapon", "")) == "veu":
-				atk_col = Color("9d6bff")
-			draw_arc(pos, radius, direction.angle() - angle, direction.angle() + angle, 32, Color(atk_col, alpha), 7 if String(effect.get("weapon", "")) == "guardiao" else 6, true)
-			draw_arc(pos, radius - 12, direction.angle() - angle * .8, direction.angle() + angle * .8, 24, Color(atk_col, alpha * .35), 3, true)
+				core_col = BONE
+			elif w_tag == "veu":
+				atk_col = Color("a855f7")
+				core_col = Color("7dd3fc")
+			elif is_heavy:
+				atk_col = GOLD
+				core_col = BONE
+			# Crescente de corte preenchido varrendo o arco na altura das maos
+			var crescent := PackedVector2Array()
+			var segs: int = 16
+			for i: int in range(segs + 1):
+				var t_s: float = float(i) / float(segs)
+				var a_i: float = lerpf(a_start, a_end, t_s)
+				var r_out: float = radius * (0.94 + 0.08 * sin(t_s * PI))
+				crescent.append(slash_pos + Vector2.RIGHT.rotated(a_i) * r_out)
+			var inner_ratio: float = 0.54 if w_tag == "guardiao" else (0.64 if is_heavy else 0.72)
+			for i: int in range(segs, -1, -1):
+				var t_s: float = float(i) / float(segs)
+				var a_i: float = lerpf(a_start, a_end, t_s)
+				var r_in: float = radius * lerpf(0.95, inner_ratio, sin(t_s * PI))
+				crescent.append(slash_pos + Vector2.RIGHT.rotated(a_i) * r_in)
+			draw_colored_polygon(crescent, Color(atk_col.r, atk_col.g, atk_col.b, alpha * 0.42))
+			draw_arc(slash_pos, radius, a_start, a_end, 28, Color(atk_col.r, atk_col.g, atk_col.b, alpha * 0.95), 9.0 if w_tag == "guardiao" else 6.5, true)
+			draw_arc(slash_pos, radius - 7.0, lerpf(a_start, a_end, 0.25), a_end, 20, Color(core_col.r, core_col.g, core_col.b, alpha), 3.5, true)
+			# Ponta da arma / golpe pesado com impacto frontal
+			var tip_dir: Vector2 = Vector2.RIGHT.rotated(a_end)
+			var tip_pt: Vector2 = slash_pos + tip_dir * radius
+			draw_line(slash_pos + tip_dir * (radius * 0.45), tip_pt, Color(core_col.r, core_col.g, core_col.b, alpha * 0.9), 4.0, true)
+			if w_tag == "guardiao":
+				var bash_pt: Vector2 = slash_pos + direction * (radius * 0.72)
+				draw_arc(bash_pt, 24.0 + 38.0 * progress, base_ang - 1.1, base_ang + 1.1, 18, Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.85), 5.0, true)
+			elif w_tag == "veu":
+				draw_arc(slash_pos, radius * 0.84, a_end - angle * 1.1, a_end, 16, Color(core_col.r, core_col.g, core_col.b, alpha * 0.8), 3.0, true)
 		"guardiao_bastion":
 			var max_r: float = float(effect.get("radius", 180.0))
 			var cur_r := maxf(24.0, max_r * (0.3 + 0.7 * progress))
@@ -883,7 +987,23 @@ func _effect(effect: Dictionary) -> void:
 					var s_pos: Vector2 = pos + s_dir * (22.0 + 130.0 * wave_t) + Vector2(0, -42.0 * sin(wave_t * PI))
 					draw_circle(s_pos, 4.5 * wave_a, Color(brasa_clara.r, brasa_clara.g, brasa_clara.b, wave_a))
 		"enemy_attack":
-			draw_arc(pos, float(effect.get("radius", 90)), direction.angle() - 1.2, direction.angle() + 1.2, 24, Color(MAGENTA, alpha), 5, true)
+			var e_r: float = float(effect.get("radius", 90.0))
+			var e_ang: float = float(effect.get("angle", 1.2))
+			var e_pos: Vector2 = pos + Vector2(0, -34.0)
+			var e_base: float = direction.angle()
+			var e_sweep: float = clampf(progress * 1.7, 0.12, 1.0)
+			var ea0: float = e_base - e_ang
+			var ea1: float = ea0 + (e_ang * 2.0) * e_sweep
+			var e_cresc := PackedVector2Array()
+			for i: int in range(13):
+				var ts: float = float(i) / 12.0
+				e_cresc.append(e_pos + Vector2.RIGHT.rotated(lerpf(ea0, ea1, ts)) * e_r)
+			for i: int in range(12, -1, -1):
+				var ts: float = float(i) / 12.0
+				e_cresc.append(e_pos + Vector2.RIGHT.rotated(lerpf(ea0, ea1, ts)) * (e_r * lerpf(0.95, 0.62, sin(ts * PI))))
+			draw_colored_polygon(e_cresc, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, alpha * 0.36))
+			draw_arc(e_pos, e_r, ea0, ea1, 24, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, alpha), 6.5, true)
+			draw_arc(e_pos, e_r - 7.0, lerpf(ea0, ea1, 0.3), ea1, 16, Color(BONE.r, BONE.g, BONE.b, alpha * 0.8), 2.5, true)
 
 func _sector(pos: Vector2, angle: float, half: float, radius: float) -> PackedVector2Array:
 	var points := PackedVector2Array([pos])
