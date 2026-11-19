@@ -9,6 +9,7 @@ var reduced_motion := false
 var shake_strength := 1.0
 var aim_intensity := 1.0
 var offset := Vector2.ZERO
+var base_zoom: float = 1.0
 var zoom := 1.0
 var top_margin := 0.0
 var bottom_margin := 0.0
@@ -54,7 +55,7 @@ func cut(player_position: Vector2) -> void:
 
 ## Converts logical viewport coordinates to world without shake or impact zoom.
 func screen_to_world(logical: Vector2) -> Vector2:
-	return pos + logical.clamp(Vector2.ZERO,Vector2(width,1080))-Vector2(width/2.0,540)
+	return pos + (logical.clamp(Vector2.ZERO, Vector2(width, 1080)) - Vector2(width / 2.0, 540.0)) / base_zoom
 
 ## Queues a cosmetic impulse. Call only while gameplay presentation is active.
 func impulse(direction: Vector2, strength: float = 1.0) -> void:
@@ -78,7 +79,7 @@ func update(delta: float, previous: Vector2, current: Vector2, fraction: float, 
 	var look := Vector2.ZERO
 	if not reduced_motion:
 		if source == "mouse":
-			var world_cursor := follow_pos + cursor.clamp(Vector2.ZERO,Vector2(width,1080))-Vector2(width/2,540)
+			var world_cursor := follow_pos + (cursor.clamp(Vector2.ZERO, Vector2(width, 1080)) - Vector2(width / 2.0, 540.0)) / base_zoom
 			var direction := world_cursor-player
 			look = direction.normalized()*float(_tuning.lookahead)*minf(1.0,direction.length()/float(_tuning.mouse_radius))
 		elif source == "analogico":
@@ -102,12 +103,17 @@ func update(delta: float, previous: Vector2, current: Vector2, fraction: float, 
 
 func _clamp(value: Vector2) -> Vector2:
 	if _room.size == Vector2.ZERO: return value
-	var extra := maxf(0.0,(width-1920.0)/2.0)
-	var x := _room.get_center().x if _room.size.x+2*extra <= width else clampf(value.x,_room.position.x-extra+width/2,_room.end.x+extra-width/2)
-	var min_y := _room.position.y + 540.0 - top_margin
-	var max_y := _room.end.y - 540.0 + bottom_margin
-	var y := _room.get_center().y if min_y >= max_y else clampf(value.y, min_y, max_y)
-	return Vector2(x,y)
+	var half_w: float = (width / 2.0) / base_zoom
+	var half_h: float = 540.0 / base_zoom
+	var extra: float = maxf(0.0, (width - 1920.0) / 2.0) / base_zoom
+	var min_x: float = _room.position.x - extra + half_w
+	var max_x: float = _room.end.x + extra - half_w
+	var x: float = _room.get_center().x if min_x >= max_x else clampf(value.x, min_x, max_x)
+	var min_y: float = _room.position.y + half_h - top_margin
+	var max_y: float = _room.end.y - half_h + bottom_margin
+	var y: float = _room.get_center().y if min_y >= max_y else clampf(value.y, min_y, max_y)
+	return Vector2(x, y)
 
 func _apply_transform() -> void:
-	transform = Transform2D(Vector2(zoom,0),Vector2(0,zoom),Vector2(width/2,540)-(pos+offset)*zoom)
+	var final_zoom: float = base_zoom * zoom
+	transform = Transform2D(Vector2(final_zoom, 0.0), Vector2(0.0, final_zoom), Vector2(width / 2.0, 540.0) - (pos + offset) * final_zoom)

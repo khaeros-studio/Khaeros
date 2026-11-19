@@ -78,15 +78,13 @@ func _draw() -> void:
 	var reg_id: String = String(reg.get("id", "limiar"))
 	var t_pres: float = float(session.presentation_time)
 	draw_rect(room.grow(1000), bg_col)
-	# Arquitetura de parede superior com profundidade 2.5D
-	var wall_h: float = 128.0
-	var wall_rect := Rect2(room.position.x - 42.0, room.position.y - wall_h, room.size.x + 84.0, wall_h + 6.0)
-	draw_rect(wall_rect, border_col.darkened(0.42))
-	draw_rect(Rect2(wall_rect.position.x, wall_rect.position.y, wall_rect.size.x, 16.0), border_col.lightened(0.08))
-	draw_rect(Rect2(wall_rect.position.x, wall_rect.end.y - 12.0, wall_rect.size.x, 12.0), INK)
-	for wx in range(int(room.position.x), int(room.end.x), 160):
-		draw_line(Vector2(wx, wall_rect.position.y + 16.0), Vector2(wx, wall_rect.end.y - 12.0), Color(INK.r, INK.g, INK.b, 0.45), 3.0)
+	_draw_abyss_backdrop(room, bg_col, accent_col, border_col, t_pres)
+	# Arquitetura de parede superior com profundidade 2.5D, contrafortes e nichos
+	var wall_h: float = 136.0
+	_draw_north_wall(room, wall_h, border_col, accent_col, reg_id, t_pres)
 	draw_rect(room.grow(34), INK)
+	# Falésia / paredão frontal de pedra 2.5D mergulhando no abismo (borda sul)
+	_draw_south_cliff(room, border_col, accent_col, reg_id, t_pres)
 	draw_rect(room, floor_col)
 	# Lajes contínuas cobrindo 100% do piso sem frestas, com leve variação orgânica de luz
 	for gx in range(0, int(room.size.x), 240):
@@ -109,14 +107,29 @@ func _draw() -> void:
 			else:
 				draw_rect(tile_rect, floor_col.darkened(0.06 if hash_v % 2 == 0 else 0.0))
 				draw_rect(tile_rect, Color(border_col.r, border_col.g, border_col.b, 0.16), false, 1.5)
-	# Iluminação atmosférica suave no centro + sombra de oclusão nas 4 paredes
+	# Quebra orgânica da grade do piso: manchas de desgaste, rachaduras sutis e sombras direcionais
+	_draw_floor_organic_layers(room, floor_col, border_col)
+	# Iluminação atmosférica suave no centro + vinheta emoldurando as 4 bordas internas
 	var center := room.get_center()
 	draw_circle(center, 620.0, Color(accent_col.r, accent_col.g, accent_col.b, 0.09))
 	draw_circle(center, 360.0, Color(accent_col.r, accent_col.g, accent_col.b, 0.07))
-	draw_rect(Rect2(room.position.x, room.position.y, room.size.x, 58.0), Color(INK.r, INK.g, INK.b, 0.52))
-	draw_rect(Rect2(room.position.x, room.end.y - 44.0, room.size.x, 44.0), Color(INK.r, INK.g, INK.b, 0.42))
-	draw_rect(Rect2(room.position.x, room.position.y, 44.0, room.size.y), Color(INK.r, INK.g, INK.b, 0.42))
-	draw_rect(Rect2(room.end.x - 44.0, room.position.y, 44.0, room.size.y), Color(INK.r, INK.g, INK.b, 0.42))
+	# Sombras projetadas direcionais das paredes norte e oeste (luz vinda do topo-esquerda)
+	draw_rect(Rect2(room.position.x, room.position.y, room.size.x, 86.0), Color(INK.r, INK.g, INK.b, 0.22))
+	draw_rect(Rect2(room.position.x, room.position.y, room.size.x, 48.0), Color(INK.r, INK.g, INK.b, 0.30))
+	draw_rect(Rect2(room.position.x, room.position.y, 76.0, room.size.y), Color(INK.r, INK.g, INK.b, 0.20))
+	draw_rect(Rect2(room.position.x, room.position.y, 38.0, room.size.y), Color(INK.r, INK.g, INK.b, 0.28))
+	# Vinheta atmosférica suave nas 4 bordas internas da arena
+	var vig_bands: Array[Array] = [[96.0, 0.10], [52.0, 0.16], [24.0, 0.24]]
+	for vb: Array in vig_bands:
+		var bw: float = float(vb[0])
+		var ba: float = float(vb[1])
+		var vcol := Color(INK.r, INK.g, INK.b, ba)
+		draw_rect(Rect2(room.position.x, room.position.y, room.size.x, bw), vcol)
+		draw_rect(Rect2(room.position.x, room.end.y - bw, room.size.x, bw), vcol)
+		draw_rect(Rect2(room.position.x, room.position.y, bw, room.size.y), vcol)
+		draw_rect(Rect2(room.end.x - bw, room.position.y, bw, room.size.y), vcol)
+	# 4 Braseiros acesos na muralha norte com halos banhando parede e chão abaixo
+	_draw_north_braziers(room, border_col, reg_id, t_pres)
 	draw_rect(room.grow(-14), border_col, false, 4.0)
 	draw_rect(room.grow(-28), Color(border_col.r, border_col.g, border_col.b, 0.42), false, 2.0)
 	# 4 Pilastras de canto ancorando a arquitetura da câmara
@@ -174,6 +187,11 @@ func _draw() -> void:
 	if not session.player.is_empty():
 		var position: Vector2 = session.player.prev.lerp(session.player.pos, interpolation)
 		bodies.append({"type": "player", "pos": position, "entity": session.player, "order": 50})
+		# Iluminação focal sutil ao redor do jogador (lanterna/presença destacando o herói no piso)
+		draw_set_transform(position, 0.0, Vector2(1.0, 0.58))
+		draw_circle(Vector2.ZERO, 195.0, Color(BONE.r, BONE.g, BONE.b, 0.045))
+		draw_circle(Vector2.ZERO, 118.0, Color(BONE.r, BONE.g, BONE.b, 0.08))
+		draw_set_transform(Vector2.ZERO)
 		if app.get("selected_weapon") == &"pactos":
 			var c_prev: Vector2 = app.get("companion_prev") if app.get("companion_prev") != null else position
 			var c_curr: Vector2 = app.get("companion_pos") if app.get("companion_pos") != null else position
@@ -182,7 +200,17 @@ func _draw() -> void:
 		# Art Bible §5.5: Ecos never cast a contact shadow ("gramática da subtração aplicada à luz").
 		if body.type == "enemy" and String(body.entity.get("kind", "")) == "eco_perdido":
 			continue
-		var shadow_r := float(body.get("radius", body.get("entity", {}).get("radius", 30.0)))
+		var shadow_r: float = float(body.get("radius", body.get("entity", {}).get("radius", 30.0)))
+		if body.type == "pillar":
+			# Sombra projetada direcional (luz do topo-esquerda -> sombra alongada para baixo-direita)
+			var p_pos: Vector2 = body.pos
+			var dir_shadow := PackedVector2Array([
+				p_pos + Vector2(-shadow_r * 0.65, shadow_r * 0.12),
+				p_pos + Vector2(shadow_r * 0.72, -shadow_r * 0.25),
+				p_pos + Vector2(shadow_r * 2.35, shadow_r * 0.92),
+				p_pos + Vector2(shadow_r * 1.15, shadow_r * 1.28),
+			])
+			draw_colored_polygon(dir_shadow, Color(INK.r, INK.g, INK.b, 0.34))
 		draw_set_transform(body.pos, 0, Vector2(1, 0.38))
 		draw_circle(Vector2(3, 8), shadow_r * 1.28, Color(INK.r, INK.g, INK.b, 0.68))
 	draw_set_transform(Vector2.ZERO)
@@ -243,6 +271,238 @@ func _cor_regiao(reg: Dictionary, key: String, fallback: Color) -> Color:
 	if val is String and not String(val).is_empty():
 		return Color(String(val))
 	return fallback
+
+func _draw_abyss_backdrop(room: Rect2, bg_col: Color, accent_col: Color, border_col: Color, t: float) -> void:
+	# Silhuetas sutis de rochas e pilares distantes mergulhados no abismo abaixo/ao redor da plataforma
+	var spire_far: Color = bg_col.darkened(0.38)
+	var spire_mid: Color = bg_col.darkened(0.22)
+	var spire_rim: Color = Color(border_col.r, border_col.g, border_col.b, 0.14)
+	var monoliths: Array[Array] = [
+		[room.position.x - 360.0, room.end.y + 110.0, 120.0, 520.0, 0],
+		[room.position.x + 140.0, room.end.y + 170.0, 150.0, 480.0, 1],
+		[room.position.x + 680.0, room.end.y + 140.0, 110.0, 540.0, 0],
+		[room.position.x + 1220.0, room.end.y + 190.0, 165.0, 460.0, 1],
+		[room.position.x + 1780.0, room.end.y + 150.0, 125.0, 520.0, 0],
+		[room.end.x + 210.0, room.end.y + 100.0, 140.0, 540.0, 1],
+		[room.position.x - 420.0, room.position.y + 180.0, 130.0, 620.0, 0],
+		[room.end.x + 260.0, room.position.y + 140.0, 135.0, 650.0, 0],
+	]
+	for m_arr: Array in monoliths:
+		var mx: float = float(m_arr[0])
+		var my: float = float(m_arr[1])
+		var mw: float = float(m_arr[2])
+		var mh: float = float(m_arr[3])
+		var layer_i: int = int(m_arr[4])
+		var poly := PackedVector2Array([
+			Vector2(mx, my + mh),
+			Vector2(mx + mw * 0.12, my + 26.0),
+			Vector2(mx + mw * 0.45, my),
+			Vector2(mx + mw * 0.88, my + 18.0),
+			Vector2(mx + mw, my + mh),
+		])
+		draw_colored_polygon(poly, spire_mid if layer_i == 1 else spire_far)
+		draw_line(Vector2(mx + mw * 0.12, my + 26.0), Vector2(mx + mw * 0.45, my), spire_rim, 2.0, true)
+	# Faixas suaves de névoa profunda do abismo derivando lentamente
+	var mist_y_offsets: Array[float] = [
+		room.position.y - 360.0,
+		room.end.y + 140.0,
+		room.end.y + 270.0,
+		room.end.y + 420.0,
+		room.end.y + 590.0,
+	]
+	for i: int in range(mist_y_offsets.size()):
+		var drift_x: float = sin(t * 0.32 + float(i) * 1.4) * 90.0
+		var mist_y: float = mist_y_offsets[i] + sin(t * 0.24 + float(i) * 0.9) * 14.0
+		var mist_h: float = 95.0 + float(i % 2) * 45.0
+		var mist_a: float = 0.045 + 0.015 * sin(t * 0.45 + float(i) * 1.7)
+		var mist_col := Color(accent_col.r, accent_col.g, accent_col.b, mist_a)
+		draw_rect(Rect2(room.position.x - 950.0 + drift_x, mist_y, room.size.x + 1900.0, mist_h), mist_col)
+
+func _draw_north_wall(room: Rect2, wall_h: float, border_col: Color, accent_col: Color, reg_id: String, _t: float) -> void:
+	var wall_rect := Rect2(room.position.x - 42.0, room.position.y - wall_h, room.size.x + 84.0, wall_h + 6.0)
+	var wall_base: Color = border_col.darkened(0.42)
+	var wall_hi: Color = border_col.lightened(0.10)
+	var wall_mid: Color = border_col.darkened(0.28)
+	draw_rect(wall_rect, wall_base)
+	# Fiadas horizontais de alvenaria
+	draw_line(Vector2(wall_rect.position.x, wall_rect.position.y + 52.0), Vector2(wall_rect.end.x, wall_rect.position.y + 52.0), Color(INK.r, INK.g, INK.b, 0.38), 2.5)
+	draw_line(Vector2(wall_rect.position.x, wall_rect.position.y + 94.0), Vector2(wall_rect.end.x, wall_rect.position.y + 94.0), Color(INK.r, INK.g, INK.b, 0.38), 2.5)
+	for wx: int in range(int(room.position.x), int(room.end.x), 160):
+		draw_line(Vector2(float(wx), wall_rect.position.y + 18.0), Vector2(float(wx), wall_rect.end.y - 14.0), Color(INK.r, INK.g, INK.b, 0.35), 2.5)
+	# Arcos / nichos sombreados ao longo da muralha (pula o vão do portal central)
+	var center_x: float = room.position.x + room.size.x * 0.5
+	for nx_i: int in range(1, 10):
+		var nx: float = room.position.x + float(nx_i) * 240.0 - 120.0
+		if absf(nx - center_x) < 165.0:
+			continue
+		var arch_w: float = 74.0
+		var arch_top: float = wall_rect.position.y + 34.0
+		var arch_bot: float = wall_rect.end.y - 14.0
+		draw_rect(Rect2(nx - arch_w * 0.5, arch_top + 18.0, arch_w, arch_bot - (arch_top + 18.0)), Color(INK.r, INK.g, INK.b, 0.72))
+		draw_circle(Vector2(nx, arch_top + 18.0), arch_w * 0.5, Color(INK.r, INK.g, INK.b, 0.72))
+		draw_arc(Vector2(nx, arch_top + 18.0), arch_w * 0.5, PI, TAU, 16, Color(wall_hi.r, wall_hi.g, wall_hi.b, 0.24), 2.0, true)
+		draw_line(Vector2(nx - arch_w * 0.5, arch_top + 18.0), Vector2(nx - arch_w * 0.5, arch_bot), Color(wall_hi.r, wall_hi.g, wall_hi.b, 0.18), 2.0)
+	# Contrafortes espaçados em relevo 2.5D (luz topo-esquerda -> face esquerda iluminada, direita sombreada)
+	for bx_i: int in range(0, 11):
+		var bx: float = room.position.x + float(bx_i) * 240.0
+		if absf(bx - center_x) < 140.0:
+			continue
+		var bw: float = 38.0
+		var b_rect := Rect2(bx - bw * 0.5, wall_rect.position.y + 6.0, bw, wall_h - 8.0)
+		# Sombra projetada do contraforte para a direita
+		draw_rect(Rect2(b_rect.end.x, b_rect.position.y + 8.0, 14.0, b_rect.size.y - 8.0), Color(INK.r, INK.g, INK.b, 0.45))
+		draw_rect(b_rect, wall_mid)
+		draw_rect(Rect2(b_rect.position.x, b_rect.position.y, 7.0, b_rect.size.y), Color(wall_hi.r, wall_hi.g, wall_hi.b, 0.42))
+		draw_rect(Rect2(b_rect.end.x - 8.0, b_rect.position.y, 8.0, b_rect.size.y), Color(INK.r, INK.g, INK.b, 0.55))
+		draw_rect(Rect2(b_rect.position.x - 4.0, b_rect.position.y, b_rect.size.x + 8.0, 12.0), wall_hi)
+		draw_rect(b_rect, Color(INK.r, INK.g, INK.b, 0.65), false, 2.0)
+	# Cornija superior + rodapé escuro
+	draw_rect(Rect2(wall_rect.position.x, wall_rect.position.y, wall_rect.size.x, 16.0), wall_hi)
+	draw_rect(Rect2(wall_rect.position.x, wall_rect.position.y + 16.0, wall_rect.size.x, 6.0), Color(INK.r, INK.g, INK.b, 0.48))
+	draw_rect(Rect2(wall_rect.position.x, wall_rect.end.y - 14.0, wall_rect.size.x, 14.0), INK)
+	# Friso sutil do bioma na muralha
+	if reg_id != "limiar":
+		draw_line(Vector2(wall_rect.position.x + 20.0, wall_rect.position.y + 24.0), Vector2(wall_rect.end.x - 20.0, wall_rect.position.y + 24.0), Color(accent_col.r, accent_col.g, accent_col.b, 0.35), 2.5)
+
+func _draw_north_braziers(room: Rect2, border_col: Color, reg_id: String, t: float) -> void:
+	var flame_outer: Color = Color("e86a2c")
+	var flame_mid: Color = Color("ff9e44")
+	var flame_core: Color = Color("fff2c6")
+	if reg_id.contains("veio"):
+		flame_outer = MAGENTA
+		flame_mid = MAGENTA_BRIGHT
+		flame_core = Color("ffe6f7")
+	elif reg_id.contains("santuario"):
+		flame_outer = Color("38bdf8")
+		flame_mid = Color("7dd3fc")
+		flame_core = Color("f0f9ff")
+	var bx_list: Array[float] = [420.0, 860.0, 1540.0, 1980.0]
+	for idx: int in range(bx_list.size()):
+		var bx: float = bx_list[idx]
+		var by: float = room.position.y - 44.0
+		var flick_a: float = sin(t * 7.2 + float(idx) * 1.9)
+		var flick_b: float = sin(t * 13.5 + float(idx) * 3.1)
+		var pulse: float = flick_a * 0.55 + flick_b * 0.45
+		var sway: float = sin(t * 5.8 + float(idx) * 2.4) * 3.2
+		# Halos grandes de luz quente/do bioma banhando o chão abaixo da muralha
+		draw_set_transform(Vector2(bx, room.position.y + 56.0), 0.0, Vector2(1.0, 0.58))
+		draw_circle(Vector2.ZERO, 220.0 + pulse * 14.0, Color(flame_mid.r, flame_mid.g, flame_mid.b, 0.075))
+		draw_circle(Vector2.ZERO, 130.0 + pulse * 8.0, Color(flame_mid.r, flame_mid.g, flame_mid.b, 0.11))
+		draw_set_transform(Vector2.ZERO)
+		# Halos banhando a muralha ao redor do braseiro
+		draw_circle(Vector2(bx, by - 12.0), 118.0 + pulse * 8.0, Color(flame_outer.r, flame_outer.g, flame_outer.b, 0.12))
+		draw_circle(Vector2(bx, by - 14.0), 58.0 + pulse * 5.0, Color(flame_mid.r, flame_mid.g, flame_mid.b, 0.18))
+		# Suporte de ferro e bacia do braseiro
+		var bowl := PackedVector2Array([
+			Vector2(bx - 18.0, by - 4.0),
+			Vector2(bx + 18.0, by - 4.0),
+			Vector2(bx + 12.0, by + 10.0),
+			Vector2(bx - 12.0, by + 10.0),
+		])
+		draw_line(Vector2(bx, by + 10.0), Vector2(bx, by + 30.0), INK, 7.0, true)
+		draw_line(Vector2(bx, by + 10.0), Vector2(bx, by + 28.0), border_col.lightened(0.05), 3.0, true)
+		draw_colored_polygon(bowl, border_col.darkened(0.35))
+		draw_polyline(_closed(bowl), INK, 3.0, true)
+		# Chama animada deterministicamente (3 camadas)
+		var f_h: float = 28.0 + pulse * 6.5
+		var outer_poly := PackedVector2Array([
+			Vector2(bx - 13.0, by - 4.0),
+			Vector2(bx - 9.0 + sway * 0.4, by - f_h * 0.58),
+			Vector2(bx + sway, by - f_h),
+			Vector2(bx + 9.0 + sway * 0.4, by - f_h * 0.58),
+			Vector2(bx + 13.0, by - 4.0),
+		])
+		draw_colored_polygon(outer_poly, Color(flame_outer.r, flame_outer.g, flame_outer.b, 0.92))
+		var mid_poly := PackedVector2Array([
+			Vector2(bx - 8.5, by - 4.0),
+			Vector2(bx - 5.0 + sway * 0.5, by - f_h * 0.52),
+			Vector2(bx + sway * 0.8, by - f_h * 0.80),
+			Vector2(bx + 5.0 + sway * 0.5, by - f_h * 0.52),
+			Vector2(bx + 8.5, by - 4.0),
+		])
+		draw_colored_polygon(mid_poly, Color(flame_mid.r, flame_mid.g, flame_mid.b, 0.95))
+		draw_circle(Vector2(bx + sway * 0.3, by - 9.0), 5.2 + pulse * 0.9, flame_core)
+
+func _draw_south_cliff(room: Rect2, border_col: Color, accent_col: Color, reg_id: String, t: float) -> void:
+	var cliff_x: float = room.position.x - 34.0
+	var cliff_y: float = room.end.y
+	var cliff_w: float = room.size.x + 68.0
+	var cliff_h: float = 88.0
+	# Sombra profunda mergulhando no abismo abaixo da falésia
+	draw_rect(Rect2(cliff_x + 10.0, cliff_y + cliff_h - 4.0, cliff_w - 20.0, 26.0), Color(INK.r, INK.g, INK.b, 0.72))
+	draw_rect(Rect2(cliff_x + 22.0, cliff_y + cliff_h + 22.0, cliff_w - 44.0, 28.0), Color(INK.r, INK.g, INK.b, 0.42))
+	draw_rect(Rect2(cliff_x + 36.0, cliff_y + cliff_h + 50.0, cliff_w - 72.0, 26.0), Color(INK.r, INK.g, INK.b, 0.18))
+	# Paredão principal de pedra 2.5D
+	var cliff_base: Color = border_col.darkened(0.50)
+	draw_rect(Rect2(cliff_x, cliff_y, cliff_w, cliff_h), cliff_base)
+	# Blocos verticais de pedra com fendas escuras determinísticas
+	var block_step: float = 96.0
+	var num_blocks: int = int(ceilf(cliff_w / block_step))
+	for bi: int in range(num_blocks):
+		var bx: float = cliff_x + float(bi) * block_step
+		var bw: float = minf(block_step, cliff_x + cliff_w - bx)
+		var h_var: int = (bi * 17 + 5) % 4
+		var block_col: Color = cliff_base.darkened(0.08 * float(h_var)) if h_var > 1 else cliff_base.lightened(0.06 * float(2 - h_var))
+		var b_top: float = cliff_y + 12.0 + float((bi * 7) % 3) * 3.0
+		draw_rect(Rect2(bx + 2.0, b_top, maxf(2.0, bw - 4.0), cliff_h - (b_top - cliff_y) - 4.0), block_col)
+		# Fenda escura vertical entre blocos
+		draw_line(Vector2(bx, cliff_y + 10.0), Vector2(bx + (4.0 if bi % 2 == 0 else -3.0), cliff_y + cliff_h), INK, 3.0)
+		# Fissura interna ocasional
+		if bi % 3 == 1:
+			var fx: float = bx + bw * 0.48
+			draw_line(Vector2(fx, cliff_y + 16.0), Vector2(fx + 7.0, cliff_y + 48.0), Color(INK.r, INK.g, INK.b, 0.78), 2.5)
+			draw_line(Vector2(fx + 7.0, cliff_y + 48.0), Vector2(fx + 2.0, cliff_y + 78.0), Color(INK.r, INK.g, INK.b, 0.70), 2.0)
+		# Detalhes do bioma na face da falésia (musgo, cinzas/brasas, veios ou runas)
+		if reg_id.contains("veio"):
+			if bi % 2 == 0:
+				var pulse_v: float = 0.28 + 0.12 * sin(t * 2.2 + float(bi) * 0.8)
+				var vx: float = bx + bw * 0.52
+				draw_line(Vector2(vx, cliff_y + 14.0), Vector2(vx - 8.0, cliff_y + 46.0), Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, pulse_v), 3.0, true)
+				draw_line(Vector2(vx - 8.0, cliff_y + 46.0), Vector2(vx + 5.0, cliff_y + 74.0), Color(GOLD.r, GOLD.g, GOLD.b, pulse_v * 0.9), 2.0, true)
+		elif reg_id.contains("cinza") or reg_id.contains("fosso"):
+			if bi % 2 == 1:
+				var glow_c: float = 0.26 + 0.12 * sin(t * 2.6 + float(bi) * 1.1)
+				var cx: float = bx + bw * 0.44
+				draw_line(Vector2(cx, cliff_y + 18.0), Vector2(cx + 6.0, cliff_y + 52.0), Color(0.91, 0.42, 0.17, glow_c), 3.0, true)
+				draw_circle(Vector2(cx + 6.0, cliff_y + 52.0), 4.0, Color(1.0, 0.62, 0.27, glow_c))
+		elif reg_id.contains("santuario"):
+			if bi % 2 == 0:
+				var sx: float = bx + bw * 0.5
+				draw_rect(Rect2(sx - 10.0, cliff_y + 24.0, 20.0, 32.0), Color(GOLD.r, GOLD.g, GOLD.b, 0.24), false, 2.0)
+				draw_line(Vector2(sx, cliff_y + 28.0), Vector2(sx, cliff_y + 52.0), Color(accent_col.r, accent_col.g, accent_col.b, 0.30), 2.0)
+		else:
+			if bi % 3 == 0:
+				var moss_col := Color("3b4943")
+				draw_rect(Rect2(bx + 12.0, cliff_y + 10.0, bw * 0.38, 16.0 + float(bi % 4) * 5.0), Color(moss_col.r, moss_col.g, moss_col.b, 0.55))
+	# Degradê de escurecimento na base da falésia + borda superior chanfrada
+	draw_rect(Rect2(cliff_x, cliff_y + 48.0, cliff_w, 40.0), Color(INK.r, INK.g, INK.b, 0.44))
+	draw_rect(Rect2(cliff_x, cliff_y + 72.0, cliff_w, 16.0), Color(INK.r, INK.g, INK.b, 0.68))
+	draw_rect(Rect2(cliff_x, cliff_y, cliff_w, 10.0), border_col.lightened(0.06))
+	draw_rect(Rect2(cliff_x, cliff_y + 10.0, cliff_w, 5.0), Color(INK.r, INK.g, INK.b, 0.65))
+	draw_rect(Rect2(cliff_x, cliff_y, cliff_w, cliff_h), INK, false, 3.0)
+
+func _draw_floor_organic_layers(room: Rect2, _floor_col: Color, border_col: Color) -> void:
+	# Manchas suaves de desgaste e sombreamento quebrando a repetição de grade das lajes
+	for i: int in range(16):
+		var px: float = room.position.x + 140.0 + fmod(float(i * 419 + 170), maxf(100.0, room.size.x - 280.0))
+		var py: float = room.position.y + 120.0 + fmod(float(i * 271 + 95), maxf(100.0, room.size.y - 240.0))
+		var rx: float = 95.0 + float((i * 13) % 5) * 32.0
+		var is_dark: bool = (i % 3 != 0)
+		var patch_col: Color = Color(INK.r, INK.g, INK.b, 0.10) if is_dark else Color(border_col.r, border_col.g, border_col.b, 0.08)
+		draw_set_transform(Vector2(px, py), 0.0, Vector2(1.0, 0.56))
+		draw_circle(Vector2.ZERO, rx, patch_col)
+		draw_set_transform(Vector2.ZERO)
+	# Rachaduras sutis e juntas irregulares cruzando entre lajes
+	for c_i: int in range(10):
+		var cx: float = room.position.x + 180.0 + fmod(float(c_i * 523 + 230), maxf(100.0, room.size.x - 360.0))
+		var cy: float = room.position.y + 150.0 + fmod(float(c_i * 313 + 140), maxf(100.0, room.size.y - 300.0))
+		var dir_x: float = 1.0 if c_i % 2 == 0 else -1.0
+		var p0 := Vector2(cx, cy)
+		var p1 := p0 + Vector2(dir_x * 42.0, 18.0 + float(c_i % 3) * 8.0)
+		var p2 := p1 + Vector2(dir_x * 36.0, -10.0 + float((c_i + 1) % 3) * 10.0)
+		draw_line(p0, p1, Color(INK.r, INK.g, INK.b, 0.34), 2.5, true)
+		draw_line(p1, p2, Color(INK.r, INK.g, INK.b, 0.28), 2.0, true)
+		draw_line(p0 + Vector2(0.0, 2.0), p1 + Vector2(0.0, 2.0), Color(border_col.r, border_col.g, border_col.b, 0.14), 1.5, true)
 
 func _draw_region_details(room: Rect2, reg: Dictionary, accent: Color, t: float) -> void:
 	var reg_id: String = String(reg.get("id", reg.get("tema", ""))).to_lower()
@@ -504,6 +764,34 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 		var anim_name := action + "_" + dir_suffix
 		if not _frames_by_actor[player_actor].has_animation(anim_name):
 			anim_name = "attack_" + dir_suffix if action.begins_with("attack") and _frames_by_actor[player_actor].has_animation("attack_" + dir_suffix) else ("idle_" + dir_suffix)
+		var facing_n: Vector2 = facing.normalized() if facing != Vector2.ZERO else Vector2.RIGHT
+		# Poeira de passos determinística ao correr para aderência ao piso
+		if action == "run":
+			var prev_p: Vector2 = player.get("prev", player.pos)
+			var step_delta: Vector2 = player.pos - prev_p
+			var move_dir: Vector2 = step_delta.normalized() if step_delta.length_squared() > 0.0001 else facing_n
+			var move_perp: Vector2 = move_dir.orthogonal()
+			var t_run: float = float(session.presentation_time)
+			for d_i: int in range(3):
+				var cycle: float = fmod(t_run * 2.6 + float(d_i) * 0.33, 1.0)
+				var lat_sign: float = -1.0 if d_i % 2 == 0 else 1.0
+				var dust_pos: Vector2 = pos - move_dir * (10.0 + cycle * 24.0) + move_perp * (lat_sign * (5.0 + float(d_i) * 2.2)) + Vector2(0.0, -3.0 - cycle * 9.0)
+				var dust_r: float = 3.5 + cycle * 6.5
+				var dust_a: float = (1.0 - cycle) * 0.28
+				draw_circle(dust_pos, dust_r, Color(BONE.r, BONE.g, BONE.b, dust_a))
+		# Afterimages (fantasmas de silhueta) no Dash e Lunge tingidos na cor da arma
+		if dash or lunge:
+			var ghost_tint: Color = BONE
+			if w_id == &"guardiao":
+				ghost_tint = GOLD
+			elif w_id == &"veu":
+				ghost_tint = Color("a855f7")
+			elif w_id == &"ressonancia":
+				ghost_tint = Color("7dd3fc")
+			var ghost_far := Color(ghost_tint.r, ghost_tint.g, ghost_tint.b, 0.16)
+			var ghost_near := Color(ghost_tint.r, ghost_tint.g, ghost_tint.b, 0.34)
+			_draw_actor_sprite(player_actor, anim_name, pos - facing_n * 44.0, flip_x, 1.0, session.presentation_time, progress, ghost_far, atk_squash, atk_rot)
+			_draw_actor_sprite(player_actor, anim_name, pos - facing_n * 22.0, flip_x, 1.0, session.presentation_time, progress, ghost_near, atk_squash, atk_rot)
 		var modulate := Color.WHITE
 		if int(player.get("flash", 0)) > 0:
 			modulate = BONE
@@ -905,26 +1193,87 @@ func _effect(effect: Dictionary) -> void:
 			draw_circle(pos, 22.0 + 36.0 * progress, Color(shadow_col, alpha * 0.35))
 			draw_line(pos - direction * 55, pos + direction * 65, Color(shadow_col, alpha * 0.85), 10, true)
 		"death":
-			var actor_kind := String(effect.get("actor_kind", ""))
+			# Pulso de dissipação etérea expandindo no chão
+			var pulse_r: float = 18.0 + 78.0 * progress
+			draw_set_transform(pos, 0.0, Vector2(1.0, 0.44))
+			draw_circle(Vector2.ZERO, pulse_r * 0.85, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, alpha * 0.14))
+			draw_arc(Vector2.ZERO, pulse_r, 0.0, TAU, 36, Color(BONE.r, BONE.g, BONE.b, alpha * 0.78), 3.5, true)
+			draw_arc(Vector2.ZERO, pulse_r * 0.68, 0.0, TAU, 28, Color(MAGENTA_BRIGHT.r, MAGENTA_BRIGHT.g, MAGENTA_BRIGHT.b, alpha * 0.62), 2.0, true)
+			draw_set_transform(Vector2.ZERO)
+			var actor_kind: String = String(effect.get("actor_kind", ""))
 			if _frames_by_actor.has(actor_kind):
 				var dir_suffix := "costas34" if direction.y < -0.15 else "frente34"
 				var flip_x := -1.0 if direction.x < -0.05 else 1.0
-				var is_elite_death := bool(effect.get("elite", false))
-				var elite_scale := 1.15 if is_elite_death else 1.0
+				var is_elite_death: bool = bool(effect.get("elite", false))
+				var elite_scale: float = 1.15 if is_elite_death else 1.0
 				var death_mod := Color(1, 1, 1, alpha)
 				_draw_actor_sprite(actor_kind, "death_" + dir_suffix, pos, flip_x, elite_scale, 0.0, progress, death_mod)
-			for i in range(7):
-				var ray := Vector2.RIGHT.rotated(i * TAU / 7 + 0.3)
-				draw_line(pos + ray * (8 + 30 * (1 - alpha)), pos + ray * (19 + 40 * (1 - alpha)), Color(BONE, alpha), 3, true)
+			# Estilhaços de sombra e brasa subindo deterministicamente
+			for s_i: int in range(10):
+				var s_ang: float = float(s_i) * (TAU / 10.0) + 0.25
+				var spread_x: float = cos(s_ang) * (16.0 + 28.0 * progress) + sin(progress * 8.0 + float(s_i) * 1.3) * 6.0
+				var rise_y: float = -12.0 - progress * (58.0 + float(s_i % 3) * 22.0)
+				var shard_pos: Vector2 = pos + Vector2(spread_x, rise_y)
+				var shard_sz: float = (4.8 - 2.6 * progress) * (1.1 if s_i % 2 == 0 else 0.85)
+				if s_i % 2 == 0:
+					var shard_poly := PackedVector2Array([
+						shard_pos + Vector2(0.0, -shard_sz * 1.4),
+						shard_pos + Vector2(shard_sz, 0.0),
+						shard_pos + Vector2(0.0, shard_sz * 1.4),
+						shard_pos + Vector2(-shard_sz, 0.0),
+					])
+					draw_colored_polygon(shard_poly, Color(INK.r, INK.g, INK.b, alpha * 0.88))
+					draw_polyline(_closed(shard_poly), Color(MAGENTA_BRIGHT.r, MAGENTA_BRIGHT.g, MAGENTA_BRIGHT.b, alpha * 0.72), 1.5, true)
+				else:
+					draw_circle(shard_pos, maxf(1.5, shard_sz * 0.75), Color(1.0, 0.62, 0.27, alpha * 0.90))
+			for i: int in range(7):
+				var ray := Vector2.RIGHT.rotated(float(i) * TAU / 7.0 + 0.3)
+				draw_line(pos + ray * (8.0 + 30.0 * (1.0 - alpha)), pos + ray * (19.0 + 40.0 * (1.0 - alpha)), Color(BONE, alpha), 3.0, true)
 		"crit":
-			for i in range(9):
-				var ray := Vector2.RIGHT.rotated(i * TAU / 9 + 0.15)
-				draw_line(pos + ray * (10 + 38 * (1 - alpha)), pos + ray * (26 + 52 * (1 - alpha)), Color(GOLD, alpha), 4, true)
+			var crit_pos: Vector2 = pos + Vector2(0.0, -34.0)
+			var crit_dir: Vector2 = direction.normalized() if direction != Vector2.ZERO else Vector2.RIGHT
+			var crit_ang: float = crit_dir.angle()
+			# Anel de choque elíptico + núcleo branco-dourado brilhante na altura do torso
+			draw_set_transform(crit_pos, 0.0, Vector2(1.0, 0.58))
+			draw_arc(Vector2.ZERO, 16.0 + 48.0 * progress, 0.0, TAU, 32, Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.92), 4.5, true)
+			draw_arc(Vector2.ZERO, 10.0 + 30.0 * progress, 0.0, TAU, 24, Color(1.0, 0.98, 0.88, alpha), 2.5, true)
+			draw_set_transform(Vector2.ZERO)
+			draw_circle(crit_pos, 26.0 * alpha, Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.44))
+			draw_circle(crit_pos, 13.5 * alpha, Color(1.0, 0.98, 0.90, alpha * 0.96))
+			# Faíscas direcionais disparadas no sentido do golpe
+			for sp_i: int in range(7):
+				var sp_off: float = (float(sp_i) - 3.0) * 0.24
+				var sp_dir: Vector2 = Vector2.RIGHT.rotated(crit_ang + sp_off)
+				var sp_spd: float = 54.0 + float((sp_i * 7) % 3) * 26.0
+				var sp_start: Vector2 = crit_pos + sp_dir * (10.0 + sp_spd * progress * 0.62)
+				var sp_end: Vector2 = crit_pos + sp_dir * (24.0 + sp_spd * progress)
+				var sp_col: Color = Color(1.0, 0.98, 0.88, alpha) if sp_i % 2 == 0 else Color(GOLD.r, GOLD.g, GOLD.b, alpha)
+				draw_line(sp_start, sp_end, sp_col, 3.2, true)
+			for i: int in range(9):
+				var ray := Vector2.RIGHT.rotated(float(i) * TAU / 9.0 + 0.15)
+				draw_line(crit_pos + ray * (10.0 + 38.0 * (1.0 - alpha)), crit_pos + ray * (26.0 + 52.0 * (1.0 - alpha)), Color(GOLD, alpha), 4.0, true)
 		"hit", "hurt":
-			var tint := MAGENTA if effect.kind == "hurt" else BONE
-			for i in range(7):
-				var ray := Vector2.RIGHT.rotated(i * TAU / 7 + 0.3)
-				draw_line(pos + ray * (8 + 30 * (1 - alpha)), pos + ray * (19 + 40 * (1 - alpha)), Color(tint, alpha), 3, true)
+			var is_hurt: bool = String(effect.get("kind", "")) == "hurt"
+			var tint: Color = MAGENTA if is_hurt else BONE
+			var spark_col: Color = MAGENTA_BRIGHT if is_hurt else GOLD
+			var hit_pos: Vector2 = pos + Vector2(0.0, -34.0)
+			var hit_dir: Vector2 = direction.normalized() if direction != Vector2.ZERO else Vector2.RIGHT
+			var hit_ang: float = hit_dir.angle()
+			# Anel de choque elíptico na altura do torso
+			draw_set_transform(hit_pos, 0.0, Vector2(1.0, 0.58))
+			draw_arc(Vector2.ZERO, 12.0 + 34.0 * progress, 0.0, TAU, 24, Color(tint.r, tint.g, tint.b, alpha * 0.85), 3.0, true)
+			draw_set_transform(Vector2.ZERO)
+			# Faíscas direcionais disparadas no sentido do golpe
+			for sp_i: int in range(5):
+				var sp_off: float = (float(sp_i) - 2.0) * 0.28
+				var sp_dir: Vector2 = Vector2.RIGHT.rotated(hit_ang + sp_off)
+				var sp_spd: float = 42.0 + float((sp_i * 5) % 3) * 20.0
+				var sp_start: Vector2 = hit_pos + sp_dir * (8.0 + sp_spd * progress * 0.58)
+				var sp_end: Vector2 = hit_pos + sp_dir * (18.0 + sp_spd * progress)
+				draw_line(sp_start, sp_end, Color(spark_col.r, spark_col.g, spark_col.b, alpha * 0.95), 2.5, true)
+			for i: int in range(7):
+				var ray := Vector2.RIGHT.rotated(float(i) * TAU / 7.0 + 0.3)
+				draw_line(hit_pos + ray * (8.0 + 30.0 * (1.0 - alpha)), hit_pos + ray * (19.0 + 40.0 * (1.0 - alpha)), Color(tint, alpha), 3.0, true)
 		"special":
 			draw_line(pos - direction * 45, pos + direction * 45, Color(BONE, alpha * .6), 8, true)
 		"magic_cast":

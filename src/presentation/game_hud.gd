@@ -224,77 +224,149 @@ func _draw_campus_hud(width: float) -> void:
 	_center("WASD / Setas  Mover     E / Enter  Interagir     Esc  Voltar ao Menu", 1054, 20, MUTED, width)
 
 
+func _chefe_vivo() -> Dictionary:
+	if app == null or app.session == null:
+		return {}
+	for e: Dictionary in app.session.enemies:
+		if bool(e.get("is_boss", false)) and float(e.get("hp", 0.0)) > 0.0:
+			return e
+	return {}
+
+func _draw_floating_panel(rect: Rect2) -> void:
+	draw_rect(rect, Color(0.05, 0.06, 0.09, 0.72))
+	draw_rect(rect, Color(GOLD, 0.38), false, 1.5)
+	var c: float = 8.0
+	var accent := Color(GOLD, 0.72)
+	var x0: float = rect.position.x
+	var y0: float = rect.position.y
+	var x1: float = rect.end.x
+	var y1: float = rect.end.y
+	draw_line(Vector2(x0, y0 + c), Vector2(x0, y0), accent, 2.0)
+	draw_line(Vector2(x0, y0), Vector2(x0 + c, y0), accent, 2.0)
+	draw_line(Vector2(x1 - c, y0), Vector2(x1, y0), accent, 2.0)
+	draw_line(Vector2(x1, y0), Vector2(x1, y0 + c), accent, 2.0)
+	draw_line(Vector2(x0, y1 - c), Vector2(x0, y1), accent, 2.0)
+	draw_line(Vector2(x0, y1), Vector2(x0 + c, y1), accent, 2.0)
+	draw_line(Vector2(x1 - c, y1), Vector2(x1, y1), accent, 2.0)
+	draw_line(Vector2(x1, y1), Vector2(x1, y1 - c), accent, 2.0)
+
 func _status(width: float) -> void:
 	var player: Dictionary = app.session.player
 	if player.is_empty():
 		return
-	draw_rect(Rect2(0,0,width,116),Color(0.035,0.04,0.065,0.84))
-	draw_line(Vector2(0,116),Vector2(width,116),Color(GOLD.r,GOLD.g,GOLD.b,0.28),1.5)
-	_text(_nome_doutrina().to_upper(),Vector2(54,32),19,BONE)
-	if app.get("selected_weapon") == &"pactos" and _ui_tex.has("silhueta_vulto"):
-		draw_texture_rect(_ui_tex["silhueta_vulto"], Rect2(500, 22, 54, 54), false)
-		_text("VULTO MUDO (ALIADO)", Vector2(562, 56), 15, GOLD)
-	_text("VIDA",Vector2(54,66),16,MUTED)
-	draw_rect(Rect2(114,49,290,18),Color("34313f"))
-	draw_rect(Rect2(114,49,290*clampf(float(player.hp)/float(player.max_hp),0,1),18),PINK)
+	# Card flutuante compacto no canto superior esquerdo
+	var left_card := Rect2(36.0, 26.0, 440.0, 96.0)
+	_draw_floating_panel(left_card)
+	_text(_nome_doutrina().to_upper(), Vector2(54.0, 50.0), 17, BONE)
+	var bar_rect := Rect2(54.0, 60.0, 260.0, 16.0)
+	var hp_val: float = float(player.hp)
+	var max_hp_val: float = maxf(1.0, float(player.max_hp))
+	var hp_ratio: float = clampf(hp_val / max_hp_val, 0.0, 1.0)
+	draw_rect(bar_rect, Color(0.14, 0.12, 0.18, 0.92))
+	if hp_ratio > 0.0:
+		draw_rect(Rect2(bar_rect.position.x, bar_rect.position.y, bar_rect.size.x * hp_ratio, bar_rect.size.y), PINK)
+		draw_rect(Rect2(bar_rect.position.x, bar_rect.position.y, bar_rect.size.x * hp_ratio, 4.0), Color(1.0, 0.80, 0.88, 0.45))
 	var escudo: float = float(app.session.get("player_shield")) if app.session.get("player_shield") != null else 0.0
 	if escudo > 0.0:
-		var esc_ratio: float = clampf(escudo / maxf(1.0, float(player.max_hp)), 0.0, 1.0)
-		draw_rect(Rect2(114, 49, 290.0 * esc_ratio, 5), Color("7dd3fc"))
-		draw_rect(Rect2(114, 49, 290.0 * esc_ratio, 18), Color(0.49, 0.83, 0.99, 0.25))
-		_text("%d / %d (+%d)" % [ceili(float(player.hp)), roundi(float(player.max_hp)), ceili(escudo)], Vector2(418, 66), 18, Color("7dd3fc"))
+		var esc_ratio: float = clampf(escudo / max_hp_val, 0.0, 1.0)
+		draw_rect(Rect2(bar_rect.position.x, bar_rect.position.y, bar_rect.size.x * esc_ratio, 4.0), Color("7dd3fc"))
+		draw_rect(Rect2(bar_rect.position.x, bar_rect.position.y, bar_rect.size.x * esc_ratio, bar_rect.size.y), Color(0.49, 0.83, 0.99, 0.28))
+		_text("%d / %d (+%d)" % [ceili(hp_val), roundi(max_hp_val), ceili(escudo)], Vector2(326.0, 74.0), 16, Color("7dd3fc"))
 	else:
-		_text("%d / %d" % [ceili(float(player.hp)), roundi(float(player.max_hp))],Vector2(418,66),18,BONE)
-	_text("ESQUIVA",Vector2(54,99),16,MUTED)
-	for i in range(mini(int(player.charge_max),10)):
-		var pos := Vector2(154+i*28,92)
-		var shape := PackedVector2Array([pos+Vector2(-9,-7),pos+Vector2(0,4),pos+Vector2(9,-7),pos+Vector2(9,0),pos+Vector2(0,11),pos+Vector2(-9,0)])
-		draw_colored_polygon(shape,BONE if i<int(player.charges) else Color("3e404d"))
+		_text("%d / %d" % [ceili(hp_val), roundi(max_hp_val)], Vector2(326.0, 74.0), 16, BONE)
+	draw_rect(bar_rect, Color(GOLD, 0.30), false, 1.0)
+	# Losangos de esquiva + barra fina de recarga + aviso de recarga
+	var charge_max: int = mini(int(player.charge_max), 10)
+	var charges: int = int(player.charges)
+	for i: int in range(charge_max):
+		var pos := Vector2(64.0 + float(i) * 24.0, 97.0)
+		var shape := PackedVector2Array([
+			pos + Vector2(0.0, -7.0),
+			pos + Vector2(7.0, 0.0),
+			pos + Vector2(0.0, 7.0),
+			pos + Vector2(-7.0, 0.0),
+		])
+		draw_colored_polygon(shape, BONE if i < charges else Color(0.24, 0.25, 0.31, 0.92))
+		if i < charges:
+			draw_polyline(PackedVector2Array([shape[0], shape[1], shape[2], shape[3], shape[0]]), Color(GOLD, 0.65), 1.0)
+	var recharge_denom: float = maxf(1.0, roundf(float(app.catalog.data.esquiva.recarga_s) * 60.0))
+	var recharge: float = clampf(float(player.recharge) / recharge_denom, 0.0, 1.0)
+	if charges < int(player.charge_max):
+		draw_rect(Rect2(54.0, 111.0, 120.0, 3.0), Color(0.18, 0.19, 0.24, 0.8))
+		draw_rect(Rect2(54.0, 111.0, 120.0 * recharge, 3.0), GOLD)
+	for effect: Dictionary in app.session.effects:
+		if String(effect.get("kind", "")) == "dash_denied":
+			_text("Esquiva recarregando", Vector2(282.0, 102.0), 15, PINK)
+			break
+	# Medalhão flutuante do Vulto Mudo (Domador de Pactos)
+	if app.get("selected_weapon") == &"pactos" and _ui_tex.has("silhueta_vulto"):
+		var med_rect := Rect2(490.0, 32.0, 84.0, 84.0)
+		_draw_floating_panel(med_rect)
+		var vulto_tex: Texture2D = _ui_tex.get("silhueta_vulto", null)
+		if vulto_tex != null:
+			draw_texture_rect(vulto_tex, Rect2(505.0, 38.0, 54.0, 54.0), false)
+		_center_in("VULTO", 109.0, 12, GOLD, med_rect)
+	# Badge flutuante limpo no canto superior direito
+	var right_badge := Rect2(width - 370.0, 26.0, 334.0, 86.0)
+	_draw_floating_panel(right_badge)
 	var reg: Dictionary = app.session.current_region if app.session.get("current_region") is Dictionary else {}
 	if bool(app.session.get("extended_campaign")) and not reg.is_empty():
 		var reg_num: int = int(app.session.get("region_index")) + 1
 		var reg_nome: String = String(reg.get("nome", "O Limiar")).to_upper()
 		var rw: int = int(app.session.get("region_wave_index"))
 		var camara_txt: String = "CHEFE DA REGIÃO" if rw >= 2 else ("CÂMARA %d / 3" % (rw + 1))
-		_text("REGIÃO %d/4 • %s" % [reg_num, reg_nome], Vector2(width - 420, 34), 19, GOLD)
-		_text(camara_txt, Vector2(width - 420, 64), 20, PINK if rw >= 2 else BONE)
-		_text("%d inimigos restantes" % app.session.enemies.size(), Vector2(width - 420, 94), 17, MUTED)
+		_text("REGIÃO %d/4 • %s" % [reg_num, reg_nome], Vector2(width - 352.0, 50.0), 16, GOLD)
+		_text(camara_txt, Vector2(width - 352.0, 74.0), 18, Color("f29bb0") if rw >= 2 else BONE)
+		_text("%d inimigos restantes" % app.session.enemies.size(), Vector2(width - 352.0, 98.0), 15, MUTED)
 	else:
-		_text("ONDA %d / %d" % [mini(app.session.wave_index+1,app.catalog.data.ondas.size()),app.catalog.data.ondas.size()],Vector2(width-270,46),24,GOLD)
-		_text("%d inimigos restantes" % app.session.enemies.size(),Vector2(width-270,82),19,MUTED)
-	# Barra de Vida do Chefe no topo central quando houver chefe vivo
-	var boss: Dictionary = {}
-	for e: Dictionary in app.session.enemies:
-		if bool(e.get("is_boss", false)) and float(e.get("hp", 0.0)) > 0.0:
-			boss = e
-			break
+		_text("ONDA %d / %d" % [mini(app.session.wave_index + 1, app.catalog.data.ondas.size()), app.catalog.data.ondas.size()], Vector2(width - 352.0, 58.0), 22, GOLD)
+		_text("%d inimigos restantes" % app.session.enemies.size(), Vector2(width - 352.0, 92.0), 17, MUTED)
+	# Barra de Vida do Chefe na parte inferior central (estilo cinematográfico)
+	var boss: Dictionary = _chefe_vivo()
 	if not boss.is_empty():
 		var b_center: float = width * 0.5
-		var b_w: float = 500.0
+		var b_w: float = 640.0
 		var b_x: float = b_center - b_w * 0.5
+		var b_y: float = 975.0
+		var b_h: float = 16.0
 		var b_nome: String = String(boss.get("boss_name", "Chefe")).to_upper()
 		var b_hp: float = float(boss.get("hp", 0.0))
 		var b_max: float = maxf(1.0, float(boss.get("max_hp", 1.0)))
-		_center(b_nome, 34, 20, GOLD, width)
-		draw_rect(Rect2(b_x - 3, 45, b_w + 6, 24), Color("0d0e14"))
-		draw_rect(Rect2(b_x, 48, b_w, 18), Color("2d2233"))
-		draw_rect(Rect2(b_x, 48, b_w * clampf(b_hp / b_max, 0.0, 1.0), 18), PINK)
-		draw_rect(Rect2(b_x - 2, 46, b_w + 4, 22), GOLD, false, 1.5)
-		_center("%d / %d" % [ceili(b_hp), roundi(b_max)], 91, 17, BONE, width)
-	var recharge: float = float(player.recharge)/maxf(1,roundf(app.catalog.data.esquiva.recarga_s*60))
-	if player.charges < player.charge_max:
-		draw_rect(Rect2(146,107,114*recharge,3),GOLD)
-	for effect in app.session.effects:
-		if effect.kind == "dash_denied":
-			_text("Esquiva recarregando",Vector2(315,99),17,PINK)
-			break
+		var b_ratio: float = clampf(b_hp / b_max, 0.0, 1.0)
+		_center(b_nome, 965.0, 20, GOLD, width)
+		draw_rect(Rect2(b_x - 3.0, b_y - 3.0, b_w + 6.0, b_h + 6.0), Color(0.04, 0.04, 0.07, 0.88))
+		draw_rect(Rect2(b_x, b_y, b_w, b_h), Color(0.16, 0.12, 0.19, 0.95))
+		if b_ratio > 0.0:
+			draw_rect(Rect2(b_x, b_y, b_w * b_ratio, b_h), PINK)
+			draw_rect(Rect2(b_x, b_y, b_w * b_ratio, 3.5), Color(1.0, 0.84, 0.90, 0.55))
+		draw_rect(Rect2(b_x - 2.0, b_y - 2.0, b_w + 4.0, b_h + 4.0), Color(GOLD, 0.85), false, 1.5)
+		var mid_y: float = b_y + b_h * 0.5
+		var left_d := PackedVector2Array([
+			Vector2(b_x - 10.0, mid_y),
+			Vector2(b_x - 4.0, mid_y - 6.0),
+			Vector2(b_x + 2.0, mid_y),
+			Vector2(b_x - 4.0, mid_y + 6.0),
+		])
+		var right_d := PackedVector2Array([
+			Vector2(b_x + b_w - 2.0, mid_y),
+			Vector2(b_x + b_w + 4.0, mid_y - 6.0),
+			Vector2(b_x + b_w + 10.0, mid_y),
+			Vector2(b_x + b_w + 4.0, mid_y + 6.0),
+		])
+		draw_colored_polygon(left_d, GOLD)
+		draw_colored_polygon(right_d, GOLD)
+		_center("%d / %d" % [ceili(b_hp), roundi(b_max)], 1012.0, 15, Color(BONE, 0.82), width)
 
 func _controls(width: float) -> void:
-	draw_rect(Rect2(0,1013,width,67),Color(0.035,0.04,0.065,0.93))
 	var text := "WASD  Mover     Mouse  Mirar     Clique / J  Atacar     Direito / K  Investida     Espaço  Esquiva     Esc  Pausa"
-	if app.last_sample.get("source","mouse") != "mouse":
+	if app.last_sample.get("source", "mouse") != "mouse":
 		text = "Analógicos  Mover / Mirar     X  Atacar     Y  Investida     A  Esquiva     Start  Pausa"
-	_center(text,1054,20,MUTED,width)
+	if app.session.state == "jogo":
+		if _chefe_vivo().is_empty():
+			_center(text, 1062.0, 15, Color(MUTED, 0.55), width)
+		return
+	draw_rect(Rect2(0, 1013, width, 67), Color(0.035, 0.04, 0.065, 0.93))
+	_center(text, 1054, 20, MUTED, width)
 
 func _card(rect: Rect2,index: int) -> void:
 	var chosen: bool = app.selected == index

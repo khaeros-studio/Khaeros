@@ -121,8 +121,9 @@ func _ready() -> void:
 	if controls.has_signal("device_disconnected"):
 		controls.connect("device_disconnected", _on_device_disconnected)
 	camera.configure(catalog.data.camera, Rect2(0, 0, catalog.data.arena.largura, catalog.data.arena.altura))
-	camera.top_margin = 185.0
-	camera.bottom_margin = 75.0
+	camera.base_zoom = 1.12
+	camera.top_margin = 145.0
+	camera.bottom_margin = 115.0
 	camera.resize(get_window())
 	camera.cut(Vector2(catalog.data.jogador.spawn[0], catalog.data.jogador.spawn[1]))
 	get_window().size_changed.connect(_on_resize)
@@ -210,14 +211,18 @@ func _process(delta: float) -> void:
 		camera.cut(session.player.pos)
 	sync_context()
 	if session.state in ["campus", "mestres"]:
+		camera.base_zoom = 1.0
 		camera.cut(Vector2(960.0, 540.0))
 	elif not session.player.is_empty():
+		camera.base_zoom = 1.12
 		camera.reduced_motion = reduced_motion
 		camera.aim_intensity = last_sample.get("aim_intensity", 0.0)
 		camera.update(presentation_delta, session.player.prev, session.player.pos,
 			Engine.get_physics_interpolation_fraction(), last_sample.get("aim", Vector2.UP),
 			last_sample.get("source", "mouse"), last_sample.get("cursor", Vector2(camera.width / 2, 540)),
 			session.state != "jogo")
+	else:
+		camera.base_zoom = 1.12
 	get_viewport().canvas_transform = camera.transform
 	world.queue_redraw()
 	hud.queue_redraw()
@@ -552,6 +557,10 @@ func _tocar_sfx_dos_efeitos() -> void:
 					companion_pos = target_pos
 				"hurt":
 					_tocar_sfx(&"sfx_jogador_atingido")
+				"crit":
+					camera.impulse(Vector2.RIGHT, 0.85)
+				"death":
+					camera.impulse(Vector2.DOWN, 0.7)
 	_prev_effects_count = n
 
 
