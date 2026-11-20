@@ -58,6 +58,11 @@ var catalogo_real: Catalogo = null
 var _sfx_players: Dictionary = {}
 var _prev_effects_count: int = 0
 var _prev_selected: int = 0
+var boss_intro_timer: float = 0.0
+var boss_intro_duration: float = 2.6
+var boss_intro_data: Dictionary = {}
+var _boss_intro_landed: bool = false
+var _last_boss_intro_key: String = ""
 
 ## Canal de eventos do passo (ADR-0002).
 var eventos := EventosDoPasso.new()
@@ -151,6 +156,27 @@ func _physics_process(_delta: float) -> void:
 	if not ready_to_play:
 		return
 	_espelhar_estado()
+	if boss_intro_timer > 0.0 and session.state == "jogo":
+		var intro_sample: Dictionary = controls.sample(false, camera)
+		last_sample = intro_sample
+		var intro_elapsed: float = boss_intro_duration - boss_intro_timer
+		if intro_elapsed >= 0.6:
+			var pressed_intro: Dictionary = intro_sample.get("pressed", {})
+			var skip_pressed: bool = (
+				bool(pressed_intro.get("ataque", false))
+				or bool(pressed_intro.get("esquiva", false))
+				or bool(pressed_intro.get("especial", false))
+				or bool(pressed_intro.get("interagir", false))
+				or bool(pressed_intro.get("ui_aceitar", false))
+				or bool(intro_sample.get("mouse_click", false))
+			)
+			if skip_pressed:
+				boss_intro_timer = 0.0
+				camera.base_zoom = 1.12
+				controls.clear()
+		_espelhar_estado()
+		sync_context()
+		return
 	var estado_antes: String = session.state
 	orquestrador.passo_fisico()
 	# Ponto seguro do Save: fim do passo, depois da entrega (persistencia story 007).
@@ -210,9 +236,32 @@ func _process(delta: float) -> void:
 		observed_wave = session.wave_index
 		camera.cut(session.player.pos)
 	sync_context()
+	_verificar_intro_chefe()
+	if boss_intro_timer > 0.0:
+		boss_intro_timer = maxf(0.0, boss_intro_timer - presentation_delta)
+		var intro_prog: float = clampf(1.0 - (boss_intro_timer / maxf(0.01, boss_intro_duration)), 0.0, 1.0)
+		if intro_prog >= 0.38 and not _boss_intro_landed:
+			_boss_intro_landed = true
+			camera.impulse(Vector2.DOWN, 2.4)
+			_tocar_sfx(&"sfx_acerto_pesado")
+		if boss_intro_timer <= 0.0:
+			camera.base_zoom = 1.12
+			controls.clear()
 	if session.state in ["campus", "mestres"]:
 		camera.base_zoom = 1.0
 		camera.cut(Vector2(960.0, 540.0))
+	elif boss_intro_timer > 0.0 and not session.player.is_empty():
+		var intro_prog: float = clampf(1.0 - (boss_intro_timer / maxf(0.01, boss_intro_duration)), 0.0, 1.0)
+		var focus_w: float = sin(intro_prog * PI)
+		camera.base_zoom = 1.12 if reduced_motion else lerpf(1.12, 1.32, focus_w)
+		camera.reduced_motion = reduced_motion
+		camera.aim_intensity = 0.0
+		var player_pos: Vector2 = session.player.pos
+		var boss_pos_raw = boss_intro_data.get("pos", player_pos)
+		var boss_pos: Vector2 = boss_pos_raw if boss_pos_raw is Vector2 else player_pos
+		var cam_target: Vector2 = player_pos.lerp(boss_pos, clampf(focus_w * 1.35, 0.0, 1.0))
+		camera.update(presentation_delta, cam_target, cam_target, 1.0, Vector2.ZERO,
+			"automatica", Vector2(camera.width * 0.5, 540.0), false)
 	elif not session.player.is_empty():
 		camera.base_zoom = 1.12
 		camera.reduced_motion = reduced_motion
@@ -251,6 +300,7 @@ func activate(index: int) -> void:
 				_aplicar_arma_na_sessao()
 				session.start_region_index = selected_region_index
 				session.start()
+				_resetar_intro_chefe()
 				_reiniciar_aliado_mvp()
 				observed_wave = -1
 				camera.cut(session.player.pos)
@@ -299,6 +349,7 @@ func activate(index: int) -> void:
 				_aplicar_arma_na_sessao()
 				session.start_region_index = selected_region_index
 				session.start()
+				_resetar_intro_chefe()
 				_reiniciar_aliado_mvp()
 				observed_wave = -1
 				camera.cut(session.player.pos)
@@ -387,6 +438,7 @@ func _handle_campus_ui(sample: Dictionary, pressed: Dictionary) -> void:
 				_aplicar_arma_na_sessao()
 				session.start_region_index = selected_region_index
 				session.start()
+				_resetar_intro_chefe()
 				_reiniciar_aliado_mvp()
 				observed_wave = -1
 				camera.cut(session.player.pos)
@@ -625,3 +677,61 @@ func _atualizar_fragmentos_meta(estado_antes: String) -> void:
 		conta_meta.creditar(ContaFragmentos.PORTA, 10)
 	elif estado_antes == "jogo" and session.state == "vitoria":
 		conta_meta.creditar(ContaFragmentos.VITORIA, 25)
+
+
+func _resetar_intro_chefe() -> void:
+	_last_boss_intro_key = ""
+	boss_intro_timer = 0.0
+	_boss_intro_landed = false
+	boss_intro_data = {}
+
+
+func _verificar_intro_chefe() -> void:
+	if DisplayServer.get_name() == "headless" or session.state != "jogo":
+		return
+	var boss: Dictionary = {}
+	for e: Dictionary in session.enemies:
+		if bool(e.get("is_boss", false)) and float(e.get("hp", 0.0)) > 0.0:
+			boss = e
+			break
+	if boss.is_empty():
+		return
+	var b_kind: String = String(boss.get("kind", ""))
+	var reg_idx: int = int(session.get("region_index")) if session.get("region_index") != null else 0
+	var intro_key: String = "%d_%d_%s" % [reg_idx, int(session.wave_index), b_kind]
+	if intro_key == _last_boss_intro_key:
+		return
+	_last_boss_intro_key = intro_key
+	boss_intro_timer = boss_intro_duration
+	_boss_intro_landed = false
+	var titulo: String = "ANOMALIA DO LIMIAR"
+	var fala: String = "A Beira exige seu tributo."
+	var cor: Color = Color("e0259c")
+	match b_kind:
+		"soberano_do_limiar":
+			titulo = "GUARDIÃO DA PRIMEIRA FENDA"
+			fala = "Nenhum juramento atravessa o Limiar sem pagar em sangue."
+			cor = Color("e3b23c")
+		"guardiao_do_rito":
+			titulo = "ARCANISTA DO VEIO INSTÁVEL"
+			fala = "O fluxo me obedece. Suas runas se desfarão em pó."
+			cor = Color("e0259c")
+		"colosso_de_cinza":
+			titulo = "MARTELO DA FORJA MORTA"
+			fala = "A cinza consome tudo... inclusive você."
+			cor = Color("e86a2c")
+		"arconte_da_fenda":
+			titulo = "SENHOR DO SANTUÁRIO PARTIDO"
+			fala = "Contemple o fim do pacto e ajoelhe-se diante da Fenda."
+			cor = Color("7dd3fc")
+	var boss_pos_raw = boss.get("pos", Vector2(960.0, 360.0))
+	var boss_pos: Vector2 = boss_pos_raw if boss_pos_raw is Vector2 else Vector2(960.0, 360.0)
+	boss_intro_data = {
+		"nome": String(boss.get("boss_name", "Chefe")),
+		"titulo": titulo,
+		"fala": fala,
+		"pos": boss_pos,
+		"cor": cor,
+		"kind": b_kind,
+	}
+	_tocar_sfx(&"sfx_acerto_pesado")

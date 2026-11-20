@@ -104,10 +104,15 @@ func _draw() -> void:
 	_garantir_texturas_ui()
 	var width: float = app.camera.width
 	var state: String = app.session.state
-	if not state in ["menu", "campus", "mestres"]:
+	var intro_t: float = float(app.get("boss_intro_timer")) if app.get("boss_intro_timer") != null else 0.0
+	var intro_ativa: bool = intro_t > 0.0 and state == "jogo"
+	if not state in ["menu", "campus", "mestres"] and not intro_ativa:
 		_status(width)
 	if state == "jogo":
-		_controls(width)
+		if intro_ativa:
+			_draw_boss_intro(width, intro_t)
+		else:
+			_controls(width)
 	elif state in ["campus", "mestres"]:
 		_draw_campus_hud(width)
 	elif state == "transicao":
@@ -231,6 +236,89 @@ func _chefe_vivo() -> Dictionary:
 		if bool(e.get("is_boss", false)) and float(e.get("hp", 0.0)) > 0.0:
 			return e
 	return {}
+
+
+func _draw_boss_intro(width: float, intro_t: float) -> void:
+	var dur: float = maxf(0.01, float(app.get("boss_intro_duration")) if app.get("boss_intro_duration") != null else 2.6)
+	var prog: float = clampf(1.0 - (intro_t / dur), 0.0, 1.0)
+	var t_in: float = clampf(prog / 0.18, 0.0, 1.0)
+	var ease_in: float = t_in * t_in * (3.0 - 2.0 * t_in)
+	var t_out: float = clampf((1.0 - prog) / 0.16, 0.0, 1.0)
+	var ease_out: float = t_out * t_out * (3.0 - 2.0 * t_out)
+	var env: float = minf(ease_in, ease_out)
+	var data_raw = app.get("boss_intro_data")
+	var bdata: Dictionary = data_raw if data_raw is Dictionary else {}
+	var b_nome: String = String(bdata.get("nome", "Chefe")).to_upper()
+	var b_titulo: String = String(bdata.get("titulo", "ANOMALIA DO LIMIAR")).to_upper()
+	var b_fala: String = String(bdata.get("fala", ""))
+	var b_cor_raw = bdata.get("cor", GOLD)
+	var b_cor: Color = b_cor_raw if b_cor_raw is Color else GOLD
+	var center: float = width * 0.5
+	# Barras cinematográficas (letterbox) deslizando no topo e na base
+	var bar_h: float = 110.0 * env
+	var bar_col := Color(0.015, 0.018, 0.028, 0.97)
+	draw_rect(Rect2(0.0, 0.0, width, bar_h), bar_col)
+	draw_rect(Rect2(0.0, 1080.0 - bar_h, width, bar_h), bar_col)
+	draw_line(Vector2(0.0, bar_h), Vector2(width, bar_h), Color(b_cor, 0.35 * env), 1.5)
+	draw_line(Vector2(0.0, 1080.0 - bar_h), Vector2(width, 1080.0 - bar_h), Color(b_cor, 0.35 * env), 1.5)
+	# Envelope do banner central-inferior (surge logo após as barras)
+	var b_in: float = clampf((prog - 0.06) / 0.20, 0.0, 1.0)
+	var banner_alpha: float = minf(b_in * b_in * (3.0 - 2.0 * b_in), ease_out)
+	if banner_alpha <= 0.01:
+		return
+	var slide_y: float = (1.0 - banner_alpha) * 18.0
+	# Faixa escura sutil atrás do título/nome para máxima legibilidade
+	var title_bg := Rect2(center - 470.0, 718.0 + slide_y, 940.0, 114.0)
+	draw_rect(title_bg, Color(0.025, 0.028, 0.045, 0.68 * banner_alpha))
+	# Título pequeno na cor do chefe
+	_center(b_titulo, 748.0 + slide_y, 19, Color(b_cor, banner_alpha), width)
+	# Linha dourada ornamentada expandindo do centro
+	var line_prog: float = clampf((prog - 0.08) / 0.24, 0.0, 1.0)
+	var half_line: float = 280.0 * (line_prog * line_prog * (3.0 - 2.0 * line_prog)) * env
+	var line_y: float = 766.0 + slide_y
+	if half_line > 14.0:
+		draw_line(Vector2(center - half_line, line_y), Vector2(center - 12.0, line_y), Color(GOLD, 0.85 * banner_alpha), 1.8)
+		draw_line(Vector2(center + 12.0, line_y), Vector2(center + half_line, line_y), Color(GOLD, 0.85 * banner_alpha), 1.8)
+		draw_colored_polygon(PackedVector2Array([
+			Vector2(center, line_y - 5.5),
+			Vector2(center + 6.5, line_y),
+			Vector2(center, line_y + 5.5),
+			Vector2(center - 6.5, line_y),
+		]), Color(b_cor, banner_alpha))
+	# Nome do chefe grande e imponente (fonte 46, BONE, com sombra)
+	var name_y: float = 816.0 + slide_y
+	var name_size_x: float = font.get_string_size(b_nome, HORIZONTAL_ALIGNMENT_LEFT, -1, 46).x
+	var name_x: float = (width - name_size_x) * 0.5
+	_text(b_nome, Vector2(name_x + 2.0, name_y + 3.0), 46, Color(0.01, 0.01, 0.02, 0.85 * banner_alpha))
+	_text(b_nome, Vector2(name_x, name_y), 46, Color(BONE, banner_alpha))
+	# Caixa de fala estilizada (dark fantasy) abaixo do nome, acima da barra inferior
+	if not b_fala.is_empty():
+		var quote_txt: String = "\"%s\"" % b_fala
+		var q_box := Rect2(center - 410.0, 848.0 + slide_y, 820.0, 84.0)
+		draw_rect(q_box, Color(0.045, 0.05, 0.08, 0.86 * banner_alpha))
+		draw_rect(q_box, Color(GOLD, 0.55 * banner_alpha), false, 1.5)
+		var c: float = 10.0
+		var acc := Color(b_cor, 0.90 * banner_alpha)
+		var x0: float = q_box.position.x
+		var y0: float = q_box.position.y
+		var x1: float = q_box.end.x
+		var y1: float = q_box.end.y
+		draw_line(Vector2(x0, y0 + c), Vector2(x0, y0), acc, 2.0)
+		draw_line(Vector2(x0, y0), Vector2(x0 + c, y0), acc, 2.0)
+		draw_line(Vector2(x1 - c, y0), Vector2(x1, y0), acc, 2.0)
+		draw_line(Vector2(x1, y0), Vector2(x1, y0 + c), acc, 2.0)
+		draw_line(Vector2(x0, y1 - c), Vector2(x0, y1), acc, 2.0)
+		draw_line(Vector2(x0, y1), Vector2(x0 + c, y1), acc, 2.0)
+		draw_line(Vector2(x1 - c, y1), Vector2(x1, y1), acc, 2.0)
+		draw_line(Vector2(x1, y1), Vector2(x1, y1 - c), acc, 2.0)
+		var q_w: float = font.get_string_size(quote_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x
+		if q_w <= q_box.size.x - 48.0:
+			_center_in(quote_txt, q_box.position.y + 50.0, 22, Color(BONE, 0.95 * banner_alpha), q_box)
+		else:
+			_wrapped(quote_txt, Rect2(q_box.position + Vector2(28.0, 14.0), Vector2(q_box.size.x - 56.0, 62.0)), 20, Color(BONE, 0.95 * banner_alpha))
+	# Dica discreta de pular na barra inferior após 0.6s
+	if dur - intro_t >= 0.6:
+		_center("[Espaço / Clique] Pular", 1044.0, 15, Color(MUTED, 0.62 * env), width)
 
 func _draw_floating_panel(rect: Rect2) -> void:
 	draw_rect(rect, Color(0.05, 0.06, 0.09, 0.72))

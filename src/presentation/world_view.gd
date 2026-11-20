@@ -154,6 +154,8 @@ func _draw() -> void:
 			draw_line(center + direction * 206, center + direction * 246, Color(border_col.r, border_col.g, border_col.b, 0.42), 2.5)
 		if not reg.is_empty():
 			_draw_region_details(room, reg, accent_col, t_pres)
+	# Props ambientais, urnas rituais, poças de luz de tochas e vinheta cinematográfica sobre todas as arenas
+	_draw_ambient_props_and_lights(room, reg_id, t_pres)
 	# Partículas ambientais discretas por bioma
 	var part_col: Color = Color("ff9e44") if reg_id.contains("cinza") or reg_id.contains("fosso") else (
 		MAGENTA_BRIGHT if reg_id.contains("veio") else (Color("7dd3fc") if reg_id.contains("santuario") else BONE)
@@ -563,19 +565,193 @@ func _draw_region_details(room: Rect2, reg: Dictionary, accent: Color, t: float)
 			draw_line(center + d * 96.0, center + d * 150.0, Color(cyan.r, cyan.g, cyan.b, 0.24), 2.0, true)
 			draw_line(center + d * 240.0, center + d * 310.0, Color(accent.r, accent.g, accent.b, 0.32), 2.5, true)
 
+func _draw_ambient_props_and_lights(room: Rect2, reg_id: String, t_pres: float) -> void:
+	var reg_lower: String = reg_id.to_lower()
+	var torch_outer: Color = Color("e86a2c")
+	var torch_warm: Color = Color("ff9e44")
+	var urn_glow: Color = Color("5eead4")
+	if reg_lower.contains("veio"):
+		torch_outer = Color("c026d3")
+		torch_warm = Color("f070c0")
+		urn_glow = MAGENTA_BRIGHT
+	elif reg_lower.contains("cinza") or reg_lower.contains("fosso"):
+		torch_outer = Color("d94e1f")
+		torch_warm = Color("ff9e44")
+		urn_glow = Color("ff9e44")
+	elif reg_lower.contains("santuario"):
+		torch_outer = Color("d99b26")
+		torch_warm = Color("f6c453")
+		urn_glow = Color("7dd3fc")
+	# 1) Escombros e pedras quebradas próximos às bordas e zonas de pilares (sem poluir o centro)
+	var rubble_anchors: Array[Vector2] = [
+		Vector2(room.position.x + 210.0, room.position.y + 150.0),
+		Vector2(room.position.x + 560.0, room.position.y + 118.0),
+		Vector2(room.end.x - 580.0, room.position.y + 124.0),
+		Vector2(room.end.x - 220.0, room.position.y + 162.0),
+		Vector2(room.position.x + 148.0, room.position.y + 420.0),
+		Vector2(room.end.x - 154.0, room.position.y + 450.0),
+		Vector2(room.position.x + 166.0, room.end.y - 360.0),
+		Vector2(room.end.x - 168.0, room.end.y - 340.0),
+		Vector2(room.position.x + 280.0, room.end.y - 126.0),
+		Vector2(room.position.x + 710.0, room.end.y - 114.0),
+		Vector2(room.end.x - 690.0, room.end.y - 118.0),
+		Vector2(room.end.x - 270.0, room.end.y - 132.0),
+		Vector2(room.position.x + 410.0, room.position.y + 290.0),
+		Vector2(room.end.x - 420.0, room.end.y - 255.0),
+	]
+	var stone_dark: Color = STONE.darkened(0.28)
+	var stone_mid: Color = STONE.lightened(0.06)
+	var stone_hi: Color = Color(BONE.r, BONE.g, BONE.b, 0.22)
+	for r_i: int in range(rubble_anchors.size()):
+		var rp: Vector2 = rubble_anchors[r_i]
+		var stones_count: int = 3 + (r_i % 2)
+		for s_i: int in range(stones_count):
+			var ang: float = float(r_i * 5 + s_i * 11) * 0.78
+			var dist: float = 0.0 if s_i == 0 else (16.0 + float((r_i + s_i * 3) % 4) * 7.5)
+			var sp: Vector2 = rp + Vector2(cos(ang) * dist, sin(ang) * dist * 0.62)
+			var rw: float = (13.0 if s_i == 0 else 7.5) + float((r_i * 3 + s_i) % 4) * 2.4
+			var rh: float = rw * (0.58 + 0.14 * float((r_i + s_i) % 2))
+			draw_set_transform(sp + Vector2(2.0, 3.0), 0.0, Vector2(1.0, 0.48))
+			draw_circle(Vector2.ZERO, rw * 1.15, Color(INK.r, INK.g, INK.b, 0.34))
+			draw_set_transform(Vector2.ZERO)
+			var rock := PackedVector2Array([
+				sp + Vector2(-rw, rh * 0.25),
+				sp + Vector2(-rw * 0.52, -rh),
+				sp + Vector2(rw * 0.45, -rh * 0.85),
+				sp + Vector2(rw, rh * 0.18),
+				sp + Vector2(rw * 0.32, rh * 0.72),
+				sp + Vector2(-rw * 0.62, rh * 0.66),
+			])
+			draw_colored_polygon(rock, stone_mid if s_i == 0 else stone_dark)
+			draw_polyline(_closed(rock), INK, 2.2, true)
+			draw_line(rock[1], rock[2], stone_hi, 1.5, true)
+	# 2) Urnas / ânforas rituais com brilho sutil nos 4 cantos internos da câmara
+	var urn_corners: Array[Vector2] = [
+		Vector2(room.position.x + 124.0, room.position.y + 116.0),
+		Vector2(room.end.x - 124.0, room.position.y + 116.0),
+		Vector2(room.position.x + 124.0, room.end.y - 108.0),
+		Vector2(room.end.x - 124.0, room.end.y - 108.0),
+	]
+	for u_i: int in range(urn_corners.size()):
+		var up: Vector2 = urn_corners[u_i]
+		var u_pulse: float = 0.5 + 0.5 * sin(t_pres * 2.5 + float(u_i) * 1.55)
+		var side_dir: float = 1.0 if (u_i % 2 == 0) else -1.0
+		# Halo suave da urna sobre o piso
+		draw_set_transform(up + Vector2(0.0, 6.0), 0.0, Vector2(1.0, 0.52))
+		draw_circle(Vector2.ZERO, 66.0 + u_pulse * 8.0, Color(urn_glow.r, urn_glow.g, urn_glow.b, 0.065 + u_pulse * 0.03))
+		draw_circle(Vector2.ZERO, 24.0, Color(INK.r, INK.g, INK.b, 0.54))
+		draw_set_transform(Vector2.ZERO)
+		# Urna principal (corpo cerâmico escuro + contorno em nanquim + brilho no bocal)
+		var urn_body := PackedVector2Array([
+			up + Vector2(-11.0, 4.0),
+			up + Vector2(-18.0, -14.0),
+			up + Vector2(-13.0, -34.0),
+			up + Vector2(-8.0, -44.0),
+			up + Vector2(8.0, -44.0),
+			up + Vector2(13.0, -34.0),
+			up + Vector2(18.0, -14.0),
+			up + Vector2(11.0, 4.0),
+		])
+		draw_colored_polygon(urn_body, Color("1c202c"))
+		draw_colored_polygon(PackedVector2Array([
+			up + Vector2(-13.0, -14.0),
+			up + Vector2(-9.0, -32.0),
+			up + Vector2(-2.0, -32.0),
+			up + Vector2(-4.0, -12.0),
+		]), Color("2f3648"))
+		draw_polyline(_closed(urn_body), INK, 3.5, true)
+		# Faixa ornamental + bocal com brilho sutil
+		draw_line(up + Vector2(-14.0, -22.0), up + Vector2(14.0, -22.0), Color(urn_glow.r, urn_glow.g, urn_glow.b, 0.35 + u_pulse * 0.2), 2.0, true)
+		draw_rect(Rect2(up + Vector2(-11.0, -49.0), Vector2(22.0, 6.0)), Color("2c3242"))
+		draw_rect(Rect2(up + Vector2(-11.0, -49.0), Vector2(22.0, 6.0)), INK, false, 2.5)
+		draw_circle(up + Vector2(0.0, -47.0), 15.0 + u_pulse * 3.0, Color(urn_glow.r, urn_glow.g, urn_glow.b, 0.16 + u_pulse * 0.08))
+		draw_circle(up + Vector2(0.0, -47.0), 6.0, Color(urn_glow.r, urn_glow.g, urn_glow.b, 0.72 + u_pulse * 0.22))
+		draw_circle(up + Vector2(0.0, -47.0), 2.8, Color(BONE.r, BONE.g, BONE.b, 0.85))
+		# Pequena ânfora secundária ao lado
+		var sub_p: Vector2 = up + Vector2(side_dir * 29.0, 8.0)
+		draw_set_transform(sub_p + Vector2(0.0, 3.0), 0.0, Vector2(1.0, 0.48))
+		draw_circle(Vector2.ZERO, 13.0, Color(INK.r, INK.g, INK.b, 0.48))
+		draw_set_transform(Vector2.ZERO)
+		var sub_body := PackedVector2Array([
+			sub_p + Vector2(-7.0, 2.0),
+			sub_p + Vector2(-10.0, -10.0),
+			sub_p + Vector2(-6.0, -24.0),
+			sub_p + Vector2(6.0, -24.0),
+			sub_p + Vector2(10.0, -10.0),
+			sub_p + Vector2(7.0, 2.0),
+		])
+		draw_colored_polygon(sub_body, Color("171b26"))
+		draw_polyline(_closed(sub_body), INK, 2.5, true)
+		draw_circle(sub_p + Vector2(0.0, -24.0), 3.4, Color(urn_glow.r, urn_glow.g, urn_glow.b, 0.48 + u_pulse * 0.2))
+	# 3) Poças de luz quente de tochas/braseiros nas 4 laterais e no topo
+	var light_pools: Array[Vector2] = [
+		Vector2(room.position.x + room.size.x * 0.18, room.position.y + 68.0),
+		Vector2(room.position.x + room.size.x * 0.36, room.position.y + 62.0),
+		Vector2(room.position.x + room.size.x * 0.64, room.position.y + 62.0),
+		Vector2(room.position.x + room.size.x * 0.82, room.position.y + 68.0),
+		Vector2(room.position.x + 74.0, room.position.y + room.size.y * 0.34),
+		Vector2(room.position.x + 74.0, room.position.y + room.size.y * 0.68),
+		Vector2(room.end.x - 74.0, room.position.y + room.size.y * 0.34),
+		Vector2(room.end.x - 74.0, room.position.y + room.size.y * 0.68),
+		Vector2(room.position.x + room.size.x * 0.24, room.end.y - 64.0),
+		Vector2(room.position.x + room.size.x * 0.76, room.end.y - 64.0),
+	]
+	for l_i: int in range(light_pools.size()):
+		var lp: Vector2 = light_pools[l_i]
+		var flick: float = sin(t_pres * 4.2 + float(l_i) * 1.65)
+		var flick_fine: float = sin(t_pres * 7.8 + float(l_i) * 2.3)
+		var pulse_r: float = flick * 11.0 + flick_fine * 4.0
+		var a_outer: float = 0.08 + flick * 0.012
+		var a_mid: float = 0.11 + flick * 0.015
+		var a_core: float = 0.135 + flick * 0.012
+		draw_set_transform(lp, 0.0, Vector2(1.0, 0.62))
+		draw_circle(Vector2.ZERO, 240.0 + pulse_r, Color(torch_outer.r, torch_outer.g, torch_outer.b, a_outer))
+		draw_circle(Vector2.ZERO, 152.0 + pulse_r * 0.65, Color(torch_warm.r, torch_warm.g, torch_warm.b, a_mid))
+		draw_circle(Vector2.ZERO, 76.0 + pulse_r * 0.35, Color(torch_warm.r, torch_warm.g, torch_warm.b, a_core))
+		draw_set_transform(Vector2.ZERO)
+	# 4) Sombra atmosférica cinematográfica nas bordas (vinheta suave emoldurando o combate)
+	var vignette_layers: Array[Array] = [
+		[150.0, 0.075],
+		[92.0, 0.115],
+		[48.0, 0.165],
+		[22.0, 0.23],
+	]
+	for vl: Array in vignette_layers:
+		var vw: float = float(vl[0])
+		var va: float = float(vl[1])
+		var v_col := Color(INK.r, INK.g, INK.b, va)
+		draw_rect(Rect2(room.position.x, room.position.y, room.size.x, vw), v_col)
+		draw_rect(Rect2(room.position.x, room.end.y - vw, room.size.x, vw), v_col)
+		draw_rect(Rect2(room.position.x, room.position.y, vw, room.size.y), v_col)
+		draw_rect(Rect2(room.end.x - vw, room.position.y, vw, room.size.y), v_col)
+	# Sombra extra suave nos 4 cantos para reforçar o foco cinematográfico no centro
+	var corner_pts: Array[Vector2] = [
+		room.position,
+		Vector2(room.end.x, room.position.y),
+		Vector2(room.position.x, room.end.y),
+		room.end,
+	]
+	for cp: Vector2 in corner_pts:
+		draw_circle(cp, 260.0, Color(INK.r, INK.g, INK.b, 0.12))
+		draw_circle(cp, 145.0, Color(INK.r, INK.g, INK.b, 0.15))
+
 func _draw_campus(room: Rect2) -> void:
 	draw_rect(room.grow(1000), Color("0e101a"))
-	draw_rect(room.grow(36), INK)
-	draw_rect(room, Color("1a1e28"))
-	for x in range(120, int(room.size.x), 240):
-		for y in range(120, int(room.size.y), 240):
-			var tile_idx := ((x / 240) + (y / 240)) % 4 + 1
-			var tile_tex: Texture2D = _env_textures.get("chao_laje_0%d" % tile_idx, null)
-			if tile_tex != null:
-				draw_texture_rect(tile_tex, Rect2(x - 110, y - 110, 220, 220), false, Color(1, 1, 1, 0.35))
-	draw_rect(CampusHub.LIMITE_CAMPUS, Color("383b46"), false, 3.0)
-	var center := room.get_center()
-	draw_arc(center, 220, 0, TAU, 96, Color("2b303d"), 2, true)
+	var campus_bg: Texture2D = _env_textures.get("campus_arena_bg", null)
+	if campus_bg != null:
+		draw_texture_rect(campus_bg, room, false)
+	else:
+		draw_rect(room.grow(36), INK)
+		draw_rect(room, Color("1a1e28"))
+		for x in range(120, int(room.size.x), 240):
+			for y in range(120, int(room.size.y), 240):
+				var tile_idx: int = ((x / 240) + (y / 240)) % 4 + 1
+				var tile_tex: Texture2D = _env_textures.get("chao_laje_0%d" % tile_idx, null)
+				if tile_tex != null:
+					draw_texture_rect(tile_tex, Rect2(x - 110, y - 110, 220, 220), false, Color(1, 1, 1, 0.35))
+		draw_rect(CampusHub.LIMITE_CAMPUS, Color("383b46"), false, 3.0)
+		var center := room.get_center()
+		draw_arc(center, 220, 0, TAU, 96, Color("2b303d"), 2, true)
 	var campus: CampusHub = app.get("campus") as CampusHub
 	var focada := campus.zona_focada() if campus != null else &""
 	var zonas_visuais: Array[Dictionary] = [
@@ -772,6 +948,9 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 			progress = 0.0
 		elif player.pos.distance_squared_to(player.get("prev", player.pos)) > 0.04:
 			action = "run"
+		if action == "idle":
+			var breath: float = sin(float(session.presentation_time) * 2.4) * 0.018
+			atk_squash = Vector2(1.0 - breath * 0.55, 1.0 + breath)
 		var anim_name := action + "_" + dir_suffix
 		if not _frames_by_actor[player_actor].has_animation(anim_name):
 			anim_name = "attack_" + dir_suffix if action.begins_with("attack") and _frames_by_actor[player_actor].has_animation("attack_" + dir_suffix) else ("idle_" + dir_suffix)
@@ -933,6 +1112,9 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 		var draw_pos: Vector2 = pos
 		var squash := Vector2.ONE
 		var rot_angle: float = 0.0
+		if action == "idle":
+			var breath: float = sin(float(session.presentation_time) * 2.4) * 0.018
+			squash = Vector2(1.0 - breath * 0.55, 1.0 + breath)
 		# Peso fisico de ataque para todos os chefes (ergue no windup, avanca/esmaga no golpe)
 		if kind == "colosso_de_cinza":
 			if enemy.phase == "windup" and progress >= 0.0:
@@ -982,6 +1164,34 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 				draw_line(m_dir * (radius + 6.0), m_dir * (radius + 20.0), Color(GOLD.r, GOLD.g, GOLD.b, 0.72), 2.5, true)
 			draw_set_transform(Vector2.ZERO)
 		if is_boss:
+			var intro_raw: Variant = app.get("boss_intro_timer")
+			var boss_intro_t: float = float(intro_raw) if intro_raw != null else 0.0
+			if boss_intro_t > 0.0:
+				var intro_norm: float = clampf(boss_intro_t / 1.8, 0.0, 1.0)
+				var intro_wave: float = 1.0 - intro_norm
+				# Pilar de luz / fenda energética atrás do chefe durante a entrada
+				var beam_h: float = 640.0
+				var beam_w_outer: float = (130.0 + 28.0 * sin(phase_time * 10.0)) * (0.45 + 0.55 * intro_norm)
+				var beam_w_mid: float = beam_w_outer * 0.52
+				var beam_w_core: float = beam_w_outer * 0.16
+				draw_rect(Rect2(pos.x - beam_w_outer * 0.5, pos.y - beam_h, beam_w_outer, beam_h + 18.0), Color(boss_aura.r, boss_aura.g, boss_aura.b, 0.14 * intro_norm))
+				draw_rect(Rect2(pos.x - beam_w_mid * 0.5, pos.y - beam_h, beam_w_mid, beam_h + 12.0), Color(boss_aura.r, boss_aura.g, boss_aura.b, 0.26 * intro_norm))
+				draw_rect(Rect2(pos.x - beam_w_core * 0.5, pos.y - beam_h, beam_w_core, beam_h + 8.0), Color(BONE.r, BONE.g, BONE.b, 0.52 * intro_norm))
+				var rift_pts := PackedVector2Array()
+				for k: int in range(9):
+					var kf: float = float(k) / 8.0
+					var jitter_x: float = sin(phase_time * 19.0 + float(k) * 1.9) * (14.0 * intro_norm)
+					rift_pts.append(Vector2(pos.x + jitter_x, pos.y - kf * beam_h))
+				draw_polyline(rift_pts, Color(BONE.r, BONE.g, BONE.b, 0.65 * intro_norm), 3.0, true)
+				# Anéis de impacto expandindo no chão ao redor do chefe
+				draw_set_transform(pos, 0.0, Vector2(1.0, 0.42))
+				for r_i: int in range(3):
+					var r_cycle: float = fmod(intro_wave * 2.2 + float(r_i) * 0.33, 1.0)
+					var ring_r: float = radius * 0.85 + r_cycle * 185.0
+					var ring_a: float = (1.0 - r_cycle) * 0.85 * intro_norm
+					draw_arc(Vector2.ZERO, ring_r, 0.0, TAU, 48, Color(boss_aura.r, boss_aura.g, boss_aura.b, ring_a), 5.0 * (1.0 - r_cycle * 0.5), true)
+					draw_arc(Vector2.ZERO, ring_r * 0.86, 0.0, TAU, 40, Color(BONE.r, BONE.g, BONE.b, ring_a * 0.72), 2.5, true)
+				draw_set_transform(Vector2.ZERO)
 			draw_set_transform(pos, 0.0, Vector2(1.0, 0.42))
 			draw_arc(Vector2.ZERO, radius + 14.0, 0, TAU, 48, Color(boss_aura.r, boss_aura.g, boss_aura.b, 0.55), 3.5, true)
 			draw_arc(Vector2.ZERO, radius + 26.0, 0, TAU, 48, Color(boss_aura.r, boss_aura.g, boss_aura.b, 0.22), 2.0, true)
