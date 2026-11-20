@@ -38,6 +38,10 @@ var player_shield: float = 0.0
 var speed_mult: float = 1.0
 var dash_recharge_mult: float = 1.0
 var reach_boon_mult: float = 1.0
+var selos_usados: int = 0
+var last_killed_kinds: Array[String] = []
+var urns: Array[Dictionary] = []
+var urns_broken_total: int = 0
 var _advancing_region: bool = false
 var presentation_time := 0.0
 var live_steps := 0
@@ -93,6 +97,10 @@ func start() -> void:
 	speed_mult = 1.0
 	dash_recharge_mult = 1.0
 	reach_boon_mult = 1.0
+	selos_usados = 0
+	last_killed_kinds.clear()
+	urns.clear()
+	urns_broken_total = 0
 	_advancing_region = false
 	if extended_campaign:
 		var regioes: Array[Dictionary] = CatalogoCampanha.regioes()
@@ -114,7 +122,8 @@ func start() -> void:
 		"dash_remaining":0, "dash_dir":Vector2.UP, "dash_hits":{}, "recharge":0,
 		"inv":0, "attack_cd":0, "special_cd":0, "recovery":0, "combo":0,
 		"combo_window":0, "lunge_remaining":0, "lunge_dir":Vector2.UP,
-		"lunge_hits":{}, "flash":0
+		"lunge_hits":{}, "flash":0,
+		"flow":0.0, "flow_max":100.0, "combo_hits":0, "combo_timer":0
 	}
 	state = "jogo"
 	_spawn_wave()
@@ -245,9 +254,10 @@ func step(sample: Dictionary) -> Array[String]:
 	player.prev = player.pos
 	for enemy: Dictionary in enemies: enemy.prev = enemy.pos
 	for projectile: Dictionary in projectiles: projectile.prev = projectile.pos
-	for key in ["inv","attack_cd","special_cd","recovery","combo_window","flash"]:
+	for key in ["inv","attack_cd","special_cd","recovery","combo_window","flash","combo_timer"]:
 		player[key] = maxi(0,int(player[key])-1)
 	if player.combo_window == 0: player.combo = 0
+	if int(player.combo_timer) == 0: player.combo_hits = 0
 	var aim: Vector2 = sample.get("aim",Vector2.UP)
 	if aim != Vector2.ZERO: player.aim = aim.normalized()
 	var move: Vector2 = sample.get("move",Vector2.ZERO)
@@ -279,7 +289,13 @@ func step(sample: Dictionary) -> Array[String]:
 		_lunge_hits()
 		player.lunge_remaining -= 1
 	elif player.dash_remaining == 0:
-		if wants.get("especial",false) and player.special_cd == 0:
+		if bool(wants.get("selo", false)) and float(player.flow) >= 100.0:
+			player.flow = 0.0
+			selos_usados += 1
+			player.inv = maxi(int(player.inv), 36)
+			_selo_ultimate()
+			consumed.append("selo")
+		elif wants.get("especial",false) and player.special_cd == 0:
 			_special()
 			consumed.append("especial")
 		elif wants.get("ataque",false) and player.attack_cd == 0:
@@ -360,6 +376,7 @@ func _attack() -> void:
 		var touching: bool = delta.length() < player.radius+enemy.radius+float(data.combate.folga_encostado_px)
 		if touching or player.aim.dot(delta.normalized()) >= cos(deg_to_rad(float(data.corte.meio_angulo_graus))):
 			_hurt_enemy(enemy,float(data.corte.dano)*multiplier*damage_multiplier,player.aim,push,heavy,true)
+	_break_urns_in_radius(player.pos, reach)
 
 func _attack_guardiao() -> void:
 	player.combo = (int(player.combo) + 1) % 2
@@ -380,6 +397,7 @@ func _attack_guardiao() -> void:
 		var touching: bool = delta.length() < player.radius + enemy.radius + float(data.combate.folga_encostado_px)
 		if touching or player.aim.dot(delta.normalized()) >= cos(half_angle):
 			_hurt_enemy(enemy, 22.0 * damage_multiplier, player.aim, 960.0, true, true)
+	_break_urns_in_radius(player.pos, reach)
 
 func _attack_veu() -> void:
 	player.combo = (int(player.combo) + 1) % 3
@@ -401,6 +419,7 @@ func _attack_veu() -> void:
 		var touching: bool = delta.length() < player.radius + enemy.radius + float(data.combate.folga_encostado_px)
 		if touching or player.aim.dot(delta.normalized()) >= cos(half_angle):
 			_hurt_enemy(enemy, (15.0 if heavy else 10.5) * damage_multiplier, player.aim, 420.0 if heavy else 260.0, heavy, true)
+	_break_urns_in_radius(player.pos, reach)
 
 func _attack_ressonancia() -> void:
 	player.attack_cd = maxi(1, roundi(float(Movement.ticks(0.233)) * attack_cd_mult))
@@ -459,6 +478,7 @@ func _special_ressonancia() -> void:
 		if delta.length() <= pulse_radius + enemy.radius:
 			var dir: Vector2 = delta.normalized() if delta != Vector2.ZERO else player.aim
 			_hurt_enemy(enemy, 30.0 * damage_multiplier * special_damage_mult, dir, 1260.0, true, true)
+	_break_urns_in_radius(player.pos, pulse_radius)
 
 func _special_pactos() -> void:
 	player.special_cd = Movement.ticks(2.0)
@@ -495,6 +515,7 @@ func _special_guardiao() -> void:
 		if delta.length() <= shock_radius + enemy.radius:
 			var dir: Vector2 = delta.normalized() if delta != Vector2.ZERO else player.aim
 			_hurt_enemy(enemy, 22.0 * damage_multiplier * special_damage_mult, dir, 1350.0, true, true)
+	_break_urns_in_radius(player.pos, shock_radius)
 
 func _special_veu() -> void:
 	player.special_cd = Movement.ticks(1.0)
@@ -524,6 +545,138 @@ func _lunge_hits() -> void:
 		if player.pos.distance_to(enemy.pos) <= lunge_radius+enemy.radius:
 			player.lunge_hits[enemy.id] = true
 			_hurt_enemy(enemy,lunge_dmg,player.lunge_dir,lunge_push,true,true)
+	_break_urns_in_radius(player.pos, lunge_radius)
+
+func _selo_ultimate() -> void:
+	var ppos: Vector2 = player.pos
+	var paim: Vector2 = player.aim
+	if weapon_id == &"ressonancia":
+		for i: int in range(8):
+			var ang: float = TAU * float(i) / 8.0
+			var dir_orb: Vector2 = paim.rotated(ang)
+			var spawn_pos: Vector2 = ppos + dir_orb * 28.0
+			projectiles.append({
+				"owner": "player",
+				"kind": "magic_orb",
+				"pos": spawn_pos,
+				"prev": spawn_pos,
+				"velocity": dir_orb * 990.0,
+				"radius": 15.0,
+				"damage": 16.0 * damage_multiplier,
+				"push": 540.0,
+				"remaining": Movement.ticks(0.85)
+			})
+		var radius_r: float = 260.0
+		var fx_r: Dictionary = _effect("selo_ressonancia", ppos, paim, 0.55)
+		fx_r["radius"] = radius_r
+		for enemy: Dictionary in enemies:
+			if not _hittable(enemy): continue
+			var delta_r: Vector2 = enemy.pos - ppos
+			if delta_r.length() <= radius_r + float(enemy.radius):
+				var dir_r: Vector2 = delta_r.normalized() if delta_r != Vector2.ZERO else paim
+				_hurt_enemy(enemy, 45.0 * damage_multiplier, dir_r, 1200.0, true, true, false, false)
+		_break_urns_in_radius(ppos, radius_r)
+	elif weapon_id == &"pactos":
+		for ang_deg: float in [-24.0, -12.0, 0.0, 12.0, 24.0]:
+			var dir_b: Vector2 = paim.rotated(deg_to_rad(ang_deg))
+			var spawn_pos: Vector2 = ppos + dir_b * 28.0
+			projectiles.append({
+				"owner": "player",
+				"kind": "bolt",
+				"pos": spawn_pos,
+				"prev": spawn_pos,
+				"velocity": dir_b * 1170.0,
+				"radius": 12.0,
+				"damage": 14.0 * damage_multiplier,
+				"push": 380.0,
+				"remaining": Movement.ticks(0.8)
+			})
+		var candidates_p: Array[Dictionary] = []
+		for enemy: Dictionary in enemies:
+			if _hittable(enemy):
+				candidates_p.append(enemy)
+		candidates_p.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+			return ppos.distance_squared_to(a.pos) < ppos.distance_squared_to(b.pos)
+		)
+		var count_p: int = mini(3, candidates_p.size())
+		for idx_p: int in range(count_p):
+			var target_p: Dictionary = candidates_p[idx_p]
+			var tpos_p: Vector2 = target_p.pos
+			var delta_p: Vector2 = tpos_p - ppos
+			var dir_p: Vector2 = delta_p.normalized() if delta_p != Vector2.ZERO else paim
+			_hurt_enemy(target_p, 40.0 * damage_multiplier, dir_p, 600.0, true, true, false, false)
+			var pfx: Dictionary = _effect("pact_call", tpos_p, dir_p, 0.35)
+			pfx["target_pos"] = tpos_p
+		_effect("selo_pactos", ppos, paim, 0.55)
+	elif weapon_id == &"guardiao":
+		player_shield += 45.0
+		var radius_g: float = 310.0
+		var fx_g: Dictionary = _effect("selo_guardiao", ppos, paim, 0.6)
+		fx_g["radius"] = radius_g
+		for enemy: Dictionary in enemies:
+			if not _hittable(enemy): continue
+			var delta_g: Vector2 = enemy.pos - ppos
+			if delta_g.length() <= radius_g + float(enemy.radius):
+				var dir_g: Vector2 = delta_g.normalized() if delta_g != Vector2.ZERO else paim
+				_hurt_enemy(enemy, 46.0 * damage_multiplier, dir_g, 1600.0, true, true, false, false)
+		_break_urns_in_radius(ppos, radius_g)
+	elif weapon_id == &"veu":
+		var radius_v: float = 460.0
+		var candidates_v: Array[Dictionary] = []
+		for enemy: Dictionary in enemies:
+			if not _hittable(enemy): continue
+			if ppos.distance_to(enemy.pos) <= radius_v + float(enemy.radius):
+				candidates_v.append(enemy)
+		candidates_v.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+			return ppos.distance_squared_to(a.pos) < ppos.distance_squared_to(b.pos)
+		)
+		var targets_v: Array[Vector2] = []
+		var count_v: int = mini(5, candidates_v.size())
+		for idx_v: int in range(count_v):
+			var target_v: Dictionary = candidates_v[idx_v]
+			var tpos_v: Vector2 = target_v.pos
+			targets_v.append(tpos_v)
+			var delta_v: Vector2 = tpos_v - ppos
+			var dir_v: Vector2 = delta_v.normalized() if delta_v != Vector2.ZERO else paim
+			_hurt_enemy(target_v, 48.0 * damage_multiplier, dir_v, 480.0, true, true, true, false)
+		var fx_v: Dictionary = _effect("selo_veu", ppos, paim, 0.5)
+		fx_v["targets"] = targets_v
+	else:
+		var radius_l: float = 320.0
+		var fx_l: Dictionary = _effect("selo_lamina", ppos, paim, 0.55)
+		fx_l["radius"] = radius_l
+		for enemy: Dictionary in enemies:
+			if not _hittable(enemy): continue
+			var delta_l: Vector2 = enemy.pos - ppos
+			if delta_l.length() <= radius_l + float(enemy.radius):
+				var dir_l: Vector2 = delta_l.normalized() if delta_l != Vector2.ZERO else paim
+				_hurt_enemy(enemy, 58.0 * damage_multiplier, dir_l, 1400.0, true, true, false, false)
+		_break_urns_in_radius(ppos, radius_l)
+
+func _break_urns_in_radius(center: Vector2, radius: float) -> void:
+	if urns.is_empty(): return
+	var remaining_urns: Array[Dictionary] = []
+	for urn: Dictionary in urns:
+		var urn_pos: Vector2 = urn.pos
+		if center.distance_to(urn_pos) <= radius:
+			_break_urn(urn)
+		else:
+			remaining_urns.append(urn)
+	urns = remaining_urns
+
+func _break_urn(urn: Dictionary) -> void:
+	urn.hp = 0
+	urns_broken_total += 1
+	var urn_pos: Vector2 = urn.pos
+	var urn_kind: String = String(urn.get("kind", "frag"))
+	if urn_kind == "heal":
+		player.hp = minf(float(player.max_hp), float(player.hp) + 10.0)
+		var heal_fx: Dictionary = _effect("dmg_num", urn_pos + Vector2(0.0, -36.0), Vector2.UP, 0.72)
+		heal_fx["amount"] = 10
+		heal_fx["text"] = "+10"
+		heal_fx["kind_num"] = "heal"
+	var break_fx: Dictionary = _effect("urn_break", urn_pos, Vector2.UP, 0.45)
+	break_fx["urn_kind"] = urn_kind
 
 func _dash_cut() -> void:
 	if not blessing_counts.has("corte_esquiva"): return
@@ -541,10 +694,12 @@ func _dash_cut() -> void:
 func _hittable(enemy: Dictionary) -> bool:
 	return enemy.hp > 0 and enemy.phase != "spawn"
 
-func _hurt_enemy(enemy: Dictionary, damage: float, direction: Vector2, push: float, heavy: bool, stop: bool) -> void:
+func _hurt_enemy(enemy: Dictionary, damage: float, direction: Vector2, push: float, heavy: bool, stop: bool, force_crit: bool = false, grant_flow: bool = true) -> void:
 	var final_damage: float = damage
 	var is_crit: bool = false
-	if crit_chance > 0.0 and _integer(1000) < roundi(crit_chance * 1000.0):
+	if force_crit:
+		is_crit = true
+	elif crit_chance > 0.0 and _integer(1000) < roundi(crit_chance * 1000.0):
 		final_damage *= 1.8
 		is_crit = true
 	enemy.hp = maxf(0.0, float(enemy.hp) - final_damage)
@@ -555,7 +710,16 @@ func _hurt_enemy(enemy: Dictionary, damage: float, direction: Vector2, push: flo
 	if heavy and not is_resistant:
 		enemy.phase = "recover"
 		enemy.timer = Movement.ticks(data.combate.quebrou_recuperacao_s)
+	if grant_flow:
+		var flow_gain: float = (14.0 if heavy else 8.0) * (1.0 + minf(0.6, float(player.combo_hits) * 0.04))
+		player.flow = minf(100.0, float(player.flow) + flow_gain)
+	player.combo_hits = int(player.combo_hits) + 1
+	player.combo_timer = 180
 	_effect("crit" if is_crit else "hit", enemy.pos, direction, float(data.combate.flash_acerto_s) * (1.8 if is_crit else 1.0))
+	var dmg_fx: Dictionary = _effect("dmg_num", enemy.pos + Vector2(0.0, -52.0), Vector2.UP, 0.72)
+	dmg_fx["amount"] = roundi(final_damage)
+	dmg_fx["crit"] = is_crit
+	dmg_fx["kind_num"] = "crit" if is_crit else "dmg"
 	if stop:
 		_pending_hitstop = maxi(_pending_hitstop,Movement.ticks(data.combate.hitstop_pesado_s if heavy else data.combate.hitstop_leve_s))
 
@@ -572,6 +736,9 @@ func _hurt_player(damage: float, origin: Vector2) -> void:
 	player.flash = Movement.ticks(data.combate.flash_acerto_s)
 	_pending_hitstop = maxi(_pending_hitstop,Movement.ticks(data.combate.hitstop_atingido_s))
 	_effect("hurt",player.pos,(player.pos-origin).normalized(),float(data.combate.flash_acerto_s)*2.0)
+	var hurt_fx: Dictionary = _effect("dmg_num", player.pos + Vector2(0.0, -52.0), Vector2.UP, 0.72)
+	hurt_fx["amount"] = roundi(dano_final)
+	hurt_fx["kind_num"] = "player_hurt"
 
 func enemy_def(kind: String) -> Dictionary:
 	return _enemy_def(kind)
@@ -580,6 +747,72 @@ func _enemy_def(kind: String) -> Dictionary:
 	if data.inimigos.has(kind):
 		return data.inimigos[kind]
 	match kind:
+		"vulto_mudo":
+			return {
+				"nome": "Vulto Mudo",
+				"comportamento": "melee",
+				"vida": 32.0,
+				"velocidade": 215.0,
+				"raio": 23.0,
+				"dano": 10.0,
+				"preparo_s": 0.34,
+				"recarga_s": 0.72,
+				"execucao_passos": 8,
+				"inicio_preparo_px": 105.0,
+				"tele_raio_px": 115.0,
+				"tele_meio_angulo_graus": 65.0,
+				"pattern": "lunge",
+			}
+		"espreitador_da_fenda":
+			return {
+				"nome": "Espreitador da Fenda",
+				"comportamento": "melee",
+				"vida": 38.0,
+				"velocidade": 190.0,
+				"raio": 24.0,
+				"dano": 13.0,
+				"preparo_s": 0.48,
+				"recarga_s": 0.95,
+				"execucao_passos": 8,
+				"inicio_preparo_px": 260.0,
+				"tele_raio_px": 120.0,
+				"tele_meio_angulo_graus": 75.0,
+				"pattern": "shadow_blink",
+			}
+		"baluarte_de_cinza":
+			return {
+				"nome": "Baluarte de Cinza",
+				"comportamento": "melee",
+				"vida": 78.0,
+				"velocidade": 96.0,
+				"raio": 36.0,
+				"dano": 16.0,
+				"preparo_s": 0.65,
+				"recarga_s": 1.15,
+				"execucao_passos": 10,
+				"inicio_preparo_px": 135.0,
+				"tele_raio_px": 165.0,
+				"tele_meio_angulo_graus": 145.0,
+				"pattern": "quake",
+			}
+		"fenda_errante":
+			return {
+				"nome": "Fenda Errante",
+				"comportamento": "ranged",
+				"vida": 34.0,
+				"velocidade": 110.0,
+				"raio": 25.0,
+				"dano": 9.0,
+				"preparo_s": 0.62,
+				"recarga_s": 1.45,
+				"execucao_passos": 8,
+				"proj_velocidade_pxs": 360.0,
+				"proj_raio_px": 12.0,
+				"proj_vida_passos": 210,
+				"tele_largura_px": 70.0,
+				"tele_comprimento_max_px": 1200.0,
+				"boss_pattern": "ring_6",
+			}
 		"anomalia_maior":
 			return {
 				"nome": "Anomalia Maior",
@@ -716,9 +949,16 @@ func _append_enemy(kind: String, pos: Vector2, elite: bool, hp_mult: float = 1.0
 
 func _spawn_wave() -> void:
 	enemies.clear()
+	urns.clear()
 	if shield_per_room > 0.0:
 		player_shield = shield_per_room
 	if extended_campaign:
+		urns = [
+			{"pos": Vector2(280.0, 260.0), "hp": 1, "kind": "heal"},
+			{"pos": Vector2(2120.0, 260.0), "hp": 1, "kind": "frag"},
+			{"pos": Vector2(280.0, 1080.0), "hp": 1, "kind": "frag"},
+			{"pos": Vector2(2120.0, 1080.0), "hp": 1, "kind": "heal"},
+		]
 		var cx: float = float(data.arena.largura) * 0.5
 		var hp_mult: float = 1.0 + float(region_index) * 0.22
 		if region_wave_index >= 2:
@@ -814,6 +1054,13 @@ func _enemy_step(enemy: Dictionary) -> void:
 func _enemy_fire(enemy: Dictionary, definition: Dictionary) -> void:
 	var damage: float = float(definition.dano)*(float(data.elite.dano_x) if enemy.elite else 1.0)
 	var boss_pattern: String = String(definition.get("boss_pattern", ""))
+	if boss_pattern == "ring_6":
+		for i: int in range(6):
+			var ang: float = TAU * float(i) / 6.0
+			var dir: Vector2 = enemy.aim.rotated(ang)
+			var pos_p: Vector2 = enemy.pos + dir * float(data.combate.nascimento_projetil_px)
+			projectiles.append({"pos": pos_p, "prev": pos_p, "radius": float(definition.proj_raio_px), "velocity": dir * float(definition.proj_velocidade_pxs), "remaining": int(definition.proj_vida_passos), "damage": damage})
+		return
 	if boss_pattern == "fan_3":
 		for ang: float in [-0.28, 0.0, 0.28]:
 			var dir: Vector2 = enemy.aim.rotated(ang)
@@ -833,12 +1080,29 @@ func _enemy_fire(enemy: Dictionary, definition: Dictionary) -> void:
 		var position: Vector2 = enemy.pos+enemy.aim*float(data.combate.nascimento_projetil_px)
 		projectiles.append({"pos":position,"prev":position,"radius":float(definition.proj_raio_px),"velocity":enemy.aim*float(definition.proj_velocidade_pxs),"remaining":int(definition.proj_vida_passos),"damage":damage})
 	else:
+		var pattern: String = String(definition.get("pattern", ""))
+		if pattern == "lunge":
+			enemy.pos = Movement.resolve(enemy.pos + enemy.aim * 70.0, float(enemy.radius), data.arena)
+		elif pattern == "shadow_blink":
+			_effect("veu_blink", enemy.pos, enemy.aim, 0.24)
+			var blink_target: Vector2 = Movement.resolve(player.pos - enemy.aim * 70.0, float(enemy.radius), data.arena)
+			enemy.pos = blink_target
+			enemy.prev = blink_target
+			var to_player: Vector2 = player.pos - enemy.pos
+			if to_player != Vector2.ZERO:
+				enemy.aim = to_player.normalized()
+			_effect("veu_blink", enemy.pos, enemy.aim, 0.24)
 		var delta: Vector2 = player.pos-enemy.pos
 		if String(enemy.kind) == "colosso_de_cinza":
 			var impact_pos: Vector2 = Movement.resolve(enemy.pos + enemy.aim * 96.0, 24.0, data.arena)
 			var slam_fx := _effect("colosso_slam", impact_pos, enemy.aim, 0.72)
 			slam_fx["radius"] = float(definition.tele_raio_px)
 			slam_fx["origin"] = enemy.pos
+		elif pattern == "quake":
+			var impact_pos_q: Vector2 = Movement.resolve(enemy.pos + enemy.aim * 40.0, 20.0, data.arena)
+			var slam_fx_q: Dictionary = _effect("colosso_slam", impact_pos_q, enemy.aim, 0.52)
+			slam_fx_q["radius"] = float(definition.tele_raio_px)
+			slam_fx_q["origin"] = enemy.pos
 		else:
 			var effect := _effect("enemy_attack",enemy.pos,enemy.aim,float(definition.execucao_passos)/TICK_RATE)
 			effect["radius"] = float(definition.tele_raio_px)
@@ -865,6 +1129,19 @@ func _projectile_step() -> void:
 					_hurt_enemy(enemy,float(projectile.damage),dir,float(projectile.get("push", 0.0)),false,true)
 					destroyed = true
 					break
+			if not destroyed and not urns.is_empty():
+				var remaining_urns: Array[Dictionary] = []
+				var hit_urn: bool = false
+				for urn: Dictionary in urns:
+					var urn_pos: Vector2 = urn.pos
+					if not hit_urn and position.distance_to(urn_pos) <= 32.0:
+						_break_urn(urn)
+						hit_urn = true
+						destroyed = true
+					else:
+						remaining_urns.append(urn)
+				if hit_urn:
+					urns = remaining_urns
 		else:
 			if position.distance_to(player.pos) <= projectile.radius+player.radius:
 				_hurt_player(projectile.damage,projectile.prev)
@@ -877,6 +1154,7 @@ func _remove_dead() -> void:
 	for enemy: Dictionary in enemies:
 		if enemy.hp <= 0:
 			kills += 1
+			last_killed_kinds.append(String(enemy.kind))
 			if life_on_kill > 0.0 and float(player.hp) > 0.0:
 				player.hp = minf(float(player.max_hp), float(player.hp) + life_on_kill)
 			var death_fx := _effect("death",enemy.pos,enemy.aim,float(data.ia.surgimento_s))

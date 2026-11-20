@@ -40,8 +40,17 @@ var weapon_order: Array[StringName] = [&"lamina", &"ressonancia", &"pactos", &"g
 var selected_region_index: int = 0
 var oficina := OficinaDeReforja.new()
 var campus := CampusHub.new()
+var quests := SistemaQuests.new()
 var falar_mestre_ativo: bool = false
 var conta_meta: ContaFragmentos = null
+var quest_toast_timer: float = 0.0
+var quest_toast_titulo: String = ""
+var quest_toast_recompensa: int = 0
+var narrativa_timer: float = 0.0
+var narrativa_texto: String = ""
+var _prev_selos_usados: int = 0
+var _prev_urns_broken: int = 0
+var _prev_region_announced: int = -1
 var _prev_kills: int = 0
 var _prev_state_for_meta: String = "menu"
 var _base_vida_max: float = 100.0
@@ -187,6 +196,7 @@ func _physics_process(_delta: float) -> void:
 		_atualizar_aliado_mvp()
 		_tocar_sfx_dos_efeitos()
 		_atualizar_fragmentos_meta(estado_antes)
+		_atualizar_quests_e_narrativa()
 	_espelhar_estado()
 	sync_context()
 
@@ -229,6 +239,10 @@ func _process(delta: float) -> void:
 		return
 	var presentation_delta := minf(delta, 0.1)
 	screen_age += presentation_delta
+	if quest_toast_timer > 0.0:
+		quest_toast_timer = maxf(0.0, quest_toast_timer - presentation_delta)
+	if narrativa_timer > 0.0:
+		narrativa_timer = maxf(0.0, narrativa_timer - presentation_delta)
 	orquestrador.quadro(delta)
 	session.advance_presentation(presentation_delta)
 	_espelhar_estado()
@@ -242,7 +256,9 @@ func _process(delta: float) -> void:
 		var intro_prog: float = clampf(1.0 - (boss_intro_timer / maxf(0.01, boss_intro_duration)), 0.0, 1.0)
 		if intro_prog >= 0.38 and not _boss_intro_landed:
 			_boss_intro_landed = true
-			camera.impulse(Vector2.DOWN, 2.4)
+			var b_kind_intro: String = String(boss_intro_data.get("kind", ""))
+			var imp_forca: float = 3.2 if b_kind_intro == "colosso_de_cinza" else 2.4
+			camera.impulse(Vector2.DOWN, imp_forca)
 			_tocar_sfx(&"sfx_acerto_pesado")
 		if boss_intro_timer <= 0.0:
 			camera.base_zoom = 1.12
@@ -531,6 +547,9 @@ func _aplicar_arma_na_sessao() -> void:
 	session.weapon_id = selected_weapon
 	_prev_kills = 0
 	_prev_effects_count = 0
+	_prev_selos_usados = 0
+	_prev_urns_broken = 0
+	_prev_region_announced = -1
 	if conta_meta != null:
 		conta_meta.nova_run()
 	catalog.data.jogador.vida_max = _base_vida_max
@@ -677,6 +696,61 @@ func _atualizar_fragmentos_meta(estado_antes: String) -> void:
 		conta_meta.creditar(ContaFragmentos.PORTA, 10)
 	elif estado_antes == "jogo" and session.state == "vitoria":
 		conta_meta.creditar(ContaFragmentos.VITORIA, 25)
+
+
+func _aplicar_quests_concluidas(concluidas: Array[Dictionary]) -> void:
+	for q: Dictionary in concluidas:
+		var rec: int = int(q.get("recompensa_frag", 0))
+		if conta_meta != null and rec > 0:
+			conta_meta.creditar(ContaFragmentos.PORTA, rec)
+		quest_toast_timer = 3.2
+		quest_toast_titulo = String(q.get("titulo", "Contrato"))
+		quest_toast_recompensa = rec
+		_tocar_sfx(&"sfx_carta_confirmar")
+
+
+func _atualizar_quests_e_narrativa() -> void:
+	var killed_raw = session.get("last_killed_kinds")
+	if killed_raw is Array and not killed_raw.is_empty():
+		var killed_arr: Array = killed_raw
+		for k_raw in killed_arr:
+			var k: String = String(k_raw)
+			var concluidas: Array[Dictionary] = quests.registrar_abate(k)
+			_aplicar_quests_concluidas(concluidas)
+		killed_arr.clear()
+	var selos_raw = session.get("selos_usados")
+	var selos_agora: int = int(selos_raw) if selos_raw != null else 0
+	if selos_agora > _prev_selos_usados:
+		var diff_selos: int = selos_agora - _prev_selos_usados
+		_prev_selos_usados = selos_agora
+		for _i: int in range(diff_selos):
+			var concluidas_selo: Array[Dictionary] = quests.registrar_selo()
+			_aplicar_quests_concluidas(concluidas_selo)
+		camera.impulse(Vector2.UP, 2.0)
+		_tocar_sfx(&"sfx_acerto_pesado")
+	var urns_raw = session.get("urns_broken_total")
+	var urns_agora: int = int(urns_raw) if urns_raw != null else 0
+	if urns_agora > _prev_urns_broken:
+		var novas_urnas: int = urns_agora - _prev_urns_broken
+		_prev_urns_broken = urns_agora
+		if conta_meta != null:
+			conta_meta.creditar(ContaFragmentos.PORTA, novas_urnas * 3)
+	if bool(session.get("extended_campaign")):
+		var reg_idx_raw = session.get("region_index")
+		var reg_idx: int = int(reg_idx_raw) if reg_idx_raw != null else 0
+		if reg_idx != _prev_region_announced:
+			_prev_region_announced = reg_idx
+			var reg_raw = session.get("current_region")
+			var reg: Dictionary = reg_raw if reg_raw is Dictionary else {}
+			var fala: String = String(reg.get("fala_entrada", ""))
+			if fala.is_empty():
+				fala = String(reg.get("nome", "O Limiar"))
+			narrativa_texto = fala
+			narrativa_timer = 3.6
+			var reg_pilares_raw = reg.get("pilares", null)
+			if reg_pilares_raw is Array and session.data is Dictionary and session.data.has("arena"):
+				var arena_dict: Dictionary = session.data["arena"]
+				arena_dict["pilares"] = reg_pilares_raw
 
 
 func _resetar_intro_chefe() -> void:

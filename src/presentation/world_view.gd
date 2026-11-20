@@ -192,6 +192,17 @@ func _draw() -> void:
 	for index in data.arena.pilares.size():
 		var pillar: Dictionary = data.arena.pilares[index]
 		bodies.append({"type": "pillar", "pos": Vector2(pillar.x, pillar.y), "radius": pillar.r, "order": index})
+	var urns_raw: Variant = session.get("urns")
+	if urns_raw is Array:
+		var urn_list: Array = urns_raw as Array
+		for u_idx: int in range(urn_list.size()):
+			var urn_v: Variant = urn_list[u_idx]
+			if urn_v is Dictionary:
+				var urn_dict: Dictionary = urn_v as Dictionary
+				if float(urn_dict.get("hp", 0.0)) > 0.0:
+					var u_pos_v: Variant = urn_dict.get("pos", Vector2.ZERO)
+					var u_pos: Vector2 = u_pos_v if u_pos_v is Vector2 else Vector2.ZERO
+					bodies.append({"type": "urn", "pos": u_pos, "entity": urn_dict, "radius": float(urn_dict.get("radius", 22.0)), "order": 20 + u_idx})
 	for enemy in session.enemies:
 		if enemy.hp <= 0:
 			continue
@@ -231,6 +242,7 @@ func _draw() -> void:
 	for body in bodies:
 		match body.type:
 			"pillar": _pillar(body.pos, body.radius, int(body.order))
+			"urn": _draw_urn(body.pos, body.entity, t_pres)
 			"player": _player(body.pos, body.entity)
 			"companion": _companion(body.pos)
 			"enemy": _enemy(body.pos, body.entity)
@@ -773,15 +785,47 @@ func _draw_campus(room: Rect2) -> void:
 			draw_arc(z_pos, 42.0, 0, TAU, 32, GOLD if is_focused else BONE, 3.0, true)
 	# Três Mestres junto ao Altar dos Mestres (Halvar, Maren, Oreth)
 	var mestres_pos: Array[Dictionary] = [
-		{"pos": Vector2(885, 315), "cor": Color("e09f5a")},
-		{"pos": Vector2(960, 295), "cor": Color("7dd3fc")},
-		{"pos": Vector2(1035, 315), "cor": Color("b388eb")},
+		{"pos": Vector2(885, 315), "cor": Color("e09f5a"), "id": "halvar"},
+		{"pos": Vector2(960, 295), "cor": Color("7dd3fc"), "id": "maren"},
+		{"pos": Vector2(1035, 315), "cor": Color("b388eb"), "id": "oreth"},
 	]
 	for m: Dictionary in mestres_pos:
 		var mp: Vector2 = m["pos"]
 		draw_circle(mp, 16.0, INK)
 		draw_circle(mp + Vector2(0, -18), 11.0, m["cor"])
 		draw_arc(mp + Vector2(0, -18), 13.0, 0, TAU, 20, BONE, 1.5, true)
+	# Balão de fala flutuante discreto estilo Mark of the Deep sobre o Mestre focado
+	if campus != null and focada == CampusHub.ZONA_MESTRES and not bool(app.get("falar_mestre_ativo")):
+		var fala_atual: Dictionary = campus.fala_mestre_atual() if campus.has_method("fala_mestre_atual") else {}
+		var m_focado_id: String = String(fala_atual.get("id", "halvar"))
+		var bubble_anchor: Vector2 = Vector2(960, 295)
+		for m: Dictionary in mestres_pos:
+			if String(m.get("id", "")) == m_focado_id:
+				bubble_anchor = m["pos"]
+				break
+		var t_camp: float = float(app.session.presentation_time) if app != null and app.session != null else 0.0
+		var bob_y: float = sin(t_camp * 3.0) * 3.5
+		var b_w: float = 216.0
+		var b_h: float = 34.0
+		var b_center: Vector2 = bubble_anchor + Vector2(0.0, -64.0 + bob_y)
+		var b_rect := Rect2(b_center.x - b_w * 0.5, b_center.y - b_h * 0.5, b_w, b_h)
+		var bg_bubble := Color(0.055, 0.062, 0.095, 0.90)
+		var border_bubble := Color(GOLD.r, GOLD.g, GOLD.b, 0.78)
+		draw_rect(b_rect, bg_bubble)
+		draw_rect(b_rect, border_bubble, false, 1.5)
+		var tail_tri := PackedVector2Array([
+			Vector2(b_center.x - 6.0, b_rect.end.y),
+			Vector2(b_center.x + 6.0, b_rect.end.y),
+			Vector2(b_center.x, b_rect.end.y + 8.0),
+		])
+		draw_colored_polygon(tail_tri, bg_bubble)
+		draw_line(tail_tri[0], tail_tri[2], border_bubble, 1.5, true)
+		draw_line(tail_tri[1], tail_tri[2], border_bubble, 1.5, true)
+		var b_font: Font = ThemeDB.fallback_font
+		if b_font != null:
+			var msg: String = "Fale conosco, Iniciado..."
+			draw_string(b_font, Vector2(b_rect.position.x + 1.0, b_center.y + 6.0), msg, HORIZONTAL_ALIGNMENT_CENTER, b_w, 14, Color(INK.r, INK.g, INK.b, 0.92))
+			draw_string(b_font, Vector2(b_rect.position.x, b_center.y + 5.0), msg, HORIZONTAL_ALIGNMENT_CENTER, b_w, 14, BONE)
 	if campus != null:
 		var interp := Engine.get_physics_interpolation_fraction()
 		var p_pos: Vector2 = campus.prev_pos.lerp(campus.pos, interp)
@@ -1131,6 +1175,11 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 				draw_pos += look_vec * (26.0 * slam_t)
 				draw_pos.y += 10.0 * slam_t
 				rot_angle = flip_x * 0.18 * slam_t
+			elif action == "run":
+				var stomp: float = absf(sin(phase_time * 5.2))
+				draw_pos.y -= stomp * 7.0
+				rot_angle = sin(phase_time * 5.2) * 0.055
+				squash = Vector2(1.0 + (1.0 - stomp) * 0.06, 1.0 - (1.0 - stomp) * 0.05)
 		elif is_boss:
 			var is_ranged_boss: bool = String(def.get("comportamento", "")) == "ranged"
 			if enemy.phase == "windup" and progress >= 0.0:
@@ -1163,40 +1212,48 @@ func _enemy(pos: Vector2, enemy: Dictionary) -> void:
 				var m_dir: Vector2 = Vector2.RIGHT.rotated(m_ang)
 				draw_line(m_dir * (radius + 6.0), m_dir * (radius + 20.0), Color(GOLD.r, GOLD.g, GOLD.b, 0.72), 2.5, true)
 			draw_set_transform(Vector2.ZERO)
+		var boss_intro_active: bool = false
+		var boss_intro_p: float = 1.0
 		if is_boss:
 			var intro_raw: Variant = app.get("boss_intro_timer")
 			var boss_intro_t: float = float(intro_raw) if intro_raw != null else 0.0
 			if boss_intro_t > 0.0:
-				var intro_norm: float = clampf(boss_intro_t / 1.8, 0.0, 1.0)
-				var intro_wave: float = 1.0 - intro_norm
-				# Pilar de luz / fenda energética atrás do chefe durante a entrada
-				var beam_h: float = 640.0
-				var beam_w_outer: float = (130.0 + 28.0 * sin(phase_time * 10.0)) * (0.45 + 0.55 * intro_norm)
-				var beam_w_mid: float = beam_w_outer * 0.52
-				var beam_w_core: float = beam_w_outer * 0.16
-				draw_rect(Rect2(pos.x - beam_w_outer * 0.5, pos.y - beam_h, beam_w_outer, beam_h + 18.0), Color(boss_aura.r, boss_aura.g, boss_aura.b, 0.14 * intro_norm))
-				draw_rect(Rect2(pos.x - beam_w_mid * 0.5, pos.y - beam_h, beam_w_mid, beam_h + 12.0), Color(boss_aura.r, boss_aura.g, boss_aura.b, 0.26 * intro_norm))
-				draw_rect(Rect2(pos.x - beam_w_core * 0.5, pos.y - beam_h, beam_w_core, beam_h + 8.0), Color(BONE.r, BONE.g, BONE.b, 0.52 * intro_norm))
-				var rift_pts := PackedVector2Array()
-				for k: int in range(9):
-					var kf: float = float(k) / 8.0
-					var jitter_x: float = sin(phase_time * 19.0 + float(k) * 1.9) * (14.0 * intro_norm)
-					rift_pts.append(Vector2(pos.x + jitter_x, pos.y - kf * beam_h))
-				draw_polyline(rift_pts, Color(BONE.r, BONE.g, BONE.b, 0.65 * intro_norm), 3.0, true)
-				# Anéis de impacto expandindo no chão ao redor do chefe
-				draw_set_transform(pos, 0.0, Vector2(1.0, 0.42))
-				for r_i: int in range(3):
-					var r_cycle: float = fmod(intro_wave * 2.2 + float(r_i) * 0.33, 1.0)
-					var ring_r: float = radius * 0.85 + r_cycle * 185.0
-					var ring_a: float = (1.0 - r_cycle) * 0.85 * intro_norm
-					draw_arc(Vector2.ZERO, ring_r, 0.0, TAU, 48, Color(boss_aura.r, boss_aura.g, boss_aura.b, ring_a), 5.0 * (1.0 - r_cycle * 0.5), true)
-					draw_arc(Vector2.ZERO, ring_r * 0.86, 0.0, TAU, 40, Color(BONE.r, BONE.g, BONE.b, ring_a * 0.72), 2.5, true)
-				draw_set_transform(Vector2.ZERO)
+				boss_intro_active = true
+				var dur_raw: Variant = app.get("boss_intro_duration")
+				var boss_intro_dur: float = maxf(0.1, float(dur_raw) if dur_raw != null else 2.6)
+				boss_intro_p = clampf(1.0 - boss_intro_t / boss_intro_dur, 0.0, 1.0)
+				if kind == "soberano_do_limiar":
+					if boss_intro_p < 0.38:
+						var desc_t: float = clampf(boss_intro_p / 0.38, 0.0, 1.0)
+						draw_pos.y -= (1.0 - desc_t) * 320.0
+						squash = Vector2(lerpf(0.72, 1.0, desc_t), lerpf(1.18, 1.0, desc_t))
+						modulate = Color(0.16, 0.14, 0.20, 0.40 + 0.60 * desc_t).lerp(modulate, desc_t)
+				elif kind == "guardiao_do_rito":
+					if boss_intro_p < 0.38:
+						var form_g: float = clampf((boss_intro_p - 0.26) / 0.12, 0.0, 1.0)
+						modulate.a *= form_g
+				elif kind == "colosso_de_cinza":
+					if boss_intro_p < 0.38:
+						var fall_rem: float = 1.0 - clampf(boss_intro_p / 0.38, 0.0, 1.0)
+						draw_pos.y -= pow(fall_rem, 2.0) * 620.0
+						squash = Vector2(0.86, 1.18)
+						modulate = modulate.lerp(Color(1.45, 0.92, 0.62, modulate.a), 0.55)
+					else:
+						var imp_sq: float = clampf(1.0 - (boss_intro_p - 0.38) / 0.16, 0.0, 1.0)
+						if imp_sq > 0.0:
+							squash = Vector2(1.0 + 0.24 * imp_sq, 1.0 - 0.22 * imp_sq)
+				elif kind == "arconte_da_fenda":
+					var emerge_a: float = clampf((boss_intro_p - 0.08) / 0.42, 0.0, 1.0)
+					modulate.a *= emerge_a
+					draw_pos.y -= 18.0 * sin(boss_intro_p * PI) + 6.0 * sin(phase_time * 3.5)
+				_draw_boss_intro_back(kind, pos, draw_pos, radius, boss_aura, boss_intro_p, phase_time, sprite_kind, anim_name, flip_x, elite_scale, progress)
 			draw_set_transform(pos, 0.0, Vector2(1.0, 0.42))
 			draw_arc(Vector2.ZERO, radius + 14.0, 0, TAU, 48, Color(boss_aura.r, boss_aura.g, boss_aura.b, 0.55), 3.5, true)
 			draw_arc(Vector2.ZERO, radius + 26.0, 0, TAU, 48, Color(boss_aura.r, boss_aura.g, boss_aura.b, 0.22), 2.0, true)
 			draw_set_transform(Vector2.ZERO)
 		_draw_actor_sprite(sprite_kind, anim_name, draw_pos, flip_x, elite_scale, phase_time, progress, modulate, squash, rot_angle)
+		if boss_intro_active:
+			_draw_boss_intro_front(kind, pos, draw_pos, radius, boss_aura, boss_intro_p, phase_time)
 		# Art Bible §3.2 & Lote 02 §3: Anomalia Menor has Magenta emitter ring & dorsal crystal accents
 		if kind == "anomalia_menor":
 			var emitter_pos := pos + Vector2(0, -26 * elite_scale) + look_vec * (22.0 * elite_scale)
@@ -1574,6 +1631,544 @@ func _effect(effect: Dictionary) -> void:
 			draw_colored_polygon(e_cresc, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, alpha * 0.36))
 			draw_arc(e_pos, e_r, ea0, ea1, 24, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, alpha), 6.5, true)
 			draw_arc(e_pos, e_r - 7.0, lerpf(ea0, ea1, 0.3), ea1, 16, Color(BONE.r, BONE.g, BONE.b, alpha * 0.8), 2.5, true)
+		"dmg_num":
+			var d_font: Font = ThemeDB.fallback_font
+			if d_font != null:
+				var d_style: String = String(effect.get("style", effect.get("tag", effect.get("subkind", "normal"))))
+				var is_crit_num: bool = (d_style == "crit") or bool(effect.get("crit", false))
+				var is_heal_num: bool = (d_style == "heal") or bool(effect.get("heal", false))
+				var is_hurt_num: bool = (d_style == "player_hurt") or bool(effect.get("player_hurt", false))
+				var txt: String = String(effect.get("text", ""))
+				if txt.is_empty():
+					var raw_val: float = float(effect.get("value", effect.get("amount", 0.0)))
+					var iv: int = int(roundf(absf(raw_val)))
+					txt = ("+%d" % iv) if is_heal_num else ("%d" % iv)
+				if txt.begins_with("+"):
+					is_heal_num = true
+				var f_size: int = 28 if is_crit_num else (23 if is_hurt_num else (22 if is_heal_num else 20))
+				var f_col: Color = GOLD if is_crit_num else (Color("34d399") if is_heal_num else (Color("fb7185") if is_hurt_num else BONE))
+				var drift_x: float = sin(progress * PI) * float(effect.get("drift_x", 10.0))
+				var rise_y: float = -42.0 - progress * 54.0
+				var t_pos: Vector2 = pos + Vector2(drift_x, rise_y)
+				var num_a: float = clampf(1.0 - maxf(0.0, (progress - 0.55) / 0.45), 0.0, 1.0)
+				var box_w: float = 180.0
+				var draw_x: float = t_pos.x - box_w * 0.5
+				var out_col: Color = Color(INK.r, INK.g, INK.b, num_a * 0.95)
+				draw_string(d_font, Vector2(draw_x - 2.0, t_pos.y), txt, HORIZONTAL_ALIGNMENT_CENTER, box_w, f_size, out_col)
+				draw_string(d_font, Vector2(draw_x + 2.0, t_pos.y), txt, HORIZONTAL_ALIGNMENT_CENTER, box_w, f_size, out_col)
+				draw_string(d_font, Vector2(draw_x, t_pos.y - 2.0), txt, HORIZONTAL_ALIGNMENT_CENTER, box_w, f_size, out_col)
+				draw_string(d_font, Vector2(draw_x, t_pos.y + 2.0), txt, HORIZONTAL_ALIGNMENT_CENTER, box_w, f_size, out_col)
+				draw_string(d_font, Vector2(draw_x, t_pos.y), txt, HORIZONTAL_ALIGNMENT_CENTER, box_w, f_size, Color(f_col.r, f_col.g, f_col.b, num_a))
+		"selo_lamina":
+			var max_r: float = float(effect.get("radius", 260.0))
+			var center_l: Vector2 = pos + Vector2(0.0, -34.0)
+			# Flash dourado central + 8 raios de julgamento
+			draw_circle(center_l, 48.0 * alpha, Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.32))
+			draw_circle(center_l, 22.0 * alpha, Color(1.0, 0.98, 0.88, alpha * 0.85))
+			for ray_i: int in range(8):
+				var r_ang: float = float(ray_i) * (TAU / 8.0) + progress * 1.4
+				var r_dir: Vector2 = Vector2.RIGHT.rotated(r_ang)
+				var r_len: float = max_r * (0.45 + 0.65 * progress)
+				draw_line(center_l + r_dir * 18.0, center_l + r_dir * r_len, Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.88), 5.0 * alpha + 1.5, true)
+				draw_line(center_l + r_dir * 18.0, center_l + r_dir * (r_len * 0.78), Color(BONE.r, BONE.g, BONE.b, alpha * 0.9), 2.0, true)
+			# 3 anéis / crescentes dourados gigantes girando em 360°
+			for ring_i: int in range(3):
+				var rr: float = max_r * (0.56 + float(ring_i) * 0.22) * (0.55 + 0.45 * progress)
+				var base_a: float = progress * (TAU * (1.25 if ring_i % 2 == 0 else -1.1)) + float(ring_i) * 2.1
+				var span: float = PI * 1.25
+				var cresc := PackedVector2Array()
+				var segs_l: int = 18
+				for si: int in range(segs_l + 1):
+					var ts: float = float(si) / float(segs_l)
+					var ai: float = base_a + span * ts
+					cresc.append(center_l + Vector2.RIGHT.rotated(ai) * rr)
+				for si: int in range(segs_l, -1, -1):
+					var ts: float = float(si) / float(segs_l)
+					var ai: float = base_a + span * ts
+					var rin: float = rr * lerpf(0.96, 0.76, sin(ts * PI))
+					cresc.append(center_l + Vector2.RIGHT.rotated(ai) * rin)
+				draw_colored_polygon(cresc, Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.42))
+				draw_arc(center_l, rr, base_a, base_a + span, 28, Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.95), 7.0 - float(ring_i) * 1.2, true)
+				draw_arc(center_l, rr - 5.0, base_a + 0.15, base_a + span, 22, Color(BONE.r, BONE.g, BONE.b, alpha * 0.85), 2.5, true)
+		"selo_ressonancia":
+			var max_r: float = float(effect.get("radius", 260.0))
+			var cyan_r: Color = Color("38bdf8")
+			var cyan_hi: Color = Color("bae6fd")
+			# Vórtice gravitacional ciano-dourado no chão + anel de runas expandindo
+			draw_set_transform(pos, 0.0, Vector2(1.0, 0.56))
+			draw_circle(Vector2.ZERO, max_r * (0.42 + 0.25 * (1.0 - progress)), Color(cyan_r.r, cyan_r.g, cyan_r.b, alpha * 0.14))
+			draw_circle(Vector2.ZERO, 36.0 * (0.6 + 0.4 * alpha), Color(INK.r, INK.g, INK.b, alpha * 0.78))
+			draw_arc(Vector2.ZERO, 38.0, 0.0, TAU, 32, Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.9), 3.0, true)
+			# 6 braços espirais convergindo para o núcleo gravitacional
+			for arm_i: int in range(6):
+				var arm_pts := PackedVector2Array()
+				var arm_base: float = float(arm_i) * (TAU / 6.0) + progress * 4.2
+				for step_i: int in range(10):
+					var tf: float = float(step_i) / 9.0
+					var r_sp: float = lerpf(max_r * 0.95, 20.0, tf) * (1.0 - progress * 0.35)
+					var a_sp: float = arm_base + tf * 2.1
+					arm_pts.append(Vector2.RIGHT.rotated(a_sp) * r_sp)
+				var arm_col: Color = Color(cyan_r.r, cyan_r.g, cyan_r.b, alpha * 0.85) if arm_i % 2 == 0 else Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.80)
+				draw_polyline(arm_pts, arm_col, 4.0, true)
+			# Anel de runas expandindo
+			var rune_r: float = maxf(28.0, max_r * (0.28 + 0.72 * progress))
+			draw_arc(Vector2.ZERO, rune_r, 0.0, TAU, 48, Color(cyan_hi.r, cyan_hi.g, cyan_hi.b, alpha * 0.92), 5.0, true)
+			draw_arc(Vector2.ZERO, rune_r * 0.84, 0.0, TAU, 40, Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.85), 3.0, true)
+			for rn_i: int in range(12):
+				var rn_a: float = float(rn_i) * (TAU / 12.0) - progress * 1.6
+				var rn_d: Vector2 = Vector2.RIGHT.rotated(rn_a)
+				draw_line(rn_d * (rune_r * 0.82), rn_d * (rune_r * 1.04), Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.9), 3.0, true)
+			draw_set_transform(Vector2.ZERO)
+		"selo_pactos":
+			var max_r: float = float(effect.get("radius", 240.0))
+			var pact_viol: Color = Color("9333ea")
+			# Selo sombrio de pacto no chão
+			draw_set_transform(pos, 0.0, Vector2(1.0, 0.48))
+			var seal_r: float = max_r * (0.45 + 0.55 * clampf(progress * 1.8, 0.0, 1.0))
+			draw_circle(Vector2.ZERO, seal_r, Color(INK.r, INK.g, INK.b, alpha * 0.58))
+			draw_arc(Vector2.ZERO, seal_r, 0.0, TAU, 48, Color(pact_viol.r, pact_viol.g, pact_viol.b, alpha * 0.92), 5.0, true)
+			draw_arc(Vector2.ZERO, seal_r * 0.78, 0.0, TAU, 40, Color(BONE.r, BONE.g, BONE.b, alpha * 0.72), 2.5, true)
+			for st_i: int in range(5):
+				var a0: float = float(st_i) * (TAU / 5.0) + progress * 0.9
+				var a1: float = float((st_i + 2) % 5) * (TAU / 5.0) + progress * 0.9
+				draw_line(Vector2.RIGHT.rotated(a0) * (seal_r * 0.88), Vector2.RIGHT.rotated(a1) * (seal_r * 0.88), Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, alpha * 0.78), 3.0, true)
+			draw_set_transform(Vector2.ZERO)
+			# 3 faixas negras em leque varrendo à frente
+			var base_p: float = direction.angle()
+			var fan_origin: Vector2 = pos + Vector2(0.0, -32.0)
+			var fan_offsets: Array[float] = [-0.46, 0.0, 0.46]
+			for f_idx: int in range(3):
+				var f_ang: float = base_p + fan_offsets[f_idx]
+				var f_dir: Vector2 = Vector2.RIGHT.rotated(f_ang)
+				var f_perp: Vector2 = f_dir.orthogonal()
+				var reach: float = max_r * (0.35 + 0.85 * clampf(progress * 1.5, 0.0, 1.0))
+				var ribbon := PackedVector2Array([
+					fan_origin - f_perp * 6.0,
+					fan_origin + f_dir * (reach * 0.65) - f_perp * 20.0,
+					fan_origin + f_dir * reach,
+					fan_origin + f_dir * (reach * 0.65) + f_perp * 20.0,
+					fan_origin + f_perp * 6.0,
+				])
+				draw_colored_polygon(ribbon, Color(INK.r, INK.g, INK.b, alpha * 0.88))
+				draw_polyline(_closed(ribbon), Color(BONE.r, BONE.g, BONE.b, alpha * 0.82), 3.0, true)
+				draw_line(fan_origin, fan_origin + f_dir * reach, Color(pact_viol.r, pact_viol.g, pact_viol.b, alpha * 0.9), 3.5, true)
+		"selo_guardiao":
+			var max_r: float = float(effect.get("radius", 240.0))
+			var dome_r: float = maxf(32.0, max_r * (0.28 + 0.72 * clampf(progress * 1.4, 0.0, 1.0)))
+			var dome_c: Vector2 = pos + Vector2(0.0, -28.0)
+			# Ondas sísmicas douradas no piso
+			draw_set_transform(pos, 0.0, Vector2(1.0, 0.46))
+			var w1_r: float = maxf(24.0, max_r * (0.25 + 0.95 * progress))
+			var w2_r: float = maxf(18.0, max_r * (0.15 + 0.70 * progress))
+			draw_arc(Vector2.ZERO, w1_r, 0.0, TAU, 48, Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.95), 8.0 * alpha + 2.0, true)
+			draw_arc(Vector2.ZERO, w2_r, 0.0, TAU, 40, Color(BONE.r, BONE.g, BONE.b, alpha * 0.80), 4.0, true)
+			draw_set_transform(Vector2.ZERO)
+			# Domo / escudo hexagonal dourado expandindo
+			var hex_outer := PackedVector2Array()
+			var hex_inner := PackedVector2Array()
+			for hi: int in range(6):
+				var ha: float = float(hi) * (TAU / 6.0) - PI * 0.5 + progress * 0.35
+				var hd: Vector2 = Vector2(cos(ha), sin(ha) * 0.82)
+				hex_outer.append(dome_c + hd * dome_r)
+				hex_inner.append(dome_c + hd * (dome_r * 0.62))
+			draw_colored_polygon(hex_outer, Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.18))
+			draw_polyline(_closed(hex_outer), Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.95), 6.5, true)
+			draw_polyline(_closed(hex_inner), Color(BONE.r, BONE.g, BONE.b, alpha * 0.80), 3.0, true)
+			for hi: int in range(6):
+				draw_line(hex_inner[hi], hex_outer[hi], Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.72), 2.5, true)
+		"selo_veu":
+			var viol_out: Color = Color("7c3aed")
+			var viol_mid: Color = Color("a855f7")
+			var cyan_core: Color = Color("7dd3fc")
+			var pts := PackedVector2Array()
+			pts.append(pos + Vector2(0.0, -34.0))
+			var targets_raw: Variant = effect.get("targets", [])
+			if targets_raw is Array:
+				var t_arr: Array = targets_raw as Array
+				for tv: Variant in t_arr:
+					if tv is Vector2:
+						pts.append((tv as Vector2) + Vector2(0.0, -34.0))
+					elif tv is Dictionary:
+						var td: Dictionary = tv as Dictionary
+						var tp_v: Variant = td.get("pos", Vector2.ZERO)
+						if tp_v is Vector2:
+							pts.append((tp_v as Vector2) + Vector2(0.0, -34.0))
+			if pts.size() < 2:
+				var f_dir: Vector2 = direction.normalized() if direction != Vector2.ZERO else Vector2.RIGHT
+				var f_perp: Vector2 = f_dir.orthogonal()
+				pts.append(pos + Vector2(0.0, -34.0) + f_dir * 95.0 + f_perp * 55.0)
+				pts.append(pos + Vector2(0.0, -34.0) + f_dir * 190.0 - f_perp * 55.0)
+				pts.append(pos + Vector2(0.0, -34.0) + f_dir * 290.0 + f_perp * 22.0)
+			# Raios de corte sombrio violeta-ciano em zigue-zague conectando todos os alvos
+			for seg_i: int in range(pts.size() - 1):
+				var p_a: Vector2 = pts[seg_i]
+				var p_b: Vector2 = pts[seg_i + 1]
+				var seg_v: Vector2 = p_b - p_a
+				var seg_p: Vector2 = seg_v.orthogonal().normalized() if seg_v.length_squared() > 1.0 else Vector2.UP
+				var jag := PackedVector2Array([
+					p_a,
+					p_a.lerp(p_b, 0.32) + seg_p * (16.0 if seg_i % 2 == 0 else -16.0),
+					p_a.lerp(p_b, 0.68) - seg_p * (14.0 if seg_i % 2 == 0 else -14.0),
+					p_b,
+				])
+				draw_polyline(jag, Color(viol_out.r, viol_out.g, viol_out.b, alpha * 0.65), 14.0 * alpha + 3.0, true)
+				draw_polyline(jag, Color(viol_mid.r, viol_mid.g, viol_mid.b, alpha * 0.95), 7.0 * alpha + 2.0, true)
+				draw_polyline(jag, Color(cyan_core.r, cyan_core.g, cyan_core.b, alpha), 3.0, true)
+				# Cruz de corte sombrio em cada alvo atingido
+				var slash_r: float = 28.0 + 18.0 * progress
+				draw_line(p_b + Vector2(-slash_r, -slash_r * 0.65), p_b + Vector2(slash_r, slash_r * 0.65), Color(cyan_core.r, cyan_core.g, cyan_core.b, alpha), 4.0, true)
+				draw_line(p_b + Vector2(-slash_r, slash_r * 0.65), p_b + Vector2(slash_r, -slash_r * 0.65), Color(viol_mid.r, viol_mid.g, viol_mid.b, alpha * 0.92), 4.0, true)
+				draw_circle(p_b, 12.0 * alpha, Color(1.0, 1.0, 1.0, alpha * 0.9))
+		"urn_break":
+			var u_kind: String = String(effect.get("urn_kind", effect.get("subkind", effect.get("drop", "heal"))))
+			var u_col: Color = Color("34d399") if u_kind == "heal" else GOLD
+			var u_hi: Color = Color("a7f3d0") if u_kind == "heal" else Color("fef08a")
+			# Brilho de cura / fragmento subindo
+			draw_set_transform(pos, 0.0, Vector2(1.0, 0.48))
+			draw_arc(Vector2.ZERO, 16.0 + 46.0 * progress, 0.0, TAU, 28, Color(u_col.r, u_col.g, u_col.b, alpha * 0.85), 3.5, true)
+			draw_set_transform(Vector2.ZERO)
+			draw_rect(Rect2(pos.x - 14.0 * alpha, pos.y - 95.0 * progress - 24.0, 28.0 * alpha, 75.0 * alpha), Color(u_col.r, u_col.g, u_col.b, alpha * 0.28))
+			for orb_i: int in range(5):
+				var ox: float = sin(float(orb_i) * 1.9 + progress * 6.0) * (10.0 + float(orb_i) * 3.0)
+				var oy: float = -12.0 - progress * (52.0 + float(orb_i % 3) * 24.0)
+				draw_circle(pos + Vector2(ox, oy), 4.2 * alpha + 1.2, Color(u_hi.r, u_hi.g, u_hi.b, alpha * 0.95))
+			# 8 estilhaços de cerâmica voando e caindo
+			for sh_i: int in range(8):
+				var s_ang: float = float(sh_i) * (TAU / 8.0) + 0.35
+				var s_spd: float = 36.0 + float((sh_i * 5) % 3) * 18.0
+				var sx: float = cos(s_ang) * s_spd * progress
+				var sy: float = sin(s_ang) * s_spd * 0.45 * progress - 44.0 * sin(progress * PI) + 12.0 * progress
+				var sp: Vector2 = pos + Vector2(sx, sy - 10.0)
+				var sz: float = (5.5 - 2.0 * progress)
+				var shard := PackedVector2Array([
+					sp + Vector2(-sz, -sz * 0.5),
+					sp + Vector2(sz * 0.8, -sz * 0.9),
+					sp + Vector2(sz, sz * 0.7),
+					sp + Vector2(-sz * 0.6, sz * 0.9),
+				])
+				draw_colored_polygon(shard, Color("262c3b") if sh_i % 2 == 0 else Color("1a1f2b"))
+				draw_polyline(_closed(shard), Color(INK.r, INK.g, INK.b, alpha), 2.0, true)
+
+func _draw_urn(pos: Vector2, urn: Dictionary, t_pres: float) -> void:
+	var u_kind: String = String(urn.get("kind", "heal"))
+	var glow_col: Color = Color("34d399") if u_kind == "heal" else GOLD
+	var glow_hi: Color = Color("a7f3d0") if u_kind == "heal" else Color("fef08a")
+	var pulse: float = 0.5 + 0.5 * sin(t_pres * 3.4 + pos.x * 0.02 + pos.y * 0.015)
+	# Halo luminoso no piso
+	draw_set_transform(pos + Vector2(0.0, 4.0), 0.0, Vector2(1.0, 0.50))
+	draw_circle(Vector2.ZERO, 34.0 + pulse * 6.0, Color(glow_col.r, glow_col.g, glow_col.b, 0.14 + pulse * 0.07))
+	draw_set_transform(Vector2.ZERO)
+	# Corpo cerâmico estilizado em nanquim
+	var body := PackedVector2Array([
+		pos + Vector2(-10.0, 3.0),
+		pos + Vector2(-17.0, -13.0),
+		pos + Vector2(-13.0, -31.0),
+		pos + Vector2(-7.5, -41.0),
+		pos + Vector2(7.5, -41.0),
+		pos + Vector2(13.0, -31.0),
+		pos + Vector2(17.0, -13.0),
+		pos + Vector2(10.0, 3.0),
+	])
+	draw_colored_polygon(body, Color("1d2230"))
+	draw_colored_polygon(PackedVector2Array([
+		pos + Vector2(-12.0, -13.0),
+		pos + Vector2(-8.5, -29.0),
+		pos + Vector2(-1.5, -29.0),
+		pos + Vector2(-3.5, -11.0),
+	]), Color("31394d"))
+	draw_polyline(_closed(body), INK, 3.5, true)
+	# Faixa rúnica brilhante + bocal luminoso
+	draw_line(pos + Vector2(-14.0, -20.0), pos + Vector2(14.0, -20.0), Color(glow_col.r, glow_col.g, glow_col.b, 0.65 + pulse * 0.30), 2.5, true)
+	draw_rect(Rect2(pos + Vector2(-10.5, -46.0), Vector2(21.0, 6.0)), Color("2b3244"))
+	draw_rect(Rect2(pos + Vector2(-10.5, -46.0), Vector2(21.0, 6.0)), INK, false, 2.5)
+	draw_circle(pos + Vector2(0.0, -45.0), 14.0 + pulse * 3.5, Color(glow_col.r, glow_col.g, glow_col.b, 0.22 + pulse * 0.12))
+	draw_circle(pos + Vector2(0.0, -45.0), 6.0, Color(glow_col.r, glow_col.g, glow_col.b, 0.85 + pulse * 0.15))
+	draw_circle(pos + Vector2(0.0, -45.0), 2.8, glow_hi)
+
+func _draw_boss_intro_back(kind: String, pos: Vector2, draw_pos: Vector2, radius: float, boss_aura: Color, p: float, phase_time: float, sprite_kind: String, anim_name: String, flip_x: float, elite_scale: float, progress: float) -> void:
+	var intro_fade: float = clampf(1.0 - maxf(0.0, (p - 0.78) / 0.22), 0.0, 1.0)
+	match kind:
+		"soberano_do_limiar":
+			# Selo ritual dourado gigante no chão em 2 círculos rúnicos contra-rotativos
+			var seal_open: float = clampf(p * 3.2, 0.15, 1.0)
+			var r_out: float = 192.0 * seal_open
+			var r_in: float = 132.0 * seal_open
+			draw_set_transform(pos, 0.0, Vector2(1.0, 0.44))
+			draw_circle(Vector2.ZERO, r_out, Color(GOLD.r, GOLD.g, GOLD.b, 0.12 * intro_fade))
+			draw_arc(Vector2.ZERO, r_out, 0.0, TAU, 56, Color(GOLD.r, GOLD.g, GOLD.b, 0.90 * intro_fade), 4.5, true)
+			draw_arc(Vector2.ZERO, r_in, 0.0, TAU, 48, Color(BONE.r, BONE.g, BONE.b, 0.75 * intro_fade), 3.0, true)
+			for i: int in range(8):
+				var a_cw: float = float(i) * (TAU / 8.0) + p * 2.8
+				var a_ccw: float = float(i) * (TAU / 8.0) - p * 3.6
+				var d_cw: Vector2 = Vector2.RIGHT.rotated(a_cw)
+				var d_ccw: Vector2 = Vector2.RIGHT.rotated(a_ccw)
+				draw_line(d_cw * (r_out * 0.86), d_cw * (r_out * 1.06), Color(GOLD.r, GOLD.g, GOLD.b, 0.90 * intro_fade), 3.5, true)
+				draw_line(d_ccw * (r_in * 0.78), d_ccw * (r_in * 1.04), Color(BONE.r, BONE.g, BONE.b, 0.80 * intro_fade), 2.5, true)
+			draw_set_transform(Vector2.ZERO)
+			# 6 pilares de fogo dourado erguendo em círculo ao redor dele
+			var pillar_h: float = 270.0 * clampf(p * 2.9, 0.0, 1.0) * intro_fade
+			for pi: int in range(6):
+				var p_ang: float = float(pi) * (TAU / 6.0) + p * 0.45
+				var p_base: Vector2 = pos + Vector2(cos(p_ang) * 155.0, sin(p_ang) * 68.0)
+				var sway: float = sin(phase_time * 9.0 + float(pi) * 1.3) * 7.0
+				var flame_out := PackedVector2Array([
+					p_base + Vector2(-18.0, 4.0),
+					p_base + Vector2(-10.0 + sway * 0.5, -pillar_h * 0.6),
+					p_base + Vector2(sway, -pillar_h),
+					p_base + Vector2(10.0 + sway * 0.5, -pillar_h * 0.6),
+					p_base + Vector2(18.0, 4.0),
+				])
+				draw_colored_polygon(flame_out, Color(GOLD.r, GOLD.g, GOLD.b, 0.34 * intro_fade))
+				draw_line(p_base, p_base + Vector2(sway, -pillar_h * 0.92), Color(GOLD.r, GOLD.g, GOLD.b, 0.78 * intro_fade), 9.0, true)
+				draw_line(p_base, p_base + Vector2(sway * 0.7, -pillar_h * 0.78), Color(1.0, 0.98, 0.88, 0.88 * intro_fade), 3.5, true)
+		"guardiao_do_rito":
+			# Hexagrama arcano magenta girando no chão
+			var hex_r: float = 178.0 * clampf(p * 3.0, 0.2, 1.0)
+			var hex_rot: float = p * 2.4
+			draw_set_transform(pos, 0.0, Vector2(1.0, 0.46))
+			draw_circle(Vector2.ZERO, hex_r, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, 0.12 * intro_fade))
+			draw_arc(Vector2.ZERO, hex_r, 0.0, TAU, 56, Color(MAGENTA_BRIGHT.r, MAGENTA_BRIGHT.g, MAGENTA_BRIGHT.b, 0.88 * intro_fade), 4.0, true)
+			draw_arc(Vector2.ZERO, hex_r * 0.84, 0.0, TAU, 48, Color(GOLD.r, GOLD.g, GOLD.b, 0.65 * intro_fade), 2.0, true)
+			var tri_a := PackedVector2Array()
+			var tri_b := PackedVector2Array()
+			for ti: int in range(3):
+				var aa: float = hex_rot + float(ti) * (TAU / 3.0)
+				var ab: float = hex_rot + float(ti) * (TAU / 3.0) + PI / 3.0
+				tri_a.append(Vector2.RIGHT.rotated(aa) * (hex_r * 0.94))
+				tri_b.append(Vector2.RIGHT.rotated(ab) * (hex_r * 0.94))
+			draw_polyline(_closed(tri_a), Color(MAGENTA_BRIGHT.r, MAGENTA_BRIGHT.g, MAGENTA_BRIGHT.b, 0.92 * intro_fade), 3.5, true)
+			draw_polyline(_closed(tri_b), Color(GOLD.r, GOLD.g, GOLD.b, 0.85 * intro_fade), 3.0, true)
+			draw_set_transform(Vector2.ZERO)
+			# 3 ecos/clones translúcidos convergindo em espiral de 3 direções (120°) até p == 0.38
+			if p < 0.38:
+				var conv_t: float = clampf(p / 0.38, 0.0, 1.0)
+				var rem_c: float = 1.0 - conv_t
+				for ei: int in range(3):
+					var e_ang: float = float(ei) * (TAU / 3.0) + conv_t * 2.6
+					var e_dist: float = rem_c * 245.0
+					var e_pos: Vector2 = pos + Vector2(cos(e_ang) * e_dist, sin(e_ang) * e_dist * 0.58)
+					var trail_ang: float = e_ang - 0.38
+					var trail_pos: Vector2 = pos + Vector2(cos(trail_ang) * (e_dist + 42.0), sin(trail_ang) * (e_dist + 42.0) * 0.58)
+					draw_line(trail_pos + Vector2(0.0, -45.0), e_pos + Vector2(0.0, -45.0), Color(MAGENTA_BRIGHT.r, MAGENTA_BRIGHT.g, MAGENTA_BRIGHT.b, 0.45), 8.0, true)
+					var echo_mod := Color(MAGENTA_BRIGHT.r, MAGENTA_BRIGHT.g, MAGENTA_BRIGHT.b, 0.38 + 0.35 * conv_t)
+					_draw_actor_sprite(sprite_kind, anim_name, e_pos, flip_x, elite_scale * (0.85 + 0.15 * conv_t), phase_time, progress, echo_mod)
+		"colosso_de_cinza":
+			var brasa_c: Color = Color("e86a2c")
+			var magma_hi: Color = Color("ffae52")
+			if p < 0.38:
+				var fall_t: float = clampf(p / 0.38, 0.0, 1.0)
+				# Sombra gigante crescendo no chão sob alvo incandescente
+				draw_set_transform(pos, 0.0, Vector2(1.0, 0.44))
+				var sh_r: float = lerpf(32.0, 138.0, fall_t)
+				draw_circle(Vector2.ZERO, sh_r, Color(INK.r, INK.g, INK.b, 0.35 + 0.48 * fall_t))
+				draw_arc(Vector2.ZERO, lerpf(170.0, 68.0, fall_t), 0.0, TAU, 44, Color(brasa_c.r, brasa_c.g, brasa_c.b, 0.45 + 0.50 * fall_t), 5.0, true)
+				draw_arc(Vector2.ZERO, lerpf(125.0, 42.0, fall_t), 0.0, TAU, 36, Color(magma_hi.r, magma_hi.g, magma_hi.b, 0.55 + 0.45 * fall_t), 3.0, true)
+				draw_set_transform(Vector2.ZERO)
+				# Rastro flamejante de meteoro atrás do Colosso despencando
+				var flame_cone := PackedVector2Array([
+					draw_pos + Vector2(-62.0, -24.0),
+					draw_pos + Vector2(-24.0, -290.0),
+					draw_pos + Vector2(0.0, -370.0),
+					draw_pos + Vector2(24.0, -290.0),
+					draw_pos + Vector2(62.0, -24.0),
+				])
+				draw_colored_polygon(flame_cone, Color(brasa_c.r, brasa_c.g, brasa_c.b, 0.46))
+				var inner_cone := PackedVector2Array([
+					draw_pos + Vector2(-34.0, -20.0),
+					draw_pos + Vector2(0.0, -260.0),
+					draw_pos + Vector2(34.0, -20.0),
+				])
+				draw_colored_polygon(inner_cone, Color(magma_hi.r, magma_hi.g, magma_hi.b, 0.72))
+				for tr_i: int in range(6):
+					var tx: float = (float(tr_i) - 2.5) * 22.0
+					var ty_top: float = -150.0 - float((tr_i * 7) % 3) * 65.0
+					draw_line(draw_pos + Vector2(tx, -25.0), draw_pos + Vector2(tx * 0.4, ty_top), Color(1.0, 0.92, 0.65, 0.85), 4.0, true)
+			else:
+				# Cratera gigante de lava/magma rachando o piso
+				var imp_t: float = clampf((p - 0.38) / 0.62, 0.0, 1.0)
+				var crater_a: float = clampf(1.0 - maxf(0.0, (imp_t - 0.62) / 0.38), 0.0, 1.0)
+				draw_set_transform(pos, 0.0, Vector2(1.0, 0.48))
+				draw_circle(Vector2.ZERO, 118.0, Color(INK.r, INK.g, INK.b, 0.76 * crater_a))
+				draw_circle(Vector2.ZERO, 82.0, Color(brasa_c.r, brasa_c.g, brasa_c.b, 0.58 * crater_a))
+				draw_circle(Vector2.ZERO, 44.0, Color(magma_hi.r, magma_hi.g, magma_hi.b, 0.82 * crater_a))
+				draw_set_transform(Vector2.ZERO)
+				for cr_i: int in range(10):
+					var c_ang: float = float(cr_i) * (TAU / 10.0) + 0.18
+					var c_dir: Vector2 = Vector2.RIGHT.rotated(c_ang)
+					var c_len: float = (130.0 + float(cr_i % 3) * 38.0) * clampf(imp_t * 5.0, 0.3, 1.0)
+					var c_mid: Vector2 = pos + Vector2(c_dir.x * c_len * 0.55, c_dir.y * c_len * 0.55 * 0.50) + Vector2(0.0, 10.0 if cr_i % 2 == 0 else -10.0)
+					var c_tip: Vector2 = pos + Vector2(c_dir.x * c_len, c_dir.y * c_len * 0.50)
+					draw_line(pos, c_mid, Color(INK.r, INK.g, INK.b, 0.92 * crater_a), 8.0, true)
+					draw_line(c_mid, c_tip, Color(INK.r, INK.g, INK.b, 0.82 * crater_a), 5.0, true)
+					draw_line(pos, c_mid, Color(brasa_c.r, brasa_c.g, brasa_c.b, crater_a), 4.0, true)
+					draw_line(c_mid, c_tip, Color(magma_hi.r, magma_hi.g, magma_hi.b, 0.92 * crater_a), 2.5, true)
+		"arconte_da_fenda":
+			# Fenda Vertical na Realidade (ciano/violeta/branco) abrindo atrás do spawn
+			var open_w: float = clampf(p / 0.34, 0.0, 1.0) * intro_fade
+			var rift_h: float = 285.0 * clampf(p * 3.5, 0.15, 1.0)
+			var rift_c: Vector2 = pos + Vector2(0.0, -110.0)
+			var viol_r: Color = Color("7c3aed")
+			var cyan_r: Color = Color("38bdf8")
+			var outer_w: float = 64.0 * open_w + sin(phase_time * 12.0) * 4.0 * open_w
+			var mid_w: float = 34.0 * open_w
+			var core_w: float = 12.0 * open_w
+			var rift_out := PackedVector2Array([
+				rift_c + Vector2(0.0, -rift_h * 0.56),
+				rift_c + Vector2(outer_w * 0.72, -rift_h * 0.22),
+				rift_c + Vector2(outer_w, 0.0),
+				rift_c + Vector2(outer_w * 0.68, rift_h * 0.28),
+				rift_c + Vector2(0.0, rift_h * 0.52),
+				rift_c + Vector2(-outer_w * 0.68, rift_h * 0.28),
+				rift_c + Vector2(-outer_w, 0.0),
+				rift_c + Vector2(-outer_w * 0.72, -rift_h * 0.22),
+			])
+			draw_colored_polygon(rift_out, Color(viol_r.r, viol_r.g, viol_r.b, 0.42 * intro_fade))
+			var rift_mid := PackedVector2Array([
+				rift_c + Vector2(0.0, -rift_h * 0.50),
+				rift_c + Vector2(mid_w, 0.0),
+				rift_c + Vector2(0.0, rift_h * 0.46),
+				rift_c + Vector2(-mid_w, 0.0),
+			])
+			draw_colored_polygon(rift_mid, Color(cyan_r.r, cyan_r.g, cyan_r.b, 0.72 * intro_fade))
+			var rift_core := PackedVector2Array([
+				rift_c + Vector2(0.0, -rift_h * 0.42),
+				rift_c + Vector2(core_w, 0.0),
+				rift_c + Vector2(0.0, rift_h * 0.38),
+				rift_c + Vector2(-core_w, 0.0),
+			])
+			draw_colored_polygon(rift_core, Color(0.95, 0.99, 1.0, 0.95 * intro_fade))
+			# 12 partículas de luz sendo sugadas para dentro da fenda (p < 0.42)
+			if p < 0.45:
+				var suck_t: float = clampf(p / 0.45, 0.0, 1.0)
+				for pt_i: int in range(12):
+					var pt_ang: float = float(pt_i) * (TAU / 12.0) + suck_t * 1.4
+					var start_d: float = 175.0 + float((pt_i * 7) % 3) * 48.0
+					var cur_d: float = lerpf(start_d, 8.0, suck_t)
+					var prev_d: float = lerpf(start_d, 18.0, maxf(0.0, suck_t - 0.14))
+					var p_now: Vector2 = rift_c + Vector2(cos(pt_ang) * cur_d, sin(pt_ang) * cur_d * 0.78)
+					var p_prev: Vector2 = rift_c + Vector2(cos(pt_ang - 0.18) * prev_d, sin(pt_ang - 0.18) * prev_d * 0.78)
+					var pt_col: Color = cyan_r if pt_i % 2 == 0 else Color("c4b5fd")
+					draw_line(p_prev, p_now, Color(pt_col.r, pt_col.g, pt_col.b, 0.85 * (1.0 - suck_t * 0.4)), 3.0, true)
+					draw_circle(p_now, 4.0 * (1.0 - suck_t * 0.3), Color(1.0, 1.0, 1.0, 0.9))
+		_:
+			# Fallback discreto para chefes genéricos
+			var beam_h: float = 520.0
+			var beam_w: float = 96.0 * intro_fade
+			draw_rect(Rect2(pos.x - beam_w * 0.5, pos.y - beam_h, beam_w, beam_h + 12.0), Color(boss_aura.r, boss_aura.g, boss_aura.b, 0.22 * intro_fade))
+			draw_set_transform(pos, 0.0, Vector2(1.0, 0.42))
+			draw_arc(Vector2.ZERO, radius + 160.0 * p, 0.0, TAU, 44, Color(boss_aura.r, boss_aura.g, boss_aura.b, 0.80 * intro_fade), 4.0, true)
+			draw_set_transform(Vector2.ZERO)
+
+func _draw_boss_intro_front(kind: String, pos: Vector2, _draw_pos: Vector2, radius: float, _boss_aura: Color, p: float, phase_time: float) -> void:
+	var intro_fade: float = clampf(1.0 - maxf(0.0, (p - 0.78) / 0.22), 0.0, 1.0)
+	match kind:
+		"soberano_do_limiar":
+			# Ao aterrissar (p >= 0.38): onda dourada + correntes luminosas rompendo
+			if p >= 0.38:
+				var burst_t: float = clampf((p - 0.38) / 0.62, 0.0, 1.0)
+				var burst_a: float = clampf(1.0 - burst_t, 0.0, 1.0)
+				draw_set_transform(pos, 0.0, Vector2(1.0, 0.44))
+				var wave_r: float = radius * 0.8 + burst_t * 270.0
+				draw_arc(Vector2.ZERO, wave_r, 0.0, TAU, 56, Color(GOLD.r, GOLD.g, GOLD.b, burst_a * 0.95), 8.0 * burst_a + 2.0, true)
+				draw_arc(Vector2.ZERO, wave_r * 0.82, 0.0, TAU, 48, Color(BONE.r, BONE.g, BONE.b, burst_a * 0.85), 4.0, true)
+				draw_set_transform(Vector2.ZERO)
+				# 6 correntes luminosas rompendo e voando para fora
+				var chain_orig: Vector2 = pos + Vector2(0.0, -52.0)
+				for ci: int in range(6):
+					var c_ang: float = float(ci) * (TAU / 6.0) + 0.25
+					var c_dir: Vector2 = Vector2.RIGHT.rotated(c_ang)
+					var c_perp: Vector2 = c_dir.orthogonal()
+					for link_i: int in range(4):
+						var dist_l: float = 34.0 + float(link_i) * 26.0 + burst_t * (115.0 + float(link_i) * 32.0)
+						var drop_y: float = burst_t * burst_t * (38.0 + float(link_i) * 14.0)
+						var l_pos: Vector2 = chain_orig + c_dir * dist_l + Vector2(0.0, drop_y)
+						var l_a: Vector2 = l_pos - c_dir * 9.0
+						var l_b: Vector2 = l_pos + c_dir * 9.0
+						draw_line(l_a + c_perp * 3.5, l_b + c_perp * 3.5, Color(GOLD.r, GOLD.g, GOLD.b, burst_a * 0.95), 3.0, true)
+						draw_line(l_a - c_perp * 3.5, l_b - c_perp * 3.5, Color(BONE.r, BONE.g, BONE.b, burst_a * 0.90), 2.2, true)
+		"guardiao_do_rito":
+			# Explosão de relâmpagos/arcos elétricos magenta-dourados ao fundir (p >= 0.38)
+			if p >= 0.38:
+				var fuse_t: float = clampf((p - 0.38) / 0.62, 0.0, 1.0)
+				var fuse_a: float = clampf(1.0 - fuse_t, 0.0, 1.0)
+				var f_center: Vector2 = pos + Vector2(0.0, -48.0)
+				draw_circle(f_center, 85.0 * fuse_a, Color(MAGENTA_BRIGHT.r, MAGENTA_BRIGHT.g, MAGENTA_BRIGHT.b, fuse_a * 0.34))
+				draw_circle(f_center, 36.0 * fuse_a, Color(1.0, 0.96, 0.90, fuse_a * 0.90))
+				draw_set_transform(pos, 0.0, Vector2(1.0, 0.46))
+				draw_arc(Vector2.ZERO, 40.0 + fuse_t * 250.0, 0.0, TAU, 52, Color(MAGENTA_BRIGHT.r, MAGENTA_BRIGHT.g, MAGENTA_BRIGHT.b, fuse_a * 0.92), 7.0 * fuse_a + 1.5, true)
+				draw_set_transform(Vector2.ZERO)
+				for li: int in range(8):
+					var l_ang: float = float(li) * (TAU / 8.0) + 0.15
+					var l_dir: Vector2 = Vector2.RIGHT.rotated(l_ang)
+					var l_perp: Vector2 = l_dir.orthogonal()
+					var max_len: float = 155.0 + 105.0 * fuse_t
+					var bolt := PackedVector2Array()
+					for seg: int in range(6):
+						var sf: float = float(seg) / 5.0
+						var jag: float = 0.0 if (seg == 0 or seg == 5) else sin(phase_time * 34.0 + float(li) * 2.3 + float(seg) * 1.9) * 18.0
+						bolt.append(f_center + l_dir * (max_len * sf) + l_perp * jag)
+					var arc_col: Color = Color(MAGENTA_BRIGHT.r, MAGENTA_BRIGHT.g, MAGENTA_BRIGHT.b, fuse_a * 0.95) if li % 2 == 0 else Color(GOLD.r, GOLD.g, GOLD.b, fuse_a * 0.95)
+					draw_polyline(bolt, arc_col, 4.5 * fuse_a + 1.5, true)
+					draw_polyline(bolt, Color(1.0, 0.96, 1.0, fuse_a * 0.85), 1.8, true)
+		"colosso_de_cinza":
+			# Ao esmagar o chão (p >= 0.38): dupla onda sísmica laranja + 14 brasas/pedras saltando
+			if p >= 0.38:
+				var imp_t: float = clampf((p - 0.38) / 0.62, 0.0, 1.0)
+				var imp_a: float = clampf(1.0 - imp_t, 0.0, 1.0)
+				var brasa_c: Color = Color("e86a2c")
+				var magma_hi: Color = Color("ffae52")
+				draw_set_transform(pos, 0.0, Vector2(1.0, 0.46))
+				var w1_t: float = clampf(imp_t * 1.35, 0.0, 1.0)
+				var w2_t: float = clampf((imp_t - 0.14) * 1.35, 0.0, 1.0)
+				if w1_t < 1.0:
+					var w1_a: float = 1.0 - w1_t
+					draw_arc(Vector2.ZERO, 42.0 + w1_t * 290.0, 0.0, TAU, 56, Color(brasa_c.r, brasa_c.g, brasa_c.b, w1_a * 0.95), 10.0 * w1_a + 2.0, true)
+				if w2_t > 0.0 and w2_t < 1.0:
+					var w2_a: float = 1.0 - w2_t
+					draw_arc(Vector2.ZERO, 36.0 + w2_t * 255.0, 0.0, TAU, 48, Color(magma_hi.r, magma_hi.g, magma_hi.b, w2_a * 0.90), 7.0 * w2_a + 1.5, true)
+				draw_set_transform(Vector2.ZERO)
+				# 14 brasas e pedras saltando para o alto em parábolas determinísticas
+				for di: int in range(14):
+					var d_ang: float = float(di) * (TAU / 14.0) + 0.12
+					var h_spd: float = 85.0 + float((di * 7) % 4) * 42.0
+					var v_jump: float = 135.0 + float((di * 5) % 3) * 58.0
+					var dx: float = cos(d_ang) * h_spd * imp_t
+					var dy: float = sin(d_ang) * h_spd * 0.45 * imp_t - v_jump * imp_t + 220.0 * imp_t * imp_t
+					var dp: Vector2 = pos + Vector2(dx, minf(12.0, dy) - 8.0)
+					if di % 2 == 0:
+						var rk: float = 7.5 * (0.4 + 0.6 * imp_a)
+						var rock_p := PackedVector2Array([
+							dp + Vector2(-rk, -rk * 0.5),
+							dp + Vector2(rk * 0.6, -rk),
+							dp + Vector2(rk, rk * 0.6),
+							dp + Vector2(-rk * 0.5, rk * 0.8),
+						])
+						draw_colored_polygon(rock_p, Color("2a252d"))
+						draw_polyline(_closed(rock_p), Color(INK.r, INK.g, INK.b, imp_a), 2.0, true)
+					else:
+						draw_circle(dp, 5.2 * imp_a + 1.2, Color(magma_hi.r, magma_hi.g, magma_hi.b, imp_a))
+						draw_circle(dp, 2.4 * imp_a + 0.6, Color(1.0, 0.96, 0.80, imp_a))
+		"arconte_da_fenda":
+			# 6 cristais/estrelas ciano-douradas orbitando ao redor dele
+			var orbit_c: Vector2 = pos + Vector2(0.0, -78.0)
+			var cyan_r: Color = Color("7dd3fc")
+			var orbit_scale: float = clampf(p * 2.5, 0.2, 1.0)
+			for ci: int in range(6):
+				var o_ang: float = phase_time * 2.6 + float(ci) * (TAU / 6.0)
+				var ox: float = cos(o_ang) * 116.0 * orbit_scale
+				var oy: float = sin(o_ang) * 38.0 * orbit_scale
+				var cp: Vector2 = orbit_c + Vector2(ox, oy)
+				var c_col: Color = cyan_r if ci % 2 == 0 else GOLD
+				var sz: float = (10.5 + 2.5 * sin(o_ang)) * intro_fade
+				var star := PackedVector2Array([
+					cp + Vector2(0.0, -sz * 1.45),
+					cp + Vector2(sz * 0.72, 0.0),
+					cp + Vector2(0.0, sz * 1.45),
+					cp + Vector2(-sz * 0.72, 0.0),
+				])
+				draw_circle(cp, sz * 1.35, Color(c_col.r, c_col.g, c_col.b, 0.25 * intro_fade))
+				draw_colored_polygon(star, Color(c_col.r, c_col.g, c_col.b, 0.95 * intro_fade))
+				draw_polyline(_closed(star), Color(1.0, 1.0, 1.0, 0.90 * intro_fade), 1.6, true)
 
 func _sector(pos: Vector2, angle: float, half: float, radius: float) -> PackedVector2Array:
 	var points := PackedVector2Array([pos])

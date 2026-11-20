@@ -342,11 +342,11 @@ func _status(width: float) -> void:
 	var player: Dictionary = app.session.player
 	if player.is_empty():
 		return
-	# Card flutuante compacto no canto superior esquerdo
-	var left_card := Rect2(36.0, 26.0, 440.0, 96.0)
+	# Card flutuante compacto no canto superior esquerdo (Vida, Esquiva e Selo [Q])
+	var left_card := Rect2(36.0, 22.0, 456.0, 118.0)
 	_draw_floating_panel(left_card)
-	_text(_nome_doutrina().to_upper(), Vector2(54.0, 50.0), 17, BONE)
-	var bar_rect := Rect2(54.0, 60.0, 260.0, 16.0)
+	_text(_nome_doutrina().to_upper(), Vector2(54.0, 46.0), 17, BONE)
+	var bar_rect := Rect2(54.0, 56.0, 260.0, 16.0)
 	var hp_val: float = float(player.hp)
 	var max_hp_val: float = maxf(1.0, float(player.max_hp))
 	var hp_ratio: float = clampf(hp_val / max_hp_val, 0.0, 1.0)
@@ -354,20 +354,21 @@ func _status(width: float) -> void:
 	if hp_ratio > 0.0:
 		draw_rect(Rect2(bar_rect.position.x, bar_rect.position.y, bar_rect.size.x * hp_ratio, bar_rect.size.y), PINK)
 		draw_rect(Rect2(bar_rect.position.x, bar_rect.position.y, bar_rect.size.x * hp_ratio, 4.0), Color(1.0, 0.80, 0.88, 0.45))
-	var escudo: float = float(app.session.get("player_shield")) if app.session.get("player_shield") != null else 0.0
+	var escudo_raw = app.session.get("player_shield")
+	var escudo: float = float(escudo_raw) if escudo_raw != null else 0.0
 	if escudo > 0.0:
 		var esc_ratio: float = clampf(escudo / max_hp_val, 0.0, 1.0)
 		draw_rect(Rect2(bar_rect.position.x, bar_rect.position.y, bar_rect.size.x * esc_ratio, 4.0), Color("7dd3fc"))
 		draw_rect(Rect2(bar_rect.position.x, bar_rect.position.y, bar_rect.size.x * esc_ratio, bar_rect.size.y), Color(0.49, 0.83, 0.99, 0.28))
-		_text("%d / %d (+%d)" % [ceili(hp_val), roundi(max_hp_val), ceili(escudo)], Vector2(326.0, 74.0), 16, Color("7dd3fc"))
+		_text("%d / %d (+%d)" % [ceili(hp_val), roundi(max_hp_val), ceili(escudo)], Vector2(326.0, 70.0), 16, Color("7dd3fc"))
 	else:
-		_text("%d / %d" % [ceili(hp_val), roundi(max_hp_val)], Vector2(326.0, 74.0), 16, BONE)
+		_text("%d / %d" % [ceili(hp_val), roundi(max_hp_val)], Vector2(326.0, 70.0), 16, BONE)
 	draw_rect(bar_rect, Color(GOLD, 0.30), false, 1.0)
 	# Losangos de esquiva + barra fina de recarga + aviso de recarga
 	var charge_max: int = mini(int(player.charge_max), 10)
 	var charges: int = int(player.charges)
 	for i: int in range(charge_max):
-		var pos := Vector2(64.0 + float(i) * 24.0, 97.0)
+		var pos := Vector2(64.0 + float(i) * 24.0, 89.0)
 		var shape := PackedVector2Array([
 			pos + Vector2(0.0, -7.0),
 			pos + Vector2(7.0, 0.0),
@@ -380,19 +381,43 @@ func _status(width: float) -> void:
 	var recharge_denom: float = maxf(1.0, roundf(float(app.catalog.data.esquiva.recarga_s) * 60.0))
 	var recharge: float = clampf(float(player.recharge) / recharge_denom, 0.0, 1.0)
 	if charges < int(player.charge_max):
-		draw_rect(Rect2(54.0, 111.0, 120.0, 3.0), Color(0.18, 0.19, 0.24, 0.8))
-		draw_rect(Rect2(54.0, 111.0, 120.0 * recharge, 3.0), GOLD)
+		draw_rect(Rect2(54.0, 101.0, 120.0, 3.0), Color(0.18, 0.19, 0.24, 0.8))
+		draw_rect(Rect2(54.0, 101.0, 120.0 * recharge, 3.0), GOLD)
 	for effect: Dictionary in app.session.effects:
 		if String(effect.get("kind", "")) == "dash_denied":
-			_text("Esquiva recarregando", Vector2(282.0, 102.0), 15, PINK)
+			_text("Esquiva recarregando", Vector2(282.0, 94.0), 15, PINK)
 			break
+	# Barra de Fluxo / Selo [Q]
+	var flow_val: float = clampf(float(player.get("flow", 0.0)), 0.0, 100.0)
+	var flow_ready: bool = flow_val >= 100.0
+	var flow_ratio: float = flow_val / 100.0
+	var p_time_raw = app.session.get("presentation_time")
+	var p_time: float = float(p_time_raw) if p_time_raw != null else 0.0
+	var flow_pulse: float = 1.0 if bool(app.get("reduced_motion")) else (0.74 + 0.26 * sin(p_time * 7.5))
+	var flow_cyan := Color("7dd3fc")
+	_text("SELO [Q]", Vector2(54.0, 128.0), 14, Color(GOLD, flow_pulse) if flow_ready else flow_cyan)
+	var flow_rect := Rect2(138.0, 116.0, 232.0, 12.0)
+	draw_rect(flow_rect, Color(0.10, 0.14, 0.20, 0.92))
+	if flow_ratio > 0.0:
+		var fill_w: float = flow_rect.size.x * flow_ratio
+		if flow_ready:
+			draw_rect(Rect2(flow_rect.position.x, flow_rect.position.y, fill_w, flow_rect.size.y), Color(GOLD.r, GOLD.g, GOLD.b, flow_pulse))
+			draw_rect(Rect2(flow_rect.position.x, flow_rect.position.y, fill_w, 3.5), Color(1.0, 0.96, 0.78, 0.65 * flow_pulse))
+		else:
+			draw_rect(Rect2(flow_rect.position.x, flow_rect.position.y, fill_w, flow_rect.size.y), flow_cyan)
+			draw_rect(Rect2(flow_rect.position.x, flow_rect.position.y, fill_w, 3.0), Color(0.85, 0.96, 1.0, 0.45))
+	draw_rect(flow_rect, Color(GOLD, 0.85 * flow_pulse) if flow_ready else Color(flow_cyan, 0.40), false, 1.0)
+	if flow_ready:
+		_text("PRONTO!", Vector2(382.0, 128.0), 15, Color(1.0, 0.92, 0.52, flow_pulse))
+	else:
+		_text("%d%%" % floori(flow_val), Vector2(382.0, 128.0), 14, flow_cyan)
 	# Medalhão flutuante do Vulto Mudo (Domador de Pactos)
 	if app.get("selected_weapon") == &"pactos" and _ui_tex.has("silhueta_vulto"):
-		var med_rect := Rect2(490.0, 32.0, 84.0, 84.0)
+		var med_rect := Rect2(506.0, 32.0, 84.0, 84.0)
 		_draw_floating_panel(med_rect)
 		var vulto_tex: Texture2D = _ui_tex.get("silhueta_vulto", null)
 		if vulto_tex != null:
-			draw_texture_rect(vulto_tex, Rect2(505.0, 38.0, 54.0, 54.0), false)
+			draw_texture_rect(vulto_tex, Rect2(521.0, 38.0, 54.0, 54.0), false)
 		_center_in("VULTO", 109.0, 12, GOLD, med_rect)
 	# Badge flutuante limpo no canto superior direito
 	var right_badge := Rect2(width - 370.0, 26.0, 334.0, 86.0)
@@ -409,6 +434,63 @@ func _status(width: float) -> void:
 	else:
 		_text("ONDA %d / %d" % [mini(app.session.wave_index + 1, app.catalog.data.ondas.size()), app.catalog.data.ondas.size()], Vector2(width - 352.0, 58.0), 22, GOLD)
 		_text("%d inimigos restantes" % app.session.enemies.size(), Vector2(width - 352.0, 92.0), 17, MUTED)
+	# Contador de Combo dinâmico + Rastreador discreto de Quest ativa (abaixo do badge direito)
+	var right_cursor_y: float = 122.0
+	var combo_hits: int = int(player.get("combo_hits", 0))
+	if combo_hits >= 2:
+		var is_unstoppable: bool = combo_hits >= 10
+		var combo_col: Color = PINK if is_unstoppable else GOLD
+		var combo_txt: String = ("x%d IMPARÁVEL!" if is_unstoppable else "x%d COMBO") % combo_hits
+		var combo_rect := Rect2(width - 370.0, right_cursor_y, 334.0, 40.0)
+		draw_rect(combo_rect, Color(0.08, 0.05, 0.10, 0.82))
+		draw_rect(combo_rect, Color(combo_col, 0.82), false, 1.8)
+		_center_in(combo_txt, combo_rect.position.y + 27.0, 20, combo_col, combo_rect)
+		right_cursor_y += 48.0
+	var quests_obj = app.get("quests")
+	if quests_obj != null and quests_obj.has_method("quest_ativa"):
+		var qa_raw = quests_obj.quest_ativa()
+		if qa_raw is Dictionary and not qa_raw.is_empty():
+			var qa: Dictionary = qa_raw
+			var q_titulo: String = String(qa.get("titulo", ""))
+			var q_prog: int = int(qa.get("progresso", qa.get("atual", 0)))
+			var q_meta: int = int(qa.get("meta", qa.get("alvo", qa.get("total", 1))))
+			var q_txt: String = "CONTRATO: %s (%d/%d)" % [q_titulo, q_prog, q_meta]
+			var q_rect := Rect2(width - 370.0, right_cursor_y, 334.0, 36.0)
+			draw_rect(q_rect, Color(0.05, 0.06, 0.09, 0.66))
+			draw_rect(q_rect, Color(GOLD, 0.34), false, 1.0)
+			_text(q_txt, Vector2(q_rect.position.x + 14.0, q_rect.position.y + 24.0), 15, Color(BONE, 0.90))
+	# Banner dourado de "CONTRATO CONCLUÍDO!" no topo central (y = 32..96)
+	var q_timer_raw = app.get("quest_toast_timer")
+	var q_timer: float = float(q_timer_raw) if q_timer_raw != null else 0.0
+	if q_timer > 0.0:
+		var toast_elapsed: float = 3.2 - q_timer
+		var q_alpha: float = minf(clampf(toast_elapsed / 0.25, 0.0, 1.0), clampf(q_timer / 0.45, 0.0, 1.0))
+		var q_w: float = 460.0
+		var q_box := Rect2((width - q_w) * 0.5, 32.0, q_w, 64.0)
+		draw_rect(q_box, Color(0.06, 0.05, 0.03, 0.90 * q_alpha))
+		draw_rect(q_box, Color(GOLD, 0.92 * q_alpha), false, 2.0)
+		var toast_titulo_raw = app.get("quest_toast_titulo")
+		var toast_titulo: String = String(toast_titulo_raw) if toast_titulo_raw != null else ""
+		var toast_rec_raw = app.get("quest_toast_recompensa")
+		var toast_rec: int = int(toast_rec_raw) if toast_rec_raw != null else 0
+		_center_in("CONTRATO CONCLUÍDO", q_box.position.y + 24.0, 15, Color(GOLD, q_alpha), q_box)
+		_center_in("%s  •  +%d Fragmentos" % [toast_titulo, toast_rec], q_box.position.y + 49.0, 18, Color(BONE, q_alpha), q_box)
+	# Caixa narrativa atmosférica sutil na parte inferior-média (y = 890)
+	var nar_timer_raw = app.get("narrativa_timer")
+	var nar_timer: float = float(nar_timer_raw) if nar_timer_raw != null else 0.0
+	var b_intro_raw = app.get("boss_intro_timer")
+	var b_intro_t: float = float(b_intro_raw) if b_intro_raw != null else 0.0
+	if nar_timer > 0.0 and b_intro_t <= 0.0:
+		var nar_txt_raw = app.get("narrativa_texto")
+		var nar_txt: String = String(nar_txt_raw) if nar_txt_raw != null else ""
+		if not nar_txt.is_empty():
+			var n_elapsed: float = 3.6 - nar_timer
+			var n_alpha: float = minf(clampf(n_elapsed / 0.35, 0.0, 1.0), clampf(nar_timer / 0.55, 0.0, 1.0))
+			var n_box := Rect2((width - 860.0) * 0.5, 864.0, 860.0, 44.0)
+			draw_rect(n_box, Color(0.035, 0.04, 0.065, 0.64 * n_alpha))
+			draw_line(Vector2(n_box.position.x + 80.0, n_box.position.y), Vector2(n_box.end.x - 80.0, n_box.position.y), Color(GOLD, 0.35 * n_alpha), 1.0)
+			draw_line(Vector2(n_box.position.x + 80.0, n_box.end.y), Vector2(n_box.end.x - 80.0, n_box.end.y), Color(GOLD, 0.35 * n_alpha), 1.0)
+			_center_in("« %s »" % nar_txt, 892.0, 19, Color(0.90, 0.85, 0.72, 0.94 * n_alpha), n_box)
 	# Barra de Vida do Chefe na parte inferior central (estilo cinematográfico)
 	var boss: Dictionary = _chefe_vivo()
 	if not boss.is_empty():
