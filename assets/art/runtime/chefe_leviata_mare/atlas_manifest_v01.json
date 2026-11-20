@@ -1,0 +1,26 @@
+{
+  "actor": "chefe_leviata_mare",
+  "status": "runtime_ready",
+  "canvas": [400, 400],
+  "pivot": [200, 320],
+  "cell_size": 400,
+  "columns": 4,
+  "rows": 2,
+  "animations": {
+    "idle_frente34": {"scale": 0.82},
+    "run_frente34": {"scale": 0.82},
+    "windup_frente34": {"scale": 0.82},
+    "attack1_frente34": {"scale": 0.82},
+    "attack_frente34": {"scale": 0.82},
+    "recover_frente34": {"scale": 0.82},
+    "hurt_frente34": {"scale": 0.82},
+    "idle_costas34": {"scale": 0.82},
+    "run_costas34": {"scale": 0.82},
+    "windup_costas34": {"scale": 0.82},
+    "attack1_costas34": {"scale": 0.82},
+    "attack_costas34": {"scale": 0.82},
+    "recover_costas34": {"scale": 0.82},
+    "death_frente34": {"scale": 0.82},
+    "death_costas34": {"scale": 0.82}
+  }
+}

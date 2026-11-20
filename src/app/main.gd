@@ -211,7 +211,8 @@ func _physics_process(_delta: float) -> void:
 			)
 			if skip_pressed:
 				boss_intro_timer = 0.0
-				camera.base_zoom = 1.12
+				if reduced_motion:
+					camera.base_zoom = _zoom_alvo_camera()
 				controls.clear()
 		_espelhar_estado()
 		sync_context()
@@ -309,7 +310,8 @@ func _process(delta: float) -> void:
 			camera.impulse(Vector2.DOWN, imp_forca)
 			_tocar_sfx(&"sfx_acerto_pesado")
 		if boss_intro_timer <= 0.0:
-			camera.base_zoom = 1.12
+			if reduced_motion:
+				camera.base_zoom = _zoom_alvo_camera()
 			controls.clear()
 	if session.state in ["campus", "mestres"]:
 		camera.base_zoom = 1.0
@@ -327,7 +329,11 @@ func _process(delta: float) -> void:
 		camera.update(presentation_delta, cam_target, cam_target, 1.0, Vector2.ZERO,
 			"automatica", Vector2(camera.width * 0.5, 540.0), false)
 	elif not session.player.is_empty():
-		camera.base_zoom = 1.12
+		var target_zoom: float = _zoom_alvo_camera()
+		if reduced_motion or is_equal_approx(camera.base_zoom, target_zoom):
+			camera.base_zoom = target_zoom
+		else:
+			camera.base_zoom = lerpf(camera.base_zoom, target_zoom, clampf(presentation_delta * 4.5, 0.0, 1.0))
 		camera.reduced_motion = reduced_motion
 		camera.aim_intensity = last_sample.get("aim_intensity", 0.0)
 		camera.update(presentation_delta, session.player.prev, session.player.pos,
@@ -350,9 +356,27 @@ func sync_context() -> void:
 	if context == session.state:
 		return
 	context = session.state
-	selected = 0
+	selected = clampi(selected_region_index, 0, ArvoreDosReinos.total_reinos() - 1) if context == "mapa_reinos" else 0
 	screen_age = 0
 	controls.set_context(context)
+
+func _zoom_alvo_camera() -> float:
+	if session.state == "jogo" and session.mapa != null:
+		var sala: Dictionary = session.mapa.sala_atual()
+		if String(sala.get("tipo", "")) == "chefe":
+			var reg_raw: Variant = session.get("current_region")
+			var reg: Dictionary = reg_raw as Dictionary if reg_raw is Dictionary else {}
+			var zoom_raw: Variant = reg.get("camera_zoom", sala.get("camera_zoom", 1.12))
+			return float(zoom_raw)
+	return 1.12
+
+func _entrar_no_reino_selecionado() -> void:
+	if not _em_ambiente_de_teste() and capture_mode == "" and not prologo_visto:
+		prologo_ato = 0
+		session.state = "prologo"
+		_tocar_sfx(&"sfx_carta_foco")
+	else:
+		_iniciar_nova_run()
 
 func _iniciar_nova_run() -> void:
 	_aplicar_arma_na_sessao()
@@ -383,12 +407,7 @@ func activate(index: int) -> void:
 	match session.state:
 		"menu":
 			if index == 0:
-				if not _em_ambiente_de_teste() and capture_mode == "" and not prologo_visto:
-					prologo_ato = 0
-					session.state = "prologo"
-					_tocar_sfx(&"sfx_carta_foco")
-				else:
-					_iniciar_nova_run()
+				_entrar_no_reino_selecionado()
 			elif index == 1:
 				reduced_motion = not reduced_motion
 				_tocar_sfx(&"sfx_carta_foco")
@@ -405,13 +424,27 @@ func activate(index: int) -> void:
 				session.state = "campus"
 				_tocar_sfx(&"sfx_carta_foco")
 			elif index == 5:
-				var total_regioes: int = maxi(1, CatalogoCampanha.regioes().size())
-				selected_region_index = (selected_region_index + 1) % total_regioes
+				selected_region_index = clampi(selected_region_index, 0, ArvoreDosReinos.total_reinos() - 1)
+				session.state = "mapa_reinos"
 				_tocar_sfx(&"sfx_carta_foco")
 			elif index == 6:
 				codex_aba = 0
 				codex_scroll = 0
 				session.state = "codex"
+				_tocar_sfx(&"sfx_carta_foco")
+		"mapa_reinos":
+			var total_reinos: int = ArvoreDosReinos.total_reinos()
+			if index >= 0 and index < total_reinos:
+				if selected_region_index == index:
+					_entrar_no_reino_selecionado()
+				else:
+					selected_region_index = index
+					selected = index
+					_tocar_sfx(&"sfx_carta_foco")
+			elif index == 9:
+				_entrar_no_reino_selecionado()
+			elif index == 10:
+				session.state = "menu"
 				_tocar_sfx(&"sfx_carta_foco")
 		"codex":
 			if index >= 0 and index <= 3:
@@ -459,6 +492,9 @@ func _handle_ui(sample: Dictionary) -> void:
 		return
 	if session.state == "prologo":
 		_handle_prologo_ui(sample, pressed)
+		return
+	if session.state == "mapa_reinos":
+		_handle_mapa_reinos_ui(sample, pressed)
 		return
 	if session.state == "codex":
 		_handle_codex_ui(sample, pressed)
@@ -578,6 +614,90 @@ func _handle_codex_ui(sample: Dictionary, pressed: Dictionary) -> void:
 	if bool(pressed.get("ui_aceitar", false)) and selected == 4:
 		activate(4)
 
+func _navegar_arvore_reinos(atual: int, dir: Vector2) -> int:
+	var reinos_lista: Array[Dictionary] = ArvoreDosReinos.reinos()
+	var total: int = reinos_lista.size()
+	if total <= 0:
+		return 0
+	var idx_atual: int = clampi(atual, 0, total - 1)
+	var pos_raw: Variant = reinos_lista[idx_atual].get("tree_pos", Vector2(0.5, 0.5))
+	var pos_atual: Vector2 = pos_raw as Vector2 if pos_raw is Vector2 else Vector2(0.5, 0.5)
+	var melhor_idx: int = -1
+	var melhor_custo: float = 9999.0
+	if absf(dir.x) > 0.5:
+		for i: int in range(total):
+			if i == idx_atual:
+				continue
+			var p_raw: Variant = reinos_lista[i].get("tree_pos", Vector2(0.5, 0.5))
+			var p: Vector2 = p_raw as Vector2 if p_raw is Vector2 else Vector2(0.5, 0.5)
+			var delta: Vector2 = p - pos_atual
+			if absf(delta.y) < 0.08 and delta.x * dir.x > 0.02:
+				var custo_h: float = absf(delta.x)
+				if custo_h < melhor_custo:
+					melhor_custo = custo_h
+					melhor_idx = i
+		if melhor_idx >= 0:
+			return melhor_idx
+		return posmod(idx_atual + (1 if dir.x > 0.0 else -1), total)
+	for i: int in range(total):
+		if i == idx_atual:
+			continue
+		var p_raw: Variant = reinos_lista[i].get("tree_pos", Vector2(0.5, 0.5))
+		var p: Vector2 = p_raw as Vector2 if p_raw is Vector2 else Vector2(0.5, 0.5)
+		var delta: Vector2 = p - pos_atual
+		if delta.y * dir.y > 0.02:
+			var custo_v: float = absf(delta.y) + absf(delta.x) * 0.25
+			if custo_v < melhor_custo:
+				melhor_custo = custo_v
+				melhor_idx = i
+	return melhor_idx if melhor_idx >= 0 else idx_atual
+
+func _handle_mapa_reinos_ui(sample: Dictionary, pressed: Dictionary) -> void:
+	if bool(pressed.get("ui_voltar", false)) or bool(pressed.get("pausar", false)):
+		session.state = "menu"
+		_tocar_sfx(&"sfx_carta_foco")
+		_espelhar_estado()
+		sync_context()
+		return
+	var dir_nav := Vector2.ZERO
+	if bool(pressed.get("ui_up", false)):
+		dir_nav = Vector2.UP
+	elif bool(pressed.get("ui_down", false)):
+		dir_nav = Vector2.DOWN
+	elif bool(pressed.get("ui_left", false)):
+		dir_nav = Vector2.LEFT
+	elif bool(pressed.get("ui_right", false)):
+		dir_nav = Vector2.RIGHT
+	if dir_nav != Vector2.ZERO:
+		var novo_idx: int = _navegar_arvore_reinos(selected_region_index, dir_nav)
+		if novo_idx != selected_region_index:
+			selected_region_index = novo_idx
+			_tocar_sfx(&"sfx_carta_foco")
+		selected = selected_region_index
+	var boxes: Array[Rect2] = hud.action_rects()
+	if not boxes.is_empty():
+		if bool(sample.get("mouse_moved", false)):
+			var cursor_raw: Variant = sample.get("cursor", Vector2.ZERO)
+			var cursor_pos: Vector2 = cursor_raw as Vector2 if cursor_raw is Vector2 else Vector2.ZERO
+			for i: int in range(boxes.size()):
+				if boxes[i].has_point(cursor_pos):
+					selected = i
+		if bool(sample.get("mouse_click", false)):
+			var click_raw: Variant = sample.get("click_cursor", sample.get("cursor", Vector2.ZERO))
+			var click_pos: Vector2 = click_raw as Vector2 if click_raw is Vector2 else Vector2.ZERO
+			for i: int in range(boxes.size()):
+				if boxes[i].has_point(click_pos):
+					selected = i
+					activate(i)
+					return
+	if bool(pressed.get("ui_aceitar", false)):
+		if selected == 10:
+			activate(10)
+		else:
+			_entrar_no_reino_selecionado()
+			_espelhar_estado()
+			sync_context()
+
 func _handle_lore_popup(sample: Dictionary) -> void:
 	var pressed_raw: Variant = sample.get("pressed", {})
 	var pressed: Dictionary = pressed_raw if pressed_raw is Dictionary else {}
@@ -639,6 +759,36 @@ func _tratar_interacao_na_sala() -> void:
 		"pacto":
 			_ativar_evento_toast("ALTAR DO PACTO", "Pacto Sombrio: +22% Dano e +15% Crítico")
 			_tocar_sfx(&"sfx_acerto_pesado")
+		"selo_arena":
+			var titulo_selo: String = String(res.get("titulo", "SELO ANTIGO ATIVADO"))
+			var texto_selo: String = String(res.get("texto", "Regeneração contida e chefe exposto na superfície — ataque agora!"))
+			_ativar_evento_toast(titulo_selo, texto_selo)
+			_tocar_sfx(&"sfx_carta_confirmar")
+		"cristal":
+			var titulo_cristal: String = String(res.get("titulo", "CRISTAL HARMÔNICO"))
+			var texto_cristal: String = String(res.get("texto", "Ressonância harmônica disparada — colosso desorientado e vulnerável!"))
+			_ativar_evento_toast(titulo_cristal, texto_cristal)
+			_tocar_sfx(&"sfx_carta_confirmar")
+		"dissipador":
+			var titulo_disp: String = String(res.get("titulo", "DISSIPADOR ATIVADO"))
+			var texto_disp: String = String(res.get("texto", "Esporos e névoa dispersos — alvo verdadeiro revelado na arena!"))
+			_ativar_evento_toast(titulo_disp, texto_disp)
+			_tocar_sfx(&"sfx_carta_confirmar")
+		"baliza":
+			var titulo_baliza: String = String(res.get("titulo", "BALIZA DO FAROL"))
+			var texto_baliza: String = String(res.get("texto", "Maré tempestuosa acalmada — Leviatã exposto à luz do farol!"))
+			_ativar_evento_toast(titulo_baliza, texto_baliza)
+			_tocar_sfx(&"sfx_carta_confirmar")
+		"ancora":
+			var titulo_ancora: String = String(res.get("titulo", "ÂNCORA DE ESCALADA"))
+			var texto_ancora: String = String(res.get("texto", "Postura firmada contra o sismo (+20 Escudo e janela de contra-ataque)!"))
+			_ativar_evento_toast(titulo_ancora, texto_ancora)
+			_tocar_sfx(&"sfx_carta_confirmar")
+		"mecanismo":
+			var titulo_mec: String = String(res.get("titulo", "MECANISMO DE CONTENÇÃO"))
+			var texto_mec: String = String(res.get("texto", "Atravancadores acionados — investida do Tirano contida e aberta!"))
+			_ativar_evento_toast(titulo_mec, texto_mec)
+			_tocar_sfx(&"sfx_carta_confirmar")
 		"porta":
 			_tocar_sfx(&"sfx_carta_foco")
 
@@ -1022,6 +1172,26 @@ func _verificar_intro_chefe() -> void:
 			titulo = "SENHOR DO SANTUÁRIO PARTIDO"
 			fala = "Contemple o fim do pacto e ajoelhe-se diante da Fenda."
 			cor = Color("7dd3fc")
+		"devorador_coroa_espinhos":
+			titulo = "HORROR VEGETAL • RANK C+"
+			fala = "As raízes sentem cada passo seu. As pedras antigas serão seu único refúgio."
+			cor = Color("34d399")
+		"leviata_mare_morta":
+			titulo = "COLOSSO ABISSAL • RANK A+"
+			fala = "A maré sobe ao meu chamado. Nenhum cais resistirá à fúria da água negra!"
+			cor = Color("38bdf8")
+		"vigia_coroa_partida":
+			titulo = "BRUTO DOS SEIS OLHOS • RANK A+"
+			fala = "Seis olhos não conhecem ponto cego. Tome os platôs altos ou caia no abismo!"
+			cor = Color("c084fc")
+		"tirano_quebra_grilhoes":
+			titulo = "JUGGERNAUT DE CERCO • RANK S"
+			fala = "Nem correntes imperiais me detiveram. Quebre estes grilhões comigo se puder!"
+			cor = Color("fb923c")
+		"pesadelo_fendas_subterraneas":
+			titulo = "ENTIDADE CATACLÍSMICA • ENDGAME"
+			fala = "Eu devoro mundos sob a terra. Acenda os Selos Antigos... se ainda houver tempo."
+			cor = Color("a855f7")
 	var boss_pos_raw = boss.get("pos", Vector2(960.0, 360.0))
 	var boss_pos: Vector2 = boss_pos_raw if boss_pos_raw is Vector2 else Vector2(960.0, 360.0)
 	boss_intro_data = {

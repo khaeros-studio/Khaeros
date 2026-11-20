@@ -41,7 +41,7 @@ animations = [{
 "name": &"idle_frente34",
 "speed": 5.0
 }, {
-"frames": [{"duration": 1.0, "texture": SubResource("Atlas_1_0")}, {"duration": 1.0, "texture": SubResource("Atlas_0_0")}],
+"frames": [{"duration": 1.0, "texture": SubResource("Atlas_1_0")}],
 "loop": true,
 "name": &"run_frente34",
 "speed": 8.0
@@ -81,7 +81,7 @@ animations = [{
 "name": &"idle_costas34",
 "speed": 5.0
 }, {
-"frames": [{"duration": 1.0, "texture": SubResource("Atlas_1_1")}, {"duration": 1.0, "texture": SubResource("Atlas_0_1")}],
+"frames": [{"duration": 1.0, "texture": SubResource("Atlas_1_1")}],
 "loop": true,
 "name": &"run_costas34",
 "speed": 8.0

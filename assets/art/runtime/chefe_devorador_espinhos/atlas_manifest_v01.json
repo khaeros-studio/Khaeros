@@ -1,0 +1,26 @@
+{
+  "actor": "chefe_devorador_espinhos",
+  "status": "runtime_ready",
+  "canvas": [400, 400],
+  "pivot": [200, 320],
+  "cell_size": 400,
+  "columns": 4,
+  "rows": 2,
+  "animations": {
+    "idle_frente34": {"scale": 0.72},
+    "run_frente34": {"scale": 0.72},
+    "windup_frente34": {"scale": 0.72},
+    "attack1_frente34": {"scale": 0.72},
+    "attack_frente34": {"scale": 0.72},
+    "recover_frente34": {"scale": 0.72},
+    "hurt_frente34": {"scale": 0.72},
+    "idle_costas34": {"scale": 0.72},
+    "run_costas34": {"scale": 0.72},
+    "windup_costas34": {"scale": 0.72},
+    "attack1_costas34": {"scale": 0.72},
+    "attack_costas34": {"scale": 0.72},
+    "recover_costas34": {"scale": 0.72},
+    "death_frente34": {"scale": 0.72},
+    "death_costas34": {"scale": 0.72}
+  }
+}

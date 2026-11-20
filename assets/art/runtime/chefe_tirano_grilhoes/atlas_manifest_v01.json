@@ -1,0 +1,26 @@
+{
+  "actor": "chefe_tirano_grilhoes",
+  "status": "runtime_ready",
+  "canvas": [400, 400],
+  "pivot": [200, 320],
+  "cell_size": 400,
+  "columns": 4,
+  "rows": 2,
+  "animations": {
+    "idle_frente34": {"scale": 0.84},
+    "run_frente34": {"scale": 0.84},
+    "windup_frente34": {"scale": 0.84},
+    "attack1_frente34": {"scale": 0.84},
+    "attack_frente34": {"scale": 0.84},
+    "recover_frente34": {"scale": 0.84},
+    "hurt_frente34": {"scale": 0.84},
+    "idle_costas34": {"scale": 0.84},
+    "run_costas34": {"scale": 0.84},
+    "windup_costas34": {"scale": 0.84},
+    "attack1_costas34": {"scale": 0.84},
+    "attack_costas34": {"scale": 0.84},
+    "recover_costas34": {"scale": 0.84},
+    "death_frente34": {"scale": 0.84},
+    "death_costas34": {"scale": 0.84}
+  }
+}

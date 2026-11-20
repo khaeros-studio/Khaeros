@@ -5,6 +5,16 @@ extends RefCounted
 const Movement = preload("res://src/gameplay/movement.gd")
 const TICK_RATE := 60.0
 const MASK := 0xffffffff
+const ZONAS_LAJE_ANTIGA: Array[String] = ["laje_pedra_antiga"]
+const ZONAS_ABRIGO_COSTA: Array[String] = ["pier_elevado", "piere_pedra", "recife_alto", "recife_elevado"]
+const ZONAS_ABRIGO_ESCARPA: Array[String] = ["plato_elevado", "ponte_escarpa", "ponte_pedra"]
+const ZONAS_LUZ_SAGRADA: Array[String] = ["fenda_luz_sagrada"]
+const ZONAS_ROCHA_ABISMO: Array[String] = ["rocha_matriz_runica", "fenda_luz_sagrada"]
+const PERIGOS_ESPOROS: Array[String] = ["bolsao_esporos"]
+const PERIGOS_AGUA_PROFUNDA: Array[String] = ["agua_profunda", "agua_profunda_mare"]
+const PERIGOS_AGUA_COSTA: Array[String] = ["agua_profunda", "agua_profunda_mare", "ciclo_mare_alta"]
+const PERIGOS_SISMO_ESCARPA: Array[String] = ["onda_sismica", "beirada_penhasco"]
+const PERIGOS_ESCAVACAO_ABISMO: Array[String] = ["solo_arenoso_escavacao", "solo_escavacao_abissal", "tremor_tectonico"]
 
 var data: Dictionary = {}
 var state := "menu"
@@ -57,6 +67,14 @@ var active_door_index: int = -1
 var active_interactive_index: int = -1
 var _pending_door_dest: int = -1
 var _curses_spawn_seq: int = 0
+var boss_arena_zones: Array[Dictionary] = []
+var boss_arena_hazards: Array[Dictionary] = []
+var boss_env_timer: float = 0.0
+var boss_storm_active: bool = false
+var boss_seals_active: int = 0
+var boss_exposed_timer: float = 0.0
+var boss_sensor_ticks: int = 0
+var _storm_pulse_cd: int = 0
 var presentation_time := 0.0
 var live_steps := 0
 var seed_value := 1
@@ -129,11 +147,19 @@ func start() -> void:
 	active_interactive_index = -1
 	_pending_door_dest = -1
 	_curses_spawn_seq = 0
+	boss_arena_zones.clear()
+	boss_arena_hazards.clear()
+	boss_env_timer = 0.0
+	boss_storm_active = false
+	boss_seals_active = 0
+	boss_exposed_timer = 0.0
+	boss_sensor_ticks = 0
+	_storm_pulse_cd = 0
 	if extended_campaign:
-		var regioes: Array[Dictionary] = CatalogoCampanha.regioes()
-		region_index = clampi(start_region_index, 0, maxi(0, regioes.size() - 1))
+		var reinos: Array[Dictionary] = ArvoreDosReinos.reinos()
+		region_index = clampi(start_region_index, 0, maxi(0, reinos.size() - 1))
 		region_wave_index = 0
-		current_region = regioes[region_index] if not regioes.is_empty() else {}
+		current_region = reinos[region_index] if not reinos.is_empty() else {}
 	else:
 		region_index = 0
 		region_wave_index = 0
@@ -143,7 +169,8 @@ func start() -> void:
 	var spawn: Array = data.jogador.spawn
 	var position := Vector2(spawn[0],spawn[1])
 	player = {
-		"pos":position, "prev":position, "hp":float(data.jogador.vida_max),
+		"pos":position, "prev":position, "vel":Vector2.ZERO, "move_dir":Vector2.DOWN,
+		"hp":float(data.jogador.vida_max),
 		"max_hp":float(data.jogador.vida_max), "aim":Vector2.UP, "radius":float(data.jogador.raio),
 		"charges":int(data.esquiva.cargas_base), "charge_max":int(data.esquiva.cargas_base),
 		"dash_remaining":0, "dash_dir":Vector2.UP, "dash_hits":{}, "recharge":0,
@@ -253,12 +280,13 @@ func advance_presentation(delta: float) -> void:
 				hitstop = 0
 				presentation_time = 0.0
 				if _advancing_region:
-					region_index = mini(3, region_index + 1)
+					var total_reinos: int = ArvoreDosReinos.total_reinos()
+					region_index = mini(total_reinos - 1, region_index + 1)
 					region_wave_index = 0
 					_advancing_region = false
-					var regioes: Array[Dictionary] = CatalogoCampanha.regioes()
-					if region_index < regioes.size():
-						current_region = regioes[region_index]
+					var reinos: Array[Dictionary] = ArvoreDosReinos.reinos()
+					if region_index < reinos.size():
+						current_region = reinos[region_index]
 					wave_index += 1
 					_iniciar_mapa_regiao(region_index)
 				elif _pending_door_dest >= 0:
@@ -270,12 +298,13 @@ func advance_presentation(delta: float) -> void:
 			else:
 				if extended_campaign:
 					if _advancing_region:
-						region_index = mini(3, region_index + 1)
+						var total_reinos_sem_mapa: int = ArvoreDosReinos.total_reinos()
+						region_index = mini(total_reinos_sem_mapa - 1, region_index + 1)
 						region_wave_index = 0
 						_advancing_region = false
-						var regioes: Array[Dictionary] = CatalogoCampanha.regioes()
-						if region_index < regioes.size():
-							current_region = regioes[region_index]
+						var reinos_sem_mapa: Array[Dictionary] = ArvoreDosReinos.reinos()
+						if region_index < reinos_sem_mapa.size():
+							current_region = reinos_sem_mapa[region_index]
 					else:
 						region_wave_index += 1
 					wave_index += 1
@@ -291,7 +320,7 @@ func advance_presentation(delta: float) -> void:
 				_spawn_wave()
 		if transition_progress >= 1.0: state = "jogo"
 		return
-	if state not in ["jogo","morte","vitoria"]: return
+	if state not in ["jogo","morte","vitoria","campus","mestres"]: return
 	presentation_time += dt
 	if domain_timer > 0.0:
 		domain_timer = maxf(0.0, domain_timer - dt)
@@ -343,9 +372,27 @@ func step(sample: Dictionary) -> Array[String]:
 	elif player.lunge_remaining > 0:
 		player.pos += player.lunge_dir * float(data.investida.distancia_px) / Movement.ticks(data.investida.duracao_s)
 	else:
-		var recovery := float(data.jogador.fator_recuperacao) if player.recovery > 0 else 1.0
-		var domain_speed_mult: float = 1.18 if domain_timer > 0.0 else 1.0
-		player.pos += move.normalized() * minf(1.0,move.length()) * float(data.jogador.velocidade) * speed_mult * domain_speed_mult * recovery / TICK_RATE
+		var recovery: float = float(data.jogador.fator_recuperacao) if player.recovery > 0 else 1.0
+		var domain_spd_mult: float = 1.18 if domain_timer > 0.0 else 1.0
+		if extended_campaign:
+			var max_spd: float = float(data.jogador.velocidade) * speed_mult * recovery * domain_spd_mult
+			var ppos_move: Vector2 = player["pos"] as Vector2
+			if _em_terreno_dificil(ppos_move):
+				max_spd *= 0.78
+			var move_dir_in: Vector2 = move.normalized() if move != Vector2.ZERO else Vector2.ZERO
+			var target_vel: Vector2 = move_dir_in * minf(1.0, move.length()) * max_spd
+			var rate: float = 0.42 if target_vel.length_squared() > 1.0 else 0.50
+			var cur_vel_raw: Variant = player.get("vel", Vector2.ZERO)
+			var cur_vel: Vector2 = cur_vel_raw as Vector2 if cur_vel_raw is Vector2 else Vector2.ZERO
+			cur_vel = cur_vel.lerp(target_vel, rate)
+			if cur_vel.length_squared() < 9.0 and target_vel == Vector2.ZERO:
+				cur_vel = Vector2.ZERO
+			player["vel"] = cur_vel
+			if cur_vel.length_squared() > 4.0:
+				player["move_dir"] = cur_vel.normalized()
+			player.pos += cur_vel / TICK_RATE
+		else:
+			player.pos += move.normalized() * minf(1.0,move.length()) * float(data.jogador.velocidade) * speed_mult * domain_spd_mult * recovery / TICK_RATE
 	if dashed: _dash_cut()
 	player.pos = Movement.resolve(player.pos,player.radius,data.arena)
 	if player.lunge_remaining > 0:
@@ -368,6 +415,8 @@ func step(sample: Dictionary) -> Array[String]:
 		if enemy.hp > 0: _enemy_step(enemy)
 	_projectile_step()
 	_step_allied_curses()
+	if extended_campaign:
+		_step_boss_environment()
 	_remove_dead()
 	hitstop = maxi(hitstop,_pending_hitstop)
 	if player.hp <= 0:
@@ -378,7 +427,7 @@ func step(sample: Dictionary) -> Array[String]:
 				projectiles.clear()
 				var sala_now: Dictionary = mapa.sala_atual()
 				var tipo_now: String = String(sala_now.get("tipo", ""))
-				if tipo_now == "chefe" and region_index >= 3:
+				if tipo_now == "chefe" and region_index >= ArvoreDosReinos.total_reinos() - 1:
 					state = "vitoria"
 				else:
 					room_cleared = true
@@ -395,7 +444,7 @@ func step(sample: Dictionary) -> Array[String]:
 		elif extended_campaign:
 			projectiles.clear()
 			if region_wave_index >= 2:
-				if region_index >= 3:
+				if region_index >= ArvoreDosReinos.total_reinos() - 1:
 					state = "vitoria"
 				else:
 					var cura_chefe: float = float(player.max_hp) * 0.35
@@ -867,6 +916,8 @@ func _hurt_enemy(enemy: Dictionary, damage: float, direction: Vector2, push: flo
 	var final_damage: float = damage
 	if domain_timer > 0.0:
 		final_damage *= 1.25
+	if bool(enemy.get("is_boss", false)) and boss_exposed_timer > 0.0:
+		final_damage *= 1.85
 	var effective_crit: float = clampf(crit_chance + (0.25 if domain_timer > 0.0 else 0.0), 0.0, 0.95)
 	var is_crit: bool = false
 	if force_crit:
@@ -878,7 +929,11 @@ func _hurt_enemy(enemy: Dictionary, damage: float, direction: Vector2, push: flo
 	enemy.flash = Movement.ticks(data.combate.flash_acerto_s)
 	var is_resistant: bool = bool(enemy.get("elite", false)) or bool(enemy.get("is_boss", false))
 	var push_scale: float = float(data.elite.empurrao_x) if is_resistant else 1.0
-	enemy.knockback = direction * push * push_scale * knockback_mult
+	var def_hurt: Dictionary = _enemy_def(String(enemy.get("kind", "")))
+	if float(def_hurt.get("velocidade", 1.0)) <= 0.0:
+		enemy.knockback = Vector2.ZERO
+	else:
+		enemy.knockback = direction * push * push_scale * knockback_mult
 	if heavy and not is_resistant:
 		enemy.phase = "recover"
 		enemy.timer = Movement.ticks(data.combate.quebrou_recuperacao_s)
@@ -1071,6 +1126,100 @@ func _enemy_def(kind: String) -> Dictionary:
 				"boss_pattern": "fan_5_summon",
 				"is_boss": true,
 			}
+		"devorador_coroa_espinhos":
+			return {
+				"nome": "Devorador da Coroa de Espinhos",
+				"comportamento": "ranged",
+				"vida": 1250.0,
+				"velocidade": 0.0,
+				"raio": 82.0,
+				"dano": 19.0,
+				"preparo_s": 0.65,
+				"recarga_s": 1.45,
+				"execucao_passos": 10,
+				"proj_velocidade_pxs": 420.0,
+				"proj_raio_px": 14.0,
+				"proj_vida_passos": 220,
+				"tele_largura_px": 95.0,
+				"tele_comprimento_max_px": 1728.0,
+				"boss_pattern": "coroa_espinhos",
+				"is_boss": true,
+			}
+		"leviata_mare_morta":
+			return {
+				"nome": "Leviatã da Maré Morta",
+				"comportamento": "ranged",
+				"vida": 2400.0,
+				"velocidade": 165.0,
+				"raio": 92.0,
+				"dano": 28.0,
+				"preparo_s": 0.58,
+				"recarga_s": 1.25,
+				"execucao_passos": 10,
+				"proj_velocidade_pxs": 510.0,
+				"proj_raio_px": 16.0,
+				"proj_vida_passos": 240,
+				"tele_largura_px": 110.0,
+				"tele_comprimento_max_px": 1800.0,
+				"boss_pattern": "mare_pressao",
+				"is_boss": true,
+			}
+		"vigia_coroa_partida":
+			return {
+				"nome": "Vigia da Coroa Partida",
+				"comportamento": "melee",
+				"vida": 2850.0,
+				"velocidade": 122.0,
+				"raio": 90.0,
+				"dano": 32.0,
+				"preparo_s": 0.68,
+				"recarga_s": 1.15,
+				"execucao_passos": 10,
+				"inicio_preparo_px": 230.0,
+				"tele_raio_px": 280.0,
+				"tele_meio_angulo_graus": 130.0,
+				"proj_velocidade_pxs": 430.0,
+				"proj_raio_px": 13.0,
+				"proj_vida_passos": 180,
+				"boss_pattern": "vigia_escarpa",
+				"is_boss": true,
+			}
+		"tirano_quebra_grilhoes":
+			return {
+				"nome": "Tirano Quebra-Grilhões",
+				"comportamento": "melee",
+				"vida": 3900.0,
+				"velocidade": 158.0,
+				"raio": 96.0,
+				"dano": 38.0,
+				"preparo_s": 0.58,
+				"recarga_s": 1.05,
+				"execucao_passos": 10,
+				"inicio_preparo_px": 280.0,
+				"tele_raio_px": 270.0,
+				"tele_meio_angulo_graus": 105.0,
+				"boss_pattern": "investida_compressao",
+				"is_boss": true,
+			}
+		"pesadelo_fendas_subterraneas":
+			return {
+				"nome": "Pesadelo das Fendas Subterrâneas",
+				"comportamento": "ranged",
+				"vida": 6200.0,
+				"velocidade": 170.0,
+				"raio": 112.0,
+				"dano": 44.0,
+				"preparo_s": 0.60,
+				"recarga_s": 1.30,
+				"execucao_passos": 10,
+				"proj_velocidade_pxs": 470.0,
+				"proj_raio_px": 17.0,
+				"proj_vida_passos": 260,
+				"tele_largura_px": 120.0,
+				"tele_comprimento_max_px": 1900.0,
+				"boss_pattern": "abismo_total",
+				"is_boss": true,
+			}
 	return {}
 
 func _sortear_oferta_campanha(apos_chefe: bool) -> Array[Dictionary]:
@@ -1158,6 +1307,59 @@ func interagir_na_sala() -> Dictionary:
 					pact_fx["player_hurt"] = true
 					_effect("crit", player["pos"] as Vector2, Vector2.UP, 0.35)
 					return {"tipo": "pacto", "custo": roundi(custo)}
+				"selo_runico_antigo":
+					boss_seals_active += 1
+					boss_exposed_timer = maxf(boss_exposed_timer, 4.0)
+					var seal_fx: Dictionary = _effect("magic_pulse", obj_pos, Vector2.UP, 0.45)
+					seal_fx["radius"] = 180.0
+					return {"tipo": "selo_arena", "selos": boss_seals_active}
+				"cristal_harmonico":
+					for enemy: Dictionary in enemies:
+						if bool(enemy.get("is_boss", false)) and String(enemy.get("phase", "")) == "windup":
+							enemy["phase"] = "recover"
+							enemy["timer"] = 150
+					boss_exposed_timer = maxf(boss_exposed_timer, 3.5)
+					var crystal_fx: Dictionary = _effect("magic_pulse", obj_pos, Vector2.UP, 0.45)
+					crystal_fx["radius"] = 220.0
+					return {"tipo": "cristal"}
+				"dissipador_esporos", "dissipador_vento", "runa_vento":
+					boss_sensor_ticks = 0
+					effects = effects.filter(func(ef: Dictionary) -> bool: return String(ef.get("kind", "")) != "esporo_erupcao")
+					for h: Dictionary in boss_arena_hazards:
+						if String(h.get("tipo", h.get("kind", ""))) == "bolsao_esporos":
+							h["limpo"] = true
+					player["hp"] = minf(float(player["max_hp"]), float(player["hp"]) + 15.0)
+					var heal_fx_disp: Dictionary = _effect("dmg_num", (player["pos"] as Vector2) + Vector2(0.0, -36.0), Vector2.UP, 0.72)
+					heal_fx_disp["amount"] = 15
+					heal_fx_disp["text"] = "+15"
+					heal_fx_disp["kind_num"] = "heal"
+					heal_fx_disp["heal"] = true
+					var wind_fx: Dictionary = _effect("magic_pulse", obj_pos, Vector2.UP, 0.40)
+					wind_fx["radius"] = 210.0
+					return {"tipo": "dissipador"}
+				"baliza_farol":
+					boss_storm_active = false
+					boss_env_timer = 0.0
+					boss_exposed_timer = maxf(boss_exposed_timer, 2.0)
+					var beacon_fx: Dictionary = _effect("magic_pulse", obj_pos, Vector2.UP, 0.45)
+					beacon_fx["radius"] = 240.0
+					return {"tipo": "baliza"}
+				"ancora_escalada":
+					player["inv"] = maxi(int(player.get("inv", 0)), 45)
+					player_shield = maxf(player_shield, 20.0)
+					boss_exposed_timer = maxf(boss_exposed_timer, 2.0)
+					var anchor_fx: Dictionary = _effect("guardiao_bastion", player["pos"] as Vector2, Vector2.UP, 0.35)
+					anchor_fx["radius"] = 160.0
+					return {"tipo": "ancora"}
+				"mecanismo_contencao":
+					for enemy: Dictionary in enemies:
+						if bool(enemy.get("is_boss", false)) and String(enemy.get("phase", "")) == "windup":
+							enemy["phase"] = "recover"
+							enemy["timer"] = 120
+					boss_exposed_timer = maxf(boss_exposed_timer, 2.5)
+					var lock_fx: Dictionary = _effect("magic_pulse", obj_pos, Vector2.UP, 0.40)
+					lock_fx["radius"] = 200.0
+					return {"tipo": "contencao"}
 	if room_cleared and active_door_index >= 0 and active_door_index < exit_doors.size():
 		var porta: Dictionary = exit_doors[active_door_index]
 		if bool(porta.get("is_region_portal", false)):
@@ -1176,7 +1378,7 @@ func _iniciar_mapa_regiao(r_idx: int) -> void:
 	if mapa == null:
 		return
 	var reg_id: String = String(current_region.get("id", "limiar"))
-	mapa.gerar_regiao(reg_id, r_idx, seed_value + r_idx * 7919)
+	mapa.gerar_regiao(reg_id, r_idx, seed_value + r_idx * 7919, ArvoreDosReinos.total_reinos())
 	_carregar_sala_do_mapa()
 
 func _carregar_sala_do_mapa() -> void:
@@ -1197,9 +1399,6 @@ func _carregar_sala_do_mapa() -> void:
 				pilares_copia.append((p_var as Dictionary).duplicate(true))
 	arena_dict["pilares"] = pilares_copia
 
-	var jogador_dict: Dictionary = data["jogador"] as Dictionary
-	jogador_dict["spawn"] = [largura * 0.5, altura - 220.0]
-
 	room_props.clear()
 	var props_src_raw: Variant = sala.get("props", [])
 	if props_src_raw is Array:
@@ -1216,11 +1415,49 @@ func _carregar_sala_do_mapa() -> void:
 			if it_var is Dictionary:
 				room_interactives.append((it_var as Dictionary).duplicate(true))
 
-	var spawn_pos: Vector2 = Vector2(largura * 0.5, altura - 220.0)
-	if not player.is_empty():
-		Movement.teleport(player, spawn_pos)
+	boss_arena_zones.clear()
+	var zonas_src_raw: Variant = sala.get("zonas_seguras", [])
+	if zonas_src_raw is Array:
+		var zonas_src: Array = zonas_src_raw as Array
+		for z_var: Variant in zonas_src:
+			if z_var is Dictionary:
+				boss_arena_zones.append((z_var as Dictionary).duplicate(true))
+
+	boss_arena_hazards.clear()
+	var hazards_src_raw: Variant = sala.get("perigos_dinamicos", [])
+	if hazards_src_raw is Array:
+		var hazards_src: Array = hazards_src_raw as Array
+		for h_var: Variant in hazards_src:
+			if h_var is Dictionary:
+				boss_arena_hazards.append((h_var as Dictionary).duplicate(true))
+
+	boss_env_timer = 0.0
+	boss_storm_active = false
+	boss_seals_active = 0
+	boss_exposed_timer = 0.0
+	boss_sensor_ticks = 0
+	_storm_pulse_cd = 0
 
 	var tipo: String = String(sala.get("tipo", "combate"))
+	var reg_id_sala: String = String(sala.get("reg_id", current_region.get("id", "")))
+	var spawn_pos: Vector2 = Vector2(largura * 0.5, altura - 220.0)
+	if tipo == "chefe":
+		var mapa_boss: Dictionary = CatalogoMapasBosses.obter_mapa(reg_id_sala)
+		if not mapa_boss.is_empty():
+			var arena_boss_raw: Variant = mapa_boss.get("arena", {})
+			if arena_boss_raw is Dictionary:
+				var arena_boss: Dictionary = arena_boss_raw as Dictionary
+				var sp_jog_raw: Variant = arena_boss.get("spawn_jogador", spawn_pos)
+				if sp_jog_raw is Vector2:
+					spawn_pos = sp_jog_raw as Vector2
+	spawn_pos = Movement.resolve(spawn_pos, float(data.jogador.raio), data.arena)
+	var jogador_dict: Dictionary = data["jogador"] as Dictionary
+	jogador_dict["spawn"] = [spawn_pos.x, spawn_pos.y]
+
+	if not player.is_empty():
+		Movement.teleport(player, spawn_pos)
+		player["vel"] = Vector2.ZERO
+
 	if tipo == "chefe":
 		region_wave_index = 2
 	elif tipo in ["emboscada", "combate_denso", "elite_guarda"]:
@@ -1289,23 +1526,53 @@ func _spawn_wave() -> void:
 			{"pos": Vector2(largura_a - 300.0, altura_a - 260.0), "hp": 1, "kind": "heal"},
 		]
 		var cx: float = largura_a * 0.5
-		var hp_mult: float = 1.0 + float(region_index) * 0.22
+		var hp_mult: float = float(current_region.get("hp_mult", 1.0))
 		var sala_tipo: String = ""
 		if mapa != null:
 			var sala_now: Dictionary = mapa.sala_atual()
 			sala_tipo = String(sala_now.get("tipo", ""))
 		if region_wave_index >= 2 or sala_tipo == "chefe":
-			var boss_ids: Array[String] = ["soberano_do_limiar", "guardiao_do_rito", "colosso_de_cinza", "arconte_da_fenda"]
-			var boss_id: String = boss_ids[clampi(region_index, 0, boss_ids.size() - 1)]
-			var boss_pos: Vector2 = Movement.resolve(Vector2(cx, 360.0), 58.0, data.arena)
+			var boss_ids: Array[String] = [
+				"soberano_do_limiar",
+				"devorador_coroa_espinhos",
+				"guardiao_do_rito",
+				"colosso_de_cinza",
+				"leviata_mare_morta",
+				"vigia_coroa_partida",
+				"arconte_da_fenda",
+				"tirano_quebra_grilhoes",
+				"pesadelo_fendas_subterraneas",
+			]
+			var chefe_raw: Variant = current_region.get("chefe", {})
+			var chefe_dict: Dictionary = chefe_raw as Dictionary if chefe_raw is Dictionary else {}
+			var boss_id: String = String(chefe_dict.get("id", ""))
+			if boss_id.is_empty():
+				boss_id = boss_ids[clampi(region_index, 0, boss_ids.size() - 1)]
+			var reg_id_boss: String = String(current_region.get("id", ""))
+			var boss_spawn: Vector2 = Vector2(cx, 360.0)
+			var mapa_boss: Dictionary = CatalogoMapasBosses.obter_mapa(reg_id_boss)
+			if not mapa_boss.is_empty():
+				var arena_boss_raw: Variant = mapa_boss.get("arena", {})
+				if arena_boss_raw is Dictionary:
+					var arena_boss: Dictionary = arena_boss_raw as Dictionary
+					var sb_raw: Variant = arena_boss.get("spawn_boss", boss_spawn)
+					if sb_raw is Vector2:
+						boss_spawn = sb_raw as Vector2
+			elif arena_dict.has("spawn_boss"):
+				var arena_sb_raw: Variant = arena_dict.get("spawn_boss", boss_spawn)
+				if arena_sb_raw is Vector2:
+					boss_spawn = arena_sb_raw as Vector2
+			var boss_def: Dictionary = _enemy_def(boss_id)
+			var boss_radius: float = float(boss_def.get("raio", 58.0))
+			var boss_pos: Vector2 = Movement.resolve(boss_spawn, boss_radius, data.arena)
 			_append_enemy(boss_id, boss_pos, false, 1.0)
-			if region_index == 0:
+			if reg_id_boss == "limiar" or region_index == 0:
 				_append_enemy("eco_perdido", Movement.resolve(Vector2(cx - 320.0, 320.0), 26.0, data.arena), false, hp_mult)
 				_append_enemy("eco_perdido", Movement.resolve(Vector2(cx + 320.0, 320.0), 26.0, data.arena), false, hp_mult)
-			elif region_index == 1:
+			elif reg_id_boss == "veio_instavel":
 				_append_enemy("eco_perdido", Movement.resolve(Vector2(cx - 340.0, 320.0), 26.0, data.arena), false, hp_mult)
 				_append_enemy("anomalia_menor", Movement.resolve(Vector2(cx + 340.0, 320.0), 26.0, data.arena), false, hp_mult)
-			elif region_index == 2:
+			elif reg_id_boss == "fosso_das_cinzas":
 				_append_enemy("eco_perdido", Movement.resolve(Vector2(cx - 360.0, 330.0), 26.0, data.arena), false, hp_mult)
 				_append_enemy("eco_perdido", Movement.resolve(Vector2(cx + 360.0, 330.0), 26.0, data.arena), false, hp_mult)
 			else:
@@ -1361,9 +1628,9 @@ func _enemy_step(enemy: Dictionary) -> void:
 	if enemy.phase == "windup":
 		enemy.timer -= 1
 		if enemy.timer <= 0:
-			_enemy_fire(enemy,definition)
 			enemy.phase = "recover"
 			enemy.timer = Movement.ticks(definition.recarga_s)
+			_enemy_fire(enemy,definition)
 		return
 	if enemy.phase == "recover":
 		enemy.timer -= 1
@@ -1419,7 +1686,182 @@ func _enemy_fire(enemy: Dictionary, definition: Dictionary) -> void:
 			projectiles.append({"pos": pos_p, "prev": pos_p, "radius": float(definition.proj_raio_px), "velocity": dir * float(definition.proj_velocidade_pxs), "remaining": int(definition.proj_vida_passos), "damage": damage})
 		if enemies.size() < 3:
 			var summon_pos: Vector2 = Movement.resolve(enemy.pos + enemy.aim.orthogonal() * 110.0, 24.0, data.arena)
-			_append_enemy("eco_perdido", summon_pos, false, 1.0 + float(region_index) * 0.22)
+			_append_enemy("eco_perdido", summon_pos, false, float(current_region.get("hp_mult", 1.0)))
+		return
+	if boss_pattern == "coroa_espinhos":
+		for i_c: int in range(8):
+			var ang_c: float = TAU * float(i_c) / 8.0
+			var dir_c: Vector2 = enemy.aim.rotated(ang_c)
+			var pos_c: Vector2 = enemy.pos + dir_c * float(data.combate.nascimento_projetil_px)
+			projectiles.append({
+				"pos": pos_c,
+				"prev": pos_c,
+				"radius": float(definition.proj_raio_px),
+				"velocity": dir_c * float(definition.proj_velocidade_pxs),
+				"remaining": int(definition.proj_vida_passos),
+				"damage": damage,
+			})
+		if float(enemy.hp) <= float(enemy.max_hp) * 0.5:
+			for ang_ca: float in [-0.20, 0.20]:
+				var dir_ca: Vector2 = enemy.aim.rotated(ang_ca)
+				var pos_ca: Vector2 = enemy.pos + dir_ca * float(data.combate.nascimento_projetil_px)
+				projectiles.append({
+					"pos": pos_ca,
+					"prev": pos_ca,
+					"radius": float(definition.proj_raio_px),
+					"velocity": dir_ca * float(definition.proj_velocidade_pxs) * 1.1,
+					"remaining": int(definition.proj_vida_passos),
+					"damage": damage,
+				})
+		var fx_coroa: Dictionary = _effect("enemy_attack", enemy.pos, enemy.aim, 0.28)
+		fx_coroa["radius"] = 240.0
+		fx_coroa["angle"] = PI
+		return
+	if boss_pattern == "mare_pressao":
+		for ang_m: float in [-0.26, 0.0, 0.26]:
+			var dir_m: Vector2 = enemy.aim.rotated(ang_m)
+			var pos_m: Vector2 = enemy.pos + dir_m * float(data.combate.nascimento_projetil_px)
+			projectiles.append({
+				"pos": pos_m,
+				"prev": pos_m,
+				"radius": float(definition.proj_raio_px),
+				"velocity": dir_m * float(definition.proj_velocidade_pxs),
+				"remaining": int(definition.proj_vida_passos),
+				"damage": damage,
+			})
+		if boss_storm_active:
+			for i_st: int in range(6):
+				var ang_st: float = TAU * float(i_st) / 6.0
+				var dir_st: Vector2 = enemy.aim.rotated(ang_st)
+				var pos_st: Vector2 = enemy.pos + dir_st * float(data.combate.nascimento_projetil_px)
+				projectiles.append({
+					"pos": pos_st,
+					"prev": pos_st,
+					"radius": float(definition.proj_raio_px),
+					"velocity": dir_st * float(definition.proj_velocidade_pxs) * 0.9,
+					"remaining": int(definition.proj_vida_passos),
+					"damage": damage * 0.85,
+				})
+		var pilares_l: Array = data.arena.pilares
+		var e_radius_l: float = float(enemy.radius)
+		var p_pos_l: Vector2 = player["pos"] as Vector2
+		var p_rad_l: float = float(player["radius"])
+		var hit_player_l: bool = false
+		for _step_l: int in range(11):
+			var e_pos_l: Vector2 = enemy["pos"] as Vector2
+			var e_aim_l: Vector2 = enemy["aim"] as Vector2
+			var cand_l: Vector2 = e_pos_l + e_aim_l * 20.0
+			for obs_var_l: Variant in pilares_l:
+				if not (obs_var_l is Dictionary):
+					continue
+				var obs_l: Dictionary = obs_var_l as Dictionary
+				if String(obs_l.get("kind", "")) == "quebra_mares_farol":
+					var obs_pos_l: Vector2 = Vector2(float(obs_l.get("x", 0.0)), float(obs_l.get("y", 0.0)))
+					var obs_r_l: float = float(obs_l.get("r", 44.0))
+					if cand_l.distance_to(obs_pos_l) <= e_radius_l + obs_r_l + 36.0:
+						enemy["pos"] = Movement.resolve(cand_l, e_radius_l, data.arena)
+						boss_exposed_timer = maxf(boss_exposed_timer, 2.8)
+						enemy["timer"] = maxi(int(enemy["timer"]), 150)
+						_effect("crit", enemy["pos"] as Vector2, e_aim_l, 0.35)
+						return
+			var next_l: Vector2 = Movement.resolve(cand_l, e_radius_l, data.arena)
+			enemy["pos"] = next_l
+			if not hit_player_l and next_l.distance_to(p_pos_l) <= e_radius_l + p_rad_l + 22.0:
+				_hurt_player(damage, next_l)
+				hit_player_l = true
+		return
+	if boss_pattern == "vigia_escarpa":
+		var e_pos_v: Vector2 = enemy["pos"] as Vector2
+		var e_aim_v: Vector2 = enemy["aim"] as Vector2
+		var impact_v: Vector2 = Movement.resolve(e_pos_v + e_aim_v * 80.0, 24.0, data.arena)
+		var slam_fx_v: Dictionary = _effect("colosso_slam", impact_v, e_aim_v, 0.64)
+		slam_fx_v["radius"] = float(definition.tele_raio_px)
+		slam_fx_v["origin"] = e_pos_v
+		var p_pos_v: Vector2 = player["pos"] as Vector2
+		var delta_v: Vector2 = p_pos_v - e_pos_v
+		if delta_v.length() <= float(definition.tele_raio_px) + float(player.radius) and (delta_v == Vector2.ZERO or e_aim_v.dot(delta_v.normalized()) >= cos(deg_to_rad(float(definition.tele_meio_angulo_graus)))):
+			_hurt_player(damage, e_pos_v)
+		if bool(enemy.get("phase2_triggered", false)):
+			for i_v: int in range(6):
+				var ang_v: float = TAU * float(i_v) / 6.0
+				var dir_v: Vector2 = e_aim_v.rotated(ang_v)
+				var pos_pv: Vector2 = e_pos_v + dir_v * float(data.combate.nascimento_projetil_px)
+				projectiles.append({
+					"pos": pos_pv,
+					"prev": pos_pv,
+					"radius": float(definition.proj_raio_px),
+					"velocity": dir_v * float(definition.proj_velocidade_pxs),
+					"remaining": int(definition.proj_vida_passos),
+					"damage": damage * 0.75,
+				})
+		return
+	if boss_pattern == "investida_compressao":
+		var pilares_t: Array = data.arena.pilares
+		var e_radius_t: float = float(enemy.radius)
+		var p_pos_t: Vector2 = player["pos"] as Vector2
+		var p_rad_t: float = float(player["radius"])
+		var hit_player_t: bool = false
+		for _step_t: int in range(13):
+			var e_pos_t: Vector2 = enemy["pos"] as Vector2
+			var e_aim_t: Vector2 = enemy["aim"] as Vector2
+			var cand_t: Vector2 = e_pos_t + e_aim_t * 20.0
+			for obs_var_t: Variant in pilares_t:
+				if not (obs_var_t is Dictionary):
+					continue
+				var obs_t: Dictionary = obs_var_t as Dictionary
+				if String(obs_t.get("kind", "")) == "monolito_contencao":
+					var obs_pos_t: Vector2 = Vector2(float(obs_t.get("x", 0.0)), float(obs_t.get("y", 0.0)))
+					var obs_r_t: float = float(obs_t.get("r", 44.0))
+					if cand_t.distance_to(obs_pos_t) <= e_radius_t + obs_r_t + 36.0:
+						enemy["pos"] = Movement.resolve(cand_t, e_radius_t, data.arena)
+						boss_exposed_timer = maxf(boss_exposed_timer, 3.0)
+						enemy["timer"] = maxi(int(enemy["timer"]), 150)
+						_effect("crit", enemy["pos"] as Vector2, e_aim_t, 0.35)
+						return
+			var next_t: Vector2 = Movement.resolve(cand_t, e_radius_t, data.arena)
+			enemy["pos"] = next_t
+			if not hit_player_t and next_t.distance_to(p_pos_t) <= e_radius_t + p_rad_t + 18.0:
+				_hurt_player(damage, next_t)
+				hit_player_t = true
+		var end_pos_t: Vector2 = enemy["pos"] as Vector2
+		var end_aim_t: Vector2 = enemy["aim"] as Vector2
+		var impact_t: Vector2 = Movement.resolve(end_pos_t + end_aim_t * 88.0, 24.0, data.arena)
+		var slam_fx_t: Dictionary = _effect("colosso_slam", impact_t, end_aim_t, 0.68)
+		slam_fx_t["radius"] = float(definition.tele_raio_px)
+		slam_fx_t["origin"] = end_pos_t
+		if not hit_player_t:
+			var delta_t: Vector2 = p_pos_t - end_pos_t
+			if delta_t.length() <= float(definition.tele_raio_px) + p_rad_t and (delta_t == Vector2.ZERO or end_aim_t.dot(delta_t.normalized()) >= cos(deg_to_rad(float(definition.tele_meio_angulo_graus)))):
+				_hurt_player(damage, end_pos_t)
+		return
+	if boss_pattern == "abismo_total":
+		for ang_ab: float in [-0.44, -0.22, 0.0, 0.22, 0.44]:
+			var dir_ab: Vector2 = enemy.aim.rotated(ang_ab)
+			var pos_ab: Vector2 = enemy.pos + dir_ab * float(data.combate.nascimento_projetil_px)
+			projectiles.append({
+				"pos": pos_ab,
+				"prev": pos_ab,
+				"radius": float(definition.proj_raio_px),
+				"velocity": dir_ab * float(definition.proj_velocidade_pxs),
+				"remaining": int(definition.proj_vida_passos),
+				"damage": damage,
+			})
+		if boss_seals_active < 2 or float(enemy.hp) <= float(enemy.max_hp) * 0.66:
+			for i_ab: int in range(6):
+				var ang_r_ab: float = TAU * float(i_ab) / 6.0 + 0.26
+				var dir_r_ab: Vector2 = enemy.aim.rotated(ang_r_ab)
+				var pos_r_ab: Vector2 = enemy.pos + dir_r_ab * float(data.combate.nascimento_projetil_px)
+				projectiles.append({
+					"pos": pos_r_ab,
+					"prev": pos_r_ab,
+					"radius": float(definition.proj_raio_px),
+					"velocity": dir_r_ab * float(definition.proj_velocidade_pxs) * 0.88,
+					"remaining": int(definition.proj_vida_passos),
+					"damage": damage * 0.85,
+				})
+		if enemies.size() < 3:
+			var summon_ab: Vector2 = Movement.resolve(enemy.pos + enemy.aim.orthogonal() * 120.0, 24.0, data.arena)
+			_append_enemy("vulto_mudo", summon_ab, false, float(current_region.get("hp_mult", 1.0)))
 		return
 	if definition.comportamento == "ranged":
 		var position: Vector2 = enemy.pos+enemy.aim*float(data.combate.nascimento_projetil_px)
@@ -1516,6 +1958,159 @@ func _remove_dead() -> void:
 			_pending_hitstop = maxi(_pending_hitstop,Movement.ticks(data.combate.hitstop_abate_s))
 		else: survivors.append(enemy)
 	enemies = survivors
+
+func _step_boss_environment() -> void:
+	var boss: Dictionary = _boss_vivo_dos_novos_reinos()
+	if boss.is_empty():
+		return
+	if boss_exposed_timer > 0.0:
+		boss_exposed_timer = maxf(0.0, boss_exposed_timer - 1.0 / TICK_RATE)
+	var b_kind: String = String(boss.get("kind", ""))
+	var ppos: Vector2 = player["pos"] as Vector2
+	var b_pos_raw: Variant = boss.get("pos", Vector2.ZERO)
+	var boss_pos: Vector2 = b_pos_raw as Vector2 if b_pos_raw is Vector2 else Vector2.ZERO
+	var b_aim_raw: Variant = boss.get("aim", Vector2.DOWN)
+	var boss_aim: Vector2 = b_aim_raw as Vector2 if b_aim_raw is Vector2 else Vector2.DOWN
+	match b_kind:
+		"devorador_coroa_espinhos":
+			if _em_zona_segura(ppos, ZONAS_LAJE_ANTIGA):
+				boss_sensor_ticks = 0
+			else:
+				boss_sensor_ticks += 1
+				if boss_sensor_ticks >= 75:
+					boss_sensor_ticks = 0
+					var erup_fx: Dictionary = _effect("esporo_erupcao", ppos, Vector2.UP, 0.55)
+					erup_fx["radius"] = 64.0
+					_hurt_player(12.0, ppos)
+			if _em_perigo(ppos, PERIGOS_ESPOROS) and live_steps % 90 == 0:
+				var spore_fx: Dictionary = _effect("esporo_erupcao", ppos, Vector2.UP, 0.45)
+				spore_fx["radius"] = 56.0
+				_hurt_player(8.0, ppos)
+		"leviata_mare_morta":
+			boss_env_timer += 1.0 / TICK_RATE
+			if roundi(boss_env_timer * TICK_RATE) >= 420:
+				boss_env_timer = 0.0
+				boss_storm_active = not boss_storm_active
+			if boss_storm_active:
+				var em_agua: bool = _em_perigo(ppos, PERIGOS_AGUA_COSTA)
+				var em_abrigo: bool = _em_zona_segura(ppos, ZONAS_ABRIGO_COSTA)
+				if em_agua and not em_abrigo:
+					if _storm_pulse_cd == 0:
+						var pulse_l: Dictionary = _effect("magic_pulse", ppos, Vector2.UP, 0.45)
+						pulse_l["radius"] = 130.0
+						_hurt_player(14.0, boss_pos)
+					_storm_pulse_cd = (_storm_pulse_cd + 1) % 60
+				else:
+					_storm_pulse_cd = 0
+			else:
+				_storm_pulse_cd = 0
+		"vigia_coroa_partida":
+			var b_hp: float = float(boss.get("hp", 0.0))
+			var b_max_hp: float = float(boss.get("max_hp", 1.0))
+			if b_hp <= b_max_hp * 0.5 and not bool(boss.get("phase2_triggered", false)):
+				boss["phase2_triggered"] = true
+				boss_exposed_timer = maxf(boss_exposed_timer, 3.2)
+				var fx_v: Dictionary = _effect("colosso_slam", boss_pos, boss_aim, 0.72)
+				fx_v["radius"] = 360.0
+				for i_v: int in range(6):
+					var ang_v: float = TAU * float(i_v) / 6.0
+					var dir_v: Vector2 = boss_aim.rotated(ang_v)
+					var pos_v: Vector2 = boss_pos + dir_v * float(data.combate.nascimento_projetil_px)
+					projectiles.append({
+						"pos": pos_v,
+						"prev": pos_v,
+						"radius": 13.0,
+						"velocity": dir_v * 390.0,
+						"remaining": 160,
+						"damage": 22.0,
+					})
+			boss_env_timer += 1.0 / TICK_RATE
+			if roundi(boss_env_timer * TICK_RATE) >= 480:
+				boss_env_timer = 0.0
+				var em_sismo: bool = _em_perigo(ppos, PERIGOS_SISMO_ESCARPA)
+				var em_plato: bool = _em_zona_segura(ppos, ZONAS_ABRIGO_ESCARPA)
+				if em_sismo and not em_plato:
+					var quake_fx: Dictionary = _effect("colosso_slam", ppos, Vector2.UP, 0.55)
+					quake_fx["radius"] = 160.0
+					_hurt_player(16.0, boss_pos)
+		"tirano_quebra_grilhoes":
+			pass
+		"pesadelo_fendas_subterraneas":
+			var b_hp_p: float = float(boss.get("hp", 0.0))
+			var b_max_hp_p: float = float(boss.get("max_hp", 1.0))
+			if boss_seals_active < 2 and String(boss.get("phase", "")) != "spawn" and b_hp_p < b_max_hp_p:
+				boss["hp"] = minf(b_max_hp_p, b_hp_p + 8.0 / TICK_RATE)
+			var b_rad_p: float = float(boss.get("radius", 112.0))
+			if _em_zona_segura(boss_pos, ZONAS_LUZ_SAGRADA, b_rad_p * 0.5):
+				boss_exposed_timer = maxf(boss_exposed_timer, 0.5)
+			if _em_perigo(ppos, PERIGOS_ESCAVACAO_ABISMO) and not _em_zona_segura(ppos, ZONAS_ROCHA_ABISMO) and live_steps % 120 == 0:
+				var abyss_fx: Dictionary = _effect("colosso_slam", ppos, Vector2.UP, 0.45)
+				abyss_fx["radius"] = 110.0
+				_hurt_player(12.0, boss_pos)
+
+func _boss_vivo_dos_novos_reinos() -> Dictionary:
+	for enemy: Dictionary in enemies:
+		if float(enemy.get("hp", 0.0)) <= 0.0:
+			continue
+		var kind_b: String = String(enemy.get("kind", ""))
+		if kind_b in [
+			"devorador_coroa_espinhos",
+			"leviata_mare_morta",
+			"vigia_coroa_partida",
+			"tirano_quebra_grilhoes",
+			"pesadelo_fendas_subterraneas",
+		]:
+			return enemy
+	return {}
+
+func _em_zona_segura(pos: Vector2, tipos: Array[String], radius_extra: float = 0.0) -> bool:
+	for z: Dictionary in boss_arena_zones:
+		var z_tipo: String = String(z.get("tipo", z.get("kind", "")))
+		var z_id: String = String(z.get("id", ""))
+		if not tipos.has(z_tipo) and not tipos.has(z_id):
+			continue
+		var z_pos_raw: Variant = z.get("pos", Vector2.ZERO)
+		var z_pos: Vector2 = z_pos_raw as Vector2 if z_pos_raw is Vector2 else Vector2.ZERO
+		var z_r: float = float(z.get("raio", z.get("radius", 100.0))) + radius_extra
+		if pos.distance_to(z_pos) <= z_r:
+			return true
+	return false
+
+func _em_perigo(pos: Vector2, tipos: Array[String]) -> bool:
+	for h: Dictionary in boss_arena_hazards:
+		if bool(h.get("limpo", false)):
+			continue
+		var h_tipo: String = String(h.get("tipo", h.get("kind", "")))
+		var h_id: String = String(h.get("id", ""))
+		if not tipos.has(h_tipo) and not tipos.has(h_id):
+			continue
+		var h_pos_raw: Variant = h.get("pos", Vector2.ZERO)
+		var h_pos: Vector2 = h_pos_raw as Vector2 if h_pos_raw is Vector2 else Vector2.ZERO
+		var h_r: float = float(h.get("raio", h.get("radius", 100.0)))
+		if pos.distance_to(h_pos) <= h_r:
+			return true
+	return false
+
+func _em_terreno_dificil(pos: Vector2) -> bool:
+	for h: Dictionary in boss_arena_hazards:
+		if bool(h.get("limpo", false)):
+			continue
+		var h_tipo: String = String(h.get("tipo", h.get("kind", "")))
+		var h_id: String = String(h.get("id", ""))
+		var eh_correntes: bool = bool(h.get("terreno_dificil", false)) or h_tipo == "correntes_partidas" or h_id == "correntes_partidas"
+		var eh_agua_profunda: bool = PERIGOS_AGUA_PROFUNDA.has(h_tipo) or PERIGOS_AGUA_PROFUNDA.has(h_id)
+		var eh_mare_alta: bool = (h_tipo == "ciclo_mare_alta" or h_id == "ciclo_mare_alta") and boss_storm_active
+		var eh_agua: bool = eh_agua_profunda or eh_mare_alta
+		if not eh_correntes and not eh_agua:
+			continue
+		var h_pos_raw: Variant = h.get("pos", Vector2.ZERO)
+		var h_pos: Vector2 = h_pos_raw as Vector2 if h_pos_raw is Vector2 else Vector2.ZERO
+		var h_r: float = float(h.get("raio", h.get("radius", 100.0)))
+		if pos.distance_to(h_pos) <= h_r:
+			if eh_agua and _em_zona_segura(pos, ZONAS_ABRIGO_COSTA):
+				continue
+			return true
+	return false
 
 func _effect(kind: String, position: Vector2, direction: Vector2, duration: float) -> Dictionary:
 	var value := {"kind":kind,"pos":position,"dir":direction,"age":0.0,"duration":duration}

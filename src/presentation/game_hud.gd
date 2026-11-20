@@ -32,6 +32,7 @@ func _garantir_texturas_ui() -> void:
 		"mestre_oreth": "res://assets/art/ui/mestres/oreth.png",
 		"prologo_01": "res://assets/art/ui/historia/prologo_01.png",
 		"prologo_02": "res://assets/art/ui/historia/prologo_02.png",
+		"arvore_9_reinos": "res://assets/art/ui/mapa/arvore_9_reinos.png",
 	}
 	for k: String in mapas.keys():
 		var path: String = String(mapas[k])
@@ -63,10 +64,12 @@ func _nome_doutrina() -> String:
 
 func _nome_regiao_inicial() -> String:
 	var idx: int = int(app.get("selected_region_index")) if app != null and app.get("selected_region_index") != null else 0
-	var regioes: Array[Dictionary] = CatalogoCampanha.regioes()
-	if idx >= 0 and idx < regioes.size():
-		return String(regioes[idx].get("nome", "O Limiar"))
-	return "O Limiar"
+	var reino: Dictionary = ArvoreDosReinos.obter_reino(idx)
+	if reino.is_empty():
+		reino = ArvoreDosReinos.obter_reino(0)
+	var nome: String = String(reino.get("nome", "O Limiar da Beira"))
+	var rank: String = String(reino.get("rank", "D"))
+	return "%s (%s)" % [nome, rank]
 
 ## Logical viewport rectangles shared by drawing, hover and confirmation.
 func action_rects() -> Array[Rect2]:
@@ -78,6 +81,18 @@ func action_rects() -> Array[Rect2]:
 		"menu":
 			for i: int in range(7):
 				result.append(Rect2(center - 240.0, 466.0 + float(i) * 54.0, 480.0, 46.0))
+		"mapa_reinos":
+			var ui_ox: float = maxf(0.0, (app.camera.width - 1920.0) * 0.5)
+			var tree_area := Rect2(44.0 + ui_ox, 96.0, 1180.0, 900.0)
+			var reinos_lista: Array[Dictionary] = ArvoreDosReinos.reinos()
+			for r: Dictionary in reinos_lista:
+				var tp_raw: Variant = r.get("tree_pos", Vector2(0.5, 0.5))
+				var tp: Vector2 = tp_raw as Vector2 if tp_raw is Vector2 else Vector2(0.5, 0.5)
+				var tx: float = tree_area.position.x + tp.x * tree_area.size.x
+				var ty: float = tree_area.position.y + tp.y * tree_area.size.y
+				result.append(Rect2(tx - 64.0, ty - 34.0, 128.0, 68.0))
+			result.append(Rect2(1300.0 + ui_ox, 820.0, 560.0, 64.0))
+			result.append(Rect2(1300.0 + ui_ox, 900.0, 560.0, 54.0))
 		"codex":
 			for i: int in range(4):
 				result.append(Rect2(center - 440.0 + float(i) * 224.0, 150.0, 212.0, 48.0))
@@ -108,7 +123,7 @@ func _draw() -> void:
 	var state: String = app.session.state
 	var intro_t: float = float(app.get("boss_intro_timer")) if app.get("boss_intro_timer") != null else 0.0
 	var intro_ativa: bool = intro_t > 0.0 and state == "jogo"
-	if not state in ["menu", "campus", "mestres", "prologo", "codex"] and not intro_ativa:
+	if not state in ["menu", "campus", "mestres", "prologo", "codex", "mapa_reinos"] and not intro_ativa:
 		_status(width)
 	if state == "jogo":
 		if intro_ativa:
@@ -127,6 +142,8 @@ func _draw() -> void:
 				_draw_lore_popup(width)
 	elif state == "prologo":
 		_draw_prologo(width)
+	elif state == "mapa_reinos":
+		_draw_mapa_reinos(width)
 	elif state == "codex":
 		_draw_codex(width)
 	elif state in ["campus", "mestres"]:
@@ -144,7 +161,7 @@ func _draw() -> void:
 				_rule(center,272,300)
 				_center("O LIMIAR",324,22,GOLD,width)
 				_center(_nome_doutrina(),380,28,BONE,width)
-				_center("Atravesse as câmaras das 4 Regiões. Escolha arma, bênçãos e pactos.",418,21,MUTED,width)
+				_center("Atravesse as câmaras dos 9 Reinos. Escolha arma, bênçãos e pactos.",418,21,MUTED,width)
 				var frag_saldo: int = app.saldo_fragmentos() if app.has_method("saldo_fragmentos") else 0
 				var menu_boxes: Array[Rect2] = action_rects()
 				_button(menu_boxes[0],"Entrar no Limiar",0)
@@ -152,10 +169,10 @@ func _draw() -> void:
 				_button(menu_boxes[2],"Doutrina: "+_nome_doutrina(),2,true)
 				_button(menu_boxes[3],"Oficina de Reforja (%d Frag.)" % frag_saldo,3,true)
 				_button(menu_boxes[4],"Explorar Campus (Hub)",4,true)
-				_button(menu_boxes[5],"Região Inicial: " + _nome_regiao_inicial(),5,true)
+				_button(menu_boxes[5],"9 Reinos: " + _nome_regiao_inicial(),5,true)
 				_button(menu_boxes[6],"Grimório & História",6,true)
 				var cat_ok := app.get("catalogo_real") != null
-				_center("MVP KHAEROS • CATÁLOGO .TRES %s • 4 REGIÕES • 15 BÊNÇÃOS" % ["ATIVO" if cat_ok else "FALLBACK"],980,18,MUTED,width)
+				_center("MVP KHAEROS • CATÁLOGO .TRES %s • 9 REINOS • 15 BÊNÇÃOS" % ["ATIVO" if cat_ok else "FALLBACK"],980,18,MUTED,width)
 				_controls(width)
 			"oficina":
 				_center("OFICINA DE REFORJA", 160, 48, BONE, width)
@@ -202,7 +219,7 @@ func _draw() -> void:
 			"vitoria":
 				_center("O SANTUÁRIO FOI ATRAVESSADO" if bool(app.session.get("extended_campaign")) else "O LIMIAR FOI ATRAVESSADO",320,49,BONE,width)
 				_rule(center,370,250)
-				_center("Você venceu os 4 Chefes desta campanha." if bool(app.session.get("extended_campaign")) else "Você venceu as três ondas desta travessia.",440,25,GOLD,width)
+				_center("Você venceu os 9 Chefes desta campanha." if bool(app.session.get("extended_campaign")) else "Você venceu as três ondas desta travessia.",440,25,GOLD,width)
 				_summary(width)
 				_button(action_rects()[0],"Jogar novamente",0)
 				_button(action_rects()[1],"Voltar ao início",1,true)
@@ -446,20 +463,33 @@ func _status(width: float) -> void:
 				draw_circle(sp_pos, 6.5, Color(0.11, 0.10, 0.16, 0.90))
 				draw_arc(sp_pos, 6.5, 0.0, TAU, 16, Color(MUTED, 0.48), 1.2, true)
 	# Badge flutuante limpo no canto superior direito
-	var right_badge := Rect2(width - 370.0, 26.0, 334.0, 86.0)
+	var right_w: float = 384.0
+	var right_x: float = width - 36.0 - right_w
+	var right_badge := Rect2(right_x, 26.0, right_w, 86.0)
 	_draw_floating_panel(right_badge)
 	var reg: Dictionary = app.session.current_region if app.session.get("current_region") is Dictionary else {}
 	if bool(app.session.get("extended_campaign")) and not reg.is_empty():
 		var reg_num: int = int(app.session.get("region_index")) + 1
+		var total_reinos: int = ArvoreDosReinos.total_reinos()
 		var reg_nome: String = String(reg.get("nome", "O Limiar")).to_upper()
+		var reg_rank: String = String(reg.get("rank", ""))
+		if reg_rank.is_empty():
+			var reg_arvore: Dictionary = ArvoreDosReinos.obter_por_id(String(reg.get("id", "")))
+			if reg_arvore.is_empty():
+				reg_arvore = ArvoreDosReinos.obter_reino(reg_num - 1)
+			reg_rank = String(reg_arvore.get("rank", ""))
 		var rw: int = int(app.session.get("region_wave_index"))
-		var camara_txt: String = "CHEFE DA REGIÃO" if rw >= 2 else ("CÂMARA %d / 3" % (rw + 1))
-		_text("REGIÃO %d/4 • %s" % [reg_num, reg_nome], Vector2(width - 352.0, 50.0), 16, GOLD)
-		_text(camara_txt, Vector2(width - 352.0, 74.0), 18, Color("f29bb0") if rw >= 2 else BONE)
-		_text("%d inimigos restantes" % app.session.enemies.size(), Vector2(width - 352.0, 98.0), 15, MUTED)
+		var camara_txt: String = "CHEFE DO REINO" if rw >= 2 else ("CÂMARA %d / 3" % (rw + 1))
+		var reg_titulo: String = "REINO %d/%d • %s" % [reg_num, total_reinos, reg_nome]
+		if not reg_rank.is_empty():
+			reg_titulo = "%s [%s]" % [reg_titulo, reg_rank.to_upper()]
+		var reg_fsz: int = _ajustar_fonte_largura(reg_titulo, 15, 11, right_w - 32.0)
+		_text(reg_titulo, Vector2(right_x + 16.0, 50.0), reg_fsz, GOLD)
+		_text(camara_txt, Vector2(right_x + 16.0, 74.0), 18, Color("f29bb0") if rw >= 2 else BONE)
+		_text("%d inimigos restantes" % app.session.enemies.size(), Vector2(right_x + 16.0, 98.0), 15, MUTED)
 	else:
-		_text("ONDA %d / %d" % [mini(app.session.wave_index + 1, app.catalog.data.ondas.size()), app.catalog.data.ondas.size()], Vector2(width - 352.0, 58.0), 22, GOLD)
-		_text("%d inimigos restantes" % app.session.enemies.size(), Vector2(width - 352.0, 92.0), 17, MUTED)
+		_text("ONDA %d / %d" % [mini(app.session.wave_index + 1, app.catalog.data.ondas.size()), app.catalog.data.ondas.size()], Vector2(right_x + 16.0, 58.0), 22, GOLD)
+		_text("%d inimigos restantes" % app.session.enemies.size(), Vector2(right_x + 16.0, 92.0), 17, MUTED)
 	# Contador de Combo dinâmico + Rastreador discreto de Quest ativa (abaixo do badge direito)
 	var right_cursor_y: float = 122.0
 	var combo_hits: int = int(player.get("combo_hits", 0))
@@ -467,7 +497,7 @@ func _status(width: float) -> void:
 		var is_unstoppable: bool = combo_hits >= 10
 		var combo_col: Color = PINK if is_unstoppable else GOLD
 		var combo_txt: String = ("x%d IMPARÁVEL!" if is_unstoppable else "x%d COMBO") % combo_hits
-		var combo_rect := Rect2(width - 370.0, right_cursor_y, 334.0, 40.0)
+		var combo_rect := Rect2(right_x, right_cursor_y, right_w, 40.0)
 		draw_rect(combo_rect, Color(0.08, 0.05, 0.10, 0.82))
 		draw_rect(combo_rect, Color(combo_col, 0.82), false, 1.8)
 		_center_in(combo_txt, combo_rect.position.y + 27.0, 20, combo_col, combo_rect)
@@ -481,10 +511,11 @@ func _status(width: float) -> void:
 			var q_prog: int = int(qa.get("progresso", qa.get("atual", 0)))
 			var q_meta: int = int(qa.get("meta", qa.get("alvo", qa.get("total", 1))))
 			var q_txt: String = "CONTRATO: %s (%d/%d)" % [q_titulo, q_prog, q_meta]
-			var q_rect := Rect2(width - 370.0, right_cursor_y, 334.0, 36.0)
+			var q_rect := Rect2(right_x, right_cursor_y, right_w, 36.0)
 			draw_rect(q_rect, Color(0.05, 0.06, 0.09, 0.66))
 			draw_rect(q_rect, Color(GOLD, 0.34), false, 1.0)
-			_text(q_txt, Vector2(q_rect.position.x + 14.0, q_rect.position.y + 24.0), 15, Color(BONE, 0.90))
+			var q_fsz: int = _ajustar_fonte_largura(q_txt, 15, 11, right_w - 28.0)
+			_text(q_txt, Vector2(q_rect.position.x + 14.0, q_rect.position.y + 24.0), q_fsz, Color(BONE, 0.90))
 			right_cursor_y += 44.0
 	var mapa_obj: Variant = app.session.get("mapa")
 	if mapa_obj != null and mapa_obj.has_method("resumo_minimapa"):
@@ -550,13 +581,22 @@ func _status(width: float) -> void:
 		var b_hp: float = float(boss.get("hp", 0.0))
 		var b_max: float = maxf(1.0, float(boss.get("max_hp", 1.0)))
 		var b_ratio: float = clampf(b_hp / b_max, 0.0, 1.0)
-		_center(b_nome, 965.0, 20, GOLD, width)
+		var exposed_raw: Variant = app.session.get("boss_exposed_timer")
+		var exposed_t: float = float(exposed_raw) if exposed_raw != null else 0.0
+		var exposed_ativo: bool = exposed_t > 0.0
+		var b_pulse: float = 1.0 if bool(app.get("reduced_motion")) else (0.72 + 0.28 * sin(p_time * 9.0))
+		if exposed_ativo:
+			var vuln_pill := Rect2(b_center - 130.0, 916.0, 260.0, 26.0)
+			draw_rect(vuln_pill, Color(0.05, 0.12, 0.18, 0.92))
+			draw_rect(vuln_pill, Color(CYAN, 0.90 * b_pulse), false, 1.8)
+			_center_in("VULNERÁVEL! (%.1fs)" % exposed_t, vuln_pill.position.y + 19.0, 15, Color(CYAN, b_pulse), vuln_pill)
+		_center(b_nome, 965.0, 20, Color(CYAN, 0.95) if exposed_ativo else GOLD, width)
 		draw_rect(Rect2(b_x - 3.0, b_y - 3.0, b_w + 6.0, b_h + 6.0), Color(0.04, 0.04, 0.07, 0.88))
 		draw_rect(Rect2(b_x, b_y, b_w, b_h), Color(0.16, 0.12, 0.19, 0.95))
 		if b_ratio > 0.0:
-			draw_rect(Rect2(b_x, b_y, b_w * b_ratio, b_h), PINK)
-			draw_rect(Rect2(b_x, b_y, b_w * b_ratio, 3.5), Color(1.0, 0.84, 0.90, 0.55))
-		draw_rect(Rect2(b_x - 2.0, b_y - 2.0, b_w + 4.0, b_h + 4.0), Color(GOLD, 0.85), false, 1.5)
+			draw_rect(Rect2(b_x, b_y, b_w * b_ratio, b_h), Color("f59e0b") if exposed_ativo else PINK)
+			draw_rect(Rect2(b_x, b_y, b_w * b_ratio, 3.5), Color(1.0, 0.94, 0.78, 0.65) if exposed_ativo else Color(1.0, 0.84, 0.90, 0.55))
+		draw_rect(Rect2(b_x - 2.0, b_y - 2.0, b_w + 4.0, b_h + 4.0), Color(CYAN, 0.95 * b_pulse) if exposed_ativo else Color(GOLD, 0.85), false, 2.0 if exposed_ativo else 1.5)
 		var mid_y: float = b_y + b_h * 0.5
 		var left_d := PackedVector2Array([
 			Vector2(b_x - 10.0, mid_y),
@@ -631,11 +671,18 @@ func _card(rect: Rect2,index: int) -> void:
 	_wrapped(item_texto,Rect2(rect.position+Vector2(34,230),Vector2(rect.size.x-68,110)),22,MUTED)
 	_center_in("[ %d ]   %s" % [index+1,"SELECIONADA" if chosen else "BÊNÇÃO"],rect.end.y-32,18,GOLD if chosen else MUTED,rect)
 
+func _ajustar_fonte_largura(texto: String, tamanho_ideal: int, tamanho_min: int, largura_max: float) -> int:
+	var fsz: int = tamanho_ideal
+	while fsz > tamanho_min and font.get_string_size(texto, HORIZONTAL_ALIGNMENT_LEFT, -1, fsz).x > largura_max:
+		fsz -= 1
+	return fsz
+
 func _button(rect:Rect2,label:String,index:int,secondary:bool=false) -> void:
 	var chosen: bool = index == app.selected
 	draw_rect(rect,Color("3b3540") if chosen else PANEL)
 	draw_rect(rect,GOLD if chosen else Color("49424d"),false,2 if chosen else 1)
-	_center_in(label,rect.position.y+rect.size.y*.5+9,24 if secondary else 28,BONE if chosen else MUTED,rect)
+	var font_sz: int = _ajustar_fonte_largura(label, 24 if secondary else 28, 14, maxf(40.0, rect.size.x - 68.0))
+	_center_in(label, rect.position.y + rect.size.y * 0.5 + float(font_sz) * 0.37, font_sz, BONE if chosen else MUTED, rect)
 	if chosen:
 		_text("›",rect.position+Vector2(18,rect.size.y*.5+10),30,GOLD)
 
@@ -680,15 +727,9 @@ func _wrapped(text:String,rect:Rect2,size:int,color:Color) -> void:
 
 
 func _nome_regiao_por_id(reg_id: String) -> String:
-	match reg_id:
-		"limiar":
-			return "O Limiar da Beira"
-		"veio_instavel":
-			return "Veio Instável"
-		"fosso_das_cinzas":
-			return "Fosso das Cinzas"
-		"santuario_partido":
-			return "Santuário Partido"
+	var reino: Dictionary = ArvoreDosReinos.obter_por_id(reg_id)
+	if not reino.is_empty():
+		return String(reino.get("nome", reg_id.capitalize()))
 	return reg_id.capitalize()
 
 
@@ -892,7 +933,7 @@ func _draw_codex(width: float) -> void:
 		"História & Doutrinas",
 		"Ecos (%d/12)" % ecos_desc,
 		"Bestiário",
-		"Contratos (%d/%d)" % [q_concluidas, maxi(6, q_todas.size())],
+		"Contratos (%d/%d)" % [q_concluidas, maxi(11, q_todas.size())],
 	]
 	var boxes: Array[Rect2] = action_rects()
 	for i: int in range(mini(4, boxes.size())):
@@ -1010,3 +1051,223 @@ func _draw_codex_contratos(panel: Rect2, quests_lista: Array[Dictionary], scroll
 		var ratio: float = clampf(float(prog) / float(meta), 0.0, 1.0)
 		if ratio > 0.0:
 			draw_rect(Rect2(bar.position, Vector2(bar.size.x * ratio, bar.size.y)), Color("34d399") if concluida else GOLD)
+
+
+func _draw_cantoneiras(rect: Rect2, cor: Color, comp: float = 12.0, espessura: float = 2.4) -> void:
+	var x0: float = rect.position.x
+	var y0: float = rect.position.y
+	var x1: float = rect.end.x
+	var y1: float = rect.end.y
+	draw_line(Vector2(x0, y0 + comp), Vector2(x0, y0), cor, espessura)
+	draw_line(Vector2(x0, y0), Vector2(x0 + comp, y0), cor, espessura)
+	draw_line(Vector2(x1 - comp, y0), Vector2(x1, y0), cor, espessura)
+	draw_line(Vector2(x1, y0), Vector2(x1, y0 + comp), cor, espessura)
+	draw_line(Vector2(x0, y1 - comp), Vector2(x0, y1), cor, espessura)
+	draw_line(Vector2(x0, y1), Vector2(x0 + comp, y1), cor, espessura)
+	draw_line(Vector2(x1 - comp, y1), Vector2(x1, y1), cor, espessura)
+	draw_line(Vector2(x1, y1), Vector2(x1, y1 - comp), cor, espessura)
+
+
+func _quebrar_em_duas_linhas(texto: String, tamanho: int, largura_max: float) -> Array[String]:
+	if font.get_string_size(texto, HORIZONTAL_ALIGNMENT_LEFT, -1, tamanho).x <= largura_max:
+		return [texto]
+	var palavras: PackedStringArray = texto.split(" ")
+	if palavras.size() <= 1:
+		return [texto]
+	var melhor_l1: String = ""
+	var melhor_l2: String = ""
+	var melhor_diff: float = 99999.0
+	for corte: int in range(1, palavras.size()):
+		var p1: String = " ".join(palavras.slice(0, corte))
+		var p2: String = " ".join(palavras.slice(corte, palavras.size()))
+		var w1: float = font.get_string_size(p1, HORIZONTAL_ALIGNMENT_LEFT, -1, tamanho).x
+		var w2: float = font.get_string_size(p2, HORIZONTAL_ALIGNMENT_LEFT, -1, tamanho).x
+		var estoura: float = maxf(0.0, w1 - largura_max) + maxf(0.0, w2 - largura_max)
+		var score: float = estoura * 100.0 + absf(w1 - w2)
+		if score < melhor_diff:
+			melhor_diff = score
+			melhor_l1 = p1
+			melhor_l2 = p2
+	return [melhor_l1, melhor_l2]
+
+
+func _draw_no_arvore_reino(rect: Rect2, reino: Dictionary, is_selected: bool, is_hovered: bool, pulse: float) -> void:
+	var acc_raw: Variant = reino.get("accent", GOLD)
+	var cor_reino: Color = acc_raw as Color if acc_raw is Color else GOLD
+	if is_selected:
+		draw_rect(rect.grow(5.0), Color(cor_reino, 0.24 * pulse))
+		draw_rect(rect.grow(4.0), Color(GOLD, 0.88 * pulse), false, 2.2)
+	draw_rect(rect, Color("0d0e14"))
+	var bd_cor: Color = cor_reino if is_selected else (Color(cor_reino, 0.90) if is_hovered else Color(cor_reino, 0.60))
+	draw_rect(rect, bd_cor, false, 2.6 if is_selected else (2.0 if is_hovered else 1.5))
+
+	var rank: String = String(reino.get("rank", "D"))
+	var badge_rect := Rect2(rect.position.x + 2.0, rect.position.y + 2.0, rect.size.x - 4.0, 18.0)
+	draw_rect(badge_rect, Color(cor_reino, 0.22 if is_selected else 0.12))
+	var rank_txt: String = rank.to_upper() if rank.length() > 4 else ("RANK " + rank.to_upper())
+	var rank_fsz: int = _ajustar_fonte_largura(rank_txt, 11, 9, rect.size.x - 10.0)
+	_center_in(rank_txt, badge_rect.position.y + 13.0, rank_fsz, GOLD if is_selected else cor_reino, badge_rect)
+
+	var nome: String = String(reino.get("nome", ""))
+	var nome_fsz: int = 12
+	var linhas: Array[String] = _quebrar_em_duas_linhas(nome, nome_fsz, rect.size.x - 12.0)
+	while nome_fsz > 9:
+		var cabe: bool = true
+		for l: String in linhas:
+			if font.get_string_size(l, HORIZONTAL_ALIGNMENT_LEFT, -1, nome_fsz).x > rect.size.x - 10.0:
+				cabe = false
+				break
+		if cabe:
+			break
+		nome_fsz -= 1
+		linhas = _quebrar_em_duas_linhas(nome, nome_fsz, rect.size.x - 12.0)
+	var txt_col: Color = BONE if (is_selected or is_hovered) else Color(BONE, 0.88)
+	if linhas.size() == 1:
+		_center_in(linhas[0], rect.position.y + 47.0, nome_fsz, txt_col, rect)
+	else:
+		_center_in(linhas[0], rect.position.y + 38.0, nome_fsz, txt_col, rect)
+		_center_in(linhas[1], rect.position.y + 54.0, nome_fsz, txt_col, rect)
+
+
+func _draw_mapa_reinos(width: float) -> void:
+	draw_rect(Rect2(0.0, 0.0, width, 1080.0), Color(0.022, 0.025, 0.042, 0.97))
+	var center: float = width * 0.5
+	_center("ÁRVORE DOS 9 REINOS DE KHAEROS", 52.0, 34, BONE, width)
+	_rule(center, 72.0, 420.0)
+
+	var ui_ox: float = maxf(0.0, (width - 1920.0) * 0.5)
+	var tree_area := Rect2(44.0 + ui_ox, 96.0, 1180.0, 900.0)
+	var detail_area := Rect2(1260.0 + ui_ox, 96.0, 616.0, 900.0)
+
+	# Painel esquerdo: arte da Árvore dos 9 Reinos, conexões luminosas e 9 nós interativos
+	draw_rect(tree_area, Color(0.030, 0.034, 0.056, 0.96))
+	var tree_tex_raw: Variant = _ui_tex.get("arvore_9_reinos", null)
+	var tree_tex: Texture2D = tree_tex_raw as Texture2D
+	if tree_tex != null:
+		draw_texture_rect(tree_tex, tree_area.grow(-4.0), false, Color(0.84, 0.85, 0.92, 0.60))
+		draw_rect(tree_area.grow(-4.0), Color(0.025, 0.028, 0.045, 0.30))
+	draw_rect(tree_area, GOLD, false, 2.2)
+	draw_rect(tree_area.grow(-6.0), Color(GOLD, 0.24), false, 1.0)
+	_draw_cantoneiras(tree_area, GOLD, 16.0, 3.0)
+
+	var reinos_lista: Array[Dictionary] = ArvoreDosReinos.reinos()
+	var boxes: Array[Rect2] = action_rects()
+	var sel_idx: int = clampi(int(app.get("selected_region_index")) if app.get("selected_region_index") != null else 0, 0, maxi(0, reinos_lista.size() - 1))
+	var p_age: float = float(app.get("screen_age")) if app.get("screen_age") != null else 0.0
+	var pulse: float = 1.0 if bool(app.get("reduced_motion")) else (0.76 + 0.24 * sin(p_age * 4.5))
+
+	for i: int in range(mini(reinos_lista.size(), boxes.size())):
+		var reino: Dictionary = reinos_lista[i]
+		var con_raw: Variant = reino.get("conexoes", [])
+		if not (con_raw is Array):
+			continue
+		var conexoes: Array = con_raw as Array
+		var p_orig: Vector2 = boxes[i].get_center()
+		for dst_var: Variant in conexoes:
+			var dst: int = int(dst_var)
+			if dst < 0 or dst >= boxes.size() or dst >= reinos_lista.size():
+				continue
+			var p_dest: Vector2 = boxes[dst].get_center()
+			var ativa: bool = (i == sel_idx or dst == sel_idx)
+			var halo_col: Color = Color(GOLD, 0.26 * pulse) if ativa else Color(CYAN, 0.14)
+			var line_col: Color = Color(GOLD, 0.92 * pulse) if ativa else Color(GOLD, 0.44)
+			draw_line(p_orig, p_dest, halo_col, 7.0 if ativa else 5.0, true)
+			draw_line(p_orig, p_dest, line_col, 2.8 if ativa else 1.8, true)
+
+	for i: int in range(mini(reinos_lista.size(), boxes.size())):
+		_draw_no_arvore_reino(boxes[i], reinos_lista[i], i == sel_idx, i == app.selected, pulse)
+
+	# Painel direito: ficha completa do Reino selecionado + ações
+	draw_rect(detail_area, Color(0.042, 0.047, 0.076, 0.96))
+	draw_rect(detail_area, Color(GOLD, 0.72), false, 2.0)
+	draw_rect(detail_area.grow(-6.0), Color(GOLD, 0.22), false, 1.0)
+	_draw_cantoneiras(detail_area, GOLD, 14.0, 2.6)
+
+	var sel_reino: Dictionary = reinos_lista[sel_idx] if not reinos_lista.is_empty() else {}
+	var acc_sel_raw: Variant = sel_reino.get("accent", GOLD)
+	var cor_sel: Color = acc_sel_raw as Color if acc_sel_raw is Color else GOLD
+	var x_det: float = detail_area.position.x + 30.0
+	var w_det: float = detail_area.size.x - 60.0
+
+	var tier_val: int = int(sel_reino.get("tier", 1))
+	_text("REINO %d / %d  •  TIER %d/3" % [sel_idx + 1, reinos_lista.size(), tier_val], Vector2(x_det, detail_area.position.y + 38.0), 15, cor_sel)
+
+	var nome_sel: String = String(sel_reino.get("nome", ""))
+	var nome_sel_fsz: int = _ajustar_fonte_largura(nome_sel, 28, 20, w_det)
+	_text(nome_sel, Vector2(x_det, detail_area.position.y + 72.0), nome_sel_fsz, BONE)
+
+	var subtitulo_sel: String = String(sel_reino.get("subtitulo", ""))
+	var sub_fsz: int = _ajustar_fonte_largura(subtitulo_sel, 18, 14, w_det)
+	_text(subtitulo_sel, Vector2(x_det, detail_area.position.y + 100.0), sub_fsz, GOLD)
+	_rule(detail_area.get_center().x, detail_area.position.y + 116.0, w_det * 0.75)
+
+	# Bloco Rank, Nível Recomendado e Dificuldade Roguelike
+	var diff_box := Rect2(x_det, detail_area.position.y + 132.0, w_det, 76.0)
+	draw_rect(diff_box, Color(0.065, 0.072, 0.115, 0.92))
+	draw_rect(diff_box, Color(cor_sel, 0.45), false, 1.3)
+	var rank_sel: String = String(sel_reino.get("rank", "D"))
+	var nivel_sel: int = int(sel_reino.get("nivel", 1))
+	var hp_mult: float = float(sel_reino.get("hp_mult", 1.0))
+	var dmg_mult: float = float(sel_reino.get("dmg_mult", 1.0))
+	_text("RANK %s   •   NÍVEL RECOMENDADO %d" % [rank_sel.to_upper(), nivel_sel], diff_box.position + Vector2(18.0, 29.0), 17, cor_sel)
+	_text("Dificuldade Roguelike: Vida x%.2f  •  Dano x%.2f" % [hp_mult, dmg_mult], diff_box.position + Vector2(18.0, 58.0), 16, BONE)
+
+	# Bloco Chefe Guardião
+	var chefe_raw: Variant = sel_reino.get("chefe", {})
+	var chefe: Dictionary = chefe_raw as Dictionary if chefe_raw is Dictionary else {}
+	var boss_box := Rect2(x_det, detail_area.position.y + 222.0, w_det, 90.0)
+	draw_rect(boss_box, Color(0.065, 0.072, 0.115, 0.92))
+	draw_rect(boss_box, Color(PINK, 0.45), false, 1.3)
+	_text("CHEFE GUARDIÃO", boss_box.position + Vector2(18.0, 22.0), 13, MUTED)
+	var c_nome: String = String(chefe.get("nome", "Guardião"))
+	var c_fsz: int = _ajustar_fonte_largura(c_nome, 21, 16, w_det - 36.0)
+	_text(c_nome, boss_box.position + Vector2(18.0, 50.0), c_fsz, PINK)
+	var c_vida: int = roundi(float(chefe.get("vida", 0.0)) * hp_mult)
+	var c_dano: int = roundi(float(chefe.get("dano", 0.0)) * dmg_mult)
+	var c_frags: int = int(chefe.get("fragmentos", 0))
+	_text("Vida Escalada %d  •  Dano %d  •  +%d Fragmentos" % [c_vida, c_dano, c_frags], boss_box.position + Vector2(18.0, 76.0), 14, MUTED)
+
+	# Bloco Contrato / Quest do Reino
+	var quest_box := Rect2(x_det, detail_area.position.y + 326.0, w_det, 146.0)
+	draw_rect(quest_box, Color(0.065, 0.072, 0.115, 0.92))
+	var quests_obj: SistemaQuests = app.get("quests") as SistemaQuests
+	var q_id: StringName = StringName(String(sel_reino.get("quest_id", "")))
+	var q_info: Dictionary = quests_obj.quest_por_id(q_id) if quests_obj != null else {}
+	var q_concluida: bool = bool(q_info.get("concluida", false))
+	draw_rect(quest_box, Color(GOLD, 0.55) if q_concluida else Color(CYAN, 0.36), false, 1.3)
+	_text("CONTRATO DO REINO", quest_box.position + Vector2(18.0, 22.0), 13, MUTED)
+	if not q_info.is_empty():
+		var q_rec: int = int(q_info.get("recompensa_frag", 0))
+		var st_txt: String = ("CONCLUÍDO  •  +%d Frag." if q_concluida else "ATIVO  •  +%d Frag.") % q_rec
+		var st_col: Color = Color("34d399") if q_concluida else CYAN
+		var st_w: float = font.get_string_size(st_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
+		_text(st_txt, Vector2(quest_box.end.x - 18.0 - st_w, quest_box.position.y + 22.0), 13, st_col)
+		var q_tit: String = String(q_info.get("titulo", ""))
+		var qt_fsz: int = _ajustar_fonte_largura(q_tit, 19, 15, w_det - 36.0)
+		_text(q_tit, quest_box.position + Vector2(18.0, 50.0), qt_fsz, GOLD)
+		_wrapped(String(q_info.get("descricao", "")), Rect2(quest_box.position + Vector2(18.0, 62.0), Vector2(w_det - 36.0, 74.0)), 15, Color(BONE, 0.92))
+	else:
+		_text("Nenhum contrato vinculado.", quest_box.position + Vector2(18.0, 56.0), 16, MUTED)
+
+	# Bloco Espólios de Craft
+	var loot_box := Rect2(x_det, detail_area.position.y + 486.0, w_det, 134.0)
+	draw_rect(loot_box, Color(0.065, 0.072, 0.115, 0.92))
+	draw_rect(loot_box, Color(GOLD, 0.34), false, 1.2)
+	_text("ESPÓLIOS DE CRAFT", loot_box.position + Vector2(18.0, 22.0), 13, MUTED)
+	var espolios_raw: Variant = sel_reino.get("espolios", [])
+	var espolios_arr: Array = espolios_raw as Array if espolios_raw is Array else []
+	for ei: int in range(mini(3, espolios_arr.size())):
+		var esp_txt: String = "• " + String(espolios_arr[ei])
+		var esp_fsz: int = _ajustar_fonte_largura(esp_txt, 16, 13, w_det - 36.0)
+		_text(esp_txt, loot_box.position + Vector2(18.0, 52.0 + float(ei) * 28.0), esp_fsz, BONE)
+
+	# Fala atmosférica do Reino
+	var fala_reino: String = String(sel_reino.get("fala_entrada", ""))
+	if not fala_reino.is_empty():
+		_wrapped("« %s »" % fala_reino, Rect2(x_det + 6.0, detail_area.position.y + 634.0, w_det - 12.0, 72.0), 15, MUTED)
+
+	if boxes.size() >= 11:
+		_button(boxes[9], "ENTRAR NESTE REINO", 9, false)
+		_button(boxes[10], "Voltar ao Menu", 10, true)
+
+	_center("Setas / D-Pad  Navegar Reinos   •   Enter / E / 2x Clique  Entrar   •   Esc / B  Voltar", 1040.0, 19, MUTED, width)
