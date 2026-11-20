@@ -5,6 +5,8 @@ const BONE := Color("e2dccb")
 const MUTED := Color("9693a2")
 const GOLD := Color("d7b778")
 const PINK := Color("ed618f")
+const CYAN := Color("38bdf8")
+const VIOLET := Color("a855f7")
 const PANEL := Color("11151f")
 var app: Node
 var font: Font = ThemeDB.fallback_font
@@ -28,9 +30,11 @@ func _garantir_texturas_ui() -> void:
 		"mestre_halvar": "res://assets/art/ui/mestres/halvar.png",
 		"mestre_maren": "res://assets/art/ui/mestres/maren.png",
 		"mestre_oreth": "res://assets/art/ui/mestres/oreth.png",
+		"prologo_01": "res://assets/art/ui/historia/prologo_01.png",
+		"prologo_02": "res://assets/art/ui/historia/prologo_02.png",
 	}
 	for k: String in mapas.keys():
-		var path: String = mapas[k]
+		var path: String = String(mapas[k])
 		if ResourceLoader.exists(path):
 			var t := load(path) as Texture2D
 			if t != null:
@@ -72,14 +76,12 @@ func action_rects() -> Array[Rect2]:
 	var center: float = app.camera.width / 2
 	match app.session.state:
 		"menu":
-			result = [
-				Rect2(center-240,500,480,54),
-				Rect2(center-240,562,480,50),
-				Rect2(center-240,620,480,50),
-				Rect2(center-240,678,480,50),
-				Rect2(center-240,736,480,50),
-				Rect2(center-240,794,480,50),
-			]
+			for i: int in range(7):
+				result.append(Rect2(center - 240.0, 466.0 + float(i) * 54.0, 480.0, 46.0))
+		"codex":
+			for i: int in range(4):
+				result.append(Rect2(center - 440.0 + float(i) * 224.0, 150.0, 212.0, 48.0))
+			result.append(Rect2(center - 160.0, 930.0, 320.0, 52.0))
 		"oficina":
 			for i in range(5):
 				result.append(Rect2(center-340, 305 + i * 86, 680, 72))
@@ -106,13 +108,27 @@ func _draw() -> void:
 	var state: String = app.session.state
 	var intro_t: float = float(app.get("boss_intro_timer")) if app.get("boss_intro_timer") != null else 0.0
 	var intro_ativa: bool = intro_t > 0.0 and state == "jogo"
-	if not state in ["menu", "campus", "mestres"] and not intro_ativa:
+	if not state in ["menu", "campus", "mestres", "prologo", "codex"] and not intro_ativa:
 		_status(width)
 	if state == "jogo":
 		if intro_ativa:
 			_draw_boss_intro(width, intro_t)
 		else:
 			_controls(width)
+			var domain_t: float = float(app.get("domain_banner_timer")) if app.get("domain_banner_timer") != null else 0.0
+			if domain_t > 0.0:
+				_draw_domain_banner(width, domain_t)
+			var door_idx: int = int(app.session.get("active_door_index")) if app.session.get("active_door_index") != null else -1
+			var inter_idx: int = int(app.session.get("active_interactive_index")) if app.session.get("active_interactive_index") != null else -1
+			var popup_ativo: bool = bool(app.get("lore_popup_ativo"))
+			if (door_idx >= 0 or inter_idx >= 0) and not popup_ativo:
+				_draw_interact_hint(width)
+			if popup_ativo:
+				_draw_lore_popup(width)
+	elif state == "prologo":
+		_draw_prologo(width)
+	elif state == "codex":
+		_draw_codex(width)
 	elif state in ["campus", "mestres"]:
 		_draw_campus_hud(width)
 	elif state == "transicao":
@@ -124,11 +140,11 @@ func _draw() -> void:
 		var center := width/2
 		match state:
 			"menu":
-				_center("K H A E R O S",270,80,BONE,width)
-				_rule(center,312,300)
-				_center("O LIMIAR",368,22,GOLD,width)
-				_center(_nome_doutrina(),430,28,BONE,width)
-				_center("Atravesse as câmaras das 4 Regiões. Escolha arma, bênçãos e pactos.",468,21,MUTED,width)
+				_center("K H A E R O S",230,80,BONE,width)
+				_rule(center,272,300)
+				_center("O LIMIAR",324,22,GOLD,width)
+				_center(_nome_doutrina(),380,28,BONE,width)
+				_center("Atravesse as câmaras das 4 Regiões. Escolha arma, bênçãos e pactos.",418,21,MUTED,width)
 				var frag_saldo: int = app.saldo_fragmentos() if app.has_method("saldo_fragmentos") else 0
 				var menu_boxes: Array[Rect2] = action_rects()
 				_button(menu_boxes[0],"Entrar no Limiar",0)
@@ -137,6 +153,7 @@ func _draw() -> void:
 				_button(menu_boxes[3],"Oficina de Reforja (%d Frag.)" % frag_saldo,3,true)
 				_button(menu_boxes[4],"Explorar Campus (Hub)",4,true)
 				_button(menu_boxes[5],"Região Inicial: " + _nome_regiao_inicial(),5,true)
+				_button(menu_boxes[6],"Grimório & História",6,true)
 				var cat_ok := app.get("catalogo_real") != null
 				_center("MVP KHAEROS • CATÁLOGO .TRES %s • 4 REGIÕES • 15 BÊNÇÃOS" % ["ATIVO" if cat_ok else "FALLBACK"],980,18,MUTED,width)
 				_controls(width)
@@ -411,14 +428,23 @@ func _status(width: float) -> void:
 		_text("PRONTO!", Vector2(382.0, 128.0), 15, Color(1.0, 0.92, 0.52, flow_pulse))
 	else:
 		_text("%d%%" % floori(flow_val), Vector2(382.0, 128.0), 14, flow_cyan)
-	# Medalhão flutuante do Vulto Mudo (Domador de Pactos)
-	if app.get("selected_weapon") == &"pactos" and _ui_tex.has("silhueta_vulto"):
-		var med_rect := Rect2(506.0, 32.0, 84.0, 84.0)
-		_draw_floating_panel(med_rect)
-		var vulto_tex: Texture2D = _ui_tex.get("silhueta_vulto", null)
-		if vulto_tex != null:
-			draw_texture_rect(vulto_tex, Rect2(521.0, 38.0, 54.0, 54.0), false)
-		_center_in("VULTO", 109.0, 12, GOLD, med_rect)
+	# Esferas de Maldição Absorvidas (Domador de Pactos)
+	if app.get("selected_weapon") == &"pactos":
+		var absorbed: int = clampi(int(player.get("curses_absorbed", 0)), 0, 6)
+		var curses_max: int = clampi(int(player.get("curses_max", 6)), 1, 6)
+		var spheres_rect := Rect2(506.0, 26.0, 178.0, 68.0)
+		_draw_floating_panel(spheres_rect)
+		_text("ESFERAS (%d/%d)" % [absorbed, curses_max], Vector2(520.0, 47.0), 13, GOLD)
+		for si: int in range(curses_max):
+			var sp_pos := Vector2(528.0 + float(si) * 26.0, 72.0)
+			if si < absorbed:
+				draw_circle(sp_pos, 9.5, Color(0.56, 0.20, 0.78, 0.42))
+				draw_circle(sp_pos, 7.0, VIOLET)
+				draw_circle(sp_pos + Vector2(-2.0, -2.0), 2.3, Color("f0abfc"))
+				draw_arc(sp_pos, 7.5, 0.0, TAU, 18, Color("e0259c"), 1.4, true)
+			else:
+				draw_circle(sp_pos, 6.5, Color(0.11, 0.10, 0.16, 0.90))
+				draw_arc(sp_pos, 6.5, 0.0, TAU, 16, Color(MUTED, 0.48), 1.2, true)
 	# Badge flutuante limpo no canto superior direito
 	var right_badge := Rect2(width - 370.0, 26.0, 334.0, 86.0)
 	_draw_floating_panel(right_badge)
@@ -446,9 +472,9 @@ func _status(width: float) -> void:
 		draw_rect(combo_rect, Color(combo_col, 0.82), false, 1.8)
 		_center_in(combo_txt, combo_rect.position.y + 27.0, 20, combo_col, combo_rect)
 		right_cursor_y += 48.0
-	var quests_obj = app.get("quests")
+	var quests_obj: Variant = app.get("quests")
 	if quests_obj != null and quests_obj.has_method("quest_ativa"):
-		var qa_raw = quests_obj.quest_ativa()
+		var qa_raw: Variant = quests_obj.quest_ativa()
 		if qa_raw is Dictionary and not qa_raw.is_empty():
 			var qa: Dictionary = qa_raw
 			var q_titulo: String = String(qa.get("titulo", ""))
@@ -459,8 +485,12 @@ func _status(width: float) -> void:
 			draw_rect(q_rect, Color(0.05, 0.06, 0.09, 0.66))
 			draw_rect(q_rect, Color(GOLD, 0.34), false, 1.0)
 			_text(q_txt, Vector2(q_rect.position.x + 14.0, q_rect.position.y + 24.0), 15, Color(BONE, 0.90))
+			right_cursor_y += 44.0
+	var mapa_obj: Variant = app.session.get("mapa")
+	if mapa_obj != null and mapa_obj.has_method("resumo_minimapa"):
+		_draw_minimap(width, right_cursor_y, mapa_obj)
 	# Banner dourado de "CONTRATO CONCLUÍDO!" no topo central (y = 32..96)
-	var q_timer_raw = app.get("quest_toast_timer")
+	var q_timer_raw: Variant = app.get("quest_toast_timer")
 	var q_timer: float = float(q_timer_raw) if q_timer_raw != null else 0.0
 	if q_timer > 0.0:
 		var toast_elapsed: float = 3.2 - q_timer
@@ -469,12 +499,29 @@ func _status(width: float) -> void:
 		var q_box := Rect2((width - q_w) * 0.5, 32.0, q_w, 64.0)
 		draw_rect(q_box, Color(0.06, 0.05, 0.03, 0.90 * q_alpha))
 		draw_rect(q_box, Color(GOLD, 0.92 * q_alpha), false, 2.0)
-		var toast_titulo_raw = app.get("quest_toast_titulo")
+		var toast_titulo_raw: Variant = app.get("quest_toast_titulo")
 		var toast_titulo: String = String(toast_titulo_raw) if toast_titulo_raw != null else ""
-		var toast_rec_raw = app.get("quest_toast_recompensa")
+		var toast_rec_raw: Variant = app.get("quest_toast_recompensa")
 		var toast_rec: int = int(toast_rec_raw) if toast_rec_raw != null else 0
 		_center_in("CONTRATO CONCLUÍDO", q_box.position.y + 24.0, 15, Color(GOLD, q_alpha), q_box)
 		_center_in("%s  •  +%d Fragmentos" % [toast_titulo, toast_rec], q_box.position.y + 49.0, 18, Color(BONE, q_alpha), q_box)
+	# Toast genérico de interação na sala (baú, fonte de cura, altar de pacto)
+	var ev_timer_raw: Variant = app.get("evento_toast_timer")
+	var ev_timer: float = float(ev_timer_raw) if ev_timer_raw != null else 0.0
+	if ev_timer > 0.0:
+		var ev_elapsed: float = 3.2 - ev_timer
+		var ev_alpha: float = minf(clampf(ev_elapsed / 0.25, 0.0, 1.0), clampf(ev_timer / 0.45, 0.0, 1.0))
+		var ev_w: float = 480.0
+		var ev_y: float = 104.0 if q_timer > 0.0 else 32.0
+		var ev_box := Rect2((width - ev_w) * 0.5, ev_y, ev_w, 64.0)
+		draw_rect(ev_box, Color(0.05, 0.055, 0.085, 0.92 * ev_alpha))
+		draw_rect(ev_box, Color(CYAN, 0.85 * ev_alpha), false, 2.0)
+		var ev_titulo_raw: Variant = app.get("evento_toast_titulo")
+		var ev_titulo: String = String(ev_titulo_raw) if ev_titulo_raw != null else ""
+		var ev_texto_raw: Variant = app.get("evento_toast_texto")
+		var ev_texto: String = String(ev_texto_raw) if ev_texto_raw != null else ""
+		_center_in(ev_titulo, ev_box.position.y + 24.0, 14, Color(GOLD, ev_alpha), ev_box)
+		_center_in(ev_texto, ev_box.position.y + 49.0, 18, Color(BONE, ev_alpha), ev_box)
 	# Caixa narrativa atmosférica sutil na parte inferior-média (y = 890)
 	var nar_timer_raw = app.get("narrativa_timer")
 	var nar_timer: float = float(nar_timer_raw) if nar_timer_raw != null else 0.0
@@ -610,14 +657,356 @@ func _rule(center:float,y:float,width:float) -> void:
 	draw_colored_polygon(PackedVector2Array([Vector2(center,y-5),Vector2(center+5,y),Vector2(center,y+5),Vector2(center-5,y)]),GOLD)
 
 func _wrapped(text:String,rect:Rect2,size:int,color:Color) -> void:
-	var line := ""
-	var y := rect.position.y+size
-	for word in text.split(" "):
-		var next := word if line.is_empty() else line+" "+word
-		if font.get_string_size(next,HORIZONTAL_ALIGNMENT_LEFT,-1,size).x > rect.size.x and not line.is_empty():
-			_text(line,Vector2(rect.position.x,y),size,color)
-			y += size*1.4
-			line = word
+	var y: float = rect.position.y + float(size)
+	var paragrafos: PackedStringArray = text.split("\n")
+	for p_idx: int in range(paragrafos.size()):
+		var para: String = paragrafos[p_idx]
+		if para.is_empty():
+			y += float(size) * 1.15
+			continue
+		var line: String = ""
+		var words: PackedStringArray = para.split(" ")
+		for word: String in words:
+			var next: String = word if line.is_empty() else (line + " " + word)
+			if font.get_string_size(next, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > rect.size.x and not line.is_empty():
+				_text(line, Vector2(rect.position.x, y), size, color)
+				y += float(size) * 1.38
+				line = word
+			else:
+				line = next
+		if not line.is_empty():
+			_text(line, Vector2(rect.position.x, y), size, color)
+			y += float(size) * 1.38
+
+
+func _nome_regiao_por_id(reg_id: String) -> String:
+	match reg_id:
+		"limiar":
+			return "O Limiar da Beira"
+		"veio_instavel":
+			return "Veio Instável"
+		"fosso_das_cinzas":
+			return "Fosso das Cinzas"
+		"santuario_partido":
+			return "Santuário Partido"
+	return reg_id.capitalize()
+
+
+func _grau_cor(grau: String) -> Color:
+	if grau == "Grau Especial":
+		return PINK
+	if grau == "Grau 1":
+		return CYAN
+	if grau == "Grau 2":
+		return Color("7dd3fc")
+	return BONE
+
+
+func _draw_minimap(width: float, top_y: float, mapa_obj: Variant) -> void:
+	var resumo_raw: Variant = mapa_obj.call("resumo_minimapa")
+	if not (resumo_raw is Dictionary):
+		return
+	var resumo: Dictionary = resumo_raw
+	var salas_raw: Variant = resumo.get("salas", [])
+	if not (salas_raw is Array):
+		return
+	var salas: Array = salas_raw
+	if salas.is_empty():
+		return
+	var idx_atual: int = clampi(int(resumo.get("indice_atual", 0)), 0, salas.size() - 1)
+	var camada_atual: int = int(resumo.get("camada_atual", 0))
+	var box := Rect2(width - 256.0, top_y, 220.0, 110.0)
+	draw_rect(box, Color(0.04, 0.045, 0.075, 0.78))
+	draw_rect(box, Color(GOLD, 0.42), false, 1.4)
+	_text("MAPA • CAMADA %d/5" % (camada_atual + 1), box.position + Vector2(12.0, 19.0), 12, GOLD)
+	var posicoes: Array[Vector2] = []
+	for i: int in range(salas.size()):
+		var sala: Dictionary = salas[i] as Dictionary
+		var camada: int = int(sala.get("camada", 0))
+		var ramo: int = int(sala.get("ramo", 0))
+		var nx: float = box.position.x + 26.0 + float(camada) * 42.0
+		var ny: float = box.position.y + (66.0 if (camada == 0 or camada >= 3) else (45.0 if ramo == 0 else 86.0))
+		posicoes.append(Vector2(nx, ny))
+	var sala_atual: Dictionary = salas[idx_atual] as Dictionary
+	var acessiveis: Dictionary = {}
+	var prox_atual_raw: Variant = sala_atual.get("proximas", [])
+	if prox_atual_raw is Array:
+		var prox_atual: Array = prox_atual_raw
+		for p_var: Variant in prox_atual:
+			acessiveis[int(p_var)] = true
+	for i: int in range(salas.size()):
+		var sala_e: Dictionary = salas[i] as Dictionary
+		var proximas_raw: Variant = sala_e.get("proximas", [])
+		if not (proximas_raw is Array):
+			continue
+		var proximas_arr: Array = proximas_raw
+		for dst_var: Variant in proximas_arr:
+			var dst: int = int(dst_var)
+			if dst < 0 or dst >= posicoes.size():
+				continue
+			var edge_col: Color = Color(GOLD, 0.78) if i == idx_atual else Color(MUTED, 0.42)
+			var edge_w: float = 1.8 if i == idx_atual else 1.2
+			draw_line(posicoes[i], posicoes[dst], edge_col, edge_w, true)
+	for i: int in range(salas.size()):
+		var sala_n: Dictionary = salas[i] as Dictionary
+		var p_node: Vector2 = posicoes[i]
+		var is_atual: bool = i == idx_atual
+		var is_boss: bool = String(sala_n.get("tipo", "")) == "chefe" or i == 6
+		var is_limpa: bool = bool(sala_n.get("limpa", false))
+		var is_acessivel: bool = acessiveis.has(i)
+		var fill_col: Color = Color(0.19, 0.21, 0.30, 0.94)
+		if is_atual:
+			fill_col = GOLD
+		elif is_boss:
+			fill_col = PINK
+		elif is_limpa:
+			fill_col = CYAN
+		var rad: float = 8.0 if (is_atual or is_boss) else 6.5
+		draw_circle(p_node, rad, fill_col)
+		if is_atual:
+			draw_arc(p_node, rad + 3.0, 0.0, TAU, 20, Color(1.0, 0.96, 0.78, 0.96), 1.8, true)
+		elif is_acessivel:
+			draw_arc(p_node, rad + 2.6, 0.0, TAU, 20, Color(0.92, 0.97, 1.0, 0.95), 1.7, true)
+		elif is_boss:
+			draw_arc(p_node, rad + 2.0, 0.0, TAU, 20, Color(PINK, 0.68), 1.3, true)
 		else:
-			line = next
-	_text(line,Vector2(rect.position.x,y),size,color)
+			draw_arc(p_node, rad + 0.5, 0.0, TAU, 16, Color(GOLD, 0.32), 1.0, true)
+
+
+func _draw_domain_banner(width: float, domain_t: float) -> void:
+	var elapsed: float = 1.9 - domain_t
+	var alpha: float = minf(clampf(elapsed / 0.22, 0.0, 1.0), clampf(domain_t / 0.45, 0.0, 1.0))
+	if alpha <= 0.01:
+		return
+	var center: float = width * 0.5
+	var nome_raw: Variant = app.get("domain_banner_nome")
+	var dom_nome: String = String(nome_raw).to_upper() if nome_raw != null else ""
+	if dom_nome.is_empty():
+		var w_raw: Variant = app.get("selected_weapon")
+		var w_id: StringName = StringName(w_raw) if w_raw != null else &"lamina"
+		dom_nome = CodexHistoria.nome_dominio(w_id).to_upper()
+	var slide_y: float = (1.0 - clampf(elapsed / 0.22, 0.0, 1.0)) * 12.0
+	var band := Rect2(center - 460.0, 198.0 + slide_y, 920.0, 118.0)
+	draw_rect(band, Color(0.02, 0.022, 0.04, 0.86 * alpha))
+	draw_line(Vector2(band.position.x + 40.0, band.position.y), Vector2(band.end.x - 40.0, band.position.y), Color(GOLD, 0.85 * alpha), 1.8)
+	draw_line(Vector2(band.position.x + 40.0, band.end.y), Vector2(band.end.x - 40.0, band.end.y), Color(GOLD, 0.85 * alpha), 1.8)
+	_center("EXPANSÃO DE DOMÍNIO", 232.0 + slide_y, 17, Color(GOLD, alpha), width)
+	var line_y: float = 248.0 + slide_y
+	var half_l: float = 240.0 * alpha
+	draw_line(Vector2(center - half_l, line_y), Vector2(center - 12.0, line_y), Color(GOLD, 0.75 * alpha), 1.4)
+	draw_line(Vector2(center + 12.0, line_y), Vector2(center + half_l, line_y), Color(GOLD, 0.75 * alpha), 1.4)
+	draw_colored_polygon(PackedVector2Array([
+		Vector2(center, line_y - 5.0),
+		Vector2(center + 6.0, line_y),
+		Vector2(center, line_y + 5.0),
+		Vector2(center - 6.0, line_y),
+	]), Color(PINK, alpha))
+	var nome_w: float = font.get_string_size(dom_nome, HORIZONTAL_ALIGNMENT_LEFT, -1, 36).x
+	var nome_x: float = (width - nome_w) * 0.5
+	_text(dom_nome, Vector2(nome_x + 2.0, 294.0 + slide_y), 36, Color(0.01, 0.01, 0.02, 0.85 * alpha))
+	_text(dom_nome, Vector2(nome_x, 292.0 + slide_y), 36, Color(BONE, alpha))
+
+
+func _draw_interact_hint(width: float) -> void:
+	var pill := Rect2(width * 0.5 - 116.0, 914.0, 232.0, 36.0)
+	draw_rect(pill, Color(0.04, 0.045, 0.075, 0.84))
+	draw_rect(pill, Color(GOLD, 0.75), false, 1.4)
+	_center_in("[E] Interagir", pill.position.y + 24.0, 17, GOLD, pill)
+
+
+func _draw_lore_popup(width: float) -> void:
+	draw_rect(Rect2(0.0, 0.0, width, 1080.0), Color(0.015, 0.018, 0.032, 0.76))
+	var eco_raw: Variant = app.get("lore_popup_data")
+	var eco: Dictionary = eco_raw if eco_raw is Dictionary else {}
+	var center: float = width * 0.5
+	var box := Rect2(center - 440.0, 210.0, 880.0, 620.0)
+	draw_rect(box, Color(0.045, 0.048, 0.075, 0.96))
+	draw_rect(box, Color(GOLD, 0.88), false, 2.2)
+	draw_rect(box.grow(-10.0), Color(GOLD, 0.30), false, 1.0)
+	var c: float = 14.0
+	var x0: float = box.position.x
+	var y0: float = box.position.y
+	var x1: float = box.end.x
+	var y1: float = box.end.y
+	draw_line(Vector2(x0, y0 + c), Vector2(x0, y0), GOLD, 3.0)
+	draw_line(Vector2(x0, y0), Vector2(x0 + c, y0), GOLD, 3.0)
+	draw_line(Vector2(x1 - c, y0), Vector2(x1, y0), GOLD, 3.0)
+	draw_line(Vector2(x1, y0), Vector2(x1, y0 + c), GOLD, 3.0)
+	draw_line(Vector2(x0, y1 - c), Vector2(x0, y1), GOLD, 3.0)
+	draw_line(Vector2(x0, y1), Vector2(x0 + c, y1), GOLD, 3.0)
+	draw_line(Vector2(x1 - c, y1), Vector2(x1, y1), GOLD, 3.0)
+	draw_line(Vector2(x1, y1), Vector2(x1, y1 - c), GOLD, 3.0)
+	var reg_nome: String = _nome_regiao_por_id(String(eco.get("regiao", "limiar"))).to_upper()
+	_center_in("ECO DE MEMÓRIA  •  %s" % reg_nome, box.position.y + 52.0, 16, GOLD, box)
+	_center_in(String(eco.get("titulo", "Monólito")), box.position.y + 98.0, 32, BONE, box)
+	var autor: String = String(eco.get("autor", ""))
+	if not autor.is_empty():
+		_center_in(autor, box.position.y + 132.0, 18, Color(GOLD, 0.85), box)
+	_rule(center, box.position.y + 156.0, 340.0)
+	var texto_rect := Rect2(box.position.x + 56.0, box.position.y + 186.0, box.size.x - 112.0, 330.0)
+	_wrapped(String(eco.get("texto", "")), texto_rect, 22, Color(BONE, 0.94))
+	_center_in("[E / Enter / Clique] Fechar", box.end.y - 34.0, 18, MUTED, box)
+
+
+func _draw_prologo(width: float) -> void:
+	draw_rect(Rect2(0.0, 0.0, width, 1080.0), Color(0.02, 0.024, 0.04, 0.98))
+	var atos: Array[Dictionary] = CodexHistoria.prologo_atos()
+	var ato_raw: Variant = app.get("prologo_ato")
+	var ato_idx: int = clampi(int(ato_raw) if ato_raw != null else 0, 0, maxi(0, atos.size() - 1))
+	var ato: Dictionary = atos[ato_idx] if not atos.is_empty() else {}
+	var center: float = width * 0.5
+	var img_rect := Rect2(center - 480.0, 76.0, 960.0, 520.0)
+	draw_rect(img_rect, Color(0.03, 0.035, 0.06, 0.95))
+	var img_key: String = String(ato.get("img_key", "prologo_01"))
+	var img_tex: Texture2D = _ui_tex.get(img_key, null)
+	if img_tex != null:
+		draw_texture_rect(img_tex, img_rect, false)
+	draw_rect(img_rect, GOLD, false, 2.5)
+	draw_rect(img_rect.grow(6.0), Color(GOLD, 0.28), false, 1.2)
+	_center(String(ato.get("subtitulo", "")), 634.0, 20, GOLD, width)
+	_center(String(ato.get("titulo", "")), 676.0, 36, BONE, width)
+	_rule(center, 694.0, 340.0)
+	var txt_box := Rect2(center - 520.0, 714.0, 1040.0, 212.0)
+	draw_rect(txt_box, Color(0.045, 0.05, 0.08, 0.90))
+	draw_rect(txt_box, Color(GOLD, 0.45), false, 1.5)
+	_wrapped(String(ato.get("texto", "")), Rect2(txt_box.position + Vector2(36.0, 22.0), txt_box.size - Vector2(72.0, 40.0)), 21, Color(BONE, 0.95))
+	_center("%d / %d" % [ato_idx + 1, maxi(1, atos.size())], 964.0, 20, GOLD, width)
+	_center("[Enter / Clique] Avançar   •   [Esc] Pular Prólogo", 1020.0, 19, MUTED, width)
+
+
+func _draw_codex(width: float) -> void:
+	draw_rect(Rect2(0.0, 0.0, width, 1080.0), Color(0.025, 0.03, 0.05, 0.96))
+	var center: float = width * 0.5
+	_center("GRIMÓRIO DE KHAEROS", 82.0, 44, BONE, width)
+	_rule(center, 108.0, 320.0)
+	var aba_raw: Variant = app.get("codex_aba")
+	var aba: int = clampi(int(aba_raw) if aba_raw != null else 0, 0, 3)
+	var scroll_raw: Variant = app.get("codex_scroll")
+	var scroll: int = maxi(0, int(scroll_raw) if scroll_raw != null else 0)
+	var codex_obj: CodexHistoria = app.get("codex") as CodexHistoria
+	var ecos_desc: int = codex_obj.total_ecos_descobertos() if codex_obj != null else 0
+	var quests_obj: SistemaQuests = app.get("quests") as SistemaQuests
+	var q_concluidas: int = quests_obj.total_concluidas() if quests_obj != null else 0
+	var q_todas: Array[Dictionary] = quests_obj.todas_quests() if quests_obj != null else []
+	var tab_labels: Array[String] = [
+		"História & Doutrinas",
+		"Ecos (%d/12)" % ecos_desc,
+		"Bestiário",
+		"Contratos (%d/%d)" % [q_concluidas, maxi(6, q_todas.size())],
+	]
+	var boxes: Array[Rect2] = action_rects()
+	for i: int in range(mini(4, boxes.size())):
+		var r_tab: Rect2 = boxes[i]
+		var ativa: bool = i == aba
+		var hover: bool = i == app.selected
+		var bg_tab: Color = Color("3b3540") if ativa else (Color("242532") if hover else PANEL)
+		var bd_tab: Color = GOLD if ativa else (Color(GOLD, 0.55) if hover else Color("49424d"))
+		draw_rect(r_tab, bg_tab)
+		draw_rect(r_tab, bd_tab, false, 2.2 if ativa else 1.2)
+		_center_in(tab_labels[i], r_tab.position.y + r_tab.size.y * 0.5 + 6.0, 17, GOLD if ativa else (BONE if hover else MUTED), r_tab)
+	var panel := Rect2(center - 560.0, 218.0, 1120.0, 684.0)
+	draw_rect(panel, Color(0.04, 0.045, 0.075, 0.92))
+	draw_rect(panel, Color(GOLD, 0.45), false, 1.6)
+	var max_scroll: int = 0
+	match aba:
+		0:
+			var doutrinas: Array[Dictionary] = CodexHistoria.doutrinas_codex()
+			max_scroll = maxi(0, doutrinas.size() - 3)
+			scroll = clampi(scroll, 0, max_scroll)
+			_draw_codex_doutrinas(panel, doutrinas, scroll)
+		1:
+			var ecos: Array[Dictionary] = CodexHistoria.todos_ecos()
+			max_scroll = maxi(0, ecos.size() - 4)
+			scroll = clampi(scroll, 0, max_scroll)
+			_draw_codex_ecos(panel, ecos, scroll, codex_obj)
+		2:
+			var monstros: Array[Dictionary] = CodexHistoria.bestiario()
+			max_scroll = maxi(0, monstros.size() - 3)
+			scroll = clampi(scroll, 0, max_scroll)
+			_draw_codex_bestiario(panel, monstros, scroll)
+		3:
+			max_scroll = maxi(0, q_todas.size() - 6)
+			scroll = clampi(scroll, 0, max_scroll)
+			_draw_codex_contratos(panel, q_todas, scroll)
+	if max_scroll > 0:
+		var track := Rect2(panel.end.x - 14.0, panel.position.y + 18.0, 5.0, panel.size.y - 36.0)
+		draw_rect(track, Color(0.14, 0.15, 0.22, 0.85))
+		var thumb_h: float = maxf(36.0, track.size.y / float(max_scroll + 1))
+		var thumb_y: float = track.position.y + (track.size.y - thumb_h) * (float(scroll) / float(max_scroll))
+		draw_rect(Rect2(track.position.x, thumb_y, track.size.x, thumb_h), GOLD)
+	if boxes.size() >= 5:
+		_button(boxes[4], "Voltar ao Menu", 4, true)
+	_center("[←/→] Trocar Aba   •   [↑/↓] Rolar   •   [Esc] Voltar", 1020.0, 19, MUTED, width)
+
+
+func _draw_codex_doutrinas(panel: Rect2, doutrinas: Array[Dictionary], scroll: int) -> void:
+	var visiveis: int = mini(3, doutrinas.size() - scroll)
+	for slot: int in range(visiveis):
+		var d: Dictionary = doutrinas[scroll + slot]
+		var card := Rect2(panel.position.x + 26.0, panel.position.y + 22.0 + float(slot) * 214.0, panel.size.x - 66.0, 198.0)
+		draw_rect(card, Color(0.065, 0.072, 0.115, 0.92))
+		draw_rect(card, Color(GOLD, 0.36), false, 1.2)
+		_text(String(d.get("nome", "")), card.position + Vector2(22.0, 34.0), 24, BONE)
+		_text(String(d.get("papel", "")), card.position + Vector2(22.0, 58.0), 16, MUTED)
+		_text("Expansão de Domínio: %s" % String(d.get("dominio", "")), card.position + Vector2(22.0, 82.0), 17, GOLD)
+		_wrapped(String(d.get("descricao", "")), Rect2(card.position + Vector2(22.0, 94.0), Vector2(card.size.x - 44.0, 92.0)), 16, Color(BONE, 0.90))
+
+
+func _draw_codex_ecos(panel: Rect2, ecos: Array[Dictionary], scroll: int, codex_obj: CodexHistoria) -> void:
+	var visiveis: int = mini(4, ecos.size() - scroll)
+	for slot: int in range(visiveis):
+		var eco: Dictionary = ecos[scroll + slot]
+		var eco_id: String = String(eco.get("id", ""))
+		var descoberto: bool = codex_obj != null and codex_obj.foi_descoberto(eco_id)
+		var card := Rect2(panel.position.x + 26.0, panel.position.y + 20.0 + float(slot) * 162.0, panel.size.x - 66.0, 148.0)
+		draw_rect(card, Color(0.065, 0.072, 0.115, 0.92) if descoberto else Color(0.045, 0.048, 0.07, 0.85))
+		draw_rect(card, Color(GOLD, 0.45) if descoberto else Color(MUTED, 0.25), false, 1.2)
+		var reg_txt: String = _nome_regiao_por_id(String(eco.get("regiao", ""))).to_upper()
+		if descoberto:
+			_text(String(eco.get("titulo", "")), card.position + Vector2(20.0, 30.0), 21, GOLD)
+			_text("%s  •  %s" % [reg_txt, String(eco.get("autor", ""))], card.position + Vector2(20.0, 52.0), 14, MUTED)
+			_wrapped(String(eco.get("texto", "")), Rect2(card.position + Vector2(20.0, 62.0), Vector2(card.size.x - 40.0, 76.0)), 15, Color(BONE, 0.92))
+		else:
+			_text("??? — Monólito não lido nesta região", card.position + Vector2(20.0, 36.0), 20, MUTED)
+			_text("REGIÃO: %s" % reg_txt, card.position + Vector2(20.0, 64.0), 14, Color(GOLD, 0.65))
+			_text("Explore os monólitos nas câmaras desta região e pressione [E] para registrar este Eco.", card.position + Vector2(20.0, 96.0), 15, Color(MUTED, 0.72))
+
+
+func _draw_codex_bestiario(panel: Rect2, monstros: Array[Dictionary], scroll: int) -> void:
+	var visiveis: int = mini(3, monstros.size() - scroll)
+	for slot: int in range(visiveis):
+		var m: Dictionary = monstros[scroll + slot]
+		var grau: String = String(m.get("grau", "Grau 3"))
+		var g_cor: Color = _grau_cor(grau)
+		var card := Rect2(panel.position.x + 26.0, panel.position.y + 22.0 + float(slot) * 214.0, panel.size.x - 66.0, 198.0)
+		draw_rect(card, Color(0.065, 0.072, 0.115, 0.92))
+		draw_rect(card, Color(GOLD if grau == "Grau Especial" else g_cor, 0.48), false, 1.4)
+		_text(String(m.get("nome", "")), card.position + Vector2(22.0, 34.0), 24, BONE)
+		var reg_txt: String = _nome_regiao_por_id(String(m.get("regiao", "")))
+		_text("[%s]  •  %s" % [grau.to_upper(), reg_txt], card.position + Vector2(22.0, 58.0), 16, g_cor)
+		_wrapped(String(m.get("descricao", "")), Rect2(card.position + Vector2(22.0, 68.0), Vector2(card.size.x - 44.0, 56.0)), 16, Color(BONE, 0.90))
+		_wrapped("Tática: %s" % String(m.get("tatica", "")), Rect2(card.position + Vector2(22.0, 126.0), Vector2(card.size.x - 44.0, 60.0)), 15, Color(GOLD, 0.90))
+
+
+func _draw_codex_contratos(panel: Rect2, quests_lista: Array[Dictionary], scroll: int) -> void:
+	var visiveis: int = mini(6, quests_lista.size() - scroll)
+	for slot: int in range(visiveis):
+		var q: Dictionary = quests_lista[scroll + slot]
+		var concluida: bool = bool(q.get("concluida", false))
+		var prog: int = int(q.get("progresso", 0))
+		var meta: int = maxi(1, int(q.get("meta", 1)))
+		var rec: int = int(q.get("recompensa_frag", 0))
+		var card := Rect2(panel.position.x + 26.0, panel.position.y + 18.0 + float(slot) * 108.0, panel.size.x - 66.0, 96.0)
+		draw_rect(card, Color(0.065, 0.075, 0.11, 0.92))
+		draw_rect(card, Color(GOLD, 0.65) if concluida else Color(MUTED, 0.32), false, 1.4)
+		_text(String(q.get("titulo", "")), card.position + Vector2(20.0, 30.0), 20, GOLD if concluida else BONE)
+		_text(String(q.get("descricao", "")), card.position + Vector2(20.0, 56.0), 15, MUTED)
+		var status_txt: String = "CONCLUÍDO" if concluida else "EM ANDAMENTO (%d/%d)" % [prog, meta]
+		var status_col: Color = Color("34d399") if concluida else Color("7dd3fc")
+		_text(status_txt, Vector2(card.end.x - 240.0, card.position.y + 30.0), 15, status_col)
+		_text("Recompensa: +%d Fragmentos" % rec, Vector2(card.end.x - 240.0, card.position.y + 56.0), 15, GOLD)
+		var bar := Rect2(card.position.x + 20.0, card.end.y - 18.0, card.size.x - 40.0, 6.0)
+		draw_rect(bar, Color(0.12, 0.13, 0.19, 0.9))
+		var ratio: float = clampf(float(prog) / float(meta), 0.0, 1.0)
+		if ratio > 0.0:
+			draw_rect(Rect2(bar.position, Vector2(bar.size.x * ratio, bar.size.y)), Color("34d399") if concluida else GOLD)

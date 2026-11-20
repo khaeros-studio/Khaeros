@@ -63,6 +63,10 @@ func _ensure_atlases() -> void:
 		var bg_tex := _carregar_tex("res://assets/art/environment/%s/arena_bg.png" % arena_id)
 		if bg_tex != null:
 			_env_textures["%s_arena_bg" % arena_id] = bg_tex
+	for p_name: String in ["monolito_lore", "fonte_cura", "bau_reliquia", "estatua_guardiao", "altar_pacto", "coluna_correntes"]:
+		var p_tex: Texture2D = _carregar_tex("res://assets/art/environment/props/%s.png" % p_name)
+		if p_tex != null:
+			_env_textures["prop_" + p_name] = p_tex
 
 func _draw() -> void:
 	if app == null or not app.ready_to_play:
@@ -70,7 +74,12 @@ func _draw() -> void:
 	_ensure_atlases()
 	var session = app.session
 	var data: Dictionary = app.catalog.data
-	var room := Rect2(0, 0, data.arena.largura, data.arena.altura)
+	var sess_data_raw: Variant = session.get("data")
+	if sess_data_raw is Dictionary and (sess_data_raw as Dictionary).has("arena"):
+		data = sess_data_raw as Dictionary
+	var arena_raw: Variant = data.get("arena", {})
+	var arena_data: Dictionary = arena_raw if arena_raw is Dictionary else {}
+	var room := Rect2(0.0, 0.0, float(arena_data.get("largura", 2400.0)), float(arena_data.get("altura", 1350.0)))
 	if session.state in ["campus", "mestres"]:
 		_draw_campus(room)
 		return
@@ -85,7 +94,9 @@ func _draw() -> void:
 	var arena_bg: Texture2D = _env_textures.get("%s_arena_bg" % reg_id, null)
 	if arena_bg != null:
 		# Ilustração pintada completa da câmara (piso + muralha norte + braseiros + falésia sul sobre o abismo)
-		var bg_rect := Rect2(room.position.x - 240.0, room.position.y - 520.0, room.size.x + 480.0, room.size.y + 1430.0)
+		var sx: float = room.size.x / 2400.0
+		var sy: float = room.size.y / 1350.0
+		var bg_rect := Rect2(room.position.x - 240.0 * sx, room.position.y - 520.0 * sy, room.size.x + 480.0 * sx, room.size.y + 1430.0 * sy)
 		draw_texture_rect(arena_bg, bg_rect, false)
 	else:
 		_draw_abyss_backdrop(room, bg_col, accent_col, border_col, t_pres)
@@ -168,8 +179,10 @@ func _draw() -> void:
 		var drift_x: float = sin(t_pres * 1.3 + float(p_i)) * 16.0
 		var p_alpha: float = 0.14 + 0.10 * sin(t_pres * 2.1 + float(p_i) * 0.9)
 		draw_circle(Vector2(seed_x + drift_x, seed_y + 60.0), 2.2 + float(p_i % 3) * 0.9, Color(part_col.r, part_col.g, part_col.b, p_alpha))
-	# Door motif: biome ritual gate beyond the far wall (omitido quando arena_bg já pinta o portão).
-	if arena_bg == null:
+	# Door motif: biome ritual gate beyond the far wall (omitido quando arena_bg já pinta o portão ou há portas físicas).
+	var exit_doors_raw: Variant = session.get("exit_doors")
+	var has_exit_doors: bool = exit_doors_raw is Array and not (exit_doors_raw as Array).is_empty()
+	if arena_bg == null and not has_exit_doors:
 		var gate := Vector2(room.size.x / 2, 18)
 		var gate_tex: Texture2D = null
 		if reg_id != "limiar":
@@ -184,14 +197,32 @@ func _draw() -> void:
 			draw_rect(Rect2(gate + Vector2(-90, -150), Vector2(180, 160)), INK)
 			draw_line(gate + Vector2(-95, 10), gate + Vector2(-95, -150), Color("55505a"), 8)
 			draw_line(gate + Vector2(95, 10), gate + Vector2(95, -150), Color("55505a"), 8)
+	var dom_t_raw: Variant = session.get("domain_timer")
+	var dom_t: float = float(dom_t_raw) if dom_t_raw != null else 0.0
+	if dom_t > 0.0:
+		var dom_w_raw: Variant = session.get("domain_weapon")
+		var fallback_w: StringName = app.get("selected_weapon") if app.get("selected_weapon") != null else &"lamina"
+		var dom_w: StringName = StringName(dom_w_raw) if dom_w_raw != null else fallback_w
+		_draw_domain_expansion(room, dom_w, dom_t, t_pres)
+	_draw_exit_doors(room, session, t_pres)
 	for enemy in session.enemies:
 		if enemy.get("phase", "") == "windup":
 			_telegraph(enemy, true)
 	var bodies: Array[Dictionary] = []
 	var interpolation := Engine.get_physics_interpolation_fraction()
-	for index in data.arena.pilares.size():
-		var pillar: Dictionary = data.arena.pilares[index]
-		bodies.append({"type": "pillar", "pos": Vector2(pillar.x, pillar.y), "radius": pillar.r, "order": index})
+	var pilares_raw: Variant = arena_data.get("pilares", [])
+	if pilares_raw is Array:
+		var pilares_arr: Array = pilares_raw as Array
+		for index: int in range(pilares_arr.size()):
+			var pillar_raw: Variant = pilares_arr[index]
+			if pillar_raw is Dictionary:
+				var pillar: Dictionary = pillar_raw as Dictionary
+				bodies.append({
+					"type": "pillar",
+					"pos": Vector2(float(pillar.get("x", 0.0)), float(pillar.get("y", 0.0))),
+					"radius": float(pillar.get("r", 42.0)),
+					"order": index,
+				})
 	var urns_raw: Variant = session.get("urns")
 	if urns_raw is Array:
 		var urn_list: Array = urns_raw as Array
@@ -203,6 +234,47 @@ func _draw() -> void:
 					var u_pos_v: Variant = urn_dict.get("pos", Vector2.ZERO)
 					var u_pos: Vector2 = u_pos_v if u_pos_v is Vector2 else Vector2.ZERO
 					bodies.append({"type": "urn", "pos": u_pos, "entity": urn_dict, "radius": float(urn_dict.get("radius", 22.0)), "order": 20 + u_idx})
+	var props_raw: Variant = session.get("room_props")
+	if props_raw is Array:
+		var props_list: Array = props_raw as Array
+		for p_idx: int in range(props_list.size()):
+			var prop_v: Variant = props_list[p_idx]
+			if prop_v is Dictionary:
+				var prop_dict: Dictionary = prop_v as Dictionary
+				var p_pos_v: Variant = prop_dict.get("pos", Vector2.ZERO)
+				var p_pos: Vector2 = p_pos_v if p_pos_v is Vector2 else Vector2.ZERO
+				var p_scale: float = float(prop_dict.get("scale", 1.0))
+				bodies.append({"type": "prop", "pos": p_pos, "entity": prop_dict, "radius": 44.0 * p_scale, "order": 30 + p_idx})
+	var inter_raw: Variant = session.get("room_interactives")
+	if inter_raw is Array:
+		var inter_list: Array = inter_raw as Array
+		for i_idx: int in range(inter_list.size()):
+			var inter_v: Variant = inter_list[i_idx]
+			if inter_v is Dictionary:
+				var inter_dict: Dictionary = inter_v as Dictionary
+				var i_pos_v: Variant = inter_dict.get("pos", Vector2.ZERO)
+				var i_pos: Vector2 = i_pos_v if i_pos_v is Vector2 else Vector2.ZERO
+				bodies.append({"type": "interactive", "pos": i_pos, "entity": inter_dict, "idx": i_idx, "radius": 46.0, "order": 35 + i_idx})
+	var allied_raw: Variant = session.get("allied_curses")
+	var has_allied_curses: bool = false
+	if allied_raw is Array:
+		var allied_arr: Array = allied_raw as Array
+		for a_idx: int in range(allied_arr.size()):
+			var c_v: Variant = allied_arr[a_idx]
+			if c_v is Dictionary:
+				var c_dict: Dictionary = c_v as Dictionary
+				var c_curr_v: Variant = c_dict.get("pos", Vector2.ZERO)
+				var c_curr: Vector2 = c_curr_v if c_curr_v is Vector2 else Vector2.ZERO
+				var c_prev_v: Variant = c_dict.get("prev", c_curr)
+				var c_prev: Vector2 = c_prev_v if c_prev_v is Vector2 else c_curr
+				bodies.append({
+					"type": "allied_curse",
+					"pos": c_prev.lerp(c_curr, interpolation),
+					"entity": c_dict,
+					"radius": float(c_dict.get("radius", 24.0)),
+					"order": 40 + a_idx,
+				})
+				has_allied_curses = true
 	for enemy in session.enemies:
 		if enemy.hp <= 0:
 			continue
@@ -216,7 +288,7 @@ func _draw() -> void:
 		draw_circle(Vector2.ZERO, 195.0, Color(BONE.r, BONE.g, BONE.b, 0.045))
 		draw_circle(Vector2.ZERO, 118.0, Color(BONE.r, BONE.g, BONE.b, 0.08))
 		draw_set_transform(Vector2.ZERO)
-		if app.get("selected_weapon") == &"pactos":
+		if not has_allied_curses and not bool(session.get("extended_campaign")) and app.get("selected_weapon") == &"pactos":
 			var c_prev: Vector2 = app.get("companion_prev") if app.get("companion_prev") != null else position
 			var c_curr: Vector2 = app.get("companion_pos") if app.get("companion_pos") != null else position
 			bodies.append({"type": "companion", "pos": c_prev.lerp(c_curr, interpolation), "order": 49})
@@ -227,6 +299,7 @@ func _draw() -> void:
 		var shadow_r: float = float(body.get("radius", body.get("entity", {}).get("radius", 30.0)))
 		if body.type == "pillar":
 			# Sombra projetada direcional (luz do topo-esquerda -> sombra alongada para baixo-direita)
+			draw_set_transform(Vector2.ZERO)
 			var p_pos: Vector2 = body.pos
 			var dir_shadow := PackedVector2Array([
 				p_pos + Vector2(-shadow_r * 0.65, shadow_r * 0.12),
@@ -235,14 +308,33 @@ func _draw() -> void:
 				p_pos + Vector2(shadow_r * 1.15, shadow_r * 1.28),
 			])
 			draw_colored_polygon(dir_shadow, Color(INK.r, INK.g, INK.b, 0.34))
+		elif body.type == "prop":
+			# Sombra projetada longa para props arquitetônicos (alpha 0.55)
+			draw_set_transform(Vector2.ZERO)
+			var pr_pos: Vector2 = body.pos
+			var prop_shadow := PackedVector2Array([
+				pr_pos + Vector2(-shadow_r * 0.72, shadow_r * 0.14),
+				pr_pos + Vector2(shadow_r * 0.68, -shadow_r * 0.22),
+				pr_pos + Vector2(shadow_r * 2.85, shadow_r * 1.05),
+				pr_pos + Vector2(shadow_r * 1.45, shadow_r * 1.42),
+			])
+			draw_colored_polygon(prop_shadow, Color(INK.r, INK.g, INK.b, 0.55))
 		draw_set_transform(body.pos, 0, Vector2(1, 0.38))
-		draw_circle(Vector2(3, 8), shadow_r * 1.28, Color(INK.r, INK.g, INK.b, 0.68))
+		var contact_alpha: float = 0.62 if body.type == "interactive" else 0.68
+		draw_circle(Vector2(3, 8), shadow_r * 1.28, Color(INK.r, INK.g, INK.b, contact_alpha))
 	draw_set_transform(Vector2.ZERO)
+	var active_inter_raw: Variant = session.get("active_interactive_index")
+	var active_inter_idx: int = int(active_inter_raw) if active_inter_raw != null else -1
 	bodies.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.pos.y < b.pos.y if a.pos.y != b.pos.y else a.order < b.order)
 	for body in bodies:
 		match body.type:
 			"pillar": _pillar(body.pos, body.radius, int(body.order))
 			"urn": _draw_urn(body.pos, body.entity, t_pres)
+			"prop": _draw_prop_entity(body.entity)
+			"interactive":
+				var i_idx_val: int = int(body.get("idx", -1))
+				_draw_interactive_entity(body.entity, i_idx_val, i_idx_val == active_inter_idx, t_pres)
+			"allied_curse": _draw_allied_curse(body.entity, body.pos, t_pres)
 			"player": _player(body.pos, body.entity)
 			"companion": _companion(body.pos)
 			"enemy": _enemy(body.pos, body.entity)
@@ -264,6 +356,25 @@ func _draw() -> void:
 			draw_circle(orb_pos, projectile.radius, cyan)
 			draw_circle(orb_pos, projectile.radius * 0.55, GOLD)
 			draw_circle(orb_pos - Vector2(3, 3), projectile.radius * 0.28, BONE)
+		elif p_kind == "curse_orb":
+			var curb_pos: Vector2 = pos + Vector2(0.0, -44.0)
+			var r_curb: float = float(projectile.get("radius", 14.0))
+			var curb_perp: Vector2 = dir.orthogonal()
+			draw_set_transform(pos, 0.0, Vector2(1.0, 0.48))
+			draw_circle(Vector2.ZERO, r_curb * 0.72, Color(INK.r, INK.g, INK.b, 0.42))
+			draw_set_transform(Vector2.ZERO)
+			var tail_pts := PackedVector2Array()
+			for ti: int in range(8):
+				var tf: float = float(ti) / 7.0
+				var sway: float = sin(t_pres * 16.0 + float(ti) * 1.15 + pos.x * 0.04) * (r_curb * 0.52 * tf)
+				tail_pts.append(curb_pos - dir * (r_curb * 3.6 * tf) + curb_perp * sway)
+			draw_polyline(tail_pts, Color(INK.r, INK.g, INK.b, 0.90), maxf(3.0, r_curb * 0.72), true)
+			draw_polyline(tail_pts, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, 0.65), maxf(2.0, r_curb * 0.32), true)
+			draw_circle(curb_pos, r_curb + 9.0, Color(0.05, 0.02, 0.09, 0.52))
+			draw_circle(curb_pos, r_curb + 5.0, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, 0.34))
+			draw_circle(curb_pos, r_curb + 2.0, INK)
+			draw_circle(curb_pos, r_curb * 0.70, MAGENTA)
+			draw_circle(curb_pos - Vector2(2.5, 2.5), r_curb * 0.30, MAGENTA_BRIGHT)
 		elif p_kind == "bolt":
 			var bolt_pos: Vector2 = pos + Vector2(0, -44.0)
 			var r_bolt: float = float(projectile.radius)
@@ -907,6 +1018,9 @@ func _companion(pos: Vector2) -> void:
 func _player(pos: Vector2, player: Dictionary) -> void:
 	var session = app.session
 	var data: Dictionary = app.catalog.data
+	var sess_data_raw: Variant = session.get("data")
+	if sess_data_raw is Dictionary and (sess_data_raw as Dictionary).has("corte"):
+		data = sess_data_raw as Dictionary
 	var aim: Vector2 = player.get("aim", Vector2.UP)
 	var dash: bool = int(player.get("dash_remaining", 0)) > 0
 	var lunge: bool = int(player.get("lunge_remaining", 0)) > 0
@@ -915,6 +1029,9 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 		for i in range(1, 4):
 			draw_line(pos - facing * i * 18 + Vector2(-12, -20), pos - facing * i * 18 + Vector2(12, -45), Color(BONE, 0.32 / float(i)), 4, true)
 	var w_id: StringName = app.get("selected_weapon") if app.get("selected_weapon") != null else &"lamina"
+	var ca_raw: Variant = player.get("curses_absorbed", 0)
+	var curses_n: int = clampi(int(ca_raw) if ca_raw != null else 0, 0, 6)
+	var t_pres: float = float(session.presentation_time)
 	var player_actor := "iniciado_lamina"
 	if w_id == &"ressonancia" and _frames_by_actor.has("iniciado_ressonancia"):
 		player_actor = "iniciado_ressonancia"
@@ -962,9 +1079,8 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 			var cd_mult: float = float(session.get("attack_cd_mult")) if session.get("attack_cd_mult") != null else 1.0
 			var a_total := maxf(1.0, roundf(base_cd_s * 60.0 * cd_mult))
 			var atk_prog := clampf(1.0 - float(attack_cd_now) / a_total, 0.0, 0.999)
-			if w_id != &"pactos":
-				action = "attack1" if (w_id != &"lamina" or combo_idx == 1) else ("attack2" if combo_idx == 2 else "attack3")
-				progress = atk_prog
+			action = "attack1" if (w_id != &"lamina" or combo_idx == 1) else ("attack2" if combo_idx == 2 else "attack3")
+			progress = atk_prog
 			# Movimento corporal real do golpe (anticipation + avanco + peso + retorno)
 			var swing_env: float = sin(clampf(atk_prog * 1.45, 0.0, 1.0) * PI)
 			if w_id == &"guardiao":
@@ -982,7 +1098,7 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 				atk_squash = Vector2(1.0 + 0.12 * swing_env, 1.0 - 0.08 * swing_env)
 				atk_rot = flip_x * (0.16 * swing_env)
 			else:
-				# Recuo tátil ao disparar magia ou besta
+				# Recuo tátil ao conjurar magia ou esferas amaldiçoadas
 				var recoil: float = clampf(1.0 - atk_prog * 2.2, 0.0, 1.0)
 				atk_draw_pos -= aim * (8.0 * recoil)
 				atk_squash = Vector2(1.0 - 0.07 * recoil, 1.0 + 0.08 * recoil)
@@ -1022,39 +1138,53 @@ func _player(pos: Vector2, player: Dictionary) -> void:
 				ghost_tint = Color("a855f7")
 			elif w_id == &"ressonancia":
 				ghost_tint = Color("7dd3fc")
+			elif w_id == &"pactos":
+				ghost_tint = MAGENTA
 			var ghost_far := Color(ghost_tint.r, ghost_tint.g, ghost_tint.b, 0.16)
 			var ghost_near := Color(ghost_tint.r, ghost_tint.g, ghost_tint.b, 0.34)
 			_draw_actor_sprite(player_actor, anim_name, pos - facing_n * 44.0, flip_x, 1.0, session.presentation_time, progress, ghost_far, atk_squash, atk_rot)
 			_draw_actor_sprite(player_actor, anim_name, pos - facing_n * 22.0, flip_x, 1.0, session.presentation_time, progress, ghost_near, atk_squash, atk_rot)
+		if w_id == &"pactos" and curses_n > 0:
+			_draw_pactos_orbit_spheres(atk_draw_pos, curses_n, t_pres, false)
 		var modulate := Color.WHITE
 		if int(player.get("flash", 0)) > 0:
 			modulate = BONE
 		_draw_actor_sprite(player_actor, anim_name, atk_draw_pos, flip_x, 1.0, session.presentation_time, progress, modulate, atk_squash, atk_rot)
+		if w_id == &"pactos" and curses_n > 0:
+			_draw_pactos_orbit_spheres(atk_draw_pos, curses_n, t_pres, true)
 		if w_id == &"guardiao":
 			draw_arc(pos, 40.0, 0, TAU, 36, Color(GOLD, 0.30), 2.0, true)
 		elif w_id == &"veu":
 			draw_arc(pos, 38.0, 0, TAU, 36, Color(Color("5b2d8a"), 0.40), 2.0, true)
+		elif w_id == &"pactos":
+			draw_arc(pos, 36.0, 0, TAU, 36, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, 0.34), 2.0, true)
 		draw_arc(pos, 34, 0, TAU, 40, Color(BONE, 0.35), 1.5, true)
 		if int(player.get("inv", 0)) > 0 and not dash:
 			draw_arc(pos, 39, -PI * 0.8, -PI * 0.2, 15, Color(BONE, 0.65), 2, true)
 		draw_line(pos + aim * 55, pos + aim * 68, Color(BONE, 0.65), 2, true)
 		return
 	# Procedural fallback
+	if w_id == &"pactos" and curses_n > 0:
+		_draw_pactos_orbit_spheres(pos, curses_n, t_pres, false)
 	var cloak := PackedVector2Array([pos + Vector2(-9, -68), pos + Vector2(12, -67), pos + Vector2(28, -15), pos + Vector2(14, -4), pos + Vector2(2, -12), pos + Vector2(-16, 0), pos + Vector2(-29, -14)])
-	draw_colored_polygon(cloak, Color("a9a5a4"))
+	draw_colored_polygon(cloak, Color("191722") if w_id == &"pactos" else Color("a9a5a4"))
 	draw_polyline(_closed(cloak), INK, 6, true)
-	draw_colored_polygon(PackedVector2Array([pos + Vector2(-4, -61), pos + Vector2(12, -58), pos + Vector2(21, -15), pos + Vector2(2, -8)]), Color("525368"))
+	draw_colored_polygon(PackedVector2Array([pos + Vector2(-4, -61), pos + Vector2(12, -58), pos + Vector2(21, -15), pos + Vector2(2, -8)]), Color("2b1b36") if w_id == &"pactos" else Color("525368"))
 	draw_line(pos + Vector2(-10, -4), pos + Vector2(-10, 5), INK, 7)
 	draw_line(pos + Vector2(12, -6), pos + Vector2(14, 5), INK, 7)
 	draw_circle(pos + Vector2(0, -75), 17, INK)
 	draw_circle(pos + Vector2(0, -75), 12, BONE)
 	draw_line(pos + Vector2(-10, -77), pos + Vector2(10, -77), Color("474759"), 4)
 	draw_line(pos + Vector2(-15, -57), pos + Vector2(19, -45), Color("353a4b"), 7)
-	var hand := pos + Vector2(0, -34) + aim * 19
-	var tip := hand + aim * 60
-	draw_line(hand - aim * 9, tip, INK, 10, true)
-	draw_line(hand, tip, BONE, 4, true)
-	draw_line(hand + aim.orthogonal() * 9, hand - aim.orthogonal() * 9, GOLD, 4, true)
+	if w_id != &"pactos":
+		var hand := pos + Vector2(0, -34) + aim * 19
+		var tip := hand + aim * 60
+		draw_line(hand - aim * 9, tip, INK, 10, true)
+		draw_line(hand, tip, BONE, 4, true)
+		draw_line(hand + aim.orthogonal() * 9, hand - aim.orthogonal() * 9, GOLD, 4, true)
+	else:
+		if curses_n > 0:
+			_draw_pactos_orbit_spheres(pos, curses_n, t_pres, true)
 	draw_arc(pos, 34, 0, TAU, 40, Color(BONE, 0.35), 1.5, true)
 	if player.inv > 0 and not dash:
 		draw_arc(pos, 39, -PI * 0.8, -PI * 0.2, 15, Color(BONE, 0.65), 2, true)
@@ -1720,38 +1850,88 @@ func _effect(effect: Dictionary) -> void:
 				draw_line(rn_d * (rune_r * 0.82), rn_d * (rune_r * 1.04), Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.9), 3.0, true)
 			draw_set_transform(Vector2.ZERO)
 		"selo_pactos":
-			var max_r: float = float(effect.get("radius", 240.0))
+			var max_r: float = float(effect.get("radius", 260.0))
+			var charges_raw: Variant = effect.get("charges", 1)
+			var charges: int = clampi(int(charges_raw) if charges_raw != null else 1, 1, 10)
+			var expand_t: float = clampf(progress * 1.25, 0.0, 1.0)
+			var cur_r: float = maxf(32.0, max_r * (0.28 + 0.72 * expand_t))
 			var pact_viol: Color = Color("9333ea")
-			# Selo sombrio de pacto no chão
-			draw_set_transform(pos, 0.0, Vector2(1.0, 0.48))
-			var seal_r: float = max_r * (0.45 + 0.55 * clampf(progress * 1.8, 0.0, 1.0))
-			draw_circle(Vector2.ZERO, seal_r, Color(INK.r, INK.g, INK.b, alpha * 0.58))
-			draw_arc(Vector2.ZERO, seal_r, 0.0, TAU, 48, Color(pact_viol.r, pact_viol.g, pact_viol.b, alpha * 0.92), 5.0, true)
-			draw_arc(Vector2.ZERO, seal_r * 0.78, 0.0, TAU, 40, Color(BONE.r, BONE.g, BONE.b, alpha * 0.72), 2.5, true)
-			for st_i: int in range(5):
-				var a0: float = float(st_i) * (TAU / 5.0) + progress * 0.9
-				var a1: float = float((st_i + 2) % 5) * (TAU / 5.0) + progress * 0.9
-				draw_line(Vector2.RIGHT.rotated(a0) * (seal_r * 0.88), Vector2.RIGHT.rotated(a1) * (seal_r * 0.88), Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, alpha * 0.78), 3.0, true)
+			# Poço gravitacional de Uzumaki no chão em perspectiva 3/4
+			draw_set_transform(pos, 0.0, Vector2(1.0, 0.54))
+			draw_circle(Vector2.ZERO, cur_r, Color(0.05, 0.02, 0.09, alpha * 0.62))
+			draw_arc(Vector2.ZERO, cur_r, 0.0, TAU, 48, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, alpha * 0.92), 5.5, true)
+			draw_arc(Vector2.ZERO, cur_r * 0.82, 0.0, TAU, 44, Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.85), 3.2, true)
+			draw_arc(Vector2.ZERO, cur_r * 0.56, 0.0, TAU, 36, Color(pact_viol.r, pact_viol.g, pact_viol.b, alpha * 0.80), 3.0, true)
 			draw_set_transform(Vector2.ZERO)
-			# 3 faixas negras em leque varrendo à frente
-			var base_p: float = direction.angle()
-			var fan_origin: Vector2 = pos + Vector2(0.0, -32.0)
-			var fan_offsets: Array[float] = [-0.46, 0.0, 0.46]
-			for f_idx: int in range(3):
-				var f_ang: float = base_p + fan_offsets[f_idx]
-				var f_dir: Vector2 = Vector2.RIGHT.rotated(f_ang)
-				var f_perp: Vector2 = f_dir.orthogonal()
-				var reach: float = max_r * (0.35 + 0.85 * clampf(progress * 1.5, 0.0, 1.0))
-				var ribbon := PackedVector2Array([
-					fan_origin - f_perp * 6.0,
-					fan_origin + f_dir * (reach * 0.65) - f_perp * 20.0,
-					fan_origin + f_dir * reach,
-					fan_origin + f_dir * (reach * 0.65) + f_perp * 20.0,
-					fan_origin + f_perp * 6.0,
-				])
-				draw_colored_polygon(ribbon, Color(INK.r, INK.g, INK.b, alpha * 0.88))
-				draw_polyline(_closed(ribbon), Color(BONE.r, BONE.g, BONE.b, alpha * 0.82), 3.0, true)
-				draw_line(fan_origin, fan_origin + f_dir * reach, Color(pact_viol.r, pact_viol.g, pact_viol.b, alpha * 0.9), 3.5, true)
+			# Espiral dupla gigante Uzumaki negra, magenta e dourada girando rapidamente
+			var vortex_c: Vector2 = pos + Vector2(0.0, -40.0)
+			var spin: float = progress * 10.5
+			for arm_i: int in range(4):
+				var arm_pts := PackedVector2Array()
+				var arm_base: float = spin + float(arm_i) * (TAU * 0.25)
+				for step_i: int in range(22):
+					var tf: float = float(step_i) / 21.0
+					var r_sp: float = lerpf(cur_r * 0.96, 12.0, tf)
+					var a_sp: float = arm_base + tf * 4.4
+					arm_pts.append(vortex_c + Vector2(cos(a_sp) * r_sp, sin(a_sp) * r_sp * 0.72))
+				if arm_i % 2 == 0:
+					draw_polyline(arm_pts, Color(INK.r, INK.g, INK.b, alpha * 0.95), 11.0 * alpha + 3.0, true)
+					draw_polyline(arm_pts, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, alpha * 0.92), 5.0 * alpha + 1.5, true)
+				else:
+					draw_polyline(arm_pts, Color(pact_viol.r, pact_viol.g, pact_viol.b, alpha * 0.88), 7.0 * alpha + 2.0, true)
+					draw_polyline(arm_pts, Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.92), 2.8, true)
+			# Dezenas de feixes convergentes modulados pelas cargas absorvidas
+			var beam_count: int = 20 + charges * 2
+			for b_i: int in range(beam_count):
+				var b_ang: float = float(b_i) * (TAU / float(beam_count)) + spin * 0.45
+				var r_out: float = cur_r * (1.12 - 0.35 * progress + 0.12 * sin(float(b_i) * 1.9))
+				var r_in: float = 16.0 + (1.0 - progress) * 28.0
+				var p_out: Vector2 = vortex_c + Vector2(cos(b_ang) * r_out, sin(b_ang) * r_out * 0.74)
+				var p_in: Vector2 = vortex_c + Vector2(cos(b_ang + 0.18) * r_in, sin(b_ang + 0.18) * r_in * 0.74)
+				var b_col: Color = Color(INK.r, INK.g, INK.b, alpha * 0.92) if (b_i % 3 == 0) else (Color(MAGENTA_BRIGHT.r, MAGENTA_BRIGHT.g, MAGENTA_BRIGHT.b, alpha * 0.88) if (b_i % 3 == 1) else Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.86))
+				draw_line(p_out, p_in, b_col, 3.6 if (b_i % 3 == 0) else 2.2, true)
+			# Núcleo singularidade de Uzumaki
+			draw_circle(vortex_c, 34.0 * (0.45 + 0.55 * alpha), Color(INK.r, INK.g, INK.b, alpha * 0.96))
+			draw_arc(vortex_c, 36.0 * (0.45 + 0.55 * alpha), 0.0, TAU, 32, Color(MAGENTA_BRIGHT.r, MAGENTA_BRIGHT.g, MAGENTA_BRIGHT.b, alpha * 0.95), 4.0, true)
+			draw_arc(vortex_c, 22.0 * (0.45 + 0.55 * alpha), 0.0, TAU, 24, Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.95), 2.5, true)
+		"curse_cast":
+			var cast_dir: Vector2 = direction.normalized() if direction != Vector2.ZERO else Vector2.RIGHT
+			var cast_pos: Vector2 = pos + Vector2(0.0, -44.0) + cast_dir * 14.0
+			var r_cast: float = 10.0 + 20.0 * progress
+			draw_circle(cast_pos, r_cast, Color(0.05, 0.02, 0.09, alpha * 0.55))
+			draw_arc(cast_pos, r_cast, 0.0, TAU, 24, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, alpha * 0.92), 3.0, true)
+			for arm_c: int in range(3):
+				var pts_c := PackedVector2Array()
+				var base_c: float = progress * 8.5 + float(arm_c) * (TAU / 3.0)
+				for si: int in range(7):
+					var tf: float = float(si) / 6.0
+					var rc: float = lerpf(r_cast * 1.1, 3.0, tf)
+					var ac: float = base_c + tf * 2.2
+					pts_c.append(cast_pos + Vector2.RIGHT.rotated(ac) * rc)
+				draw_polyline(pts_c, Color(INK.r, INK.g, INK.b, alpha * 0.95), 4.0, true)
+				draw_polyline(pts_c, Color(MAGENTA_BRIGHT.r, MAGENTA_BRIGHT.g, MAGENTA_BRIGHT.b, alpha * 0.85), 1.8, true)
+			draw_circle(cast_pos, 5.5 * alpha, Color(MAGENTA_BRIGHT.r, MAGENTA_BRIGHT.g, MAGENTA_BRIGHT.b, alpha))
+		"curse_absorb":
+			var target_raw: Variant = effect.get("target", pos)
+			var target_pos: Vector2 = target_raw if target_raw is Vector2 else pos
+			var src_pt: Vector2 = pos + Vector2(0.0, -30.0)
+			var dst_pt: Vector2 = target_pos + Vector2(0.0, -44.0)
+			var to_dst: Vector2 = dst_pt - src_pt
+			var perp_abs: Vector2 = to_dst.orthogonal().normalized() if to_dst.length_squared() > 1.0 else Vector2.UP
+			var arc_off: float = sin(progress * PI * 2.0) * (1.0 - progress) * 26.0
+			var orb_pt: Vector2 = src_pt.lerp(dst_pt, progress) + perp_abs * arc_off
+			var trail_pts := PackedVector2Array()
+			for ti: int in range(8):
+				var tp: float = clampf(progress - float(ti) * 0.045, 0.0, 1.0)
+				var t_arc: float = sin(tp * PI * 2.0) * (1.0 - tp) * 26.0
+				trail_pts.append(src_pt.lerp(dst_pt, tp) + perp_abs * t_arc)
+			draw_polyline(trail_pts, Color(INK.r, INK.g, INK.b, alpha * 0.90), 8.0 * (0.4 + 0.6 * alpha), true)
+			draw_polyline(trail_pts, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, alpha * 0.85), 3.6, true)
+			var orb_sz: float = 11.0 * (1.0 - progress * 0.35)
+			draw_circle(orb_pt, orb_sz + 5.0, Color(0.05, 0.02, 0.09, alpha * 0.45))
+			draw_circle(orb_pt, orb_sz + 2.0, Color(INK.r, INK.g, INK.b, alpha * 0.98))
+			draw_circle(orb_pt, orb_sz * 0.68, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, alpha * 0.95))
+			draw_circle(orb_pt - Vector2(2.0, 2.0), orb_sz * 0.30, Color(BONE.r, BONE.g, BONE.b, alpha))
 		"selo_guardiao":
 			var max_r: float = float(effect.get("radius", 240.0))
 			var dome_r: float = maxf(32.0, max_r * (0.28 + 0.72 * clampf(progress * 1.4, 0.0, 1.0)))
@@ -2169,6 +2349,365 @@ func _draw_boss_intro_front(kind: String, pos: Vector2, _draw_pos: Vector2, radi
 				draw_circle(cp, sz * 1.35, Color(c_col.r, c_col.g, c_col.b, 0.25 * intro_fade))
 				draw_colored_polygon(star, Color(c_col.r, c_col.g, c_col.b, 0.95 * intro_fade))
 				draw_polyline(_closed(star), Color(1.0, 1.0, 1.0, 0.90 * intro_fade), 1.6, true)
+
+func _draw_domain_expansion(room: Rect2, weapon: StringName, dom_t: float, t_pres: float) -> void:
+	var alpha: float = clampf(minf(dom_t * 1.4, (4.5 - dom_t) * 3.0 + 0.3), 0.0, 1.0)
+	if alpha <= 0.005:
+		return
+	var center: Vector2 = room.get_center()
+	var radius_base: float = minf(room.size.x, room.size.y) * 0.44
+	if weapon == &"lamina":
+		draw_rect(room.grow(400.0), Color(GOLD.r, GOLD.g, GOLD.b, 0.07 * alpha))
+		draw_set_transform(center, 0.0, Vector2(1.0, 0.56))
+		draw_arc(Vector2.ZERO, radius_base, 0.0, TAU, 72, Color(GOLD.r, GOLD.g, GOLD.b, 0.44 * alpha), 4.0, true)
+		draw_arc(Vector2.ZERO, radius_base * 0.72, 0.0, TAU, 64, Color(BONE.r, BONE.g, BONE.b, 0.34 * alpha), 2.5, true)
+		draw_arc(Vector2.ZERO, radius_base * 0.42, 0.0, TAU, 48, Color(GOLD.r, GOLD.g, GOLD.b, 0.50 * alpha), 3.0, true)
+		draw_set_transform(Vector2.ZERO)
+		for b_i: int in range(12):
+			var b_ang: float = float(b_i) * (TAU / 12.0) + t_pres * 0.35
+			var b_dir: Vector2 = Vector2.RIGHT.rotated(b_ang)
+			var b_perp: Vector2 = b_dir.orthogonal()
+			var r_in: float = radius_base * 0.46
+			var r_out: float = radius_base * 0.98
+			var blade_poly := PackedVector2Array([
+				center + Vector2(b_dir.x * r_in, b_dir.y * r_in * 0.56),
+				center + Vector2((b_dir * ((r_in + r_out) * 0.5) + b_perp * 11.0).x, (b_dir * ((r_in + r_out) * 0.5) + b_perp * 11.0).y * 0.56),
+				center + Vector2(b_dir.x * r_out, b_dir.y * r_out * 0.56),
+				center + Vector2((b_dir * ((r_in + r_out) * 0.5) - b_perp * 11.0).x, (b_dir * ((r_in + r_out) * 0.5) - b_perp * 11.0).y * 0.56),
+			])
+			draw_colored_polygon(blade_poly, Color(GOLD.r, GOLD.g, GOLD.b, 0.24 * alpha))
+			draw_polyline(_closed(blade_poly), Color(BONE.r, BONE.g, BONE.b, 0.46 * alpha), 2.0, true)
+		for s_i: int in range(6):
+			var sy: float = room.position.y + fmod(float(s_i) * 235.0 + t_pres * 48.0, room.size.y)
+			var sx0: float = room.position.x + fmod(float(s_i) * 410.0, room.size.x * 0.5)
+			var s_dir: Vector2 = Vector2.RIGHT.rotated(-0.35 + float(s_i % 2) * 0.7)
+			draw_line(Vector2(sx0, sy) - s_dir * 260.0, Vector2(sx0, sy) + s_dir * 420.0, Color(GOLD.r, GOLD.g, GOLD.b, 0.22 * alpha), 3.0, true)
+			draw_line(Vector2(sx0, sy) - s_dir * 180.0, Vector2(sx0, sy) + s_dir * 320.0, Color(BONE.r, BONE.g, BONE.b, 0.28 * alpha), 1.5, true)
+	elif weapon == &"ressonancia":
+		var cyan: Color = Color("38bdf8")
+		var cyan_hi: Color = Color("bae6fd")
+		draw_rect(room.grow(400.0), Color(0.06, 0.16, 0.26, 0.16 * alpha))
+		draw_set_transform(center, 0.0, Vector2(1.0, 0.58))
+		draw_arc(Vector2.ZERO, radius_base, 0.0, TAU, 72, Color(cyan.r, cyan.g, cyan.b, 0.46 * alpha), 4.0, true)
+		draw_arc(Vector2.ZERO, radius_base * 0.76, 0.0, TAU, 64, Color(GOLD.r, GOLD.g, GOLD.b, 0.42 * alpha), 2.5, true)
+		draw_arc(Vector2.ZERO, radius_base * 0.48, 0.0, TAU, 48, Color(cyan_hi.r, cyan_hi.g, cyan_hi.b, 0.44 * alpha), 3.0, true)
+		var sq_a := PackedVector2Array()
+		var sq_b := PackedVector2Array()
+		for qi: int in range(4):
+			var ang_a: float = float(qi) * (TAU * 0.25) + t_pres * 0.55
+			var ang_b: float = float(qi) * (TAU * 0.25) - t_pres * 0.55 + PI * 0.25
+			sq_a.append(Vector2.RIGHT.rotated(ang_a) * (radius_base * 0.76))
+			sq_b.append(Vector2.RIGHT.rotated(ang_b) * (radius_base * 0.76))
+		draw_polyline(_closed(sq_a), Color(cyan.r, cyan.g, cyan.b, 0.45 * alpha), 3.0, true)
+		draw_polyline(_closed(sq_b), Color(GOLD.r, GOLD.g, GOLD.b, 0.45 * alpha), 3.0, true)
+		for oi: int in range(8):
+			var oa: float = float(oi) * (TAU / 8.0) + t_pres * 1.1
+			var arc_r: float = radius_base * (0.58 if oi % 2 == 0 else 0.88)
+			draw_arc(Vector2.ZERO, arc_r, oa - 0.26, oa + 0.26, 12, Color(cyan_hi.r, cyan_hi.g, cyan_hi.b, 0.55 * alpha), 4.0, true)
+			var orb_pt: Vector2 = Vector2.RIGHT.rotated(oa) * arc_r
+			draw_circle(orb_pt, 8.0, Color(GOLD.r, GOLD.g, GOLD.b, 0.55 * alpha))
+		draw_set_transform(Vector2.ZERO)
+	elif weapon == &"pactos":
+		# Vórtice dos Mil Pactos: cúpula sombria, grande espiral Uzumaki no chão e olhos/sombras ao redor
+		draw_rect(room.grow(400.0), Color(0.05, 0.02, 0.09, 0.34 * alpha))
+		draw_set_transform(center, 0.0, Vector2(1.0, 0.56))
+		draw_circle(Vector2.ZERO, radius_base * 0.92, Color(0.03, 0.01, 0.06, 0.38 * alpha))
+		for arm_i: int in range(4):
+			var spiral := PackedVector2Array()
+			var base_ang: float = float(arm_i) * (TAU * 0.25) + t_pres * 1.35
+			for si: int in range(28):
+				var tf: float = float(si) / 27.0
+				var sr: float = lerpf(radius_base * 0.94, 24.0, tf)
+				var sa: float = base_ang + tf * 4.8
+				spiral.append(Vector2.RIGHT.rotated(sa) * sr)
+			var sp_col: Color = Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, 0.44 * alpha) if arm_i % 2 == 0 else Color(GOLD.r, GOLD.g, GOLD.b, 0.36 * alpha)
+			draw_polyline(spiral, Color(INK.r, INK.g, INK.b, 0.70 * alpha), 8.0, true)
+			draw_polyline(spiral, sp_col, 3.2, true)
+		draw_arc(Vector2.ZERO, radius_base * 0.96, 0.0, TAU, 72, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, 0.45 * alpha), 4.0, true)
+		draw_arc(Vector2.ZERO, radius_base * 0.62, 0.0, TAU, 56, Color(GOLD.r, GOLD.g, GOLD.b, 0.40 * alpha), 2.5, true)
+		for ri: int in range(12):
+			var ra: float = float(ri) * (TAU / 12.0) - t_pres * 0.8
+			var rd: Vector2 = Vector2.RIGHT.rotated(ra)
+			draw_line(rd * (radius_base * 0.56), rd * (radius_base * 0.68), Color(GOLD.r, GOLD.g, GOLD.b, 0.48 * alpha), 3.0, true)
+		draw_set_transform(Vector2.ZERO)
+		# Olhos e sombras sutis ao redor do perímetro da arena
+		for eye_i: int in range(12):
+			var e_ang: float = float(eye_i) * (TAU / 12.0) + 0.18
+			var e_pos: Vector2 = center + Vector2(cos(e_ang) * (room.size.x * 0.42), sin(e_ang) * (room.size.y * 0.40))
+			var blink: float = 0.45 + 0.55 * sin(t_pres * 1.9 + float(eye_i) * 1.35)
+			var ew: float = 22.0
+			var eh: float = 9.0 * clampf(blink, 0.18, 1.0)
+			draw_circle(e_pos, 30.0, Color(0.03, 0.01, 0.06, 0.30 * alpha))
+			var eye_poly := PackedVector2Array([
+				e_pos + Vector2(-ew, 0.0),
+				e_pos + Vector2(0.0, -eh),
+				e_pos + Vector2(ew, 0.0),
+				e_pos + Vector2(0.0, eh),
+			])
+			draw_colored_polygon(eye_poly, Color(INK.r, INK.g, INK.b, 0.68 * alpha))
+			draw_polyline(_closed(eye_poly), Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, 0.42 * alpha), 1.8, true)
+			draw_circle(e_pos, 4.2, Color(GOLD.r, GOLD.g, GOLD.b, 0.62 * blink * alpha))
+	elif weapon == &"guardiao":
+		var bronze: Color = Color("b07d3c")
+		draw_rect(room.grow(400.0), Color(0.18, 0.12, 0.04, 0.14 * alpha))
+		draw_set_transform(center, 0.0, Vector2(1.0, 0.56))
+		var hex_out := PackedVector2Array()
+		var hex_in := PackedVector2Array()
+		var rot_g: float = t_pres * 0.25
+		for hi: int in range(6):
+			var ha: float = rot_g + float(hi) * (TAU / 6.0)
+			hex_out.append(Vector2.RIGHT.rotated(ha) * radius_base)
+			hex_in.append(Vector2.RIGHT.rotated(ha + PI / 6.0) * (radius_base * 0.68))
+		draw_colored_polygon(hex_out, Color(GOLD.r, GOLD.g, GOLD.b, 0.08 * alpha))
+		draw_polyline(_closed(hex_out), Color(GOLD.r, GOLD.g, GOLD.b, 0.50 * alpha), 5.0, true)
+		draw_polyline(_closed(hex_in), Color(bronze.r, bronze.g, bronze.b, 0.48 * alpha), 4.0, true)
+		draw_arc(Vector2.ZERO, radius_base * 0.86, 0.0, TAU, 48, Color(GOLD.r, GOLD.g, GOLD.b, 0.38 * alpha), 3.0, true)
+		for ri: int in range(16):
+			var r_ang: float = float(ri) * (TAU / 16.0) - t_pres * 0.55
+			draw_arc(Vector2.ZERO, radius_base * 1.06, r_ang - 0.10, r_ang + 0.10, 6, Color(bronze.r, bronze.g, bronze.b, 0.52 * alpha), 6.0, true)
+			draw_arc(Vector2.ZERO, radius_base * 1.06, r_ang - 0.06, r_ang + 0.06, 4, Color(GOLD.r, GOLD.g, GOLD.b, 0.56 * alpha), 3.0, true)
+		draw_set_transform(Vector2.ZERO)
+	else:
+		# &"veu": eclipse negro com anel violeta-ciano no centro e feixes estelares escuros
+		var viol: Color = Color("7c3aed")
+		var cyan_v: Color = Color("7dd3fc")
+		draw_rect(room.grow(400.0), Color(0.03, 0.02, 0.07, 0.28 * alpha))
+		draw_set_transform(center, 0.0, Vector2(1.0, 0.58))
+		for ray_i: int in range(14):
+			var r_ang: float = float(ray_i) * (TAU / 14.0) + t_pres * 0.22
+			var r_dir: Vector2 = Vector2.RIGHT.rotated(r_ang)
+			var r_perp: Vector2 = r_dir.orthogonal()
+			var r_len: float = radius_base * (1.28 if ray_i % 2 == 0 else 1.02)
+			var beam := PackedVector2Array([
+				r_dir * (radius_base * 0.32) - r_perp * 10.0,
+				r_dir * r_len - r_perp * 26.0,
+				r_dir * r_len + r_perp * 26.0,
+				r_dir * (radius_base * 0.32) + r_perp * 10.0,
+			])
+			draw_colored_polygon(beam, Color(INK.r, INK.g, INK.b, 0.36 * alpha))
+			draw_line(r_dir * (radius_base * 0.34), r_dir * r_len, Color(cyan_v.r, cyan_v.g, cyan_v.b, 0.24 * alpha) if ray_i % 2 == 0 else Color(viol.r, viol.g, viol.b, 0.26 * alpha), 2.5, true)
+		draw_circle(Vector2.ZERO, radius_base * 0.36, Color(INK.r, INK.g, INK.b, 0.72 * alpha))
+		draw_arc(Vector2.ZERO, radius_base * 0.37, 0.0, TAU, 56, Color(viol.r, viol.g, viol.b, 0.62 * alpha), 5.0, true)
+		draw_arc(Vector2.ZERO, radius_base * 0.40, 0.0, TAU, 56, Color(cyan_v.r, cyan_v.g, cyan_v.b, 0.48 * alpha), 2.5, true)
+		draw_set_transform(Vector2.ZERO)
+
+func _draw_exit_doors(room: Rect2, session: Variant, t_pres: float) -> void:
+	var doors_raw: Variant = session.get("exit_doors")
+	if not (doors_raw is Array):
+		return
+	var doors_arr: Array = doors_raw as Array
+	if doors_arr.is_empty():
+		return
+	var cleared_raw: Variant = session.get("room_cleared")
+	var room_cleared: bool = bool(cleared_raw) if cleared_raw != null else session.enemies.is_empty()
+	var active_raw: Variant = session.get("active_door_index")
+	var active_idx: int = int(active_raw) if active_raw != null else -1
+	var font: Font = ThemeDB.fallback_font
+	for d_i: int in range(doors_arr.size()):
+		var porta_raw: Variant = doors_arr[d_i]
+		if not (porta_raw is Dictionary):
+			continue
+		var porta: Dictionary = porta_raw as Dictionary
+		var pos_raw: Variant = porta.get("pos", Vector2(room.size.x * 0.5, 78.0))
+		var d_pos: Vector2 = pos_raw if pos_raw is Vector2 else Vector2(room.size.x * 0.5, 78.0)
+		var cor_raw: Variant = porta.get("cor", GOLD)
+		var d_col: Color = GOLD
+		if cor_raw is Color:
+			d_col = cor_raw
+		elif cor_raw is String and not String(cor_raw).is_empty():
+			d_col = Color(String(cor_raw))
+		var nome: String = String(porta.get("nome", "Próxima Câmara"))
+		var tag: String = String(porta.get("recompensa_tag", ""))
+		var is_portal: bool = bool(porta.get("is_region_portal", false))
+		var is_active: bool = room_cleared and (d_i == active_idx)
+		var pulse: float = 0.5 + 0.5 * sin(t_pres * 3.4 + float(d_i) * 1.1)
+		var arch_w: float = 148.0 if is_portal else 128.0
+		var arch_h: float = 124.0 if is_portal else 112.0
+		# Feixe luminoso ascendendo quando a sala está limpa
+		if room_cleared:
+			var beam_alpha: float = (0.28 + 0.14 * pulse) if is_active else (0.14 + 0.06 * pulse)
+			var beam_poly := PackedVector2Array([
+				d_pos + Vector2(-arch_w * 0.36, 4.0),
+				d_pos + Vector2(-arch_w * 0.56, -220.0),
+				d_pos + Vector2(arch_w * 0.56, -220.0),
+				d_pos + Vector2(arch_w * 0.36, 4.0),
+			])
+			draw_colored_polygon(beam_poly, Color(d_col.r, d_col.g, d_col.b, beam_alpha))
+			# Halo elíptico no piso diante da porta
+			draw_set_transform(d_pos + Vector2(0.0, 14.0), 0.0, Vector2(1.0, 0.44))
+			draw_circle(Vector2.ZERO, 96.0 + (12.0 if is_active else 0.0) + pulse * 8.0, Color(d_col.r, d_col.g, d_col.b, 0.24 if is_active else 0.12))
+			if is_active:
+				draw_arc(Vector2.ZERO, 88.0 + pulse * 6.0, 0.0, TAU, 36, Color(GOLD.r, GOLD.g, GOLD.b, 0.90), 3.5, true)
+			draw_set_transform(Vector2.ZERO)
+		# Moldura de pedra do arco do portal
+		var stone_outer := Rect2(d_pos + Vector2(-arch_w * 0.5 - 14.0, -arch_h), Vector2(arch_w + 28.0, arch_h + 10.0))
+		draw_rect(stone_outer, INK)
+		draw_rect(Rect2(stone_outer.position + Vector2(4.0, 4.0), stone_outer.size - Vector2(8.0, 8.0)), Color("262b38"))
+		draw_rect(stone_outer, GOLD if is_active else Color(d_col.r, d_col.g, d_col.b, 0.72 if room_cleared else 0.28), false, 3.0 if is_active else 2.0)
+		var inner_rect := Rect2(d_pos + Vector2(-arch_w * 0.5, -arch_h + 16.0), Vector2(arch_w, arch_h - 14.0))
+		if room_cleared:
+			var core_a: float = (0.86 + 0.14 * pulse) if is_active else (0.58 + 0.14 * pulse)
+			draw_rect(inner_rect, Color(0.05, 0.06, 0.10, 0.92))
+			draw_rect(inner_rect.grow(-6.0), Color(d_col.r, d_col.g, d_col.b, core_a * 0.42))
+			draw_rect(inner_rect.grow(-18.0), Color(d_col.r, d_col.g, d_col.b, core_a * 0.75))
+			draw_rect(Rect2(d_pos.x - 10.0, inner_rect.position.y + 12.0, 20.0, inner_rect.size.y - 20.0), Color(1.0, 0.97, 0.88, core_a * 0.78))
+		else:
+			draw_rect(inner_rect, Color(INK.r, INK.g, INK.b, 0.95))
+			draw_rect(inner_rect.grow(-8.0), Color(d_col.r, d_col.g, d_col.b, 0.14), false, 2.0)
+		# Placa estilizada acima do portal
+		if font != null:
+			var plaque_w: float = 236.0
+			var plaque_h: float = 48.0 if is_active else 44.0
+			var plaque_pos: Vector2 = d_pos + Vector2(-plaque_w * 0.5, -arch_h - plaque_h - 8.0)
+			var plaque_rect := Rect2(plaque_pos, Vector2(plaque_w, plaque_h))
+			var p_alpha: float = 0.94 if room_cleared else 0.52
+			draw_rect(plaque_rect, Color(0.055, 0.062, 0.095, 0.90 * p_alpha))
+			draw_rect(plaque_rect, Color(GOLD.r, GOLD.g, GOLD.b, 0.95) if is_active else Color(d_col.r, d_col.g, d_col.b, 0.72 * p_alpha), false, 2.5 if is_active else 1.5)
+			var tag_txt: String = "[%s]" % tag if not tag.is_empty() else "[SAÍDA]"
+			var tag_col: Color = GOLD if is_portal else d_col
+			draw_string(font, plaque_pos + Vector2(0.0, 19.0), tag_txt, HORIZONTAL_ALIGNMENT_CENTER, plaque_w, 15, Color(tag_col.r, tag_col.g, tag_col.b, p_alpha))
+			draw_string(font, plaque_pos + Vector2(0.0, 38.0), nome, HORIZONTAL_ALIGNMENT_CENTER, plaque_w, 14, Color(BONE.r, BONE.g, BONE.b, p_alpha))
+			if is_active:
+				var prompt_y: float = plaque_pos.y - 8.0 - pulse * 3.0
+				draw_string(font, Vector2(plaque_pos.x + 1.5, prompt_y + 1.5), "[E] ENTRAR", HORIZONTAL_ALIGNMENT_CENTER, plaque_w, 16, INK)
+				draw_string(font, Vector2(plaque_pos.x, prompt_y), "[E] ENTRAR", HORIZONTAL_ALIGNMENT_CENTER, plaque_w, 16, GOLD)
+
+func _draw_prop_entity(prop: Dictionary) -> void:
+	var kind: String = String(prop.get("kind", "estatua_guardiao"))
+	var pos_raw: Variant = prop.get("pos", Vector2.ZERO)
+	var pos: Vector2 = pos_raw if pos_raw is Vector2 else Vector2.ZERO
+	var esc: float = float(prop.get("scale", 1.0))
+	var flip: bool = bool(prop.get("flip", false))
+	var tex: Texture2D = _env_textures.get("prop_" + kind, null)
+	if tex != null:
+		var t_size: Vector2 = tex.get_size()
+		var base_h: float = 212.0 if kind == "estatua_guardiao" else 204.0
+		var h: float = base_h * esc
+		var aspect: float = t_size.x / maxf(1.0, t_size.y)
+		var w: float = h * aspect
+		draw_set_transform(pos, 0.0, Vector2(-1.0 if flip else 1.0, 1.0))
+		draw_texture_rect(tex, Rect2(-w * 0.5, -h + 10.0, w, h), false)
+		draw_set_transform(Vector2.ZERO)
+		return
+	var fb_h: float = 190.0 * esc
+	var fb_w: float = 46.0 * esc
+	draw_rect(Rect2(pos.x - fb_w * 0.5, pos.y - fb_h, fb_w, fb_h), Color("2b303d"))
+	draw_rect(Rect2(pos.x - fb_w * 0.5, pos.y - fb_h, fb_w, fb_h), INK, false, 3.0)
+
+func _draw_interactive_entity(inter: Dictionary, _idx: int, is_active: bool, t_pres: float) -> void:
+	var kind: String = String(inter.get("kind", "monolito_lore"))
+	var pos_raw: Variant = inter.get("pos", Vector2.ZERO)
+	var pos: Vector2 = pos_raw if pos_raw is Vector2 else Vector2.ZERO
+	var usado: bool = bool(inter.get("usado", false))
+	var halo_col: Color = Color("34d399")
+	var prompt_txt: String = "[E] Ler Eco"
+	var target_h: float = 150.0
+	match kind:
+		"monolito_lore":
+			halo_col = Color("34d399")
+			prompt_txt = "[E] Ler Eco"
+			target_h = 150.0
+		"fonte_cura":
+			halo_col = Color("5eead4")
+			prompt_txt = "[E] Beber"
+			target_h = 132.0
+		"bau_reliquia":
+			halo_col = GOLD
+			prompt_txt = "[E] Abrir"
+			target_h = 132.0
+		"altar_pacto":
+			halo_col = MAGENTA
+			prompt_txt = "[E] Selar Pacto"
+			target_h = 150.0
+	var pulse: float = 0.5 + 0.5 * sin(t_pres * 3.0 + pos.x * 0.015)
+	if not usado:
+		draw_set_transform(pos + Vector2(0.0, 4.0), 0.0, Vector2(1.0, 0.46))
+		draw_circle(Vector2.ZERO, 64.0 + pulse * 10.0, Color(halo_col.r, halo_col.g, halo_col.b, 0.14 + pulse * 0.08))
+		if kind == "fonte_cura":
+			draw_arc(Vector2.ZERO, 52.0 + pulse * 6.0, 0.0, TAU, 32, Color(GOLD.r, GOLD.g, GOLD.b, 0.45), 2.0, true)
+		if is_active:
+			draw_arc(Vector2.ZERO, 58.0 + pulse * 5.0, 0.0, TAU, 36, Color(GOLD.r, GOLD.g, GOLD.b, 0.92), 3.5, true)
+			draw_arc(Vector2.ZERO, 44.0, 0.0, TAU, 32, Color(halo_col.r, halo_col.g, halo_col.b, 0.85), 2.0, true)
+		draw_set_transform(Vector2.ZERO)
+	var mod_col: Color = Color(0.62, 0.62, 0.68, 0.86) if usado else Color.WHITE
+	var tex: Texture2D = _env_textures.get("prop_" + kind, null)
+	if tex != null:
+		var t_size: Vector2 = tex.get_size()
+		var aspect: float = t_size.x / maxf(1.0, t_size.y)
+		var w: float = target_h * aspect
+		draw_texture_rect(tex, Rect2(pos.x - w * 0.5, pos.y - target_h + 10.0, w, target_h), false, mod_col)
+	else:
+		draw_circle(pos + Vector2(0.0, -48.0), 34.0, Color(halo_col.r, halo_col.g, halo_col.b, 0.35 if usado else 0.75))
+		draw_arc(pos + Vector2(0.0, -48.0), 34.0, 0.0, TAU, 24, INK, 3.0, true)
+	if is_active and not usado:
+		var font: Font = ThemeDB.fallback_font
+		if font != null:
+			var bob_y: float = sin(t_pres * 4.2) * 3.5
+			var b_w: float = 176.0
+			var b_h: float = 30.0
+			var b_rect := Rect2(pos.x - b_w * 0.5, pos.y - target_h - 32.0 + bob_y, b_w, b_h)
+			draw_rect(b_rect, Color(0.055, 0.062, 0.095, 0.92))
+			draw_rect(b_rect, Color(GOLD.r, GOLD.g, GOLD.b, 0.92), false, 2.0)
+			draw_string(font, b_rect.position + Vector2(0.0, 21.0), prompt_txt, HORIZONTAL_ALIGNMENT_CENTER, b_w, 15, GOLD)
+
+func _draw_pactos_orbit_spheres(center_pos: Vector2, count: int, t_pres: float, front_pass: bool) -> void:
+	var orbit_c: Vector2 = center_pos + Vector2(0.0, -44.0)
+	for i: int in range(count):
+		var ang: float = t_pres * 1.45 + float(i) * (TAU / float(count))
+		var is_front: bool = sin(ang) >= 0.0
+		if is_front != front_pass:
+			continue
+		var bob: float = sin(t_pres * 3.0 + float(i) * 1.7) * 4.0
+		var sp: Vector2 = orbit_c + Vector2(cos(ang) * 46.0, sin(ang) * 18.0 + bob)
+		draw_circle(sp, 11.5, Color(0.05, 0.02, 0.09, 0.42))
+		draw_circle(sp, 9.0, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, 0.36))
+		draw_circle(sp, 7.2, INK)
+		draw_circle(sp, 4.4, MAGENTA)
+		draw_circle(sp - Vector2(1.5, 1.5), 2.0, MAGENTA_BRIGHT)
+
+func _draw_allied_curse(curse: Dictionary, pos: Vector2, t_pres: float) -> void:
+	var species: String = String(curse.get("species", "vulto_mudo"))
+	var curr_raw: Variant = curse.get("pos", pos)
+	var curr_p: Vector2 = curr_raw if curr_raw is Vector2 else pos
+	var prev_raw: Variant = curse.get("prev", curr_p)
+	var prev_p: Vector2 = prev_raw if prev_raw is Vector2 else curr_p
+	var aim_raw: Variant = curse.get("aim", Vector2.DOWN)
+	var aim_v: Vector2 = aim_raw if aim_raw is Vector2 else Vector2.DOWN
+	var delta: Vector2 = curr_p - prev_p
+	var look: Vector2 = delta.normalized() if delta.length_squared() > 0.04 else (aim_v.normalized() if aim_v != Vector2.ZERO else Vector2.DOWN)
+	var dir_suffix: String = "costas34" if look.y < -0.15 else "frente34"
+	var flip_x: float = -1.0 if look.x < -0.05 else 1.0
+	var action: String = "run" if delta.length_squared() > 0.04 else "idle"
+	# Anel de pacto magenta-ouro sob os pés para distinguir claramente dos inimigos
+	draw_set_transform(pos, 0.0, Vector2(1.0, 0.42))
+	draw_arc(Vector2.ZERO, 28.0, 0.0, TAU, 32, Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, 0.72), 2.5, true)
+	draw_arc(Vector2.ZERO, 21.0, 0.0, TAU, 28, Color(GOLD.r, GOLD.g, GOLD.b, 0.65), 1.8, true)
+	for ti: int in range(3):
+		var ta: float = t_pres * 2.2 + float(ti) * (TAU / 3.0)
+		var td: Vector2 = Vector2.RIGHT.rotated(ta)
+		draw_line(td * 21.0, td * 30.0, Color(GOLD.r, GOLD.g, GOLD.b, 0.78), 2.2, true)
+	draw_set_transform(Vector2.ZERO)
+	if _frames_by_actor.has(species):
+		var frames: SpriteFrames = _frames_by_actor[species]
+		var anim_name: String = action + "_" + dir_suffix
+		if not frames.has_animation(anim_name):
+			anim_name = "idle_" + dir_suffix
+		_draw_actor_sprite(species, anim_name, pos, flip_x, 0.88, t_pres, -1.0, Color(0.84, 0.72, 1.0, 0.94))
+		return
+	# Fallback estilizado de maldição aliada
+	var wisp_y: float = sin(t_pres * 4.5 + pos.x * 0.03) * 4.0
+	var body := PackedVector2Array([
+		pos + Vector2(-18.0, -4.0),
+		pos + Vector2(-22.0, -28.0 + wisp_y),
+		pos + Vector2(0.0, -48.0 + wisp_y),
+		pos + Vector2(22.0, -28.0 + wisp_y),
+		pos + Vector2(18.0, -4.0),
+	])
+	draw_colored_polygon(body, Color(0.14, 0.09, 0.22, 0.95))
+	draw_polyline(_closed(body), INK, 4.0, true)
+	draw_polyline(_closed(body), Color(MAGENTA.r, MAGENTA.g, MAGENTA.b, 0.65), 1.8, true)
+	draw_circle(pos + Vector2(-6.0 * flip_x, -26.0 + wisp_y), 3.0, GOLD)
+	draw_circle(pos + Vector2(6.0 * flip_x, -26.0 + wisp_y), 3.0, MAGENTA_BRIGHT)
 
 func _sector(pos: Vector2, angle: float, half: float, radius: float) -> PackedVector2Array:
 	var points := PackedVector2Array([pos])

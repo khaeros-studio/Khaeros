@@ -72,6 +72,19 @@ var boss_intro_duration: float = 2.6
 var boss_intro_data: Dictionary = {}
 var _boss_intro_landed: bool = false
 var _last_boss_intro_key: String = ""
+var codex: CodexHistoria = CodexHistoria.new()
+var prologo_visto: bool = false
+var prologo_ato: int = 0
+var codex_aba: int = 0
+var codex_scroll: int = 0
+var lore_popup_ativo: bool = false
+var lore_popup_data: Dictionary = {}
+var domain_banner_timer: float = 0.0
+var domain_banner_nome: String = ""
+var _camera_room_size: Vector2 = Vector2.ZERO
+var evento_toast_timer: float = 0.0
+var evento_toast_titulo: String = ""
+var evento_toast_texto: String = ""
 
 ## Canal de eventos do passo (ADR-0002).
 var eventos := EventosDoPasso.new()
@@ -108,6 +121,14 @@ func ordem_dos_consumidores() -> Array[StringName]:
 	for c: ConsumidorDeEventos in consumidores:
 		r.append(&"save" if c is Save else c.get("nome"))
 	return r
+
+func _em_ambiente_de_teste() -> bool:
+	if DisplayServer.get_name() == "headless":
+		return true
+	for arg: String in OS.get_cmdline_args():
+		if arg.contains("GdUnit") or arg.contains("gdUnit4") or arg.contains("tests/"):
+			return true
+	return false
 
 func _ready() -> void:
 	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
@@ -146,7 +167,7 @@ func _ready() -> void:
 	_registrar_dados_base_e_chefe()
 	_inicializar_meta()
 	session.include_boss_in_final_wave = true
-	session.extended_campaign = DisplayServer.get_name() != "headless"
+	session.extended_campaign = not _em_ambiente_de_teste()
 	_preparar_audio_p0()
 	_compor_passo()
 	ready_to_play = true
@@ -165,6 +186,15 @@ func _physics_process(_delta: float) -> void:
 	if not ready_to_play:
 		return
 	_espelhar_estado()
+	if lore_popup_ativo:
+		if session.state != "jogo":
+			lore_popup_ativo = false
+		else:
+			last_sample = controls.sample(false, camera)
+			_handle_lore_popup(last_sample)
+			_espelhar_estado()
+			sync_context()
+			return
 	if boss_intro_timer > 0.0 and session.state == "jogo":
 		var intro_sample: Dictionary = controls.sample(false, camera)
 		last_sample = intro_sample
@@ -194,6 +224,7 @@ func _physics_process(_delta: float) -> void:
 		_handle_ui(last_sample)
 	else:
 		_atualizar_aliado_mvp()
+		_tratar_interacao_na_sala()
 		_tocar_sfx_dos_efeitos()
 		_atualizar_fragmentos_meta(estado_antes)
 		_atualizar_quests_e_narrativa()
@@ -237,18 +268,35 @@ func _process(delta: float) -> void:
 	if not ready_to_play:
 		hud.queue_redraw()
 		return
-	var presentation_delta := minf(delta, 0.1)
+	var presentation_delta: float = minf(delta, 0.1)
 	screen_age += presentation_delta
 	if quest_toast_timer > 0.0:
 		quest_toast_timer = maxf(0.0, quest_toast_timer - presentation_delta)
+	if evento_toast_timer > 0.0:
+		evento_toast_timer = maxf(0.0, evento_toast_timer - presentation_delta)
 	if narrativa_timer > 0.0:
 		narrativa_timer = maxf(0.0, narrativa_timer - presentation_delta)
+	if domain_banner_timer > 0.0:
+		domain_banner_timer = maxf(0.0, domain_banner_timer - presentation_delta)
 	orquestrador.quadro(delta)
-	session.advance_presentation(presentation_delta)
+	if not lore_popup_ativo:
+		session.advance_presentation(presentation_delta)
 	_espelhar_estado()
 	if session.wave_index != observed_wave and not session.player.is_empty():
 		observed_wave = session.wave_index
 		camera.cut(session.player.pos)
+	if session.state == "jogo" and session.data is Dictionary and session.data.has("arena") and not session.player.is_empty():
+		var arena_raw: Variant = session.data.get("arena")
+		if arena_raw is Dictionary:
+			var arena_dict: Dictionary = arena_raw
+			var cur_sz: Vector2 = Vector2(float(arena_dict.get("largura", 0.0)), float(arena_dict.get("altura", 0.0)))
+			if cur_sz.x > 0.0 and cur_sz.y > 0.0 and cur_sz != _camera_room_size:
+				camera.configure(catalog.data.camera, Rect2(0.0, 0.0, cur_sz.x, cur_sz.y))
+				camera.base_zoom = 1.12
+				camera.top_margin = 145.0
+				camera.bottom_margin = 115.0
+				camera.cut(session.player.pos)
+				_camera_room_size = cur_sz
 	sync_context()
 	_verificar_intro_chefe()
 	if boss_intro_timer > 0.0:
@@ -285,7 +333,7 @@ func _process(delta: float) -> void:
 		camera.update(presentation_delta, session.player.prev, session.player.pos,
 			Engine.get_physics_interpolation_fraction(), last_sample.get("aim", Vector2.UP),
 			last_sample.get("source", "mouse"), last_sample.get("cursor", Vector2(camera.width / 2, 540)),
-			session.state != "jogo")
+			session.state != "jogo" or lore_popup_ativo)
 	else:
 		camera.base_zoom = 1.12
 	get_viewport().canvas_transform = camera.transform
@@ -306,6 +354,28 @@ func sync_context() -> void:
 	screen_age = 0
 	controls.set_context(context)
 
+func _iniciar_nova_run() -> void:
+	_aplicar_arma_na_sessao()
+	_resetar_intro_chefe()
+	lore_popup_ativo = false
+	lore_popup_data = {}
+	domain_banner_timer = 0.0
+	domain_banner_nome = ""
+	evento_toast_timer = 0.0
+	session.start_region_index = selected_region_index
+	session.start()
+	_reiniciar_aliado_mvp()
+	observed_wave = -1
+	var arena_w: float = float(session.data.arena.largura)
+	var arena_h: float = float(session.data.arena.altura)
+	_camera_room_size = Vector2(arena_w, arena_h)
+	camera.configure(catalog.data.camera, Rect2(0.0, 0.0, _camera_room_size.x, _camera_room_size.y))
+	camera.base_zoom = 1.12
+	camera.top_margin = 145.0
+	camera.bottom_margin = 115.0
+	camera.cut(session.player.pos)
+	_tocar_sfx(&"sfx_carta_confirmar")
+
 ## Executes the selected visible UI action; also used by integration tests.
 func activate(index: int) -> void:
 	if not ready_to_play:
@@ -313,14 +383,12 @@ func activate(index: int) -> void:
 	match session.state:
 		"menu":
 			if index == 0:
-				_aplicar_arma_na_sessao()
-				session.start_region_index = selected_region_index
-				session.start()
-				_resetar_intro_chefe()
-				_reiniciar_aliado_mvp()
-				observed_wave = -1
-				camera.cut(session.player.pos)
-				_tocar_sfx(&"sfx_carta_confirmar")
+				if not _em_ambiente_de_teste() and capture_mode == "" and not prologo_visto:
+					prologo_ato = 0
+					session.state = "prologo"
+					_tocar_sfx(&"sfx_carta_foco")
+				else:
+					_iniciar_nova_run()
 			elif index == 1:
 				reduced_motion = not reduced_motion
 				_tocar_sfx(&"sfx_carta_foco")
@@ -340,8 +408,21 @@ func activate(index: int) -> void:
 				var total_regioes: int = maxi(1, CatalogoCampanha.regioes().size())
 				selected_region_index = (selected_region_index + 1) % total_regioes
 				_tocar_sfx(&"sfx_carta_foco")
+			elif index == 6:
+				codex_aba = 0
+				codex_scroll = 0
+				session.state = "codex"
+				_tocar_sfx(&"sfx_carta_foco")
+		"codex":
+			if index >= 0 and index <= 3:
+				codex_aba = index
+				codex_scroll = 0
+				_tocar_sfx(&"sfx_carta_foco")
+			elif index == 4:
+				session.state = "menu"
+				_tocar_sfx(&"sfx_carta_foco")
 		"oficina":
-			var ids := OficinaDeReforja.ids_melhorias()
+			var ids: Array[StringName] = OficinaDeReforja.ids_melhorias()
 			if index >= 0 and index < ids.size():
 				if oficina.comprar(ids[index], conta_meta):
 					_tocar_sfx(&"sfx_carta_confirmar")
@@ -362,13 +443,7 @@ func activate(index: int) -> void:
 				session.choose_blessing(index)
 		"morte", "vitoria":
 			if index == 0:
-				_aplicar_arma_na_sessao()
-				session.start_region_index = selected_region_index
-				session.start()
-				_resetar_intro_chefe()
-				_reiniciar_aliado_mvp()
-				observed_wave = -1
-				camera.cut(session.player.pos)
+				_iniciar_nova_run()
 			else:
 				session.state = "menu"
 	_espelhar_estado()
@@ -382,13 +457,19 @@ func _handle_ui(sample: Dictionary) -> void:
 		else:
 			session.pause()
 		return
+	if session.state == "prologo":
+		_handle_prologo_ui(sample, pressed)
+		return
+	if session.state == "codex":
+		_handle_codex_ui(sample, pressed)
+		return
 	if session.state in ["campus", "mestres"]:
 		_handle_campus_ui(sample, pressed)
 		return
 	var boxes: Array[Rect2] = hud.action_rects()
 	if boxes.is_empty():
 		return
-	var old_selected := selected
+	var old_selected: int = selected
 	if pressed.get("ui_right", false) or pressed.get("ui_down", false):
 		selected = (selected + 1) % boxes.size()
 	if pressed.get("ui_left", false) or pressed.get("ui_up", false):
@@ -417,6 +498,149 @@ func _handle_ui(sample: Dictionary) -> void:
 	elif pressed.get("ui_voltar", false) and session.state == "pausa":
 		# B does not close the pause root; Esc/Start use pausar above.
 		selected = old_selected
+
+func _handle_prologo_ui(sample: Dictionary, pressed: Dictionary) -> void:
+	if bool(pressed.get("ui_voltar", false)) or bool(pressed.get("pausar", false)):
+		prologo_visto = true
+		_iniciar_nova_run()
+		_espelhar_estado()
+		sync_context()
+		return
+	if bool(pressed.get("ui_left", false)):
+		if prologo_ato > 0:
+			prologo_ato = maxi(0, prologo_ato - 1)
+			_tocar_sfx(&"sfx_carta_foco")
+		return
+	var avancar: bool = (
+		bool(pressed.get("ui_aceitar", false))
+		or bool(pressed.get("ui_right", false))
+		or bool(sample.get("mouse_click", false))
+	)
+	if avancar:
+		prologo_ato += 1
+		if prologo_ato >= CodexHistoria.prologo_atos().size():
+			prologo_visto = true
+			_iniciar_nova_run()
+			_espelhar_estado()
+			sync_context()
+		else:
+			_tocar_sfx(&"sfx_carta_foco")
+
+func _max_codex_scroll() -> int:
+	match codex_aba:
+		0:
+			return maxi(0, CodexHistoria.doutrinas_codex().size() - 3)
+		1:
+			return maxi(0, CodexHistoria.todos_ecos().size() - 4)
+		2:
+			return maxi(0, CodexHistoria.bestiario().size() - 3)
+		3:
+			return maxi(0, quests.todas_quests().size() - 6)
+	return 0
+
+func _handle_codex_ui(sample: Dictionary, pressed: Dictionary) -> void:
+	if bool(pressed.get("ui_voltar", false)) or bool(pressed.get("pausar", false)):
+		session.state = "menu"
+		_tocar_sfx(&"sfx_carta_foco")
+		_espelhar_estado()
+		sync_context()
+		return
+	if bool(pressed.get("ui_left", false)):
+		codex_aba = posmod(codex_aba - 1, 4)
+		codex_scroll = 0
+		_tocar_sfx(&"sfx_carta_foco")
+		return
+	if bool(pressed.get("ui_right", false)):
+		codex_aba = posmod(codex_aba + 1, 4)
+		codex_scroll = 0
+		_tocar_sfx(&"sfx_carta_foco")
+		return
+	if bool(pressed.get("ui_up", false)):
+		codex_scroll = maxi(0, codex_scroll - 1)
+	if bool(pressed.get("ui_down", false)):
+		codex_scroll = mini(_max_codex_scroll(), codex_scroll + 1)
+	var boxes: Array[Rect2] = hud.action_rects()
+	if not boxes.is_empty():
+		if bool(sample.get("mouse_moved", false)):
+			var cursor_raw: Variant = sample.get("cursor", Vector2.ZERO)
+			var cursor_pos: Vector2 = cursor_raw if cursor_raw is Vector2 else Vector2.ZERO
+			for i: int in range(boxes.size()):
+				if boxes[i].has_point(cursor_pos):
+					selected = i
+		if bool(sample.get("mouse_click", false)):
+			var click_raw: Variant = sample.get("click_cursor", sample.get("cursor", Vector2.ZERO))
+			var click_pos: Vector2 = click_raw if click_raw is Vector2 else Vector2.ZERO
+			for i: int in range(boxes.size()):
+				if boxes[i].has_point(click_pos):
+					selected = i
+					activate(i)
+					return
+	if bool(pressed.get("ui_aceitar", false)) and selected == 4:
+		activate(4)
+
+func _handle_lore_popup(sample: Dictionary) -> void:
+	var pressed_raw: Variant = sample.get("pressed", {})
+	var pressed: Dictionary = pressed_raw if pressed_raw is Dictionary else {}
+	var fechar: bool = (
+		bool(pressed.get("ui_aceitar", false))
+		or bool(pressed.get("ui_voltar", false))
+		or bool(pressed.get("interagir", false))
+		or bool(pressed.get("pausar", false))
+		or bool(pressed.get("ataque", false))
+		or bool(sample.get("mouse_click", false))
+	)
+	if fechar:
+		lore_popup_ativo = false
+		controls.set_context("jogo")
+		controls.clear()
+		_tocar_sfx(&"sfx_carta_foco")
+
+func _ativar_evento_toast(titulo: String, texto: String) -> void:
+	evento_toast_titulo = titulo
+	evento_toast_texto = texto
+	evento_toast_timer = 3.2
+
+func _tratar_interacao_na_sala() -> void:
+	if session.state != "jogo" or boss_intro_timer > 0.0 or lore_popup_ativo:
+		return
+	var pressed_raw: Variant = last_sample.get("pressed", {})
+	var pressed: Dictionary = pressed_raw if pressed_raw is Dictionary else {}
+	if not bool(pressed.get("interagir", false)):
+		return
+	if not session.has_method("interagir_na_sala"):
+		return
+	var res_raw: Variant = session.call("interagir_na_sala")
+	if not (res_raw is Dictionary):
+		return
+	var res: Dictionary = res_raw
+	var tipo: String = String(res.get("tipo", ""))
+	if tipo.is_empty():
+		return
+	match tipo:
+		"lore":
+			var eco_id: String = String(res.get("eco_id", ""))
+			var eco: Dictionary = CodexHistoria.obter_eco(eco_id)
+			if not eco.is_empty():
+				codex.descobrir_eco(eco_id)
+				lore_popup_ativo = true
+				lore_popup_data = eco
+				controls.set_context("codex")
+				controls.clear()
+				_tocar_sfx(&"sfx_carta_confirmar")
+		"bau":
+			var frag: int = int(res.get("frag", 25))
+			if conta_meta != null and frag > 0:
+				conta_meta.creditar(ContaFragmentos.PORTA, frag)
+			_ativar_evento_toast("TESOURO DA FENDA", "Relíquia Antiga: +12%% Dano e +%d Frag." % frag)
+			_tocar_sfx(&"sfx_carta_confirmar")
+		"cura":
+			_ativar_evento_toast("SANTUÁRIO DE FLUXO", "Fonte de Fluxo: +45 de Vida Restaurada")
+			_tocar_sfx(&"sfx_carta_confirmar")
+		"pacto":
+			_ativar_evento_toast("ALTAR DO PACTO", "Pacto Sombrio: +22% Dano e +15% Crítico")
+			_tocar_sfx(&"sfx_acerto_pesado")
+		"porta":
+			_tocar_sfx(&"sfx_carta_foco")
 
 func _handle_campus_ui(sample: Dictionary, pressed: Dictionary) -> void:
 	if pressed.get("ui_voltar", false) or pressed.get("pausar", false):
@@ -451,14 +675,7 @@ func _handle_campus_ui(sample: Dictionary, pressed: Dictionary) -> void:
 				falar_mestre_ativo = true
 				_tocar_sfx(&"sfx_carta_foco")
 			CampusHub.ZONA_PORTAL:
-				_aplicar_arma_na_sessao()
-				session.start_region_index = selected_region_index
-				session.start()
-				_resetar_intro_chefe()
-				_reiniciar_aliado_mvp()
-				observed_wave = -1
-				camera.cut(session.player.pos)
-				_tocar_sfx(&"sfx_carta_confirmar")
+				_iniciar_nova_run()
 				_espelhar_estado()
 				sync_context()
 
@@ -471,6 +688,7 @@ func _notification(what: int) -> void:
 		_sair()
 		return
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and ready_to_play:
+		lore_popup_ativo = false
 		controls.clear()
 		# Perda de foco em JOGO ou BENCAO vira PAUSA (ADR-0001, EX-0001-5); MENU não muda.
 		if session.state in ["jogo", "bencao"]:
@@ -481,6 +699,7 @@ func _notification(what: int) -> void:
 		sync_context()
 
 func _on_device_disconnected(_id: int = -1) -> void:
+	lore_popup_ativo = false
 	if session.state in ["jogo", "bencao"]:
 		session.pause()
 	elif session.state == "transicao":
@@ -589,6 +808,8 @@ func _reiniciar_aliado_mvp() -> void:
 
 
 func _atualizar_aliado_mvp() -> void:
+	if bool(session.get("extended_campaign")):
+		return
 	if selected_weapon != &"pactos" or session.player.is_empty():
 		return
 	companion_prev = companion_pos
@@ -726,6 +947,8 @@ func _atualizar_quests_e_narrativa() -> void:
 		for _i: int in range(diff_selos):
 			var concluidas_selo: Array[Dictionary] = quests.registrar_selo()
 			_aplicar_quests_concluidas(concluidas_selo)
+		domain_banner_timer = 1.9
+		domain_banner_nome = CodexHistoria.nome_dominio(selected_weapon)
 		camera.impulse(Vector2.UP, 2.0)
 		_tocar_sfx(&"sfx_acerto_pesado")
 	var urns_raw = session.get("urns_broken_total")
@@ -747,10 +970,11 @@ func _atualizar_quests_e_narrativa() -> void:
 				fala = String(reg.get("nome", "O Limiar"))
 			narrativa_texto = fala
 			narrativa_timer = 3.6
-			var reg_pilares_raw = reg.get("pilares", null)
-			if reg_pilares_raw is Array and session.data is Dictionary and session.data.has("arena"):
-				var arena_dict: Dictionary = session.data["arena"]
-				arena_dict["pilares"] = reg_pilares_raw
+			if session.get("mapa") == null:
+				var reg_pilares_raw = reg.get("pilares", null)
+				if reg_pilares_raw is Array and session.data is Dictionary and session.data.has("arena"):
+					var arena_dict: Dictionary = session.data["arena"]
+					arena_dict["pilares"] = reg_pilares_raw
 
 
 func _resetar_intro_chefe() -> void:
@@ -761,7 +985,7 @@ func _resetar_intro_chefe() -> void:
 
 
 func _verificar_intro_chefe() -> void:
-	if DisplayServer.get_name() == "headless" or session.state != "jogo":
+	if _em_ambiente_de_teste() or session.state != "jogo":
 		return
 	var boss: Dictionary = {}
 	for e: Dictionary in session.enemies:

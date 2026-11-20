@@ -1,16 +1,28 @@
 {
-	"status": "runtime_ready",
-	"canvas": [400, 400],
-	"pivot": [200, 320],
-	"logical_size": 94.0,
-	"animations": {
-		"idle_frente34": { "scale": 0.4087, "frames": 6, "loop": true, "fps": 12 },
-		"virote_frente34": { "scale": 0.4087, "frames": 6, "loop": false, "fps": 12 },
-		"idle_costas34": { "scale": 0.4087, "frames": 6, "loop": true, "fps": 12 },
-		"virote_costas34": { "scale": 0.4087, "frames": 6, "loop": false, "fps": 12 },
-		"chamado_frente34": { "scale": 0.4087, "frames": 6, "loop": false, "fps": 12 },
-		"troca_frente34": { "scale": 0.4087, "frames": 4, "loop": false, "fps": 12 },
-		"chamado_costas34": { "scale": 0.4087, "frames": 6, "loop": false, "fps": 12 },
-		"troca_costas34": { "scale": 0.4087, "frames": 4, "loop": false, "fps": 12 }
-	}
+  "actor": "iniciado_pactos",
+  "status": "runtime_ready",
+  "canvas": [400, 400],
+  "pivot": [200, 320],
+  "cell_size": 400,
+  "columns": 4,
+  "rows": 2,
+  "animations": {
+    "idle_frente34": {"scale": 0.43},
+    "run_frente34": {"scale": 0.43},
+    "attack1_frente34": {"scale": 0.43},
+    "attack_frente34": {"scale": 0.43},
+    "virote_frente34": {"scale": 0.43},
+    "chamado_frente34": {"scale": 0.43},
+    "troca_frente34": {"scale": 0.43},
+    "hurt_frente34": {"scale": 0.43},
+    "idle_costas34": {"scale": 0.43},
+    "run_costas34": {"scale": 0.43},
+    "attack1_costas34": {"scale": 0.43},
+    "attack_costas34": {"scale": 0.43},
+    "virote_costas34": {"scale": 0.43},
+    "chamado_costas34": {"scale": 0.43},
+    "troca_costas34": {"scale": 0.43},
+    "death_frente34": {"scale": 0.43},
+    "death_costas34": {"scale": 0.43}
+  }
 }
